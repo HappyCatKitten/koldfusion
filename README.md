@@ -75,6 +75,9 @@ Twelve parody web sites from the dot-com boom, hosted the way IIS hosted virtual
 `wwwroot/sites/<name>/` and answers at `http://<name>.localhost:8500/` (also at `http://localhost:8500/sites/<name>/`).
 Start at the ring hub, http://localhost:8500/web1999/.
 
+**They're also live on GitHub Pages: https://happycatkitten.github.io/web1999/** (repository
+[HappyCatKitten/web1999](https://github.com/HappyCatKitten/web1999), kept in step with `python3 tools/sync_web1999.py ../web1999`).
+
 | Site | A takeoff of | Highlights |
 |---|---|---|
 | Yowza! | Yahoo! | 124 directory categories, 352 invented sites, search, Suggest a Site, My Yowza! |
