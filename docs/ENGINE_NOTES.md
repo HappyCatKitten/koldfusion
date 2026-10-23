@@ -41,11 +41,11 @@ OUTPUT @Total), GetEmployee (RAISERROR). Existing databases get missing seed pro
 cfset cfoutput (query/group/startrow/maxrows) cfif/cfelseif/cfelse cfloop (index/from/to/step, condition, query, list,
 collection) cfbreak cfabort cfexit cfparam cfinclude cfmodule cfassociate cfswitch/cfcase/cfdefaultcase cftry/cfcatch
 cfthrow cfrethrow cfscript cfsetting cfsilent cfprocessingdirective cflocation cfcookie cfheader cfcontent cfhtmlhead
-cfapplication (session/client/application) cflock cferror cfcache (page caching to disk) cfquery (cachedwithin, maxrows) cfqueryparam
+cfapplication (session/client/application) cflock cferror cfcache (page caching to disk; CLIENTCACHE/OPTIMAL browser caching with 304s) cfquery (cachedwithin, maxrows) cfqueryparam
 cftransaction cfinsert cfupdate cfstoredproc/cfprocparam/cfprocresult cfobjectcache (RETURNCODE -> CFSTOREDPROC.StatusCode,
 CFSTOREDPROC.ExecutionTime, DBVARNAME binds by name) cfmail/cfmailparam (spooled to kfroot/mail/spool) cffile (upload, read,
 readbinary, write, append, copy, move, rename, delete) cfdirectory cfregistry cfhttp/cfhttpparam (http:// only) cfschedule
-cfexecute cfwddx cfpop cfftp (passive-mode client) cfldap(error) cfobject(error) cfservlet(error) cfreport(error) cfindex cfsearch
+cfexecute cfwddx cfpop (GetAll decodes MIME, saves attachments to ATTACHMENTPATH) cfftp (passive-mode client, ASCII/binary/auto) cfldap(error) cfobject(error) cfservlet(error) cfreport(error) cfindex cfsearch
 cfcollection cfauthenticate cfimpersonate cfform cfinput cfselect cftextinput cfslider cfgrid/cfgridcolumn/cfgridrow/
 cfgridupdate cftree/cftreeitem cfapplet cftable/cfcol, custom tags (cf_name, cfmodule; Attributes/Caller/ThisTag),
 CFX tags (cfx_hello, cfx_dice, cfx_sysinfo).
