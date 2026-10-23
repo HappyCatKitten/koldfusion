@@ -1,0 +1,33 @@
+1. hashtable size=2 name=Ben hasAge=YES missing=[]
+2. stringbuffer [Hello, World] length=12 reverse=dlroW ,olleH
+3. math max=7 max2=2.5 abs=5 pow=1024 PI=3.14159265359
+4. vector size=3 elementAt=b subList isArray=YES len=2 list=a,b
+5. hashtable clone isStruct=YES inner.x=1
+6. string upper=HÉLLO WÖRLD length=11 indexOf=6 char=h split=héllo|wörld
+7. static company=Gibson Mainframe Co. headCount=0
+8. init name=Ben Forta first=Ben headCount=1
+9. fields salary=50000 raise=55000 name=Ben Forta-Smith
+10. overloads grade set to number 3 / grade set to letter B (2) / grade set to letter C (3)
+11. javacast variable grade set to number 4 grade=4 display=4 3.5 YES 12
+12. vector return CFML,Java array return Ben Forta-Smith
+13. exception type=Object message=Employee$EmployeeException
+    GetException code=42 message=A raise of 99.0% is not allowed (error 42)
+14. after a good call GetException is empty: []
+15. duplicate shares the Java object: Copy simple=NO struct=NO array=NO
+16. static field via class Calendar.YEAR=1
+17. varargs 00042|x valueOf=true
+18. CF array in, List out: c,b,a
+19. date getTime=0
+20. boolean YES NO
+21. cfscript first=apple keys=apple,zebra
+22. The method noSuchMethod could not be found in the Java class Employee.
+23. The method raise could not be found in the Java class Employee.
+24. Object Instantiation Exception. The Java class com.example.NoSuchClass could not be found.
+25. The field noSuchField could not be found in the Java class Employee.
+26. Unable to create an instance of java.lang.Runnable.
+27. java.lang.NumberFormatException
+28. The object of class Employee has already been initialized.
+29. Complex object types cannot be converted to simple values.
+30. IsDefined field=YES missing=NO
+31. array of objects n1n2n3
+32. struct -> Hashtable size=2 b=two

@@ -147,7 +147,7 @@ static int jvm_find(char *out, size_t n, char *src, size_t sn) {
         if (probe_glob_dir(d, out, n)) { snprintf(src, sn, "~/.local/jdk"); return 1; }
     }
     if (probe_glob_dir("/usr/java", out, n) || probe_glob_dir("/opt/java", out, n)) { snprintf(src, sn, "/usr/java"); return 1; }
-    snprintf(src, sn, "not found");
+    snprintf(src, sn, "looked at the Administrator setting, JAVA_HOME, java on the PATH, /usr/lib/jvm and ~/.local/jdk");
     return 0;
 }
 
@@ -251,7 +251,7 @@ static int jvm_create_locked(void) {
     if (g_state == -1) return 0;
     char lib[PATH_MAX], src[64];
     if (!jvm_find(lib, sizeof lib, src, sizeof src)) {
-        snprintf(g_error, sizeof g_error, "No Java Virtual Machine was found (%s). Set the Java Virtual Machine Path on the "
+        snprintf(g_error, sizeof g_error, "No Java Virtual Machine was found (KoldFusion %s). Set the Java Virtual Machine Path on the "
                  "Java page of the KoldFusion Administrator, or set JAVA_HOME.", src);
         return 0;
     }
@@ -506,8 +506,9 @@ jmethodID kfj_static_method(JNIEnv *env, jclass c, const char *name, const char 
 /* ================================================================ strings */
 /* CF strings are bytes; we treat them as UTF-8 (bytes that are not valid UTF-8 are taken as Latin-1) */
 jstring kfj_strn(JNIEnv *env, const char *s, size_t n) {
-    jchar stackbuf[256];
+    jchar stackbuf[256] = {0};
     jchar *u = n < 256 ? stackbuf : malloc(sizeof(jchar) * (n + 1));
+    u[0] = 0;
     size_t k = 0;
     const unsigned char *p = (const unsigned char *)s, *e = p + n;
     while (p < e) {
@@ -535,7 +536,7 @@ jstring kfj_str(JNIEnv *env, const char *s) { return kfj_strn(env, s ? s : "", s
 char *kfj_cstr(JNIEnv *env, jstring s) {
     if (!s) return kstrdup("");
     jsize n = j_GetStringLength(env, s);
-    jchar stackbuf[256];
+    jchar stackbuf[256] = {0};
     jchar *u = n < 256 ? stackbuf : malloc(sizeof(jchar) * (n + 1));
     j_GetStringRegion(env, s, 0, n, u);
     char *out = kmalloc((size_t)n * 3 + 1), *o = out;
@@ -659,7 +660,8 @@ typedef struct JParam { int kind; int boxed; jclass cls; } JParam;
 typedef struct JMember {
     char *name;
     int np; JParam *p;
-    int is_static, bridge;
+    int is_static, bridge, varargs;
+    JParam vcomp;                   /* varargs: the element type of the last parameter */
     jobject ref;                    /* global: Method / Constructor / Field */
     JParam type;                    /* fields */
 } JMember;
@@ -696,6 +698,15 @@ static JParam classify(JNIEnv *env, jclass p) {
     else if (j_IsAssignableFrom(env, R.Hashtable, p)) r.kind = K_MAP;      /* Hashtable, Map, Dictionary */
     else if (j_IsAssignableFrom(env, R.Date, p)) r.kind = K_DATE;
     return r;
+}
+
+static void set_varargs(JNIEnv *env, JMember *m, int mods) {
+    if (!(mods & 0x80) || m->np < 1 || m->p[m->np - 1].kind != K_ARRAY) return;   /* ACC_VARARGS (Java 5) */
+    jclass comp = j_CallObjectMethodA(env, m->p[m->np - 1].cls, R.getComponentType, NULL);
+    if (!comp) return;
+    m->varargs = 1;
+    m->vcomp = classify(env, comp);
+    j_DeleteLocalRef(env, comp);
 }
 
 static void params_of(JNIEnv *env, jobject member, jmethodID getter, JMember *m) {
@@ -757,6 +768,7 @@ static JClassInfo *jci_build(JNIEnv *env, jclass cls, const char *name) {
         jm->is_static = (mods & 0x8) != 0;
         jm->bridge = (mods & 0x40) != 0;
         params_of(env, m, R.Method_getParameterTypes, jm);
+        set_varargs(env, jm, mods);
         jclass dc = j_CallObjectMethodA(env, m, R.Method_getDeclaringClass, NULL);
         int dmods = dc ? j_CallIntMethodA(env, dc, R.Class_getModifiers, NULL) : 1;
         if (!(dmods & 0x1) && !jm->is_static) m = public_equivalent(env, cls, m);
@@ -774,6 +786,7 @@ static JClassInfo *jci_build(JNIEnv *env, jclass cls, const char *name) {
         jobject m = j_GetObjectArrayElement(env, cs, i);
         ci->ct[i].name = pstrdup("<init>");
         params_of(env, m, R.Ctor_getParameterTypes, &ci->ct[i]);
+        set_varargs(env, &ci->ct[i], j_CallIntMethodA(env, m, R.Ctor_getModifiers, NULL));
         ci->ct[i].ref = j_NewGlobalRef(env, m);
         j_PopLocalFrame(env, NULL);
     }
@@ -1145,30 +1158,36 @@ static double score_arg(JNIEnv *env, Val v, int hint, JParam *p) {
 /* best member by name (NULL = constructors), argument count and type score; *ambiguous when two different
  * signatures tie; *named counts members with that name at all (for the error message) */
 static JMember *choose(JNIEnv *env, JMember *ms, int n, const char *name, int argc, Val *argv, int *hints,
-                       int *ambiguous, int *named) {
+                       int *ambiguous, int *named, int *packed) {
     JMember *best = NULL;
     double bests = -1;
-    *ambiguous = 0; *named = 0;
+    *ambiguous = 0; *named = 0; *packed = 0;
     for (int i = 0; i < n; i++) {
         JMember *m = &ms[i];
         if (name && kf_stricmp(m->name, name)) continue;
         (*named)++;
-        if (m->np != argc) continue;
-        double total = 0;
-        int ok = 1;
-        for (int a = 0; a < argc; a++) {
-            double s = score_arg(env, argv[a], hints[a], &m->p[a]);
-            if (s <= 0) { ok = 0; break; }
-            total += s;
-        }
-        if (!ok) continue;
-        if (m->bridge) total -= 0.5;
-        if (name && !strcmp(m->name, name)) total += 0.1;
-        if (total > bests + 1e-9) { best = m; bests = total; *ambiguous = 0; }
+        /* exact arity, or a varargs method with the trailing arguments packed into its array */
+        for (int pack = 0; pack < 2; pack++) {
+            if (!pack && m->np != argc) continue;
+            if (pack && (!m->varargs || argc < m->np - 1)) continue;
+            double total = 0;
+            int ok = 1;
+            for (int a = 0; a < argc; a++) {
+                JParam *pp = pack && a >= m->np - 1 ? &m->vcomp : &m->p[a];
+                double sc = score_arg(env, argv[a], hints[a], pp);
+                if (sc <= 0) { ok = 0; break; }
+                total += sc;
+            }
+            if (!ok) continue;
+            if (pack) total = total * 0.9 - 1;           /* prefer a fixed-arity match */
+            if (m->bridge) total -= 0.5;
+            if (name && !strcmp(m->name, name)) total += 0.1;
+            if (total > bests + 1e-9) { best = m; bests = total; *ambiguous = 0; *packed = pack; }
         else if (fabs(total - bests) < 1e-9 && best) {
             int same = best->np == m->np;
             for (int a = 0; same && a < argc; a++) if (best->p[a].kind != m->p[a].kind) same = 0;
             if (!same) *ambiguous = 1;
+            }
         }
     }
     return best;
@@ -1300,7 +1319,26 @@ static void ensure_constructed(JNIEnv *env, KfObject *o, int *ok, const char **w
     if (g) j_DeleteGlobalRef(env, g);
 }
 
-static jobjectArray build_args(JNIEnv *env, JMember *m, int argc, Val *argv, int *hints) {
+static jobjectArray build_args(JNIEnv *env, JMember *m, int argc, Val *argv, int *hints, int packed) {
+    if (packed) {
+        int nf = m->np - 1;
+        jobjectArray arr = j_NewObjectArray(env, m->np, R.Object, NULL);
+        for (int i = 0; arr && i < nf && !j_ExceptionCheck(env); i++) {
+            jobject a = to_param(env, argv[i], hints[i], &m->p[i]);
+            j_SetObjectArrayElement(env, arr, i, a);
+            if (a) j_DeleteLocalRef(env, a);
+        }
+        jvalue a[3];
+        a[0].l = m->vcomp.cls; a[1].i = argc - nf;
+        jobject va = j_CallStaticObjectMethodA(env, R.RArray, R.Array_newInstance, a);
+        for (int i = nf; va && i < argc && !j_ExceptionCheck(env); i++) {
+            a[0].l = va; a[1].i = i - nf; a[2].l = to_param(env, argv[i], hints[i], &m->vcomp);
+            j_CallStaticObjectMethodA(env, R.RArray, R.Array_set, a);
+            if (a[2].l) j_DeleteLocalRef(env, a[2].l);
+        }
+        if (arr) j_SetObjectArrayElement(env, arr, nf, va);
+        return arr;
+    }
     jobjectArray arr = j_NewObjectArray(env, argc, R.Object, NULL);
     for (int i = 0; arr && i < argc && !j_ExceptionCheck(env); i++) {
         jobject a = to_param(env, argv[i], hints[i], &m->p[i]);
@@ -1386,7 +1424,8 @@ Val java_invoke(Ctx *c, Expr *call, Val ov, const char *mname) {
     int amb = 0, named = 0;
     if (is_init && !o->inst) {
         /* obj.init(args) runs a constructor, as in ColdFusion 4.5 */
-        JMember *ct = choose(env, jc->ct, jc->nct, NULL, argc, argv, hints, &amb, &named);
+        int packed = 0;
+        JMember *ct = choose(env, jc->ct, jc->nct, NULL, argc, argv, hints, &amb, &named, &packed);
         if (!ct)
             jerr(&err, kprintf("No constructor of %s takes %d argument%s of the given types.", cname, argc, argc == 1 ? "" : "s"),
                  kprintf("The class has %d public constructor%s. Arguments: (%s). Use JavaCast() to choose a constructor.",
@@ -1397,7 +1436,7 @@ Val java_invoke(Ctx *c, Expr *call, Val ov, const char *mname) {
                          cname, argtypes(argc, argv, hints)));
         else {
             jvalue a[1];
-            a[0].l = build_args(env, ct, argc, argv, hints);
+            a[0].l = build_args(env, ct, argc, argv, hints, packed);
             jobject inst = j_ExceptionCheck(env) ? NULL : j_CallObjectMethodA(env, ct->ref, R.Ctor_newInstance, a);
             if (!jerr_java(env, &err, kprintf("The constructor of %s", cname)) && inst) {
                 jobject g = j_NewGlobalRef(env, inst);
@@ -1409,7 +1448,8 @@ Val java_invoke(Ctx *c, Expr *call, Val ov, const char *mname) {
             }
         }
     } else {
-        JMember *m = choose(env, jc->m, jc->nm, mname, argc, argv, hints, &amb, &named);
+        int packed = 0;
+        JMember *m = choose(env, jc->m, jc->nm, mname, argc, argv, hints, &amb, &named, &packed);
         if (!m && is_init)
             jerr(&err, kprintf("The object of class %s has already been initialized.", cname),
                  "init() calls a constructor and can only be used once, before any other method of the object is called.");
@@ -1433,7 +1473,7 @@ Val java_invoke(Ctx *c, Expr *call, Val ov, const char *mname) {
             } else {
                 jvalue a[2];
                 a[0].l = m->is_static ? NULL : o->inst;
-                a[1].l = build_args(env, m, argc, argv, hints);
+                a[1].l = build_args(env, m, argc, argv, hints, packed);
                 jobject r = j_ExceptionCheck(env) ? NULL : j_CallObjectMethodA(env, m->ref, R.Method_invoke, a);
                 if (!jerr_java(env, &err, kprintf("The method %s of %s", m->name, cname))) {
                     result = to_cf(env, r, 0);

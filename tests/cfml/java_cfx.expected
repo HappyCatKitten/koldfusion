@@ -1,0 +1,9 @@
+Hello, Les
+variable set: Hello, Ben! Greetings from Java x.y inside KoldFusion.
+stats count=3 sum=161000 min=48000 max=61000 avg=53666.67
+input query changed: FORTA,ALLAIRE,GIBSON
+new query columns=NAME,VALUE rows&gt;0=YES
+missing attribute: An error occurred while processing CFX_JAVAHELLO: Missing attribute (NAME is a required attribute for this tag)
+bad TIMES: An error occurred while processing CFX_JAVAHELLO: TIMES must be between 1 and 100
+bad query: The query nosuchquery passed to CFX_JAVAQUERY was not found.
+bad column: An error occurred while processing CFX_JAVAQUERY: The query q has no column named Nope

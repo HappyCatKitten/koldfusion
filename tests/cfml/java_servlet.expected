@@ -1,0 +1,25 @@
+output starts: <FONT FACE="Arial, Helvetica" SIZE="2"> <B>Hello, Ben!</B> T
+contains greeting: YES
+header X-Servlet=HelloServlet/1.0 Content-Type=text/html status=200
+visits after the servlet: 5
+<TABLE BORDER=1 CELLPADDING=2 CELLSPACING=0>
+<TR><TD><FONT FACE="Arial" SIZE="2"><B>Request information</B></FONT></TD><TD><FONT FACE="Arial" SIZE="2"></FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">Servlet engine</FONT></TD><TD><FONT FACE="Arial" SIZE="2">KoldFusion Servlet Runner/4.5 (Servlet API 2.2; in-process, like JRun 3.0)</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">Request method</FONT></TD><TD><FONT FACE="Arial" SIZE="2">GET</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">Request URI</FONT></TD><TD><FONT FACE="Arial" SIZE="2">/servlet/SnoopServlet</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">Request protocol</FONT></TD><TD><FONT FACE="Arial" SIZE="2">HTTP/1.0</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">Servlet path</FONT></TD><TD><FONT FACE="Arial" SIZE="2">/servlet/SnoopServlet</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">Query string</FONT></TD><TD><FONT FACE="Arial" SIZE="2"><I>none</I></FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">Server name</FONT></TD><TD><FONT FACE="Arial" SIZE="2">localhost</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">Server port</FONT></TD><TD><FONT FACE="Arial" SIZE="2">8500</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">Remote address</FONT></TD><TD><FONT FACE="Arial" SIZE="2">127.0.0.1</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">Scheme</FONT></TD><TD><FONT FACE="Arial" SIZE="2">http</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2"><B>Parameters</B></FONT></TD><TD><FONT FACE="Arial" SIZE="2"></FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">color</FONT></TD><TD><FONT FACE="Arial" SIZE="2">teal</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2"><B>Attributes</B></FONT></TD><TD><FONT FACE="Arial" SIZE="2"></FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">when</FONT></TD><TD><FONT FACE="Arial" SIZE="2">5.0 <I>(java.lang.Double)</I></FONT></TD></TR>
+<TR><TD><FONT FACE="Arial" SIZE="2">tags</FONT></TD><TD><FONT FACE="Arial" SIZE="2">[cfml, java] <I>(java.util.Vector)</I></FONT></TD></TR>
+</TABLE>
+The servlet class NoSuchServlet could not be found.
+Attribute validation error for tag CFSERVLETPARAM.
+Attribute validation error for tag CFSERVLETPARAM.
