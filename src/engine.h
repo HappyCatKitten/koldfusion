@@ -415,6 +415,11 @@ struct HttpReq {
     double started_ms;
     int internal;
     const char *docroot;
+    /* HTTP/1.1 keep-alive and SSL (http.c, netio.h) */
+    struct KfConn *conn;     /* the connection this request arrived on */
+    int secure;              /* came in over SSL */
+    int http11, keep_alive, head, nreq;
+    int resp_status; size_t resp_bytes;
 };
 int  http_serve(void);
 int  http_client(const char *method, const char *url, Struct *hdrs, const char *body, size_t bodylen,

@@ -3,10 +3,16 @@
  *
  * ColdFusion 4.5 sat behind IIS/Netscape/Apache via a connector stub. We
  * fold the web server in: static files are served directly, .cfm/.cfml/.dbm
- * go to the engine. HTTP/1.0, one request per connection, like it's 1999.
+ * go to the engine. HTTP/1.1 with persistent connections (and HTTP/1.0
+ * keep-alive, as Netscape 4 and IE 4 spoke it), plus an SSL listener when
+ * OpenSSL can be loaded at run time (tls.c). The CFHTTP client is in httpc.c.
+ *
+ * One thread per connection. Every read and write has a deadline (netio.c),
+ * so idle keep-alive connections and slow clients cannot pin threads forever.
  */
 #define _GNU_SOURCE
 #include "engine.h"
+#include "netio.h"
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
@@ -25,13 +31,15 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <math.h>
+#include <poll.h>
 
 #define SERVER_SOFTWARE "KoldFusion/4.5.1 (Unix)"
 #define MAX_BODY (64 * 1024 * 1024)
 
 static sem_t req_sem;
 static pthread_mutex_t stats_mu = PTHREAD_MUTEX_INITIALIZER;
-static int listen_fd = -1;
+static int listen_fd = -1, ssl_listen_fd = -1;
+static int open_conns;                       /* connections being served (stats_mu) */
 Struct *g_server_scope;
 Arena *g_server_arena;
 
@@ -138,35 +146,91 @@ const char *mime_type_for(const char *path) {
     return "application/octet-stream";
 }
 
-static int write_all(int fd, const char *p, size_t n) {
-    while (n) {
-        ssize_t w = write(fd, p, n);
-        if (w < 0) { if (errno == EINTR) continue; return -1; }
-        p += w; n -= (size_t)w;
-    }
-    return 0;
-}
-
 static const char *status_text(int code) {
     switch (code) {
     case 200: return "OK"; case 201: return "Created"; case 204: return "No Content";
     case 301: return "Moved Permanently"; case 302: return "Object Moved"; case 304: return "Not Modified";
+    case 100: return "Continue"; case 206: return "Partial Content"; case 303: return "See Other";
+    case 307: return "Temporary Redirect";
     case 400: return "Bad Request"; case 401: return "Unauthorized"; case 403: return "Forbidden";
-    case 404: return "Object Not Found"; case 405: return "Method Not Allowed"; case 500: return "Internal Server Error";
-    case 503: return "Service Unavailable";
+    case 404: return "Object Not Found"; case 405: return "Method Not Allowed"; case 408: return "Request Timeout";
+    case 411: return "Length Required"; case 413: return "Request Entity Too Large"; case 417: return "Expectation Failed";
+    case 500: return "Internal Server Error"; case 501: return "Not Implemented"; case 503: return "Service Unavailable";
+    case 505: return "HTTP Version Not Supported";
     }
     return "Unknown";
 }
 
-static void simple_response(int fd, int code, const char *title, const char *body) {
+/* Web server settings (Administrator > Web Server & SSL), read once per connection */
+typedef struct WebCfg { int keepalive, ka_timeout, ka_max, header_timeout, max_conns; } WebCfg;
+static void web_cfg(WebCfg *w) {
+    w->keepalive = cfg_int(REG_SERVER, "KeepAlive", 1);
+    w->ka_timeout = cfg_int(REG_SERVER, "KeepAliveTimeout", 15);
+    w->ka_max = cfg_int(REG_SERVER, "KeepAliveMaxRequests", 100);
+    w->header_timeout = cfg_int(REG_SERVER, "HeaderTimeout", 20);
+    w->max_conns = cfg_int(REG_SERVER, "MaxConnections", 400);
+    if (w->ka_timeout < 1) w->ka_timeout = 1;
+    if (w->ka_max < 1) w->ka_max = 1;
+    if (w->header_timeout < 1) w->header_timeout = 1;
+    if (w->max_conns < 1) w->max_conns = 1;
+}
+static __thread WebCfg t_web;                 /* the current connection's settings */
+
+void http_install_defaults(void) {
+    static const char *D[][2] = {{"KeepAlive", "1"}, {"KeepAliveTimeout", "15"}, {"KeepAliveMaxRequests", "100"},
+                                 {"HeaderTimeout", "20"}, {"MaxConnections", "400"}, {NULL, NULL}};
+    for (int i = 0; D[i][0]; i++)
+        if (!reg_exists(cfg_key(REG_SERVER), D[i][0])) cfg_set(REG_SERVER, D[i][0], D[i][1]);
+}
+
+/* Every response goes out through here: the status line in the client's HTTP
+ * version, Date, Server, a Content-Length that is always right (no body is
+ * sent for HEAD, 204 and 304), and the Connection/Keep-Alive headers. */
+static void send_response(KfConn *c, HttpReq *req, int code, const char *reason, const char *extra,
+                          const char *ctype, const char *body, size_t blen) {
+    Buf h; buf_init(&h);
+    int v11 = req && req->http11;
+    buf_printf(&h, "HTTP/1.%d %d %s\r\nServer: %s\r\nDate: %s\r\n", v11, code, reason && *reason ? reason : status_text(code),
+               SERVER_SOFTWARE, http_date(time(NULL)));
+    if (extra) buf_puts(&h, extra);
+    int nobody = code == 204 || code == 304 || (code >= 100 && code < 200);
+    if (!nobody) {
+        if (ctype) buf_printf(&h, "Content-Type: %s\r\n", ctype);
+        buf_printf(&h, "Content-Length: %zu\r\n", blen);
+    }
+    if (req && req->keep_alive) {
+        if (!v11) buf_puts(&h, "Connection: keep-alive\r\n");
+        buf_printf(&h, "Keep-Alive: timeout=%d, max=%d\r\n", t_web.ka_timeout, t_web.ka_max - req->nreq);
+    } else buf_puts(&h, "Connection: close\r\n");
+    buf_puts(&h, "\r\n");
+    int with_body = !nobody && !(req && req->head) && body && blen;
+    kc_set_write_budget(c, h.len + (with_body ? blen : 0));
+    int rc;
+    if (with_body && blen <= 64 * 1024) { buf_put(&h, body, blen); rc = kc_write(c, h.s, h.len); }
+    else {
+        rc = kc_write(c, h.s, h.len);
+        if (!rc && with_body) rc = kc_write(c, body, blen);
+    }
+    if (req) {
+        req->resp_status = code;
+        req->resp_bytes = with_body ? blen : 0;
+        if (rc) req->keep_alive = 0;
+    }
+}
+
+static void simple_response(KfConn *c, HttpReq *req, int code, const char *title, const char *body) {
     char *html = kprintf("<HTML><HEAD><TITLE>%s</TITLE></HEAD>\n<BODY BGCOLOR=\"#FFFFFF\">\n<H2>HTTP %d - %s</H2>\n"
                          "<FONT FACE=\"Arial, Helvetica\" SIZE=\"2\">%s</FONT>\n<HR NOSHADE SIZE=1>\n"
                          "<FONT FACE=\"Arial, Helvetica\" SIZE=\"1\"><I>%s</I></FONT>\n</BODY></HTML>\n",
                          title, code, title, body, SERVER_SOFTWARE);
-    char *hdr = kprintf("HTTP/1.0 %d %s\r\nServer: %s\r\nDate: %s\r\nContent-Type: text/html\r\nContent-Length: %zu\r\n"
-                        "Connection: close\r\n\r\n", code, status_text(code), SERVER_SOFTWARE, http_date(time(NULL)), strlen(html));
-    write_all(fd, hdr, strlen(hdr));
-    write_all(fd, html, strlen(html));
+    send_response(c, req, code, NULL, NULL, "text/html", html, strlen(html));
+}
+
+static void redirect_response(KfConn *c, HttpReq *req, const char *loc) {
+    const char *esc = kf_html_escape(loc);
+    char *html = kprintf("<HTML><HEAD><TITLE>Object Moved</TITLE></HEAD><BODY>This object may be found "
+                         "<A HREF=\"%s\">here</A>.</BODY></HTML>\n", esc);
+    send_response(c, req, 302, NULL, kprintf("Location: %s\r\n", loc), "text/html", html, strlen(html));
 }
 
 /* ================================================================ parsing */
@@ -350,10 +414,38 @@ static const char *zoom_frameset(const char *body, size_t len, size_t *outlen, i
  * today's screens they are tiny, so every HTML page is served with a CSS zoom
  * (175% by default). Pop-up windows opened by the page are scaled to match, and
  * framesets get their pixel widths scaled while their frames do the zooming. */
+static int display_zoom(void) {
+    int zoom = cfg_int(REG_SERVER, "DisplayZoom", 175);
+    return zoom <= 0 ? 100 : zoom;
+}
+
+/* The zoom is injected into static HTML, so it is part of the cache validator: Last-Modified of an HTML file
+ * is never older than the moment the zoom setting took its current value (kept in the registry so it
+ * survives restarts), and the ETag carries the zoom. */
+static time_t zoom_since(int zoom) {
+    static pthread_mutex_t mu = PTHREAD_MUTEX_INITIALIZER;
+    static int cached_zoom = -1;
+    static time_t cached_since;
+    pthread_mutex_lock(&mu);
+    if (zoom != cached_zoom) {
+        int z = 0; long t = 0;
+        const char *v = cfg(REG_SERVER, "DisplayZoomSince", "");
+        if (sscanf(v, "%d:%ld", &z, &t) == 2 && z == zoom) cached_since = (time_t)t;
+        else {
+            cached_since = time(NULL);
+            cfg_set(REG_SERVER, "DisplayZoomSince", kprintf("%d:%ld", zoom, (long)cached_since));
+        }
+        cached_zoom = zoom;
+    }
+    time_t r = cached_since;
+    pthread_mutex_unlock(&mu);
+    return r;
+}
+
 static const char *apply_zoom(const char *body, size_t len, size_t *outlen) {
     *outlen = len;
-    int zoom = cfg_int(REG_SERVER, "DisplayZoom", 175);
-    if (zoom <= 0 || zoom == 100) return body;
+    int zoom = display_zoom();
+    if (zoom == 100) return body;
     const char *head = NULL;
     for (size_t i = 0; i + 9 < len && i < 4096; i++) {
         if (body[i] != '<') continue;
@@ -403,26 +495,31 @@ static char *suppress_whitespace(const char *s, size_t n, size_t *outlen) {
     return buf_cstr(&o);
 }
 
-static void send_engine_response(int fd, RState *rs) {
+static void send_engine_response(KfConn *conn, RState *rs) {
+    HttpReq *req = rs->http;
     Buf h; buf_init(&h);
     int status = rs->status ? rs->status : 200;
     const char *st = rs->status_text && *rs->status_text ? rs->status_text : status_text(status);
-    buf_printf(&h, "HTTP/1.0 %d %s\r\nServer: %s\r\nDate: %s\r\n", status, st, SERVER_SOFTWARE, http_date(time(NULL)));
     if (rs->location) buf_printf(&h, "Location: %s\r\n", rs->location);
     if (rs->setcookies)
         for (int i = 0; i < rs->setcookies->n; i++) buf_printf(&h, "Set-Cookie: %s\r\n", v_tostr(rs->setcookies->v[i]));
     if (rs->headers)
-        for (int i = 0; i < rs->headers->n; i++)
-            buf_printf(&h, "%s: %s\r\n", rs->headers->e[i].key, v_tostr(rs->headers->e[i].v));
+        for (int i = 0; i < rs->headers->n; i++) {
+            const char *k = rs->headers->e[i].key;
+            /* the server owns the message framing: a CFHEADER must not corrupt a kept-alive connection */
+            if (!kf_stricmp(k, "Content-Length") || !kf_stricmp(k, "Connection") || !kf_stricmp(k, "Transfer-Encoding") ||
+                !kf_stricmp(k, "Keep-Alive"))
+                continue;
+            buf_printf(&h, "%s: %s\r\n", k, v_tostr(rs->headers->e[i].v));
+        }
+    if (status >= 100 && status < 200) status = 200, st = "OK";          /* a final response is required */
 
     if (rs->content_file) {
         size_t len;
         char *data = kf_read_file(rs->content_file, &len);
         if (!data) { data = strdup(""); len = 0; }
-        buf_printf(&h, "Content-Type: %s\r\nContent-Length: %zu\r\nConnection: close\r\n\r\n",
-                   rs->content_type ? rs->content_type : mime_type_for(rs->content_file), len);
-        write_all(fd, h.s, h.len);
-        write_all(fd, data, len);
+        send_response(conn, req, status, st, buf_cstr(&h), rs->content_type ? rs->content_type : mime_type_for(rs->content_file),
+                      data, len);
         free(data);
         if (rs->content_delete) unlink(rs->content_file);
         return;
@@ -439,9 +536,7 @@ static void send_engine_response(int fd, RState *rs) {
     const char *ctype = rs->content_type ? rs->content_type : "text/html";
     if (rs->suppress_ws && !kf_strnicmp(ctype, "text/html", 9)) body = suppress_whitespace(body, blen, &blen);
     if (!kf_strnicmp(ctype, "text/html", 9)) body = apply_zoom(body, blen, &blen);
-    buf_printf(&h, "Content-Type: %s\r\nContent-Length: %zu\r\nConnection: close\r\n\r\n", ctype, blen);
-    write_all(fd, h.s, h.len);
-    write_all(fd, body, blen);
+    send_response(conn, req, status, st, buf_cstr(&h), ctype, body, blen);
 }
 
 /* ================================================================ dispatch */
@@ -459,7 +554,7 @@ static char *find_index(const char *dir) {
     return NULL;
 }
 
-static void directory_listing(int fd, const char *urlpath, const char *dir) {
+static void directory_listing(KfConn *c, HttpReq *req, const char *urlpath, const char *dir) {
     DIR *d = opendir(dir);
     Buf b; buf_init(&b);
     buf_printf(&b, "<HTML><HEAD><TITLE>%s - /</TITLE></HEAD><BODY BGCOLOR=\"#FFFFFF\"><H1>%s - %s</H1><HR><PRE>",
@@ -478,33 +573,63 @@ static void directory_listing(int fd, const char *urlpath, const char *dir) {
     }
     if (d) closedir(d);
     buf_puts(&b, "</PRE><HR></BODY></HTML>");
-    char *hdr = kprintf("HTTP/1.0 200 OK\r\nServer: %s\r\nContent-Type: text/html\r\nContent-Length: %zu\r\nConnection: close\r\n\r\n",
-                        SERVER_SOFTWARE, b.len);
-    write_all(fd, hdr, strlen(hdr));
-    write_all(fd, b.s, b.len);
+    const char *html = apply_zoom(b.s, b.len, &b.len);
+    send_response(c, req, 200, NULL, NULL, "text/html", html, b.len);
 }
 
-static void serve_static(int fd, HttpReq *req, const char *path) {
+/* HTTP dates come in three formats (RFC 1123, RFC 850, asctime); IE 4 adds "; length=NNN" */
+static int parse_http_date(const char *s, time_t *out) {
+    static const char *F[] = {"%a, %d %b %Y %H:%M:%S", "%A, %d-%b-%y %H:%M:%S", "%a %b %d %H:%M:%S %Y", NULL};
+    while (*s == ' ') s++;
+    for (int i = 0; F[i]; i++) {
+        struct tm tm; memset(&tm, 0, sizeof tm);
+        if (strptime(s, F[i], &tm)) { *out = timegm(&tm); return 1; }
+    }
+    return 0;
+}
+
+static int etag_matches(const char *list, const char *etag) {
+    if (!strcmp(kf_trim(list), "*")) return 1;
+    const char *want = etag[0] == 'W' ? etag + 2 : etag;
+    char *copy = kstrdup(list), *save = NULL;
+    for (char *t = strtok_r(copy, ",", &save); t; t = strtok_r(NULL, ",", &save)) {
+        char *e = kf_trim(t);
+        if (e[0] == 'W' && e[1] == '/') e += 2;               /* weak comparison, as If-None-Match requires */
+        if (!strcmp(e, want)) return 1;
+    }
+    return 0;
+}
+
+static void serve_static(KfConn *c, HttpReq *req, const char *path) {
     struct stat st;
-    stat(path, &st);
+    if (stat(path, &st)) { simple_response(c, req, 404, "Object Not Found", "The requested file was not found."); return; }
+    const char *mime = mime_type_for(path);
+    int html = !strcmp(mime, "text/html");
+    int zoom = html ? display_zoom() : 0;
+    time_t lm_t = st.st_mtime;
+    if (html && zoom != 100) { time_t zs = zoom_since(zoom); if (zs > lm_t) lm_t = zs; }
+    char *etag = kprintf("\"%lx-%lx-%x\"", (long)st.st_mtime, (long)st.st_size, zoom);
+    char *validators = kprintf("Last-Modified: %s\r\nETag: %s\r\n", http_date(lm_t), etag);
+    Val *inm = struct_get(req->headers, "if-none-match");
     Val *ims = struct_get(req->headers, "if-modified-since");
-    char *lm = http_date(st.st_mtime);
-    if (ims && !strcmp(v_tostr(*ims), lm)) {
-        char *hdr = kprintf("HTTP/1.0 304 Not Modified\r\nServer: %s\r\nDate: %s\r\nConnection: close\r\n\r\n",
-                            SERVER_SOFTWARE, http_date(time(NULL)));
-        write_all(fd, hdr, strlen(hdr));
+    int not_modified = 0;
+    time_t t;
+    if (inm) not_modified = etag_matches(v_tostr(*inm), etag);
+    else if (ims && parse_http_date(v_tostr(*ims), &t) && lm_t <= t) not_modified = 1;
+    if (not_modified && (!strcmp(req->method, "GET") || req->head)) {
+        send_response(c, req, 304, NULL, validators, NULL, NULL, 0);
+        return;
+    }
+    if (req->head && !html) {                                  /* the length is all a HEAD needs */
+        send_response(c, req, 200, NULL, validators, mime, NULL, (size_t)st.st_size);
         return;
     }
     size_t len;
     char *raw = kf_read_file(path, &len);
-    if (!raw) { simple_response(fd, 403, "Forbidden", "You do not have permission to read this file."); return; }
+    if (!raw) { simple_response(c, req, 403, "Forbidden", "You do not have permission to read this file."); return; }
     const char *data = raw;
-    if (!strcmp(mime_type_for(path), "text/html")) data = apply_zoom(raw, len, &len);
-    char *hdr = kprintf("HTTP/1.0 200 OK\r\nServer: %s\r\nDate: %s\r\nLast-Modified: %s\r\nContent-Type: %s\r\n"
-                        "Content-Length: %zu\r\nConnection: close\r\n\r\n",
-                        SERVER_SOFTWARE, http_date(time(NULL)), lm, mime_type_for(path), len);
-    write_all(fd, hdr, strlen(hdr));
-    if (strcmp(req->method, "HEAD")) write_all(fd, data, len);
+    if (html) data = apply_zoom(raw, len, &len);
+    send_response(c, req, 200, NULL, validators, mime, data, len);
     free(raw);
 }
 
@@ -539,7 +664,7 @@ static void setup_cgi(RState *rs, HttpReq *req, const char *script_name, const c
     struct_set(c, "HTTP_ACCEPT_ENCODING", v_strdup(HDR("accept-encoding")));
     struct_set(c, "HTTP_CONNECTION", v_strdup(HDR("connection")));
     struct_set(c, "HTTP_IF_MODIFIED_SINCE", v_strdup(HDR("if-modified-since")));
-    struct_set(c, "HTTPS", v_str("off"));
+    tls_set_cgi(c, req);                     /* HTTPS, SERVER_PORT_SECURE, CERT_* */
     struct_set(c, "CF_TEMPLATE_PATH", v_strdup(filepath));
     struct_set(c, "WEB_SERVER_API", v_str("KFHTTPD"));
 #undef HDR
@@ -560,7 +685,7 @@ static void load_debug_settings(RState *rs) {
     rs->lockmode_session = cfg("Locking", "SessionScope", "none")[0];
 }
 
-void kf_handle_cfml(int fd, HttpReq *req, const char *script_name, const char *filepath) {
+void kf_handle_cfml(KfConn *conn, HttpReq *req, const char *script_name, const char *filepath) {
     RState *rs = kmalloc(sizeof(RState));
     rs->http = req;
     rs->docroot = req->docroot ? req->docroot : G.webroot;
@@ -605,7 +730,7 @@ void kf_handle_cfml(int fd, HttpReq *req, const char *script_name, const char *f
     if (rs->client_enabled && rs->appname) client_save(rs, rs->appname);
     if (rs->ftp) { extern void ftp_cleanup(RState *); ftp_cleanup(rs); }
     templates_release(rs);
-    send_engine_response(fd, rs);
+    send_engine_response(conn, rs);
     double ms = kf_time_ms() - rs->start_ms;
     if (cfg_int("Logging", "LogSlowPages", 0) && ms > cfg_int("Logging", "SlowPageSeconds", 30) * 1000.0)
         kf_log("server.log", "Warning", "%s took %.0f seconds to process.", filepath, ms / 1000);
@@ -616,66 +741,223 @@ void kf_handle_cfml(int fd, HttpReq *req, const char *script_name, const char *f
         }
 }
 
-static int read_request(int fd, HttpReq *req) {
-    Buf b; buf_init(&b);
-    char tmp[8192];
-    size_t hdr_end = 0;
-    for (;;) {
-        ssize_t r = recv(fd, tmp, sizeof tmp, 0);
-        if (r <= 0) return -1;
-        buf_put(&b, tmp, (size_t)r);
-        char *e = memmem(b.s, b.len, "\r\n\r\n", 4);
-        if (e) { hdr_end = (size_t)(e - b.s) + 4; break; }
-        if (b.len > 64 * 1024) return -2;
+/* ================================================================ reading requests */
+enum { RQ_OK = 0, RQ_CLOSED = -1, RQ_BAD = -2, RQ_TOO_LARGE = -3, RQ_TIMEOUT = -4, RQ_NOT_IMPL = -5, RQ_VERSION = -6,
+       RQ_EXPECT = -7, RQ_HDR_TOO_LARGE = -8 };
+#define MAX_HEADER (64 * 1024)
+
+static int is_token_char(int ch) {
+    return ch > 32 && ch < 127 && !strchr("()<>@,;:\\\"/[]?={}", ch);
+}
+
+/* does a comma-separated header value (Connection, Expect, Transfer-Encoding) contain the token? */
+static int has_token(const char *v, const char *tok) {
+    size_t tl = strlen(tok);
+    for (const char *p = v; *p; ) {
+        while (*p == ' ' || *p == '\t' || *p == ',') p++;
+        size_t n = strcspn(p, ",");
+        size_t m = n;
+        while (m && (p[m - 1] == ' ' || p[m - 1] == '\t')) m--;
+        if (m == tl && !kf_strnicmp(p, tok, tl)) return 1;
+        p += n;
     }
-    char *hdrs = kstrndup(b.s, hdr_end);
-    char *line_end = strstr(hdrs, "\r\n");
-    *line_end = 0;
-    char *m = strtok(hdrs, " "), *u = strtok(NULL, " "), *v = strtok(NULL, " ");
-    if (!m || !u) return -2;
-    req->method = kf_upper(m);
-    req->uri = kstrdup(u);
-    req->version = kstrdup(v ? v : "HTTP/1.0");
-    char *q = strchr(req->uri, '?');
-    req->path = q ? kstrndup(req->uri, q - req->uri) : kstrdup(req->uri);
-    req->query = q ? kstrdup(q + 1) : NULL;
-    req->headers = struct_new();
-    for (char *line = strtok(line_end + 2, "\r\n"); line; line = strtok(NULL, "\r\n")) {
-        char *colon = strchr(line, ':');
-        if (!colon) continue;
-        *colon = 0;
-        struct_set(req->headers, kf_lower(kf_trim(line)), v_str(kf_trim(colon + 1)));
-    }
-    Val *cl = struct_get(req->headers, "content-length");
-    size_t want = cl ? (size_t)atol(v_tostr(*cl)) : 0;
-    if (want > MAX_BODY) return -3;
-    Val *ct = struct_get(req->headers, "content-type");
-    req->content_type = ct ? (char *)v_tostr(*ct) : NULL;
-    size_t have = b.len - hdr_end;
-    Buf body; buf_init(&body);
-    buf_put(&body, b.s + hdr_end, have);
-    while (body.len < want) {
-        ssize_t r = recv(fd, tmp, sizeof tmp, 0);
-        if (r <= 0) break;
-        buf_put(&body, tmp, (size_t)r);
-    }
-    req->body = buf_cstr(&body);
-    req->bodylen = body.len < want ? body.len : want;
-    Val *host = struct_get(req->headers, "host");
-    req->server_name = host ? kstrndup(v_tostr(*host), strcspn(v_tostr(*host), ":")) : kstrdup("localhost");
     return 0;
 }
 
-static void access_log(HttpReq *req, int status) {
+/* body deadline: generous for honest uploads (64 KB/s minimum), finite for a slow-POST attack */
+static double body_deadline(size_t len) { return kf_time_ms() + 30000.0 + (double)len / 65.536; }
+
+static int read_chunked_body(KfConn *c, Buf *body) {
+    for (;;) {
+        char *line = kc_read_line(c, 1024);
+        if (!line) return c->timed_out ? RQ_TIMEOUT : RQ_BAD;
+        char *end;
+        errno = 0;
+        unsigned long long sz = strtoull(line, &end, 16);
+        if (end == line || errno || (*end && *end != ';' && *end != ' ' && *end != '\t')) return RQ_BAD;
+        if (sz > MAX_BODY || body->len + sz > MAX_BODY) return RQ_TOO_LARGE;
+        if (sz == 0) {
+            size_t trailer = 0;
+            for (;;) {                                         /* trailer fields are read and ignored */
+                char *t = kc_read_line(c, MAX_HEADER);
+                if (!t) return c->timed_out ? RQ_TIMEOUT : RQ_BAD;
+                if (!*t) return RQ_OK;
+                if ((trailer += strlen(t)) > MAX_HEADER) return RQ_HDR_TOO_LARGE;
+            }
+        }
+        c->rdeadline = body_deadline(body->len + sz);
+        if (kc_read_exact(c, (size_t)sz, body)) return c->timed_out ? RQ_TIMEOUT : RQ_BAD;
+        char *crlf = kc_read_line(c, 2);
+        if (!crlf || *crlf) return crlf ? RQ_BAD : (c->timed_out ? RQ_TIMEOUT : RQ_BAD);
+    }
+}
+
+/* Read one request from the connection, leaving anything after it (a pipelined request) in the buffer.
+ * first_byte_deadline: how long to wait for the request to start (the keep-alive idle timeout);
+ * once it has started the whole header block must arrive within HeaderTimeout seconds. */
+static int read_request(KfConn *c, HttpReq *req, double first_byte_deadline) {
+    c->rdeadline = first_byte_deadline;
+    for (;;) {                                                 /* skip the CRLF old browsers send after a POST body */
+        while (kc_avail(c) && (c->rbuf[c->rpos] == '\r' || c->rbuf[c->rpos] == '\n')) c->rpos++;
+        if (kc_avail(c)) break;
+        if (kc_fill(c) <= 0) return RQ_CLOSED;
+    }
+    c->rdeadline = kf_time_ms() + t_web.header_timeout * 1000.0;
+    size_t scanned = 0, hdr_len = 0;
+    for (;;) {
+        const char *s = c->rbuf + c->rpos;
+        size_t n = kc_avail(c);
+        for (size_t i = scanned; i < n; i++)
+            if (s[i] == '\n' && ((i >= 1 && s[i - 1] == '\n') || (i >= 2 && s[i - 1] == '\r' && s[i - 2] == '\n'))) {
+                hdr_len = i + 1;
+                break;
+            }
+        if (hdr_len) break;
+        scanned = n;
+        if (n > MAX_HEADER) return RQ_HDR_TOO_LARGE;
+        if (kc_fill(c) <= 0) return c->timed_out ? RQ_TIMEOUT : RQ_CLOSED;
+    }
+    if (hdr_len > MAX_HEADER) return RQ_HDR_TOO_LARGE;
+    char *hdrs = kstrndup(c->rbuf + c->rpos, hdr_len);
+    c->rpos += hdr_len;
+    if (memchr(hdrs, 0, hdr_len)) return RQ_BAD;
+
+    /* request line: METHOD SP request-target [SP HTTP/1.x] */
+    char *save = NULL;
+    char *line = strtok_r(hdrs, "\n", &save);
+    if (!line) return RQ_BAD;
+    size_t ll = strlen(line);
+    if (ll && line[ll - 1] == '\r') line[--ll] = 0;
+    char *sp1 = strchr(line, ' ');
+    if (!sp1) return RQ_BAD;
+    *sp1 = 0;
+    char *u = sp1 + 1;
+    while (*u == ' ') u++;
+    char *sp2 = strchr(u, ' ');
+    char *v = NULL;
+    if (sp2) { *sp2 = 0; v = sp2 + 1; while (*v == ' ') v++; if (!*v) v = NULL; }
+    if (!*line || !*u) return RQ_BAD;
+    for (char *p = line; *p; p++) if (!is_token_char((unsigned char)*p)) return RQ_BAD;
+    req->method = kf_upper(line);
+    req->head = !strcmp(req->method, "HEAD");
+    if (v) {
+        if (strncmp(v, "HTTP/", 5)) return RQ_BAD;
+        if (v[5] != '1' || v[6] != '.' || !isdigit((unsigned char)v[7]) || v[8]) return RQ_VERSION;
+        req->http11 = v[7] >= '1';
+    }
+    req->version = kstrdup(req->http11 ? "HTTP/1.1" : "HTTP/1.0");
+    char *abs_host = NULL;
+    if (!kf_strnicmp(u, "http://", 7) || !kf_strnicmp(u, "https://", 8)) {    /* absolute form */
+        char *h = strstr(u, "//") + 2;
+        size_t hl = strcspn(h, "/?");
+        abs_host = kstrndup(h, hl);
+        u = h[hl] == '/' ? h + hl : kprintf("/%s", h + hl);
+    }
+    if (u[0] != '/' && strcmp(u, "*")) return RQ_BAD;
+    req->uri = kstrdup(u);
+    char *q = strchr(req->uri, '?');
+    req->path = q ? kstrndup(req->uri, q - req->uri) : kstrdup(req->uri);
+    req->query = q ? kstrdup(q + 1) : NULL;
+
+    /* header fields */
+    req->headers = struct_new();
+    const char *last_key = NULL;
+    long long content_length = -1;
+    int hosts = 0;
+    for (line = strtok_r(NULL, "\n", &save); line; line = strtok_r(NULL, "\n", &save)) {
+        ll = strlen(line);
+        if (ll && line[ll - 1] == '\r') line[--ll] = 0;
+        if (!ll) break;
+        if (line[0] == ' ' || line[0] == '\t') {               /* obsolete line folding */
+            if (!last_key) return RQ_BAD;
+            Val *pv = struct_get(req->headers, last_key);
+            struct_set(req->headers, last_key, v_str(kprintf("%s %s", pv ? v_tostr(*pv) : "", kf_trim(line))));
+            continue;
+        }
+        char *colon = strchr(line, ':');
+        if (!colon || colon == line) return RQ_BAD;
+        *colon = 0;
+        for (char *p = line; *p; p++) if (!is_token_char((unsigned char)*p)) return RQ_BAD;   /* no "Name :" */
+        char *key = kf_lower(line), *val = kf_trim(colon + 1);
+        if (!strcmp(key, "content-length")) {
+            if (!*val) return RQ_BAD;
+            for (char *p = val; *p; p++) if (!isdigit((unsigned char)*p)) return RQ_BAD;
+            long long n = strlen(val) > 15 ? (long long)MAX_BODY + 1 : atoll(val);
+            if (content_length >= 0 && n != content_length) return RQ_BAD;
+            content_length = n;
+        }
+        if (!strcmp(key, "host") && hosts++) return RQ_BAD;
+        Val *old = struct_get(req->headers, key);
+        if (old && strcmp(key, "content-length"))
+            val = kprintf("%s%s%s", v_tostr(*old), !strcmp(key, "cookie") ? "; " : ", ", val);
+        struct_set(req->headers, key, v_str(val));
+        last_key = key;
+    }
+    if (abs_host) struct_set(req->headers, "host", v_str(abs_host));
+    if (req->http11 && !struct_get(req->headers, "host")) return RQ_BAD;
+
+    Val *conn_hdr = struct_get(req->headers, "connection");
+    const char *ch = conn_hdr ? v_tostr(*conn_hdr) : "";
+    req->keep_alive = req->http11 ? !has_token(ch, "close") : has_token(ch, "keep-alive");
+
+    Val *host = struct_get(req->headers, "host");
+    const char *hv = host ? v_tostr(*host) : "";
+    if (*hv == '[') req->server_name = kstrndup(hv, strcspn(hv, "]") + 1);
+    else req->server_name = *hv ? kstrndup(hv, strcspn(hv, ":")) : kstrdup("localhost");
+    Val *ct = struct_get(req->headers, "content-type");
+    req->content_type = ct ? (char *)v_tostr(*ct) : NULL;
+
+    /* message body: Transfer-Encoding: chunked wins over Content-Length (and then we close afterwards) */
+    Val *te = struct_get(req->headers, "transfer-encoding");
+    int chunked = 0;
+    if (te) {
+        const char *tv = kf_trim(v_tostr(*te));
+        if (kf_stricmp(tv, "chunked") && kf_stricmp(tv, "identity")) return RQ_NOT_IMPL;
+        chunked = !kf_stricmp(tv, "chunked");
+        if (content_length >= 0) req->keep_alive = 0;
+        if (!req->http11) req->keep_alive = 0;
+    }
+    if (!chunked && content_length > MAX_BODY) return RQ_TOO_LARGE;
+    int has_body = chunked || content_length > 0;
+    Val *expect = struct_get(req->headers, "expect");
+    if (expect) {
+        if (!has_token(v_tostr(*expect), "100-continue")) return RQ_EXPECT;
+        /* tell the client to go ahead, unless it already did */
+        if (has_body && req->http11 && !kc_avail(c)) {
+            static const char cont[] = "HTTP/1.1 100 Continue\r\n\r\n";
+            kc_set_write_budget(c, sizeof cont);
+            if (kc_write(c, cont, sizeof cont - 1)) return RQ_CLOSED;
+        }
+    }
+    Buf body; buf_init(&body);
+    if (chunked) {
+        c->rdeadline = body_deadline(0);
+        int rc = read_chunked_body(c, &body);
+        if (rc) return rc;
+        struct_set(req->headers, "content-length", v_str(kprintf("%zu", body.len)));
+    } else if (content_length > 0) {
+        c->rdeadline = body_deadline((size_t)content_length);
+        if (kc_read_exact(c, (size_t)content_length, &body)) return c->timed_out ? RQ_TIMEOUT : RQ_CLOSED;
+    }
+    req->body = buf_cstr(&body);
+    req->bodylen = body.len;
+    return RQ_OK;
+}
+
+static void access_log(HttpReq *req) {
+    if (!req->resp_status) return;
     time_t t = time(NULL);
     struct tm tm; localtime_r(&t, &tm);
     char ts[64]; strftime(ts, sizeof ts, "%d/%b/%Y:%H:%M:%S %z", &tm);
-    char *line = kprintf("%s - - [%s] \"%s %s %s\" %d -\n", req->remote_addr, ts, req->method, req->uri, req->version, status);
+    char *bytes = req->resp_bytes ? kprintf("%zu", req->resp_bytes) : "-";
+    char *line = kprintf("%s - - [%s] \"%s %s %s\" %d %s\n", req->remote_addr ? req->remote_addr : "-", ts,
+                         req->method ? req->method : "-", req->uri ? req->uri : "-", req->version ? req->version : "-",
+                         req->resp_status, bytes);
     char *p = kf_path_join(kf_log_dir(), "access.log");
     kf_write_file(p, line, strlen(line), 1);
 }
 
-typedef struct Conn { int fd; struct sockaddr_storage addr; } Conn;
+typedef struct Conn { int fd; int secure; int port; struct sockaddr_storage addr; } Conn;
 
 /* "yowza.localhost" (or www.yowza.localhost) -> wwwroot/sites/yowza if it exists */
 static const char *site_root(const char *host) {
@@ -692,34 +974,26 @@ static const char *site_root(const char *host) {
     return G.webroot;
 }
 
-static void *conn_thread(void *arg) {
-    Conn *cn = arg;
-    int fd = cn->fd;
-    Arena *a = arena_new();
-    g_arena = a;
-    HttpReq *req = kmalloc(sizeof(HttpReq));
-    req->fd = fd;
-    char ip[64] = "127.0.0.1";
-    if (cn->addr.ss_family == AF_INET) inet_ntop(AF_INET, &((struct sockaddr_in *)&cn->addr)->sin_addr, ip, sizeof ip);
-    else if (cn->addr.ss_family == AF_INET6) inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&cn->addr)->sin6_addr, ip, sizeof ip);
-    if (!strncmp(ip, "::ffff:", 7)) memmove(ip, ip + 7, strlen(ip + 7) + 1);
-    req->remote_addr = kstrdup(ip);
-    req->server_port = G.port;
-    req->started_ms = kf_time_ms();
-    free(cn);
-    struct timeval tv = {30, 0};
-    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);
+/* the scheme and port a redirect to one of our own hosts must keep */
+static char *own_origin(HttpReq *req, const char *host) {
+    const char *scheme = req->secure ? "https" : "http";
+    int dflt = req->secure ? 443 : 80;
+    return req->server_port == dflt ? kprintf("%s://%s", scheme, host) : kprintf("%s://%s:%d", scheme, host, req->server_port);
+}
 
-    int rc = read_request(fd, req);
-    if (rc == -2) simple_response(fd, 400, "Bad Request", "Your browser sent a request that this server could not understand.");
-    else if (rc == -3) simple_response(fd, 413, "Request Entity Too Large", "The request body is too large.");
-    if (rc) goto out;
-
+static void handle_request(KfConn *c, HttpReq *req) {
+    if (!strcmp(req->uri, "*")) {                               /* OPTIONS * */
+        send_response(c, req, 200, NULL, "Allow: GET, HEAD, POST, OPTIONS\r\n", "text/plain", "", 0);
+        return;
+    }
     /* virtual sites, IIS-style: http://<name>.localhost/ serves wwwroot/sites/<name>/ */
     const char *docroot = site_root(req->server_name);
     /* map URL to file */
     char *upath = kf_urldecode(req->path, strlen(req->path));
-    if (strstr(upath, "..") || upath[0] != '/') { simple_response(fd, 403, "Forbidden", "Access denied."); goto out; }
+    if (strstr(upath, "..") || upath[0] != '/' || strstr(req->path, "%00")) {
+        simple_response(c, req, 403, "Forbidden", "Access denied.");
+        return;
+    }
     char *fpath = kf_path_join(docroot, upath);
     /* every site shares /CFIDE (cfform.js, the Administrator) and the stock /images */
     if (docroot != G.webroot && access(fpath, F_OK) != 0 &&
@@ -728,7 +1002,7 @@ static void *conn_thread(void *arg) {
     struct stat st;
     /* the static 1999-Web sites link to each other with relative paths ("../orinoco/index.html"), which on a virtual
        host land on /orinoco/...: send those to the other site's host, and anything else only the main site has
-       (/web1999/) to the main host */
+       (/web1999/) to the main host - keeping the scheme and port the request came in on */
     if (docroot != G.webroot && stat(fpath, &st) != 0 && !kf_resolve_ci(fpath)) {
         const char *seg = upath + 1, *sl = strchr(seg, '/');
         char *name = kf_lower(sl ? kstrndup(seg, sl - seg) : kstrdup(seg));
@@ -736,35 +1010,27 @@ static void *conn_thread(void *arg) {
         char *main_path = kf_path_join(G.webroot, upath);
         char *loc = NULL;
         if (*name && stat(other, &st) == 0 && S_ISDIR(st.st_mode))
-            loc = kprintf("http://%s.localhost:%d/%s", name, G.port, sl ? sl + 1 : "");
+            loc = kprintf("%s/%s", own_origin(req, kprintf("%s.localhost", name)), sl ? sl + 1 : "");
         else if (stat(main_path, &st) == 0 || kf_resolve_ci(main_path))
-            loc = kprintf("http://localhost:%d%s", G.port, req->path);
+            loc = kprintf("%s%s", own_origin(req, "localhost"), req->path);
         if (loc) {
             if (req->query) loc = kprintf("%s?%s", loc, req->query);
-            char *hdr = kprintf("HTTP/1.0 302 Object Moved\r\nServer: %s\r\nLocation: %s\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
-                                SERVER_SOFTWARE, loc);
-            write_all(fd, hdr, strlen(hdr));
-            access_log(req, 302);
-            goto out;
+            redirect_response(c, req, loc);
+            return;
         }
     }
-    int status = 200;
     if (stat(fpath, &st) != 0) { char *ci = kf_resolve_ci(fpath); if (ci) fpath = ci; }
     if (stat(fpath, &st) == 0 && S_ISDIR(st.st_mode)) {
         if (upath[strlen(upath) - 1] != '/') {
-            char *loc = kprintf("%s/%s%s", req->path, req->query ? "?" : "", req->query ? req->query : "");
-            char *hdr = kprintf("HTTP/1.0 302 Object Moved\r\nServer: %s\r\nLocation: %s\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
-                                SERVER_SOFTWARE, loc);
-            write_all(fd, hdr, strlen(hdr));
-            access_log(req, 302);
-            goto out;
+            redirect_response(c, req, kprintf("%s/%s%s", req->path, req->query ? "?" : "", req->query ? req->query : ""));
+            return;
         }
         char *idx = find_index(fpath);
         if (!idx) {
             /* like IIS 4.0 out of the box: browsing is off unless the directory contains .kfbrowse */
-            if (access(kf_path_join(fpath, ".kfbrowse"), F_OK) == 0) { directory_listing(fd, upath, fpath); access_log(req, 200); }
-            else { simple_response(fd, 403, "Directory Listing Denied", "This Virtual Directory does not allow contents to be listed."); access_log(req, 403); }
-            goto out;
+            if (access(kf_path_join(fpath, ".kfbrowse"), F_OK) == 0) directory_listing(c, req, upath, fpath);
+            else simple_response(c, req, 403, "Directory Listing Denied", "This Virtual Directory does not allow contents to be listed.");
+            return;
         }
         upath = kprintf("%s%s", upath, strrchr(idx, '/') + 1);
         fpath = idx;
@@ -777,75 +1043,180 @@ static void *conn_thread(void *arg) {
                 fpath = (char *)resolve_template_path(&tmp, mth, 0);
             }
         }
-        G.queued_requests++;
+        pthread_mutex_lock(&stats_mu); G.queued_requests++; pthread_mutex_unlock(&stats_mu);
         sem_wait(&req_sem);
-        G.queued_requests--;
-        pthread_mutex_lock(&stats_mu); G.active_requests++; G.requests_served++; pthread_mutex_unlock(&stats_mu);
+        pthread_mutex_lock(&stats_mu); G.queued_requests--; G.active_requests++; G.requests_served++; pthread_mutex_unlock(&stats_mu);
         req->docroot = docroot;
-        kf_handle_cfml(fd, req, upath, fpath);
+        kf_handle_cfml(c, req, upath, fpath);
         pthread_mutex_lock(&stats_mu); G.active_requests--; pthread_mutex_unlock(&stats_mu);
         sem_post(&req_sem);
     } else if (stat(fpath, &st) == 0) {
-        serve_static(fd, req, fpath);
+        if (strcmp(req->method, "GET") && strcmp(req->method, "HEAD") && strcmp(req->method, "POST")) {
+            send_response(c, req, 405, NULL, "Allow: GET, HEAD, POST\r\n", "text/plain", "Method Not Allowed\n", 19);
+            return;
+        }
+        serve_static(c, req, fpath);
     } else {
-        status = 404;
-        simple_response(fd, 404, "Object Not Found",
+        simple_response(c, req, 404, "Object Not Found",
                         kprintf("The requested URL %s was not found on this server.", kf_html_escape(upath)));
     }
-    access_log(req, status);
-out:
-    close(fd);
-    g_arena = NULL;
-    arena_free(a);
+}
+
+/* per-thread engine state must not leak from one request into the next on the same connection */
+static void reset_thread_state(void) {
+    tags_io_thread_reset();
+    tags_form_thread_reset();
+    sql_thread_reset();
+    parse_thread_reset();
+}
+
+static int conns_busy(void) {
+    pthread_mutex_lock(&stats_mu);
+    int busy = open_conns * 4 > t_web.max_conns * 3;                  /* over 75% of MaxConnections */
+    pthread_mutex_unlock(&stats_mu);
+    return busy;
+}
+
+static void *conn_thread(void *arg) {
+    Conn *cn = arg;
+    KfConn *c = kc_new(cn->fd);
+    char ip[64] = "127.0.0.1";
+    if (cn->addr.ss_family == AF_INET) inet_ntop(AF_INET, &((struct sockaddr_in *)&cn->addr)->sin_addr, ip, sizeof ip);
+    else if (cn->addr.ss_family == AF_INET6) inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&cn->addr)->sin6_addr, ip, sizeof ip);
+    if (!strncmp(ip, "::ffff:", 7)) memmove(ip, ip + 7, strlen(ip + 7) + 1);
+    int secure = cn->secure, port = cn->port;
+    free(cn);
+    Arena *a = arena_new(); g_arena = a;
+    web_cfg(&t_web);
+    g_arena = NULL; arena_free(a);
+    int lingering = 0;
+    if (secure && tls_server_accept(c, kf_time_ms() + t_web.header_timeout * 1000.0)) goto done;
+    for (int n = 0;; n++) {
+        a = arena_new(); g_arena = a;
+        reset_thread_state();
+        HttpReq *req = kmalloc(sizeof(HttpReq));
+        req->conn = c;
+        req->fd = c->fd;
+        req->secure = secure;
+        req->remote_addr = kstrdup(ip);
+        req->server_port = port;
+        req->nreq = n + 1;
+        double wait = (n == 0 ? t_web.header_timeout : t_web.ka_timeout) * 1000.0;
+        int rc = read_request(c, req, kf_time_ms() + wait);
+        req->started_ms = kf_time_ms();
+        if (rc != RQ_OK) {
+            req->keep_alive = 0;
+            switch (rc) {
+            case RQ_BAD: simple_response(c, req, 400, "Bad Request", "Your browser sent a request that this server could not understand."); break;
+            case RQ_TOO_LARGE: simple_response(c, req, 413, "Request Entity Too Large", "The request body is too large."); break;
+            case RQ_HDR_TOO_LARGE: simple_response(c, req, 400, "Bad Request", "The request header is too large."); break;
+            case RQ_TIMEOUT: simple_response(c, req, 408, "Request Timeout", "The server timed out waiting for the request."); break;
+            case RQ_NOT_IMPL: simple_response(c, req, 501, "Not Implemented", "The request uses a transfer coding this server does not understand."); break;
+            case RQ_VERSION: simple_response(c, req, 505, "HTTP Version Not Supported", "This server speaks HTTP/1.0 and HTTP/1.1."); break;
+            case RQ_EXPECT: simple_response(c, req, 417, "Expectation Failed", "The expectation given in the Expect header cannot be met."); break;
+            }
+            access_log(req);
+            lingering = rc != RQ_CLOSED && !c->closed;
+            g_arena = NULL; arena_free(a);
+            break;
+        }
+        if (req->keep_alive && (!t_web.keepalive || req->nreq >= t_web.ka_max || G.restart_requested || conns_busy()))
+            req->keep_alive = 0;
+        handle_request(c, req);
+        access_log(req);
+        int keep = req->keep_alive && !c->timed_out && !c->closed;
+        g_arena = NULL; arena_free(a);
+        if (!keep) { lingering = !c->closed && !c->timed_out; break; }
+    }
+done:
+    if (lingering) kc_close_lingering(c);
+    else kc_free(c);
+    pthread_mutex_lock(&stats_mu); open_conns--; pthread_mutex_unlock(&stats_mu);
     return NULL;
+}
+
+static int open_listener(int port, const char *what) {
+    struct addrinfo hints = {0}, *res;
+    hints.ai_family = AF_UNSPEC; hints.ai_socktype = SOCK_STREAM; hints.ai_flags = AI_PASSIVE;
+    char ps[16]; snprintf(ps, sizeof ps, "%d", port);
+    if (getaddrinfo(G.bind, ps, &hints, &res)) { fprintf(stderr, "KoldFusion: cannot resolve %s\n", G.bind); return -1; }
+    int fd = socket(res->ai_family, res->ai_socktype | SOCK_CLOEXEC, 0);
+    int one = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one);
+    if (fd < 0 || bind(fd, res->ai_addr, res->ai_addrlen) || listen(fd, 128)) {
+        fprintf(stderr, "KoldFusion: cannot listen on %s:%d%s: %s\n", G.bind, port, what, strerror(errno));
+        kf_log("server.log", "Error", "Cannot listen on %s:%d%s: %s", G.bind, port, what, strerror(errno));
+        if (fd >= 0) close(fd);
+        freeaddrinfo(res);
+        return -1;
+    }
+    freeaddrinfo(res);
+    return fd;
 }
 
 int http_serve(void) {
     signal(SIGPIPE, SIG_IGN);
     Arena *a = arena_new(); g_arena = a;
     int limit = cfg_int(REG_SERVER, "LimitSimultaneousRequests", 5);
+    WebCfg w; web_cfg(&w);
     g_arena = NULL; arena_free(a);
     if (limit < 1) limit = 1;
     sem_init(&req_sem, 0, (unsigned)limit);
 
-    struct addrinfo hints = {0}, *res;
-    hints.ai_family = AF_UNSPEC; hints.ai_socktype = SOCK_STREAM; hints.ai_flags = AI_PASSIVE;
-    char port[16]; snprintf(port, sizeof port, "%d", G.port);
-    if (getaddrinfo(G.bind, port, &hints, &res)) { fprintf(stderr, "KoldFusion: cannot resolve %s\n", G.bind); return 1; }
-    listen_fd = socket(res->ai_family, res->ai_socktype | SOCK_CLOEXEC, 0);
-    int one = 1;
-    setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one);
-    if (bind(listen_fd, res->ai_addr, res->ai_addrlen) || listen(listen_fd, 128)) {
-        fprintf(stderr, "KoldFusion: cannot listen on %s:%d: %s\n", G.bind, G.port, strerror(errno));
-        return 1;
-    }
-    freeaddrinfo(res);
+    listen_fd = open_listener(G.port, "");
+    if (listen_fd < 0) return 1;
+    int sport = tls_server_port();
+    if (sport > 0) ssl_listen_fd = open_listener(sport, " (SSL)");   /* not fatal: the plain listener still works */
     pthread_t wd;
     pthread_create(&wd, NULL, watchdog, NULL);
     pthread_detach(wd);
-    kf_log("server.log", "Information", "KoldFusion Application Server %s started, listening on %s:%d (limit %d simultaneous requests).",
-           KF_VERSION_STR, G.bind, G.port, limit);
+    a = arena_new(); g_arena = a;
+    kf_log("server.log", "Information", "KoldFusion Application Server %s started, listening on %s:%d%s (limit %d simultaneous requests).",
+           KF_VERSION_STR, G.bind, G.port, ssl_listen_fd >= 0 ? kprintf(" and %d (SSL)", sport) : "", limit);
+    g_arena = NULL; arena_free(a);
     for (;;) {
-        Conn *cn = calloc(1, sizeof(Conn));
-        socklen_t al = sizeof cn->addr;
-        int fd = accept4(listen_fd, (struct sockaddr *)&cn->addr, &al, SOCK_CLOEXEC);
-        if (fd < 0) {
-            free(cn);
-            if (G.restart_requested) break;
-            if (errno == EINTR) continue;
-            usleep(10000);
-            continue;
+        struct pollfd pf[2] = {{listen_fd, POLLIN, 0}, {ssl_listen_fd, POLLIN, 0}};
+        int np = ssl_listen_fd >= 0 ? 2 : 1;
+        int pr = poll(pf, np, 1000);
+        if (G.restart_requested) break;
+        if (pr <= 0) continue;
+        for (int i = 0; i < np; i++) {
+            if (!(pf[i].revents & (POLLIN | POLLERR | POLLHUP))) continue;
+            Conn *cn = calloc(1, sizeof(Conn));
+            socklen_t al = sizeof cn->addr;
+            int fd = accept4(pf[i].fd, (struct sockaddr *)&cn->addr, &al, SOCK_CLOEXEC);
+            if (fd < 0) { free(cn); if (errno != EINTR && errno != EAGAIN) usleep(10000); continue; }
+            cn->fd = fd;
+            cn->secure = i == 1;
+            cn->port = i == 1 ? sport : G.port;
+            pthread_mutex_lock(&stats_mu);
+            int full = open_conns >= w.max_conns;
+            if (!full) open_conns++;
+            pthread_mutex_unlock(&stats_mu);
+            if (full) {
+                /* too many connections: a short 503 on the plain port (one non-blocking try), and close */
+                if (!cn->secure) {
+                    static const char busy[] = "HTTP/1.0 503 Service Unavailable\r\nContent-Type: text/plain\r\n"
+                                               "Content-Length: 25\r\nConnection: close\r\n\r\nServer too busy, sorry.\r\n";
+                    if (send(fd, busy, sizeof busy - 1, MSG_NOSIGNAL | MSG_DONTWAIT) < 0) {}
+                }
+                close(fd); free(cn);
+                continue;
+            }
+            pthread_attr_t at;
+            pthread_attr_init(&at);
+            pthread_attr_setdetachstate(&at, PTHREAD_CREATE_DETACHED);
+            pthread_attr_setstacksize(&at, 16 * 1024 * 1024);
+            pthread_t th;
+            if (pthread_create(&th, &at, conn_thread, cn)) {
+                close(fd); free(cn);
+                pthread_mutex_lock(&stats_mu); open_conns--; pthread_mutex_unlock(&stats_mu);
+            }
+            pthread_attr_destroy(&at);
         }
-        cn->fd = fd;
-        pthread_attr_t at;
-        pthread_attr_init(&at);
-        pthread_attr_setdetachstate(&at, PTHREAD_CREATE_DETACHED);
-        pthread_attr_setstacksize(&at, 16 * 1024 * 1024);
-        pthread_t th;
-        if (pthread_create(&th, &at, conn_thread, cn)) { close(fd); free(cn); }
-        pthread_attr_destroy(&at);
     }
     close(listen_fd);
+    if (ssl_listen_fd >= 0) close(ssl_listen_fd);
     return 0;
 }
 
@@ -854,102 +1225,15 @@ void http_request_restart(void) {
     if (listen_fd >= 0) shutdown(listen_fd, SHUT_RDWR);
 }
 
-/* ================================================================ client */
-static int parse_url(const char *url, char **host, int *port, char **path) {
-    if (kf_strnicmp(url, "http://", 7)) return 0;
-    const char *h = url + 7;
-    const char *slash = strchr(h, '/');
-    char *hp = slash ? kstrndup(h, slash - h) : kstrdup(h);
-    char *at = strrchr(hp, '@');
-    if (at) hp = at + 1;
-    char *colon = strchr(hp, ':');
-    *port = 80;
-    if (colon) { *colon = 0; *port = atoi(colon + 1); }
-    *host = hp;
-    *path = kstrdup(slash ? slash : "/");
-    return 1;
-}
-
-int http_client(const char *method, const char *url, Struct *hdrs, const char *body, size_t bodylen,
-                int timeout_s, const char *proxy, int proxyport, const char *user, const char *pass,
-                Buf *resp_body, int *status, char **status_line, Struct **resp_headers, char *err, size_t errlen) {
-    char *host, *path; int port;
-    if (!parse_url(url, &host, &port, &path)) {
-        snprintf(err, errlen, "Only http:// URLs are supported (this is 1999: SSL requires the Netscape Enterprise Server).");
-        return 0;
-    }
-    const char *chost = proxy && *proxy ? proxy : host;
-    size_t chl = strlen(chost);
-    if (!kf_stricmp(chost, "localhost") || (chl > 10 && !kf_stricmp(chost + chl - 10, ".localhost"))) chost = "127.0.0.1";
-    int cport = proxy && *proxy ? (proxyport ? proxyport : 80) : port;
-    struct addrinfo hints = {0}, *res;
-    hints.ai_socktype = SOCK_STREAM;
-    char ps[16]; snprintf(ps, sizeof ps, "%d", cport);
-    if (getaddrinfo(chost, ps, &hints, &res)) { snprintf(err, errlen, "Unknown host %s.", chost); return 0; }
-    int fd = socket(res->ai_family, SOCK_STREAM | SOCK_CLOEXEC, 0);
-    struct timeval tv = {timeout_s > 0 ? timeout_s : 60, 0};
-    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);
-    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof tv);
-    if (connect(fd, res->ai_addr, res->ai_addrlen)) {
-        snprintf(err, errlen, "Connection Failure: unable to connect to %s:%d (%s).", chost, cport, strerror(errno));
-        freeaddrinfo(res); close(fd); return 0;
-    }
-    freeaddrinfo(res);
-    Buf rq; buf_init(&rq);
-    buf_printf(&rq, "%s %s HTTP/1.0\r\nHost: %s\r\nUser-Agent: KoldFusion\r\nConnection: close\r\n",
-               method, proxy && *proxy ? url : path, host);
-    if (user && *user) {
-        char *cred = kprintf("%s:%s", user, pass ? pass : "");
-        buf_printf(&rq, "Authorization: Basic %s\r\n", base64_encode((unsigned char *)cred, strlen(cred)));
-    }
-    if (hdrs) for (int i = 0; i < hdrs->n; i++) buf_printf(&rq, "%s: %s\r\n", hdrs->e[i].key, v_tostr(hdrs->e[i].v));
-    if (body) buf_printf(&rq, "Content-Length: %zu\r\n", bodylen);
-    buf_puts(&rq, "\r\n");
-    if (body) buf_put(&rq, body, bodylen);
-    if (write_all(fd, rq.s, rq.len)) { snprintf(err, errlen, "Connection Failure: write error."); close(fd); return 0; }
-    Buf r; buf_init(&r);
-    char tmp[8192];
-    ssize_t n;
-    while ((n = recv(fd, tmp, sizeof tmp, 0)) > 0) buf_put(&r, tmp, (size_t)n);
-    close(fd);
-    if (n < 0 && !r.len) { snprintf(err, errlen, "Connection Timeout: no response from %s within %d seconds.", chost, timeout_s); return 0; }
-    char *s = buf_cstr(&r);
-    char *he = memmem(s, r.len, "\r\n\r\n", 4);
-    size_t hl = he ? (size_t)(he - s) : r.len;
-    char *hdrtext = kstrndup(s, hl);
-    char *first = strtok(hdrtext, "\r\n");
-    *status_line = kstrdup(first ? first : "");
-    *status = first && strlen(first) > 9 ? atoi(first + 9) : 0;
-    Struct *rh = struct_new();
-    for (char *line = strtok(NULL, "\r\n"); line; line = strtok(NULL, "\r\n")) {
-        char *colon = strchr(line, ':');
-        if (!colon) continue;
-        *colon = 0;
-        struct_set(rh, kf_trim(line), v_str(kf_trim(colon + 1)));
-    }
-    *resp_headers = rh;
-    const char *bstart = he ? he + 4 : s + r.len;
-    size_t blen = r.len - (size_t)(bstart - s);
-    Val *te = struct_get(rh, "Transfer-Encoding");
-    if (te && kf_stristr(v_tostr(*te), "chunked")) {
-        const char *p = bstart, *end = bstart + blen;
-        while (p < end) {
-            long cl = strtol(p, NULL, 16);
-            const char *nl = memmem(p, end - p, "\r\n", 2);
-            if (!nl || cl <= 0) break;
-            p = nl + 2;
-            if (p + cl > end) cl = end - p;
-            buf_put(resp_body, p, (size_t)cl);
-            p += cl + 2;
-        }
-    } else buf_put(resp_body, bstart, blen);
-    return 1;
-}
-
 /* command line: kfserver --run /path/to/file.cfm [query-string] */
 int kf_run_cli(const char *file, const char *query) {
     Arena *a = arena_new(); g_arena = a;
+    web_cfg(&t_web);
     HttpReq *req = kmalloc(sizeof(HttpReq));
+    KfConn *out = calloc(1, sizeof(KfConn));
+    out->fd = 1;
+    out->notsock = 1;
+    req->conn = out;
     req->fd = 1;
     req->method = "GET";
     char rp[4096];
@@ -970,6 +1254,7 @@ int kf_run_cli(const char *file, const char *query) {
     if (!req->server_name) req->server_name = "localhost";
     req->server_port = G.port;
     sem_init(&req_sem, 0, 1);
-    kf_handle_cfml(1, req, rel, abs);
+    kf_handle_cfml(out, req, rel, abs);
+    free(out);
     return 0;
 }

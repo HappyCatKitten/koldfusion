@@ -17,7 +17,7 @@ bin/kfserver: $(OBJ)
 	@mkdir -p bin
 	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LDLIBS)
 
-build/%.o: src/%.c src/kf.h src/engine.h
+build/%.o: src/%.c src/kf.h src/engine.h src/netio.h
 	@mkdir -p build
 	$(CC) $(CFLAGS) -c -o $@ $<
 
@@ -38,7 +38,7 @@ asan: bin/kfserver-asan
 bin/kfserver-asan: $(ASAN_OBJ)
 	@mkdir -p bin
 	$(CC) -std=gnu99 -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -o $@ $(ASAN_OBJ) $(LDLIBS)
-build/asan/%.o: src/%.c src/kf.h src/engine.h
+build/asan/%.o: src/%.c src/kf.h src/engine.h src/netio.h
 	@mkdir -p build/asan
 	$(CC) -std=gnu99 -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -Wall -Wno-unused-parameter -c -o $@ $<
 .PHONY: asan

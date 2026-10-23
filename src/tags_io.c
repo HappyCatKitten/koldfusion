@@ -5,6 +5,7 @@
  */
 #define _GNU_SOURCE
 #include "engine.h"
+#include "netio.h"
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
@@ -362,6 +363,9 @@ TAG(registry) {
 
 /* ================================================================ CFHTTP */
 static __thread Array *t_httpparams;
+static __thread Struct *t_mailparams;
+/* a CFHTTP/CFMAIL body that threw leaves these set: clear them before the thread serves another request */
+void tags_io_thread_reset(void) { t_httpparams = NULL; t_mailparams = NULL; }
 
 TAG(httpparam) {
     (void)flow;
@@ -422,11 +426,12 @@ static Query *csv_to_query(const char *text, const char *columns, char delim, ch
 
 static char *resolve_urls(const char *html, const char *base) {
     /* make relative HREF/SRC/ACTION attributes absolute */
+    size_t skip = !kf_strnicmp(base, "https://", 8) ? 8 : 7;
     char *host = kstrdup(base);
-    char *slash = strchr(host + 7, '/');
-    char *dir = kstrdup(base);
+    char *slash = strchr(host + skip, '/');
+    char *dir = kstrndup(base, strcspn(base, "?#"));
     if (slash) *slash = 0;
-    char *ld = strrchr(dir + 7, '/'); if (ld) ld[1] = 0; else dir = kprintf("%s/", dir);
+    char *ld = strrchr(dir + skip, '/'); if (ld) ld[1] = 0; else dir = kprintf("%s/", dir);
     Buf b; buf_init(&b);
     for (const char *p = html; *p; ) {
         const char *attrs[] = {"href=\"", "src=\"", "action=\"", "background=\"", NULL};
@@ -436,7 +441,7 @@ static char *resolve_urls(const char *html, const char *base) {
             if (!kf_strnicmp(p, attrs[i], al)) {
                 buf_put(&b, p, al);
                 p += al;
-                if (kf_strnicmp(p, "http:", 5) && kf_strnicmp(p, "mailto:", 7) && kf_strnicmp(p, "javascript:", 11) &&
+                if (kf_strnicmp(p, "http:", 5) && kf_strnicmp(p, "https:", 6) && kf_strnicmp(p, "mailto:", 7) && kf_strnicmp(p, "javascript:", 11) &&
                     kf_strnicmp(p, "ftp:", 4) && *p != '#') {
                     buf_puts(&b, *p == '/' ? host : dir);
                     if (*p == '/') {}
@@ -460,10 +465,10 @@ TAG(http) {
     int port = (int)attr_num(c, n, "port", 0);
     int resolve = attr_bool(c, n, "resolveurl", 0);
     int throwerr = attr_bool(c, n, "throwonerror", 0);
-    if (port && !strchr(url + 7, ':')) {
-        const char *sl = strchr(url + 7, '/');
-        url = sl ? kprintf("%.*s:%d%s", (int)(sl - url), url, port, sl) : kprintf("%s:%d", url, port);
-    }
+    int redirect = attr_bool(c, n, "redirect", 1);
+    /* KoldFusion extra: CHECKCERTIFICATE="No" skips verifying an https:// server's certificate */
+    int verify = attr_str(c, n, "checkcertificate", NULL) ? attr_bool(c, n, "checkcertificate", 1) : -1;
+    const char *useragent = attr_str(c, n, "useragent", NULL);
     Array *saved = t_httpparams;
     t_httpparams = array_new();
     exec_nodes(c, n->kids, n->nkids, flow);
@@ -511,11 +516,17 @@ TAG(http) {
     int post = !kf_stricmp(method, "post");
     if (post) struct_set(hdrs, "Content-Type", v_str(multipart ? kprintf("multipart/form-data; boundary=%s", boundary)
                                                                 : "application/x-www-form-urlencoded"));
-    Buf resp; buf_init(&resp);
-    int status = 0; char *status_line = ""; Struct *rh = NULL;
-    char err[512] = "";
-    int ok = http_client(post ? "POST" : "GET", url, hdrs, post ? (body.s ? body.s : "") : NULL, post ? body.len : 0,
-                         timeout, proxy, proxyport, user, pass, &resp, &status, &status_line, &rh, err, sizeof err);
+    HttpClientOpts ho = {0};
+    ho.method = post ? "POST" : "GET"; ho.url = url; ho.headers = hdrs;
+    ho.body = post ? (body.s ? body.s : "") : NULL; ho.bodylen = post ? body.len : 0;
+    ho.timeout_s = timeout; ho.port = port; ho.proxy = proxy; ho.proxyport = proxyport; ho.user = user; ho.pass = pass;
+    ho.useragent = useragent; ho.follow_redirects = redirect; ho.verify = verify;
+    HttpClientResult hr;
+    char err[1024] = "";
+    int ok = http_client_ex(&ho, &hr, err, sizeof err);
+    Buf resp = hr.body;
+    int status = hr.status; char *status_line = hr.status_line ? hr.status_line : ""; Struct *rh = hr.headers;
+    if (ok && hr.final_url) url = hr.final_url;
     Struct *r = struct_new();
     if (!ok) {
         if (throwerr) kf_throw(c, "Application", "Error processing CFHTTP", err);
@@ -528,6 +539,8 @@ TAG(http) {
         return;
     }
     if (throwerr && status >= 400) kf_throw(c, "Application", "Error processing CFHTTP", kprintf("The server returned %s.", status_line));
+    if (throwerr && !redirect && status >= 300 && status < 400)
+        kf_throw(c, "Application", "Error processing CFHTTP", kprintf("The server returned %s and REDIRECT is No.", status_line));
     char *content = kstrndup(resp.s ? resp.s : "", resp.len);
     Val *ct = struct_get(rh, "Content-Type");
     const char *mime = ct ? v_tostr(*ct) : "text/html";
@@ -537,7 +550,11 @@ TAG(http) {
     struct_set(r, "MimeType", v_str(kstrndup(mime, strcspn(mime, ";"))));
     Buf hb; buf_init(&hb);
     buf_printf(&hb, "%s ", status_line);
-    for (int i = 0; i < rh->n; i++) buf_printf(&hb, "%s: %s ", rh->e[i].key, v_tostr(rh->e[i].v));
+    for (int i = 0; i < rh->n; i++) {
+        Val hv = rh->e[i].v;                /* a header sent more than once (Set-Cookie) is an array */
+        if (hv.t == VT_ARRAY) { for (int k = 0; k < hv.u.a->n; k++) buf_printf(&hb, "%s: %s ", rh->e[i].key, v_tostr(hv.u.a->v[k])); }
+        else buf_printf(&hb, "%s: %s ", rh->e[i].key, v_tostr(hv));
+    }
     struct_set(r, "Header", v_str(buf_cstr(&hb)));
     struct_set(rh, "Explanation", v_strdup(strlen(status_line) > 13 ? status_line + 13 : ""));
     struct_set(rh, "Status_Code", v_num(status));
@@ -659,7 +676,6 @@ TAG(execute) {
 }
 
 /* ================================================================ CFMAIL */
-static __thread Struct *t_mailparams;
 
 TAG(mailparam) {
     (void)flow;

@@ -566,6 +566,9 @@ TAG(applet) {
 typedef struct TCol { const char *header; int width; const char *align; Node *text; } TCol;
 typedef struct TblCtx { TCol cols[64]; int n; } TblCtx;
 static __thread TblCtx *t_table;
+/* a request thread serves several requests on a kept-alive connection: start each one afresh
+   (CFForm_1 numbering, and no grid/tree/table context left behind by an exception) */
+void tags_form_thread_reset(void) { form_counter = 0; t_grid = NULL; t_tree = NULL; t_table = NULL; }
 
 TAG(col) {
     (void)flow;
