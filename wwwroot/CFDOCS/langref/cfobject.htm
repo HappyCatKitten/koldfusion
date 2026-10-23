@@ -21,58 +21,88 @@ function runExample(name) {
 <HR NOSHADE SIZE=1>
 <DIV CLASS="docbody">
 <H1>CFOBJECT</H1>
-<P>On ColdFusion for Windows NT, <B><CODE>CFOBJECT</CODE></B> creates a COM object (Word, Excel, your own ActiveX DLLs), connects to a CORBA server or instantiates a Java class, and you then call its methods and properties from CFML. KoldFusion for UNIX has no COM subsystem and ships without a configured JVM or ORB, so the tag always raises an error of type Object.</P>
+<P><B><CODE>CFOBJECT</CODE></B> loads a Java class into the KoldFusion Java Virtual Machine and stores it in a variable, so you can call its methods and read and set its public fields with ordinary CFML: <CODE>obj.method(args)</CODE>, <CODE>obj.field</CODE>, <CODE>&lt;CFSET obj.field = value&gt;</CODE>. On ColdFusion for Windows NT it also creates COM objects and connects to CORBA servers; KoldFusion for UNIX has no COM subsystem and no CORBA ORB, so those types raise an error of type Object.</P>
 <H4>Category</H4><P><A HREF="index.htm#extensibility">Extensibility</A></P>
 <H4>Syntax</H4>
-<PRE>&lt;CFOBJECT TYPE=&quot;COM/CORBA/JAVA&quot;
+<PRE>&lt;CFOBJECT TYPE=&quot;JAVA&quot;
+    ACTION=&quot;Create&quot;
+    CLASS=&quot;java_class_name&quot;
+    NAME=&quot;object_name&quot;&gt;
+
+&lt;CFOBJECT TYPE=&quot;COM&quot;
     ACTION=&quot;Create/Connect&quot;
     CLASS=&quot;program_id&quot;
     NAME=&quot;object_name&quot;
-    CONTEXT=&quot;InProc/Local/Remote/IOR/NameService&quot;
-    SERVER=&quot;server_name&quot;
-    LOCALE=&quot;locale&quot;&gt;</PRE>
+    CONTEXT=&quot;InProc/Local/Remote&quot;
+    SERVER=&quot;server_name&quot;&gt;
+
+&lt;CFOBJECT TYPE=&quot;CORBA&quot;
+    CONTEXT=&quot;IOR/NameService&quot;
+    CLASS=&quot;file_or_naming_service&quot;
+    NAME=&quot;object_name&quot;
+    LOCALE=&quot;type-value arguments&quot;&gt;</PRE>
 <H4>Attributes</H4>
 <DL>
 <DT><B>TYPE</B></DT>
-<DD><I>Optional, default &quot;COM&quot;.</I> Kind of object: COM, CORBA or JAVA.</DD>
+<DD><I>Optional, default &quot;COM&quot;.</I> Kind of object: JAVA, COM or CORBA.</DD>
 <DT><B>ACTION</B></DT>
-<DD><I>Required for COM and JAVA.</I> &quot;Create&quot; makes a new object; &quot;Connect&quot; attaches to a running COM server.</DD>
+<DD><I>Required for JAVA and COM.</I> &quot;Create&quot; loads the class (Java) or makes a new object (COM); &quot;Connect&quot; attaches to a running COM server.</DD>
 <DT><B>CLASS</B></DT>
-<DD><I>Required.</I> ProgID of the COM object (for example &quot;Excel.Application&quot;), Java class name, or for CORBA the IOR file name or naming service path.</DD>
+<DD><I>Required.</I> Java: the full class name, such as &quot;java.util.Hashtable&quot; (case sensitive; slashes work too: &quot;java/util/Hashtable&quot;). COM: the ProgID. CORBA: the IOR file or the naming service path.</DD>
 <DT><B>NAME</B></DT>
 <DD><I>Required.</I> Variable that receives the object.</DD>
 <DT><B>CONTEXT</B></DT>
-<DD><I>Optional.</I> COM: InProc, Local or Remote. CORBA: IOR or NameService.</DD>
+<DD><I>Optional.</I> COM: InProc, Local or Remote. CORBA (required): IOR or NameService.</DD>
 <DT><B>SERVER</B></DT>
 <DD><I>Optional.</I> COM server name for CONTEXT=&quot;Remote&quot;.</DD>
 <DT><B>LOCALE</B></DT>
-<DD><I>Optional.</I> CORBA locale setting.</DD>
+<DD><I>Optional.</I> CORBA: arguments for the ORB&#x27;s init_orb(), each starting with a hyphen.</DD>
 </DL>
 <H4>Usage</H4>
-<P>Because the tag always fails here, wrap it in <A HREF="cftry.htm"><CODE>CFTRY</CODE></A> and catch TYPE=&quot;Object&quot; so the page can fall back to something else. <A HREF="createobject.htm"><CODE>CreateObject</CODE></A> (new in 4.5) is the function form and behaves the same way.</P>
-<P><B><CODE>CFOBJECT</CODE></B> can be disabled in the Administrator (Basic Security, Tag Restrictions); a restricted tag raises a security error instead.</P>
+<H2>Java objects</H2>
+<P><B><CODE>CFOBJECT</CODE></B> loads the class but does not construct it yet, so static methods and fields can be used straight away. Call <CODE>init()</CODE> to run a constructor with arguments; otherwise the first instance method call (or instance field access) runs the constructor that takes no arguments:</P>
+<PRE>&lt;CFOBJECT TYPE=&quot;JAVA&quot; ACTION=&quot;Create&quot; CLASS=&quot;java.lang.StringBuffer&quot; NAME=&quot;Buf&quot;&gt;
+&lt;CFSET Buf.init(&quot;Hello&quot;)&gt;              &lt;!--- new StringBuffer(&quot;Hello&quot;) ---&gt;
+&lt;CFSET Buf.append(&quot;, world&quot;)&gt;</PRE>
+<P>Method and field names are not case sensitive; class names are. Overloaded methods are chosen by the number of arguments and then by how well the CFML values fit the parameter types; when that is ambiguous, say which Java type you mean with <A HREF="javacast.htm"><CODE>JavaCast</CODE></A>. Strings, numbers, booleans and dates are converted both ways; a CFML array becomes a <CODE>java.util.Vector</CODE> (or a Java array, if the method wants one) and a structure a <CODE>java.util.Hashtable</CODE>. Values returned by Java come back as CFML values: strings, numbers, booleans, dates, and arrays (from Java arrays, Vectors and other Lists) or structures (from Hashtables and other Maps); any other object stays a Java object you can call. A Java <CODE>char</CODE> comes back as its character code; use <A HREF="chr.htm"><CODE>Chr()</CODE></A> to show it.</P>
+<P>A Java exception becomes a CFML error of type Object, whose <CODE>CFCATCH.Message</CODE> is the exception&#x27;s class name and <CODE>CFCATCH.Detail</CODE> its message. <CODE>GetException(object)</CODE> returns the exception object itself.</P>
+<P>Classes are found in the <CODE>java/classes</CODE> directory of the KoldFusion installation, in <CODE>cfx.jar</CODE>, in the Java runtime, and on the Class Path set on the <A HREF="../admin/java.htm">Java page</A> of the Administrator. The Java Virtual Machine is loaded the first time a page needs it; if none is installed, the tag raises an error of type Object.</P>
+<P CLASS="note"><B>Note</B>&nbsp; ColdFusion 4.5 released objects at the end of each page. KoldFusion also lets you keep a Java object in the Session, Application or Server scope: the stored copy refers to the same Java object, which stays alive as long as that scope does. Several requests can then use it at the same time, so lock it with <A HREF="cflock.htm"><CODE>CFLOCK</CODE></A> (or use a thread-safe class such as <CODE>java.util.Hashtable</CODE>). Java objects cannot be stored in Client variables or serialized with <A HREF="cfwddx.htm"><CODE>CFWDDX</CODE></A>.</P>
+<H2>COM and CORBA</H2>
+<P>COM is a Windows technology, and the Java runtimes of today no longer include a CORBA ORB (Java IDL was removed in Java 11), so on KoldFusion these always fail with an error of type Object. Wrap such code in <A HREF="cftry.htm"><CODE>CFTRY</CODE></A> so a page written for the Windows server degrades gracefully.</P>
+<P><B><CODE>CFOBJECT</CODE></B> and <A HREF="createobject.htm"><CODE>CreateObject</CODE></A> can be disabled in the Administrator (Basic Security, Tag Restrictions); a restricted tag raises a security error instead.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfobject"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfobject'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
-<PRE CLASS="example">&lt;!--- Try to start Excel; on UNIX, plan B is a plain HTML table ---&gt;
+<PRE CLASS="example">&lt;!--- A Hashtable from the Java runtime, used straight from CFML ---&gt;
 &lt;CFTRY&gt;
-  &lt;CFOBJECT TYPE=&quot;COM&quot; ACTION=&quot;Create&quot; CLASS=&quot;Excel.Application&quot; NAME=&quot;Excel&quot;&gt;
-  &lt;P&gt;Excel is running. Remarkable.&lt;/P&gt;
+  &lt;CFOBJECT TYPE=&quot;JAVA&quot; ACTION=&quot;Create&quot; CLASS=&quot;java.util.Hashtable&quot; NAME=&quot;Prices&quot;&gt;
+  &lt;CFSET Prices.put(&quot;56K modem&quot;, &quot;129.95&quot;)&gt;
+  &lt;CFSET Prices.put(&quot;Zip drive&quot;, &quot;149.00&quot;)&gt;
+  &lt;CFSET Prices.put(&quot;Y2K sticker&quot;, &quot;0.99&quot;)&gt;
+  &lt;CFOUTPUT&gt;
+  &lt;P&gt;The Hashtable holds #Prices.size()# items. A Zip drive costs
+  #DollarFormat(Prices.get(&quot;Zip drive&quot;))#.&lt;/P&gt;
+  &lt;/CFOUTPUT&gt;
+  &lt;!--- returned Hashtables become structures ---&gt;
+  &lt;CFSET Copy = Prices.clone()&gt;
+  &lt;TABLE BORDER=1 CELLPADDING=3&gt;
+  &lt;CFLOOP COLLECTION=&quot;#Copy#&quot; ITEM=&quot;Item&quot;&gt;
+    &lt;CFOUTPUT&gt;&lt;TR&gt;&lt;TD&gt;#Item#&lt;/TD&gt;&lt;TD ALIGN=RIGHT&gt;#Copy[Item]#&lt;/TD&gt;&lt;/TR&gt;&lt;/CFOUTPUT&gt;
+  &lt;/CFLOOP&gt;
+  &lt;/TABLE&gt;
+  &lt;!--- static methods work before init() ---&gt;
+  &lt;CFOBJECT TYPE=&quot;JAVA&quot; ACTION=&quot;Create&quot; CLASS=&quot;java.lang.Math&quot; NAME=&quot;JMath&quot;&gt;
+  &lt;CFOUTPUT&gt;&lt;P&gt;Math.max(1999, 2000) = #JMath.max(1999, 2000)#,
+  Math.PI = #JMath.PI#&lt;/P&gt;&lt;/CFOUTPUT&gt;
   &lt;CFCATCH TYPE=&quot;Object&quot;&gt;
     &lt;CFOUTPUT&gt;
-    &lt;P&gt;&lt;B&gt;No COM today:&lt;/B&gt; #CFCATCH.Message#&lt;BR&gt;
+    &lt;P&gt;&lt;B&gt;No Java today:&lt;/B&gt; #CFCATCH.Message#&lt;BR&gt;
     &lt;I&gt;#CFCATCH.Detail#&lt;/I&gt;&lt;/P&gt;
     &lt;/CFOUTPUT&gt;
-    &lt;CFQUERY NAME=&quot;Depts&quot; DATASOURCE=&quot;cfsnippets&quot;&gt;
-    SELECT Dept_Name, Location FROM Departments ORDER BY Dept_Name
-    &lt;/CFQUERY&gt;
-    &lt;P&gt;Here is the spreadsheet as an HTML table instead:&lt;/P&gt;
-    &lt;TABLE BORDER=1 CELLPADDING=3&gt;
-    &lt;CFOUTPUT QUERY=&quot;Depts&quot;&gt;&lt;TR&gt;&lt;TD&gt;#Dept_Name#&lt;/TD&gt;&lt;TD&gt;#Location#&lt;/TD&gt;&lt;/TR&gt;&lt;/CFOUTPUT&gt;
-    &lt;/TABLE&gt;
   &lt;/CFCATCH&gt;
 &lt;/CFTRY&gt;</PRE>
 <H4>See also</H4>
-<P><A HREF="createobject.htm">CreateObject</A>, <A HREF="cftry.htm">CFTRY</A>, <A HREF="cflock.htm">CFLOCK</A>, <A HREF="cfx_hello.htm">CFX_HELLO</A></P>
+<P><A HREF="createobject.htm">CreateObject</A>, <A HREF="javacast.htm">JavaCast</A>, <A HREF="getexception.htm">GetException</A>, <A HREF="cftry.htm">CFTRY</A>, <A HREF="cflock.htm">CFLOCK</A>, <A HREF="cfservlet.htm">CFSERVLET</A></P>
 </DIV>
 <HR NOSHADE SIZE=1>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=2><TR><TD><A HREF="cfmodule.htm"><IMG SRC="/CFDOCS/images/doc_back.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Previous page"></A></TD><TD><A HREF="index.htm"><IMG SRC="/CFDOCS/images/doc_up.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Up one level"></A></TD><TD><A HREF="cfoutput.htm"><IMG SRC="/CFDOCS/images/doc_next.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Next page"></A></TD><TD><A HREF="/CFDOCS/dochome.cfm"><IMG SRC="/CFDOCS/images/doc_home.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Documentation home"></A></TD><TD><A HREF="/CFDOCS/langref/index.htm"><IMG SRC="/CFDOCS/images/doc_index.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="CFML Language Reference contents"></A></TD></TR></TABLE>

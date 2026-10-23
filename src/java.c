@@ -37,7 +37,7 @@ static JavaVM *g_vm;
 static int g_state;                 /* 0 not tried, 1 loaded, -1 creation failed (permanent) */
 static char g_error[8192];          /* why the JVM is not available */
 static char g_libpath[PATH_MAX];    /* libjvm.so in use */
-static char g_libsource[64];        /* where we found it */
+static char g_libsource[256];        /* where we found it */
 static char g_classpath[8192];
 static char g_options[4096];        /* options passed to JNI_CreateJavaVM, for the Administrator */
 static char g_version[256];
@@ -249,7 +249,7 @@ static void opt_add(JavaVMOption *o, int *n, int max, const char *s) {
 static int jvm_create_locked(void) {
     if (g_state == 1) return 1;
     if (g_state == -1) return 0;
-    char lib[PATH_MAX], src[64];
+    char lib[PATH_MAX], src[256];
     if (!jvm_find(lib, sizeof lib, src, sizeof src)) {
         snprintf(g_error, sizeof g_error, "No Java Virtual Machine was found (KoldFusion %s). Set the Java Virtual Machine Path on the "
                  "Java page of the KoldFusion Administrator, or set JAVA_HOME.", src);
@@ -1202,7 +1202,10 @@ static Val to_cf(JNIEnv *env, jobject o, int depth) {
     if (!o) return v_str("");
     if (j_IsInstanceOf(env, o, R.String)) return v_str(kfj_cstr(env, o));
     if (j_IsInstanceOf(env, o, R.Boolean)) return v_bool(j_CallBooleanMethodA(env, o, R.booleanValue, NULL));
-    if (j_IsInstanceOf(env, o, R.Number)) return v_num(j_CallDoubleMethodA(env, o, R.doubleValue, NULL));
+    /* boxed primitives become CFML numbers; BigInteger, BigDecimal, AtomicLong... stay objects */
+    if (j_IsInstanceOf(env, o, R.Integer) || j_IsInstanceOf(env, o, R.Double) || j_IsInstanceOf(env, o, R.Long) ||
+        j_IsInstanceOf(env, o, R.Short) || j_IsInstanceOf(env, o, R.Byte) || j_IsInstanceOf(env, o, R.Float))
+        return v_num(j_CallDoubleMethodA(env, o, R.doubleValue, NULL));
     if (j_IsInstanceOf(env, o, R.Character)) {
         /* as in ColdFusion: a Java char comes back as its character code (use Chr() to display it) */
         jstring s = j_CallObjectMethodA(env, o, R.toString, NULL);
@@ -1669,7 +1672,7 @@ F(kfusion_java) {
     const char *action = argc > 0 ? fa_str(c, call, argv, 0) : "status";
     if (!kf_stricmp(action, "load")) jvm_ensure();
     Struct *s = struct_new();
-    char lib[PATH_MAX] = "", src[64] = "";
+    char lib[PATH_MAX] = "", src[256] = "";
     int found = g_state == 1 ? 1 : jvm_find(lib, sizeof lib, src, sizeof src);
     struct_set(s, "Loaded", v_bool(g_state == 1));
     struct_set(s, "Failed", v_bool(g_state == -1));

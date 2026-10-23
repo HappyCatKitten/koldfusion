@@ -22,7 +22,7 @@ function runExample(name) {
 <DIV CLASS="docbody">
 <H1>CFSERVLET</H1>
 <P><FONT COLOR="#CC0000" SIZE=1><B>NEW IN KOLDFUSION 4.5</B></FONT></P>
-<P><B><CODE>CFSERVLET</CODE></B> hands the request to a Java servlet running on an Gibson JRun server and includes the servlet&#x27;s output in the page, or stores it in a variable. KoldFusion cannot reach a JRun engine, so the tag always raises an Application error; catch it with <A HREF="cftry.htm"><CODE>CFTRY</CODE></A>.</P>
+<P><B><CODE>CFSERVLET</CODE></B> runs a Java servlet and writes its response into the page, or stores it in <CODE>CFSERVLET.Output</CODE>. In ColdFusion 4.5 the request went to a JRun servlet engine; KoldFusion runs the servlet inside its own Java Virtual Machine, against the Servlet API 2.2 classes in <CODE>cfx.jar</CODE>, so 1999-era servlets (JSWDK, JRun, ServletExec) run without a separate servlet engine.</P>
 <H4>Category</H4><P><A HREF="index.htm#extensibility">Extensibility</A></P>
 <H4>Syntax</H4>
 <PRE>&lt;CFSERVLET CODE=&quot;class_name_of_servlet&quot;
@@ -35,25 +35,56 @@ function runExample(name) {
 <H4>Attributes</H4>
 <DL>
 <DT><B>CODE</B></DT>
-<DD><I>Required.</I> Class name of the servlet to run.</DD>
+<DD><I>Required.</I> Class name of the servlet. The class is loaded from the <CODE>java/classes</CODE> directory of the installation (and reloaded when the class file changes) or from the Java Class Path.</DD>
 <DT><B>JRUNPROXY</B></DT>
-<DD><I>Optional.</I> Host and port of the JRun proxy, for example &quot;127.0.0.1:8081&quot;.</DD>
+<DD><I>Optional.</I> Host and port of a JRun proxy, for example &quot;127.0.0.1:8081&quot;. Accepted for compatibility; KoldFusion runs the servlet itself.</DD>
 <DT><B>TIMEOUT</B></DT>
-<DD><I>Optional.</I> Seconds to wait for the servlet.</DD>
+<DD><I>Optional.</I> Seconds to wait for the servlet before giving up with an error.</DD>
 <DT><B>WRITEOUTPUT</B></DT>
-<DD><I>Optional, default &quot;Yes&quot;.</I> &quot;Yes&quot; writes the servlet&#x27;s response into the page; &quot;No&quot; stores it in <CODE>CFSERVLET.Output</CODE> instead.</DD>
+<DD><I>Optional, default &quot;Yes&quot;.</I> &quot;Yes&quot; writes the servlet&#x27;s response into the page; &quot;No&quot; only stores it in <CODE>CFSERVLET.Output</CODE>.</DD>
 <DT><B>DEBUG</B></DT>
-<DD><I>Optional, default &quot;No&quot;.</I> &quot;Yes&quot; writes extra information about the call.</DD>
+<DD><I>Optional, default &quot;No&quot;.</I> &quot;Yes&quot; logs each call (servlet, status, size, time) to <CODE>servlet.log</CODE>.</DD>
 </DL>
 <H4>Usage</H4>
-<P>Parameters are passed with <A HREF="cfservletparam.htm"><CODE>CFSERVLETPARAM</CODE></A> tags in the body. In ColdFusion the servlet&#x27;s status and headers come back in the <B><CODE>CFSERVLET</CODE></B> structure.</P>
+<P>The body may contain only <A HREF="cfservletparam.htm"><CODE>CFSERVLETPARAM</CODE></A> tags. Parameters given with <CODE>CFSERVLETPARAM NAME=... VALUE=...</CODE> (and the page&#x27;s own URL and form fields) are the servlet&#x27;s request parameters; variables passed with <CODE>VARIABLE=</CODE> are request attributes, and whatever the servlet stores back with <CODE>setAttribute</CODE> is copied into the variables after the tag.</P>
+<P>After the tag, the <B><CODE>CFSERVLET</CODE></B> structure contains:</P>
+<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=1 BGCOLOR="#999999" CLASS="doctable">
+<TR BGCOLOR="#669966" VALIGN=TOP>
+<TH ALIGN=LEFT><FONT COLOR="#FFFFFF">Variable</FONT></TH>
+<TH ALIGN=LEFT><FONT COLOR="#FFFFFF">Contents</FONT></TH>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>CFSERVLET.Output</TD>
+<TD>The response body</TD>
+</TR>
+<TR BGCOLOR="#FFFBF0" VALIGN=TOP>
+<TD>CFSERVLET.HeaderName</TD>
+<TD>One entry per response header, such as <CODE>CFSERVLET[&quot;Content-Type&quot;]</CODE></TD>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>CFSERVLET.StatusCode</TD>
+<TD>The HTTP status set by the servlet (200 unless it says otherwise)</TD>
+</TR>
+<TR BGCOLOR="#FFFBF0" VALIGN=TOP>
+<TD>CFSERVLET.StatusText</TD>
+<TD>The matching reason phrase</TD>
+</TR>
+</TABLE>
+<P>A servlet&#x27;s <CODE>HttpSession</CODE> lives as long as the visitor&#x27;s CFML session (with CFAPPLICATION SESSIONMANAGEMENT=&quot;Yes&quot;) or CFID/CFTOKEN cookies. Servlets are created once, <CODE>init()</CODE> is called on first use, and <CODE>SingleThreadModel</CODE> is honoured. An exception thrown by the servlet becomes an Application error. Without a Java Virtual Machine, or without <CODE>cfx.jar</CODE>, the tag raises an error of type Object.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfservlet"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfservlet'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
-<PRE CLASS="example">&lt;CFTRY&gt;
-  &lt;CFSERVLET CODE=&quot;HelloWorldServlet&quot; WRITEOUTPUT=&quot;Yes&quot; TIMEOUT=&quot;10&quot;&gt;
-    &lt;CFSERVLETPARAM NAME=&quot;greeting&quot; VALUE=&quot;Hello from KoldFusion&quot;&gt;
+<PRE CLASS="example">&lt;!--- HelloServlet ships in java/samples; it counts the visits it is handed by reference ---&gt;
+&lt;CFPARAM NAME=&quot;Visits&quot; DEFAULT=&quot;0&quot;&gt;
+&lt;CFTRY&gt;
+  &lt;CFSERVLET CODE=&quot;HelloServlet&quot; WRITEOUTPUT=&quot;Yes&quot; TIMEOUT=&quot;10&quot;&gt;
+    &lt;CFSERVLETPARAM NAME=&quot;name&quot; VALUE=&quot;KoldFusion developer&quot;&gt;
+    &lt;CFSERVLETPARAM NAME=&quot;visits&quot; VARIABLE=&quot;Visits&quot; TYPE=&quot;INT&quot;&gt;
   &lt;/CFSERVLET&gt;
-  &lt;CFCATCH TYPE=&quot;Application&quot;&gt;
+  &lt;CFOUTPUT&gt;
+  &lt;P&gt;The servlet answered with status #CFSERVLET.StatusCode# and Content-Type
+  #CFSERVLET[&quot;Content-Type&quot;]#, and set Visits to #Visits#.&lt;/P&gt;
+  &lt;/CFOUTPUT&gt;
+  &lt;CFCATCH TYPE=&quot;Any&quot;&gt;
     &lt;CFOUTPUT&gt;
     &lt;TABLE BORDER=1 CELLPADDING=3&gt;
     &lt;TR BGCOLOR=&quot;##FFCCCC&quot;&gt;&lt;TH COLSPAN=2&gt;The servlet could not run&lt;/TH&gt;&lt;/TR&gt;

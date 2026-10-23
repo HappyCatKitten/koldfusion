@@ -638,63 +638,120 @@ see: CFMODULE, CFEXIT, GetBaseTagList, GetBaseTagData
 
 @tag CFOBJECT
 category: Extensibility
-summary: Creates a COM, CORBA or Java object. Not available in KoldFusion for UNIX.
+summary: Creates a Java object (and, on Windows NT, COM and CORBA objects).
 desc:
-On ColdFusion for Windows NT, `CFOBJECT` creates a COM object (Word, Excel, your own ActiveX DLLs), connects to a CORBA
-server or instantiates a Java class, and you then call its methods and properties from CFML. KoldFusion for UNIX has no
-COM subsystem and ships without a configured JVM or ORB, so the tag always raises an error of type Object.
+`CFOBJECT` loads a Java class into the KoldFusion Java Virtual Machine and stores it in a variable, so you can call
+its methods and read and set its public fields with ordinary CFML: `obj.method(args)`, `obj.field`,
+`<CFSET obj.field = value>`. On ColdFusion for Windows NT it also creates COM objects and connects to CORBA servers;
+KoldFusion for UNIX has no COM subsystem and no CORBA ORB, so those types raise an error of type Object.
 syntax:
-<CFOBJECT TYPE="COM/CORBA/JAVA"
+<CFOBJECT TYPE="JAVA"
+    ACTION="Create"
+    CLASS="java_class_name"
+    NAME="object_name">
+
+<CFOBJECT TYPE="COM"
     ACTION="Create/Connect"
     CLASS="program_id"
     NAME="object_name"
-    CONTEXT="InProc/Local/Remote/IOR/NameService"
-    SERVER="server_name"
-    LOCALE="locale">
-attrs:
-TYPE | Optional, default "COM" | Kind of object: COM, CORBA or JAVA.
-ACTION | Required for COM and JAVA | "Create" makes a new object; "Connect" attaches to a running COM server.
-CLASS | Required | ProgID of the COM object (for example "Excel.Application"), Java class name, or for CORBA the IOR
-  file name or naming service path.
-NAME | Required | Variable that receives the object.
-CONTEXT | Optional | COM: InProc, Local or Remote. CORBA: IOR or NameService.
-SERVER | Optional | COM server name for CONTEXT="Remote".
-LOCALE | Optional | CORBA locale setting.
-usage:
-Because the tag always fails here, wrap it in `CFTRY` and catch TYPE="Object" so the page can fall back to something
-else. `CreateObject` (new in 4.5) is the function form and behaves the same way.
+    CONTEXT="InProc/Local/Remote"
+    SERVER="server_name">
 
-`CFOBJECT` can be disabled in the Administrator (Basic Security, Tag Restrictions); a restricted tag raises a security
-error instead.
+<CFOBJECT TYPE="CORBA"
+    CONTEXT="IOR/NameService"
+    CLASS="file_or_naming_service"
+    NAME="object_name"
+    LOCALE="type-value arguments">
+attrs:
+TYPE | Optional, default "COM" | Kind of object: JAVA, COM or CORBA.
+ACTION | Required for JAVA and COM | "Create" loads the class (Java) or makes a new object (COM); "Connect" attaches
+  to a running COM server.
+CLASS | Required | Java: the full class name, such as "java.util.Hashtable" (case sensitive; slashes work too:
+  "java/util/Hashtable"). COM: the ProgID. CORBA: the IOR file or the naming service path.
+NAME | Required | Variable that receives the object.
+CONTEXT | Optional | COM: InProc, Local or Remote. CORBA (required): IOR or NameService.
+SERVER | Optional | COM server name for CONTEXT="Remote".
+LOCALE | Optional | CORBA: arguments for the ORB's init_orb(), each starting with a hyphen.
+usage:
+# Java objects
+
+`CFOBJECT` loads the class but does not construct it yet, so static methods and fields can be used straight away.
+Call `init()` to run a constructor with arguments; otherwise the first instance method call (or instance field
+access) runs the constructor that takes no arguments:
+
+    <CFOBJECT TYPE="JAVA" ACTION="Create" CLASS="java.lang.StringBuffer" NAME="Buf">
+    <CFSET Buf.init("Hello")>              <!--- new StringBuffer("Hello") --->
+    <CFSET Buf.append(", world")>
+
+Method and field names are not case sensitive; class names are. Overloaded methods are chosen by the number of
+arguments and then by how well the CFML values fit the parameter types; when that is ambiguous, say which Java
+type you mean with `JavaCast`. Strings, numbers, booleans and dates are converted both ways; a CFML array becomes
+a `java.util.Vector` (or a Java array, if the method wants one) and a structure a `java.util.Hashtable`. Values
+returned by Java come back as CFML values: strings, numbers, booleans, dates, and arrays (from Java arrays, Vectors
+and other Lists) or structures (from Hashtables and other Maps); any other object stays a Java object you can call.
+A Java `char` comes back as its character code; use `Chr()` to show it.
+
+A Java exception becomes a CFML error of type Object, whose `CFCATCH.Message` is the exception's class name and
+`CFCATCH.Detail` its message. `GetException(object)` returns the exception object itself.
+
+Classes are found in the `java/classes` directory of the KoldFusion installation, in `cfx.jar`, in the Java runtime,
+and on the Class Path set on the [Java page](../admin/java.htm) of the Administrator. The Java Virtual Machine is
+loaded the first time a page needs it; if none is installed, the tag raises an error of type Object.
+
+> ColdFusion 4.5 released objects at the end of each page. KoldFusion also lets you keep a Java object in the
+> Session, Application or Server scope: the stored copy refers to the same Java object, which stays alive as long
+> as that scope does. Several requests can then use it at the same time, so lock it with `CFLOCK` (or use a
+> thread-safe class such as `java.util.Hashtable`). Java objects cannot be stored in Client variables or
+> serialized with `CFWDDX`.
+
+# COM and CORBA
+
+COM is a Windows technology, and the Java runtimes of today no longer include a CORBA ORB (Java IDL was removed in
+Java 11), so on KoldFusion these always fail with an error of type Object. Wrap such code in `CFTRY` so a page
+written for the Windows server degrades gracefully.
+
+`CFOBJECT` and `CreateObject` can be disabled in the Administrator (Basic Security, Tag Restrictions); a restricted
+tag raises a security error instead.
 example:
-<!--- Try to start Excel; on UNIX, plan B is a plain HTML table --->
+<!--- A Hashtable from the Java runtime, used straight from CFML --->
 <CFTRY>
-  <CFOBJECT TYPE="COM" ACTION="Create" CLASS="Excel.Application" NAME="Excel">
-  <P>Excel is running. Remarkable.</P>
+  <CFOBJECT TYPE="JAVA" ACTION="Create" CLASS="java.util.Hashtable" NAME="Prices">
+  <CFSET Prices.put("56K modem", "129.95")>
+  <CFSET Prices.put("Zip drive", "149.00")>
+  <CFSET Prices.put("Y2K sticker", "0.99")>
+  <CFOUTPUT>
+  <P>The Hashtable holds #Prices.size()# items. A Zip drive costs
+  #DollarFormat(Prices.get("Zip drive"))#.</P>
+  </CFOUTPUT>
+  <!--- returned Hashtables become structures --->
+  <CFSET Copy = Prices.clone()>
+  <TABLE BORDER=1 CELLPADDING=3>
+  <CFLOOP COLLECTION="#Copy#" ITEM="Item">
+    <CFOUTPUT><TR><TD>#Item#</TD><TD ALIGN=RIGHT>#Copy[Item]#</TD></TR></CFOUTPUT>
+  </CFLOOP>
+  </TABLE>
+  <!--- static methods work before init() --->
+  <CFOBJECT TYPE="JAVA" ACTION="Create" CLASS="java.lang.Math" NAME="JMath">
+  <CFOUTPUT><P>Math.max(1999, 2000) = #JMath.max(1999, 2000)#,
+  Math.PI = #JMath.PI#</P></CFOUTPUT>
   <CFCATCH TYPE="Object">
     <CFOUTPUT>
-    <P><B>No COM today:</B> #CFCATCH.Message#<BR>
+    <P><B>No Java today:</B> #CFCATCH.Message#<BR>
     <I>#CFCATCH.Detail#</I></P>
     </CFOUTPUT>
-    <CFQUERY NAME="Depts" DATASOURCE="cfsnippets">
-    SELECT Dept_Name, Location FROM Departments ORDER BY Dept_Name
-    </CFQUERY>
-    <P>Here is the spreadsheet as an HTML table instead:</P>
-    <TABLE BORDER=1 CELLPADDING=3>
-    <CFOUTPUT QUERY="Depts"><TR><TD>#Dept_Name#</TD><TD>#Location#</TD></TR></CFOUTPUT>
-    </TABLE>
   </CFCATCH>
 </CFTRY>
-see: CreateObject, CFTRY, CFLOCK, CFX_HELLO
+see: CreateObject, JavaCast, GetException, CFTRY, CFLOCK, CFSERVLET
 
 @tag CFSERVLET
 category: Extensibility
 new45: yes
-summary: Runs a Java servlet on a JRun servlet engine and returns its output. Not available in KoldFusion.
+summary: Runs a Java servlet and includes its output in the page.
 desc:
-`CFSERVLET` hands the request to a Java servlet running on an Gibson JRun server and includes the servlet's output
-in the page, or stores it in a variable. KoldFusion cannot reach a JRun engine, so the tag always raises an
-Application error; catch it with `CFTRY`.
+`CFSERVLET` runs a Java servlet and writes its response into the page, or stores it in `CFSERVLET.Output`. In
+ColdFusion 4.5 the request went to a JRun servlet engine; KoldFusion runs the servlet inside its own Java Virtual
+Machine, against the Servlet API 2.2 classes in `cfx.jar`, so 1999-era servlets (JSWDK, JRun, ServletExec) run
+without a separate servlet engine.
 syntax:
 <CFSERVLET CODE="class_name_of_servlet"
     JRUNPROXY="proxy_server"
@@ -704,21 +761,44 @@ syntax:
   <CFSERVLETPARAM ...>
 </CFSERVLET>
 attrs:
-CODE | Required | Class name of the servlet to run.
-JRUNPROXY | Optional | Host and port of the JRun proxy, for example "127.0.0.1:8081".
-TIMEOUT | Optional | Seconds to wait for the servlet.
-WRITEOUTPUT | Optional, default "Yes" | "Yes" writes the servlet's response into the page; "No" stores it in
-  `CFSERVLET.Output` instead.
-DEBUG | Optional, default "No" | "Yes" writes extra information about the call.
+CODE | Required | Class name of the servlet. The class is loaded from the `java/classes` directory of the
+  installation (and reloaded when the class file changes) or from the Java Class Path.
+JRUNPROXY | Optional | Host and port of a JRun proxy, for example "127.0.0.1:8081". Accepted for compatibility;
+  KoldFusion runs the servlet itself.
+TIMEOUT | Optional | Seconds to wait for the servlet before giving up with an error.
+WRITEOUTPUT | Optional, default "Yes" | "Yes" writes the servlet's response into the page; "No" only stores it in
+  `CFSERVLET.Output`.
+DEBUG | Optional, default "No" | "Yes" logs each call (servlet, status, size, time) to `servlet.log`.
 usage:
-Parameters are passed with `CFSERVLETPARAM` tags in the body. In ColdFusion the servlet's status and headers come
-back in the `CFSERVLET` structure.
+The body may contain only `CFSERVLETPARAM` tags. Parameters given with `CFSERVLETPARAM NAME=... VALUE=...` (and the
+page's own URL and form fields) are the servlet's request parameters; variables passed with `VARIABLE=` are request
+attributes, and whatever the servlet stores back with `setAttribute` is copied into the variables after the tag.
+
+After the tag, the `CFSERVLET` structure contains:
+
+| Variable | Contents |
+| CFSERVLET.Output | The response body |
+| CFSERVLET.HeaderName | One entry per response header, such as `CFSERVLET["Content-Type"]` |
+| CFSERVLET.StatusCode | The HTTP status set by the servlet (200 unless it says otherwise) |
+| CFSERVLET.StatusText | The matching reason phrase |
+
+A servlet's `HttpSession` lives as long as the visitor's CFML session (with CFAPPLICATION SESSIONMANAGEMENT="Yes")
+or CFID/CFTOKEN cookies. Servlets are created once, `init()` is called on first use, and `SingleThreadModel` is
+honoured. An exception thrown by the servlet becomes an Application error. Without a Java Virtual Machine, or
+without `cfx.jar`, the tag raises an error of type Object.
 example:
+<!--- HelloServlet ships in java/samples; it counts the visits it is handed by reference --->
+<CFPARAM NAME="Visits" DEFAULT="0">
 <CFTRY>
-  <CFSERVLET CODE="HelloWorldServlet" WRITEOUTPUT="Yes" TIMEOUT="10">
-    <CFSERVLETPARAM NAME="greeting" VALUE="Hello from KoldFusion">
+  <CFSERVLET CODE="HelloServlet" WRITEOUTPUT="Yes" TIMEOUT="10">
+    <CFSERVLETPARAM NAME="name" VALUE="KoldFusion developer">
+    <CFSERVLETPARAM NAME="visits" VARIABLE="Visits" TYPE="INT">
   </CFSERVLET>
-  <CFCATCH TYPE="Application">
+  <CFOUTPUT>
+  <P>The servlet answered with status #CFSERVLET.StatusCode# and Content-Type
+  #CFSERVLET["Content-Type"]#, and set Visits to #Visits#.</P>
+  </CFOUTPUT>
+  <CFCATCH TYPE="Any">
     <CFOUTPUT>
     <TABLE BORDER=1 CELLPADDING=3>
     <TR BGCOLOR="##FFCCCC"><TH COLSPAN=2>The servlet could not run</TH></TR>
@@ -733,10 +813,12 @@ see: CFSERVLETPARAM, CFOBJECT, CFHTTP, CFTRY
 @tag CFSERVLETPARAM
 category: Extensibility
 new45: yes
-summary: Passes a parameter to the servlet called by CFSERVLET.
+summary: Passes a parameter, or a variable by reference, to the servlet called by CFSERVLET.
 desc:
-`CFSERVLETPARAM` tags go inside a `CFSERVLET` block. Each one passes a value (or, by reference, a variable) to the
-Java servlet. Since KoldFusion cannot run servlets, the tag does nothing on its own.
+`CFSERVLETPARAM` tags go inside a `CFSERVLET` block. With VALUE, the tag adds a request parameter, which the servlet
+reads with `getParameter`. With VARIABLE, it passes a CFML variable by reference as a request attribute (read with
+`getAttribute`); when the servlet stores a new value with `setAttribute`, the variable is updated after the
+`CFSERVLET` tag.
 syntax:
 <CFSERVLETPARAM NAME="parameter_name"
     VALUE="value">
@@ -746,24 +828,32 @@ syntax:
     TYPE="INT/DOUBLE/BOOL/DATE/STRING">
 attrs:
 NAME | Required | Name of the parameter, or of the servlet attribute when passing by reference.
-VALUE | Optional | Value passed as a request parameter.
-VARIABLE | Optional | Name of a CFML variable passed by reference as a servlet attribute; changes made by the
-  servlet come back into the variable.
-TYPE | Optional, default "STRING" | Java type of a VARIABLE: INT, DOUBLE, BOOL, DATE or STRING.
+VALUE | Optional | Value passed as a request parameter. Use either VALUE or VARIABLE.
+VARIABLE | Optional | Name (not value) of a CFML variable passed by reference as a servlet attribute.
+TYPE | Optional | Java type of a VARIABLE: INT (java.lang.Integer), DOUBLE (java.lang.Double), BOOL
+  (java.lang.Boolean), DATE (java.util.Date) or STRING (java.lang.String). Without TYPE, simple values are passed
+  as strings, arrays as java.util.Vector and structures as java.util.Hashtable.
 usage:
-The tag is accepted anywhere and ignored; the enclosing `CFSERVLET` raises the error. See `CFSERVLET` for how to
-handle it.
+Queries cannot be passed to servlets (ColdFusion used a WDDX RecordSet class that KoldFusion does not have); pass
+the columns as arrays instead. Outside a `CFSERVLET` tag, `CFSERVLETPARAM` raises a context validation error.
 example:
 <CFSET Visitor = "Netscape 4.7 user">
+<CFSET Wishlist = ListToArray("Zip drive,56K modem,Palm V")>
 <CFTRY>
-  <CFSERVLET CODE="GuestCounterServlet">
+  <!--- SnoopServlet (in java/samples) lists everything it receives --->
+  <CFSERVLET CODE="SnoopServlet" WRITEOUTPUT="No">
     <CFSERVLETPARAM NAME="page" VALUE="cfservletparam.cfm">
     <CFSERVLETPARAM NAME="visitor" VARIABLE="Visitor" TYPE="STRING">
+    <CFSERVLETPARAM NAME="wishlist" VARIABLE="Wishlist">
   </CFSERVLET>
+  <CFOUTPUT>
+  <P>SnoopServlet sent back #Len(CFSERVLET.Output)# bytes:</P>
+  #CFSERVLET.Output#
+  </CFOUTPUT>
   <CFCATCH TYPE="Any">
     <CFOUTPUT>
-    <P>No servlet engine here, so the parameters went nowhere.<BR>
-    <I>#CFCATCH.Detail#</I></P>
+    <P>The servlet could not run, so the parameters went nowhere.<BR>
+    <I>#CFCATCH.Message#</I></P>
     <P>The variable passed by reference still says: <B>#Visitor#</B></P>
     </CFOUTPUT>
   </CFCATCH>

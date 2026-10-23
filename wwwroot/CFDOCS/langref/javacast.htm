@@ -22,39 +22,46 @@ function runExample(name) {
 <DIV CLASS="docbody">
 <H1>JavaCast</H1>
 <P><FONT COLOR="#CC0000" SIZE=1><B>NEW IN KOLDFUSION 4.5</B></FONT></P>
-<P>Converts a CFML value so that it is passed to a Java method as a particular Java type. You need it when a Java class has several methods with the same name that differ only in their argument types.</P>
+<P>Converts a CFML value so that it is passed to a Java method as a particular Java type. You need it when a Java class has several methods with the same name and the same number of arguments that differ only in their types.</P>
 <H4>Category</H4><P><A HREF="index.htm#system_functions">System functions</A></P>
 <H4>Syntax</H4>
 <PRE>JavaCast(type, variable)</PRE>
 <H4>Parameters</H4>
 <DL>
 <DT><I>type</I></DT>
-<DD>&quot;boolean&quot;, &quot;int&quot;, &quot;long&quot;, &quot;double&quot; or &quot;String&quot;.</DD>
+<DD>&quot;bool&quot; (or &quot;boolean&quot;), &quot;int&quot;, &quot;long&quot;, &quot;float&quot;, &quot;double&quot; or &quot;String&quot;. KoldFusion also accepts &quot;null&quot;, which passes a Java null.</DD>
 <DT><I>variable</I></DT>
 <DD>The value to convert.</DD>
 </DL>
 <H4>Returns</H4>
-<P>The value, tagged with the Java type.</P>
+<P>The value, converted and tagged with the Java type. Used anywhere else, it behaves like an ordinary CFML value: &quot;int&quot; and &quot;long&quot; truncate to whole numbers, &quot;float&quot; and &quot;double&quot; give a number, &quot;bool&quot; YES or NO, &quot;String&quot; a string.</P>
 <H4>Usage</H4>
-<P>CFML values have no fixed type, so the server cannot otherwise guess whether 42 should be an int or a double. Use <B><CODE>JavaCast</CODE></B> only in the argument list of a method call on an object from <A HREF="createobject.htm"><CODE>CreateObject</CODE></A>:</P>
-<PRE>&lt;CFSET Vec = CreateObject(&quot;JAVA&quot;, &quot;java.util.Vector&quot;)&gt;
-&lt;CFSET Dummy = Vec.addElement(JavaCast(&quot;int&quot;, 42))&gt;</PRE>
-<P CLASS="note"><B>Note</B>&nbsp; KoldFusion for UNIX has no Java support (see <A HREF="createobject.htm"><CODE>CreateObject</CODE></A>), so the converted value is simply returned: &quot;int&quot; and &quot;long&quot; truncate to whole numbers, &quot;double&quot; and &quot;float&quot; make a number, &quot;boolean&quot; a YES/NO value and &quot;string&quot; a string. Pages written for the Windows server still compile.</P>
+<P>CFML values have no fixed type, so the server cannot always guess whether 42 should be an int, a long, a double or a String:</P>
+<PRE>&lt;CFSET Emp.setJobGrade(JavaCast(&quot;int&quot;, 3))&gt;      &lt;!--- setJobGrade(int) ---&gt;
+&lt;CFSET Emp.setJobGrade(JavaCast(&quot;String&quot;, &quot;C&quot;))&gt; &lt;!--- setJobGrade(String) ---&gt;</PRE>
+<P>Use <B><CODE>JavaCast</CODE></B> only for simple values passed to Java methods. The type sticks to the value when you store the result in a variable first (<CODE>&lt;CFSET Grade = JavaCast(&quot;int&quot;, 3)&gt;</CODE>) and pass the variable unchanged.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="javacast"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('javacast'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
 <PRE CLASS="example">&lt;CFOUTPUT&gt;
 &lt;TABLE BORDER=1 CELLPADDING=3&gt;
 &lt;TR&gt;&lt;TH&gt;Call&lt;/TH&gt;&lt;TH&gt;Result&lt;/TH&gt;&lt;/TR&gt;
-&lt;TR&gt;&lt;TD&gt;JavaCast(&quot;int&quot;, 42)&lt;/TD&gt;&lt;TD&gt;#JavaCast(&quot;int&quot;, 42)#&lt;/TD&gt;&lt;/TR&gt;
+&lt;TR&gt;&lt;TD&gt;JavaCast(&quot;int&quot;, 42.9)&lt;/TD&gt;&lt;TD&gt;#JavaCast(&quot;int&quot;, 42.9)#&lt;/TD&gt;&lt;/TR&gt;
 &lt;TR&gt;&lt;TD&gt;JavaCast(&quot;double&quot;, &quot;3.14&quot;)&lt;/TD&gt;&lt;TD&gt;#JavaCast(&quot;double&quot;, &quot;3.14&quot;)#&lt;/TD&gt;&lt;/TR&gt;
 &lt;TR&gt;&lt;TD&gt;JavaCast(&quot;String&quot;, 1999)&lt;/TD&gt;&lt;TD&gt;#JavaCast(&quot;String&quot;, 1999)#&lt;/TD&gt;&lt;/TR&gt;
+&lt;TR&gt;&lt;TD&gt;JavaCast(&quot;bool&quot;, 1)&lt;/TD&gt;&lt;TD&gt;#JavaCast(&quot;bool&quot;, 1)#&lt;/TD&gt;&lt;/TR&gt;
 &lt;/TABLE&gt;
 &lt;/CFOUTPUT&gt;
 &lt;CFTRY&gt;
-  &lt;CFSET Vec = CreateObject(&quot;JAVA&quot;, &quot;java.util.Vector&quot;)&gt;
-&lt;CFCATCH TYPE=&quot;Object&quot;&gt;
-  &lt;CFOUTPUT&gt;&lt;P&gt;Creating the Java object to pass them to: &lt;I&gt;#CFCATCH.Message#&lt;/I&gt;&lt;/CFOUTPUT&gt;
-&lt;/CFCATCH&gt;
+  &lt;!--- String.valueOf has an int, a double, a boolean and an Object version ---&gt;
+  &lt;CFSET S = CreateObject(&quot;JAVA&quot;, &quot;java.lang.String&quot;)&gt;
+  &lt;CFOUTPUT&gt;
+  &lt;P&gt;valueOf(int 7) = #S.valueOf(JavaCast(&quot;int&quot;, 7))#&lt;BR&gt;
+  valueOf(double 7) = #S.valueOf(JavaCast(&quot;double&quot;, 7))#&lt;BR&gt;
+  valueOf(boolean) = #S.valueOf(JavaCast(&quot;bool&quot;, &quot;yes&quot;))#&lt;/P&gt;
+  &lt;/CFOUTPUT&gt;
+  &lt;CFCATCH TYPE=&quot;Object&quot;&gt;
+    &lt;CFOUTPUT&gt;&lt;P&gt;Calling Java: &lt;I&gt;#CFCATCH.Message#&lt;/I&gt;&lt;/P&gt;&lt;/CFOUTPUT&gt;
+  &lt;/CFCATCH&gt;
 &lt;/CFTRY&gt;</PRE>
 <H4>See also</H4>
 <P><A HREF="createobject.htm">CreateObject</A>, <A HREF="cfobject.htm">CFOBJECT</A></P>

@@ -22,7 +22,7 @@ function runExample(name) {
 <DIV CLASS="docbody">
 <H1>CFSERVLETPARAM</H1>
 <P><FONT COLOR="#CC0000" SIZE=1><B>NEW IN KOLDFUSION 4.5</B></FONT></P>
-<P><B><CODE>CFSERVLETPARAM</CODE></B> tags go inside a <A HREF="cfservlet.htm"><CODE>CFSERVLET</CODE></A> block. Each one passes a value (or, by reference, a variable) to the Java servlet. Since KoldFusion cannot run servlets, the tag does nothing on its own.</P>
+<P><B><CODE>CFSERVLETPARAM</CODE></B> tags go inside a <A HREF="cfservlet.htm"><CODE>CFSERVLET</CODE></A> block. With VALUE, the tag adds a request parameter, which the servlet reads with <CODE>getParameter</CODE>. With VARIABLE, it passes a CFML variable by reference as a request attribute (read with <CODE>getAttribute</CODE>); when the servlet stores a new value with <CODE>setAttribute</CODE>, the variable is updated after the <A HREF="cfservlet.htm"><CODE>CFSERVLET</CODE></A> tag.</P>
 <H4>Category</H4><P><A HREF="index.htm#extensibility">Extensibility</A></P>
 <H4>Syntax</H4>
 <PRE>&lt;CFSERVLETPARAM NAME=&quot;parameter_name&quot;
@@ -36,26 +36,33 @@ function runExample(name) {
 <DT><B>NAME</B></DT>
 <DD><I>Required.</I> Name of the parameter, or of the servlet attribute when passing by reference.</DD>
 <DT><B>VALUE</B></DT>
-<DD><I>Optional.</I> Value passed as a request parameter.</DD>
+<DD><I>Optional.</I> Value passed as a request parameter. Use either VALUE or VARIABLE.</DD>
 <DT><B>VARIABLE</B></DT>
-<DD><I>Optional.</I> Name of a CFML variable passed by reference as a servlet attribute; changes made by the servlet come back into the variable.</DD>
+<DD><I>Optional.</I> Name (not value) of a CFML variable passed by reference as a servlet attribute.</DD>
 <DT><B>TYPE</B></DT>
-<DD><I>Optional, default &quot;STRING&quot;.</I> Java type of a VARIABLE: INT, DOUBLE, BOOL, DATE or STRING.</DD>
+<DD><I>Optional.</I> Java type of a VARIABLE: INT (java.lang.Integer), DOUBLE (java.lang.Double), BOOL (java.lang.Boolean), DATE (java.util.Date) or STRING (java.lang.String). Without TYPE, simple values are passed as strings, arrays as java.util.Vector and structures as java.util.Hashtable.</DD>
 </DL>
 <H4>Usage</H4>
-<P>The tag is accepted anywhere and ignored; the enclosing <A HREF="cfservlet.htm"><CODE>CFSERVLET</CODE></A> raises the error. See <A HREF="cfservlet.htm"><CODE>CFSERVLET</CODE></A> for how to handle it.</P>
+<P>Queries cannot be passed to servlets (ColdFusion used a WDDX RecordSet class that KoldFusion does not have); pass the columns as arrays instead. Outside a <A HREF="cfservlet.htm"><CODE>CFSERVLET</CODE></A> tag, <B><CODE>CFSERVLETPARAM</CODE></B> raises a context validation error.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfservletparam"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfservletparam'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
 <PRE CLASS="example">&lt;CFSET Visitor = &quot;Netscape 4.7 user&quot;&gt;
+&lt;CFSET Wishlist = ListToArray(&quot;Zip drive,56K modem,Palm V&quot;)&gt;
 &lt;CFTRY&gt;
-  &lt;CFSERVLET CODE=&quot;GuestCounterServlet&quot;&gt;
+  &lt;!--- SnoopServlet (in java/samples) lists everything it receives ---&gt;
+  &lt;CFSERVLET CODE=&quot;SnoopServlet&quot; WRITEOUTPUT=&quot;No&quot;&gt;
     &lt;CFSERVLETPARAM NAME=&quot;page&quot; VALUE=&quot;cfservletparam.cfm&quot;&gt;
     &lt;CFSERVLETPARAM NAME=&quot;visitor&quot; VARIABLE=&quot;Visitor&quot; TYPE=&quot;STRING&quot;&gt;
+    &lt;CFSERVLETPARAM NAME=&quot;wishlist&quot; VARIABLE=&quot;Wishlist&quot;&gt;
   &lt;/CFSERVLET&gt;
+  &lt;CFOUTPUT&gt;
+  &lt;P&gt;SnoopServlet sent back #Len(CFSERVLET.Output)# bytes:&lt;/P&gt;
+  #CFSERVLET.Output#
+  &lt;/CFOUTPUT&gt;
   &lt;CFCATCH TYPE=&quot;Any&quot;&gt;
     &lt;CFOUTPUT&gt;
-    &lt;P&gt;No servlet engine here, so the parameters went nowhere.&lt;BR&gt;
-    &lt;I&gt;#CFCATCH.Detail#&lt;/I&gt;&lt;/P&gt;
+    &lt;P&gt;The servlet could not run, so the parameters went nowhere.&lt;BR&gt;
+    &lt;I&gt;#CFCATCH.Message#&lt;/I&gt;&lt;/P&gt;
     &lt;P&gt;The variable passed by reference still says: &lt;B&gt;#Visitor#&lt;/B&gt;&lt;/P&gt;
     &lt;/CFOUTPUT&gt;
   &lt;/CFCATCH&gt;

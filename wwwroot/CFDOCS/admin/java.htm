@@ -12,8 +12,18 @@
 <HR NOSHADE SIZE=1>
 <DIV CLASS="docbody">
 <H1>Java</H1>
-<P>New in KoldFusion 4.5. The Java page records the Java Virtual Machine settings that Java CFX tags and <CODE>CFOBJECT TYPE=&quot;Java&quot;</CODE> would use.</P>
+<P>New in KoldFusion 4.5. The Java page configures the Java Virtual Machine that runs <CODE>CFOBJECT TYPE=&quot;Java&quot;</CODE> and <CODE>CreateObject(&quot;Java&quot;, ...)</CODE>, Java CFX tags and <A HREF="/CFDOCS/langref/cfservlet.htm"><CODE>CFSERVLET</CODE></A>, and shows whether it is running.</P>
 <P><B>Go there:</B> <A HREF="/CFIDE/administrator/server/java.cfm">Open the Java page</A> (or <A HREF="/CFIDE/administrator/index.cfm?page=server/java.cfm">inside the frameset</A>)</P>
+<H2>Java Virtual Machine status</H2>
+<P>The box at the top of the page tells you where things stand:</P>
+<UL>
+<LI><B>Not loaded</B>: a JVM was found (the page shows which <CODE>libjvm.so</CODE>, and how it was found). KoldFusion starts it the first time a page uses Java. Click <B>Load JVM</B> to start it now.
+<LI><B>Loaded</B>: the Java version, the library, when it started, how much of the heap is in use, how many request threads are attached and how many Java objects CFML variables are holding, plus the class path and the exact options it was started with.
+<LI><B>No Java Virtual Machine found</B>: install a JDK or JRE, or enter the path below. Everything that does not use Java keeps working; Java features report an error of type Object.
+<LI><B>Failed</B>: the JVM refused to start with these options. Correct them and restart the server.
+</UL>
+<P>A second line checks for <CODE>cfx.jar</CODE>, which Java CFX tags and <A HREF="/CFDOCS/langref/cfservlet.htm"><CODE>CFSERVLET</CODE></A> need (<A HREF="/CFDOCS/langref/cfobject.htm"><CODE>CFOBJECT</CODE></A> does not).</P>
+<H2>Settings</H2>
 <TABLE BORDER=0 CELLPADDING=3 CELLSPACING=1 BGCOLOR="#999999" CLASS="doctable">
 <TR BGCOLOR="#669966" VALIGN=TOP>
 <TH ALIGN=LEFT><FONT COLOR="#FFFFFF">Field</FONT></TH>
@@ -22,44 +32,49 @@
 </TR>
 <TR BGCOLOR="#FFFFFF" VALIGN=TOP>
 <TD>Java Virtual Machine Path</TD>
-<TD>/usr/java/jdk1.2.2/jre/lib/i386/classic/libjvm.so</TD>
-<TD>The JVM library to load</TD>
+<TD>(blank)</TD>
+<TD>The JVM library (<CODE>libjvm.so</CODE>), or a JDK/JRE directory containing one. Blank: look in <CODE>JAVA_HOME</CODE>, for <CODE>java</CODE> on the <CODE>PATH</CODE>, in <CODE>/usr/lib/jvm/*</CODE> and in <CODE>~/.local/jdk/*</CODE></TD>
 </TR>
 <TR BGCOLOR="#FFFBF0" VALIGN=TOP>
 <TD>Class Path</TD>
 <TD>(blank)</TD>
-<TD>Extra directories and JAR files to search for classes</TD>
+<TD>Extra directories and JAR files, separated by semicolons. <CODE>cfx.jar</CODE> and <CODE>kfroot/java/classes</CODE> are always on the class path</TD>
 </TR>
 <TR BGCOLOR="#FFFFFF" VALIGN=TOP>
 <TD>Initial Heap Size</TD>
-<TD>1024 KB</TD>
+<TD>4096 KB</TD>
 <TD>Starting heap</TD>
 </TR>
 <TR BGCOLOR="#FFFBF0" VALIGN=TOP>
 <TD>Max Heap Size</TD>
-<TD>16384 KB</TD>
+<TD>65536 KB</TD>
 <TD>Largest heap</TD>
 </TR>
 <TR BGCOLOR="#FFFFFF" VALIGN=TOP>
 <TD>System Options</TD>
 <TD>(blank)</TD>
-<TD>JVM system options, as OPT1=value;OPT2=value</TD>
+<TD>Java system properties, as OPT1=value;OPT2=value (each becomes -DOPT1=value)</TD>
 </TR>
 <TR BGCOLOR="#FFFBF0" VALIGN=TOP>
 <TD>Implementation Options</TD>
 <TD>(blank)</TD>
-<TD>Vendor-specific JVM options, in the same form</TD>
+<TD>Other JVM options, such as -Xss512k;-XX:+UseSerialGC</TD>
 </TR>
 <TR BGCOLOR="#FFFFFF" VALIGN=TOP>
 <TD>CFX Jar Path</TD>
-<TD>kfroot/java/classes/cfx.jar</TD>
-<TD>The cfx.jar that Java CFX tags compile against</TD>
+<TD>kfroot/java/cfx.jar</TD>
+<TD>The cfx.jar with the Java CFX and servlet interfaces</TD>
 </TR>
 </TABLE>
-<P>Click <B>Apply</B> to save. The page reminds you to restart the server afterwards.</P>
-<H2>What actually happens</H2>
-<P>KoldFusion never loads a Java Virtual Machine, so every field here is cosmetic. The status line at the bottom of the page says so. A Java CFX tag fails with &quot;Error loading Java CFX&quot;, and <A HREF="/CFDOCS/langref/cfobject.htm"><CODE>CFOBJECT</CODE></A> always raises an error. C/C++ CFX tags, registered on the <A HREF="cfx.htm">CFX Tags</A> page, work fine and need no JVM at all.</P>
-<P CLASS="note"><B>Note</B>&nbsp; In 1999 the 16 MB default heap was generous. Your workstation had 64 MB of RAM, and Netscape wanted most of it.</P>
+<P>Click <B>Apply</B> to save. A process can start only one JVM, so once it is loaded, changes take effect when the server is restarted.</P>
+<H2>Notes</H2>
+<UL>
+<LI><CODE>make</CODE> builds <CODE>cfx.jar</CODE> and the sample classes when it finds <CODE>javac</CODE>. Without a JDK the server still builds and runs; only the Java features are unavailable.
+<LI>Classes, Java CFX tags and servlets placed in <CODE>kfroot/java/classes</CODE> are found without touching the Class Path. CFX tags and servlets there are reloaded when their <CODE>.class</CODE> file changes.
+<LI>KoldFusion always adds <CODE>-Xrs</CODE> (so Ctrl+C still stops the server), <CODE>-Djava.awt.headless=true</CODE>, and the system properties <CODE>koldfusion.root</CODE> and <CODE>koldfusion.webroot</CODE>; it uses the serial garbage collector unless the Implementation Options name another one.
+<LI>Setting the environment variable <CODE>KF_NOJVM=1</CODE> makes KoldFusion behave as if no JVM were installed.
+</UL>
+<P CLASS="note"><B>Note</B>&nbsp; In 1999 a 16 MB heap was generous. Your workstation had 64 MB of RAM, and Netscape wanted most of it.</P>
 </DIV>
 <HR NOSHADE SIZE=1>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=2><TR><TD><A HREF="mappings.htm"><IMG SRC="/CFDOCS/images/doc_back.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Previous page"></A></TD><TD><A HREF="index.htm"><IMG SRC="/CFDOCS/images/doc_up.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Up one level"></A></TD><TD><A HREF="versioninfo.htm"><IMG SRC="/CFDOCS/images/doc_next.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Next page"></A></TD><TD><A HREF="/CFDOCS/dochome.cfm"><IMG SRC="/CFDOCS/images/doc_home.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Documentation home"></A></TD><TD><A HREF="/CFDOCS/langref/index.htm"><IMG SRC="/CFDOCS/images/doc_index.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="CFML Language Reference contents"></A></TD></TR></TABLE>

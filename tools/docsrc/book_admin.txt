@@ -121,7 +121,7 @@ The Basic Server Security page holds the Administrator and Studio passwords and 
 | `CFCONTENT` | Can send any file on the server to the browser |
 | `CFDIRECTORY` | Lists, creates and deletes directories |
 | `CFFILE` | Reads, writes, uploads and deletes files |
-| `CFOBJECT` | Creates COM, CORBA and Java objects (always an error on KoldFusion) |
+| `CFOBJECT` | Creates Java objects, which can do anything the server's account can (also disables `CreateObject`) |
 | `CFREGISTRY` | Reads and writes the KoldFusion registry, including these settings |
 | CFADMINSECURITY | Listed for compatibility; there is no such tag |
 | `CFEXECUTE` | Runs programs on the server |
@@ -250,26 +250,52 @@ If no mapping matches, the path is taken relative to the web root. The Missing T
 
 @page java | Java
 
-New in KoldFusion 4.5. The Java page records the Java Virtual Machine settings that Java CFX tags and `CFOBJECT TYPE="Java"` would use.
+New in KoldFusion 4.5. The Java page configures the Java Virtual Machine that runs `CFOBJECT TYPE="Java"` and
+`CreateObject("Java", ...)`, Java CFX tags and `CFSERVLET`, and shows whether it is running.
 
 **Go there:** [Open the Java page](/CFIDE/administrator/server/java.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=server/java.cfm))
 
+# Java Virtual Machine status
+
+The box at the top of the page tells you where things stand:
+
+- **Not loaded**: a JVM was found (the page shows which `libjvm.so`, and how it was found). KoldFusion starts it
+  the first time a page uses Java. Click **Load JVM** to start it now.
+- **Loaded**: the Java version, the library, when it started, how much of the heap is in use, how many request
+  threads are attached and how many Java objects CFML variables are holding, plus the class path and the exact
+  options it was started with.
+- **No Java Virtual Machine found**: install a JDK or JRE, or enter the path below. Everything that does not use
+  Java keeps working; Java features report an error of type Object.
+- **Failed**: the JVM refused to start with these options. Correct them and restart the server.
+
+A second line checks for `cfx.jar`, which Java CFX tags and `CFSERVLET` need (`CFOBJECT` does not).
+
+# Settings
+
 | Field | Default | Purpose |
-| Java Virtual Machine Path | /usr/java/jdk1.2.2/jre/lib/i386/classic/libjvm.so | The JVM library to load |
-| Class Path | (blank) | Extra directories and JAR files to search for classes |
-| Initial Heap Size | 1024 KB | Starting heap |
-| Max Heap Size | 16384 KB | Largest heap |
-| System Options | (blank) | JVM system options, as OPT1=value;OPT2=value |
-| Implementation Options | (blank) | Vendor-specific JVM options, in the same form |
-| CFX Jar Path | kfroot/java/classes/cfx.jar | The cfx.jar that Java CFX tags compile against |
+| Java Virtual Machine Path | (blank) | The JVM library (`libjvm.so`), or a JDK/JRE directory containing one. Blank: look in `JAVA_HOME`, for `java` on the `PATH`, in `/usr/lib/jvm/*` and in `~/.local/jdk/*` |
+| Class Path | (blank) | Extra directories and JAR files, separated by semicolons. `cfx.jar` and `kfroot/java/classes` are always on the class path |
+| Initial Heap Size | 4096 KB | Starting heap |
+| Max Heap Size | 65536 KB | Largest heap |
+| System Options | (blank) | Java system properties, as OPT1=value;OPT2=value (each becomes -DOPT1=value) |
+| Implementation Options | (blank) | Other JVM options, such as -Xss512k;-XX:+UseSerialGC |
+| CFX Jar Path | kfroot/java/cfx.jar | The cfx.jar with the Java CFX and servlet interfaces |
 
-Click **Apply** to save. The page reminds you to restart the server afterwards.
+Click **Apply** to save. A process can start only one JVM, so once it is loaded, changes take effect when the
+server is restarted.
 
-# What actually happens
+# Notes
 
-KoldFusion never loads a Java Virtual Machine, so every field here is cosmetic. The status line at the bottom of the page says so. A Java CFX tag fails with "Error loading Java CFX", and `CFOBJECT` always raises an error. C/C++ CFX tags, registered on the [CFX Tags](cfx.htm) page, work fine and need no JVM at all.
+- `make` builds `cfx.jar` and the sample classes when it finds `javac`. Without a JDK the server still builds and
+  runs; only the Java features are unavailable.
+- Classes, Java CFX tags and servlets placed in `kfroot/java/classes` are found without touching the Class Path.
+  CFX tags and servlets there are reloaded when their `.class` file changes.
+- KoldFusion always adds `-Xrs` (so Ctrl+C still stops the server), `-Djava.awt.headless=true`, and the system
+  properties `koldfusion.root` and `koldfusion.webroot`; it uses the serial garbage collector unless the
+  Implementation Options name another one.
+- Setting the environment variable `KF_NOJVM=1` makes KoldFusion behave as if no JVM were installed.
 
-> In 1999 the 16 MB default heap was generous. Your workstation had 64 MB of RAM, and Netscape wanted most of it.
+> In 1999 a 16 MB heap was generous. Your workstation had 64 MB of RAM, and Netscape wanted most of it.
 
 @page versioninfo | Version Info
 
@@ -418,7 +444,10 @@ Type the tag name in the box (it must start with `CFX_`; the field already says 
 | Keep library loaded | on | Keeps the library in memory after the first call. Clear it while you are developing a tag, so that each request loads a freshly compiled library. |
 | Description | (blank) | Shown in the list of tags |
 
-A Java tag asks only for a **Class Name**. Since KoldFusion never loads a Java Virtual Machine (see [Java](java.htm)), calling a Java CFX tag always reports an error.
+A Java tag asks only for a **Class Name**: the class that implements `com.allaire.cfx.CustomTag` (or
+`com.gibson.cfx.CustomTag`), without `.class`. Put the class file in `kfroot/java/classes` or on the Class Path set
+on the [Java](java.htm) page. Classes in `kfroot/java/classes` are reloaded when they change; add `RELOAD="Always"`
+or `RELOAD="Never"` to the tag call to change that. Java CFX tags need a Java Virtual Machine and `cfx.jar`.
 
 Click a tag name in the list to edit it, or to **Delete** it.
 
@@ -432,6 +461,17 @@ Three C tags come registered out of the box:
 | CFX_DICE | Rolls dice |
 
 A CFX library exports `void ProcessTagRequest(CFXRequest *pRequest)`. The interface is declared in `src/kfx.h`, and the `cfx` directory of the KoldFusion distribution has the sample source code.
+
+Three Java tags are registered too (they need a Java Virtual Machine):
+
+| Tag | Class | Does |
+| CFX_JAVAHELLO | JavaHello | Says hello, optionally several times or into a variable (written against `com.allaire.cfx`, the 1999 API) |
+| CFX_JAVAQUERY | JavaQuery | Creates a query of Java system properties, or computes statistics over a query column (`com.gibson.cfx`) |
+| CFX_HELLOCOLDFUSION | HelloColdFusion | The five-line example from the 1999 manual |
+
+Their source is in the `java/samples` directory. A Java CFX tag implements `processRequest(Request, Response)`; the
+interfaces (and the `DebugRequest`, `DebugResponse` and `DebugQuery` classes for testing a tag from the command line)
+are in `cfx.jar`, built from `java/src`.
 
 > Calling an unregistered tag fails with an error that asks you to check the spelling of the tag against its registry entry. The tag name in the template is not case sensitive.
 

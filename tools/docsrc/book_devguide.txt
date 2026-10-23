@@ -1080,6 +1080,68 @@ any other tag, with a CFX_ prefix. KoldFusion ships with three sample CFX tags: 
 <CFIF DiceTotal GTE 15>Lucky!<CFELSE>Better luck next time.</CFIF></P></CFOUTPUT>
 <<end>>
 
+CFX tags can also be written in Java. A Java CFX tag is a class with one method,
+`processRequest(Request request, Response response)`: it reads its attributes with `request.getAttribute()` and
+answers with `response.write()`, `response.setVariable()` and `response.addQuery()`. Compile it against `cfx.jar`,
+drop the class into `kfroot/java/classes` and register it as a Java tag on the CFX Tags page.
+
+    import com.allaire.cfx.*;
+
+    public class HelloColdFusion implements CustomTag {
+        public void processRequest(Request request, Response response) throws Exception {
+            response.write("Hello, " + request.getAttribute("NAME"));
+        }
+    }
+
+<<run ch8_javacfx.cfm>>
+<!--- ch8_javacfx.cfm: CFX tags written in Java (they need a Java Virtual Machine) --->
+<CFTRY>
+  <P><CFX_HELLOCOLDFUSION NAME="Les"></P>
+  <CFX_JAVAQUERY ACTION="properties" NAME="JavaInfo">
+  <TABLE BORDER=1 CELLPADDING=2>
+  <CFOUTPUT QUERY="JavaInfo">
+    <CFIF ListFind("java.version,java.vendor,os.name", Name)><TR><TD>#Name#</TD><TD>#Value#</TD></TR></CFIF>
+  </CFOUTPUT>
+  </TABLE>
+  <CFCATCH TYPE="Any">
+    <CFOUTPUT><P>The Java CFX tags could not run: <I>#CFCATCH.Message#</I></P></CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+<<end>>
+
+# Using Java objects
+
+Any Java class can be used from CFML. `CreateObject("JAVA", "class")` (or `CFOBJECT TYPE="JAVA"`) loads the class;
+`init()` runs a constructor; after that you call methods and use public fields as if the object were a structure.
+Java strings, numbers, booleans and dates come back as CFML values, arrays and Vectors as arrays, and Hashtables as
+structures. When a Java method throws an exception, catch it with `CFCATCH TYPE="Object"`.
+
+<<run ch8_java.cfm>>
+<!--- ch8_java.cfm: the Java runtime from CFML --->
+<CFTRY>
+  <CFSET Tokens = CreateObject("JAVA", "java.util.StringTokenizer")>
+  <CFSET Tokens.init("Allaire,Netscape,Excite,Yahoo", ",")>
+  <CFSET Dotcoms = ArrayNew(1)>
+  <CFLOOP CONDITION="Tokens.hasMoreTokens()">
+    <CFSET ArrayAppend(Dotcoms, Tokens.nextToken())>
+  </CFLOOP>
+  <CFSET Sorted = CreateObject("JAVA", "java.util.TreeSet")>
+  <CFLOOP INDEX="D" LIST="#ArrayToList(Dotcoms)#"><CFSET Sorted.add(D)></CFLOOP>
+  <CFOUTPUT>
+  <P>#ArrayLen(Dotcoms)# companies, sorted by Java: #ArrayToList(Sorted.toArray(), ", ")#</P>
+  </CFOUTPUT>
+  <CFTRY>
+    <CFSET N = CreateObject("JAVA", "java.lang.Integer").parseInt("1999 or bust")>
+    <CFCATCH TYPE="Object">
+      <CFOUTPUT><P>parseInt threw <B>#CFCATCH.Message#</B>, as it should.</P></CFOUTPUT>
+    </CFCATCH>
+  </CFTRY>
+  <CFCATCH TYPE="Object">
+    <CFOUTPUT><P>Java is not available here: <I>#CFCATCH.Message#</I></P></CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+<<end>>
+
 # Sending e-mail with CFMAIL
 
 `CFMAIL` sends a message through the SMTP server configured on the Mail page of the Administrator. The body of
