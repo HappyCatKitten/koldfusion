@@ -56,6 +56,54 @@
 &lt;P&gt;Rolling three dice: &lt;CFX_DICE ROLLS=&quot;3&quot; SIDES=&quot;6&quot; VARIABLE=&quot;DiceTotal&quot;&gt;&lt;/P&gt;
 &lt;CFOUTPUT&gt;&lt;P&gt;The total is #DiceTotal#.
 &lt;CFIF DiceTotal GTE 15&gt;Lucky!&lt;CFELSE&gt;Better luck next time.&lt;/CFIF&gt;&lt;/P&gt;&lt;/CFOUTPUT&gt;</PRE>
+<P>CFX tags can also be written in Java. A Java CFX tag is a class with one method, <CODE>processRequest(Request request, Response response)</CODE>: it reads its attributes with <CODE>request.getAttribute()</CODE> and answers with <CODE>response.write()</CODE>, <CODE>response.setVariable()</CODE> and <CODE>response.addQuery()</CODE>. Compile it against <CODE>cfx.jar</CODE>, drop the class into <CODE>kfroot/java/classes</CODE> and register it as a Java tag on the CFX Tags page.</P>
+<PRE>import com.allaire.cfx.*;
+
+public class HelloColdFusion implements CustomTag {
+    public void processRequest(Request request, Response response) throws Exception {
+        response.write(&quot;Hello, &quot; + request.getAttribute(&quot;NAME&quot;));
+    }
+}</PRE>
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%"><TR><TD><FONT SIZE=1><B>ch8_javacfx.cfm</B></FONT></TD><TD ALIGN=RIGHT><FONT SIZE=1><A HREF="examples/ch8_javacfx.cfm" TARGET="kfrun">Run this example</A> &middot; <A HREF="/CFDOCS/snippets/viewsource.cfm?file=devguide/examples/ch8_javacfx.cfm" TARGET="kfrun">View source</A></FONT></TD></TR></TABLE>
+<PRE CLASS="example">&lt;!--- ch8_javacfx.cfm: CFX tags written in Java (they need a Java Virtual Machine) ---&gt;
+&lt;CFTRY&gt;
+  &lt;P&gt;&lt;CFX_HELLOCOLDFUSION NAME=&quot;Les&quot;&gt;&lt;/P&gt;
+  &lt;CFX_JAVAQUERY ACTION=&quot;properties&quot; NAME=&quot;JavaInfo&quot;&gt;
+  &lt;TABLE BORDER=1 CELLPADDING=2&gt;
+  &lt;CFOUTPUT QUERY=&quot;JavaInfo&quot;&gt;
+    &lt;CFIF ListFind(&quot;java.version,java.vendor,os.name&quot;, Name)&gt;&lt;TR&gt;&lt;TD&gt;#Name#&lt;/TD&gt;&lt;TD&gt;#Value#&lt;/TD&gt;&lt;/TR&gt;&lt;/CFIF&gt;
+  &lt;/CFOUTPUT&gt;
+  &lt;/TABLE&gt;
+  &lt;CFCATCH TYPE=&quot;Any&quot;&gt;
+    &lt;CFOUTPUT&gt;&lt;P&gt;The Java CFX tags could not run: &lt;I&gt;#CFCATCH.Message#&lt;/I&gt;&lt;/P&gt;&lt;/CFOUTPUT&gt;
+  &lt;/CFCATCH&gt;
+&lt;/CFTRY&gt;</PRE>
+<H2>Using Java objects</H2>
+<P>Any Java class can be used from CFML. <CODE>CreateObject(&quot;JAVA&quot;, &quot;class&quot;)</CODE> (or <CODE>CFOBJECT TYPE=&quot;JAVA&quot;</CODE>) loads the class; <CODE>init()</CODE> runs a constructor; after that you call methods and use public fields as if the object were a structure. Java strings, numbers, booleans and dates come back as CFML values, arrays and Vectors as arrays, and Hashtables as structures. When a Java method throws an exception, catch it with <CODE>CFCATCH TYPE=&quot;Object&quot;</CODE>.</P>
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%"><TR><TD><FONT SIZE=1><B>ch8_java.cfm</B></FONT></TD><TD ALIGN=RIGHT><FONT SIZE=1><A HREF="examples/ch8_java.cfm" TARGET="kfrun">Run this example</A> &middot; <A HREF="/CFDOCS/snippets/viewsource.cfm?file=devguide/examples/ch8_java.cfm" TARGET="kfrun">View source</A></FONT></TD></TR></TABLE>
+<PRE CLASS="example">&lt;!--- ch8_java.cfm: the Java runtime from CFML ---&gt;
+&lt;CFTRY&gt;
+  &lt;CFSET Tokens = CreateObject(&quot;JAVA&quot;, &quot;java.util.StringTokenizer&quot;)&gt;
+  &lt;CFSET Tokens.init(&quot;Allaire,Netscape,Excite,Yahoo&quot;, &quot;,&quot;)&gt;
+  &lt;CFSET Dotcoms = ArrayNew(1)&gt;
+  &lt;CFLOOP CONDITION=&quot;Tokens.hasMoreTokens()&quot;&gt;
+    &lt;CFSET ArrayAppend(Dotcoms, Tokens.nextToken())&gt;
+  &lt;/CFLOOP&gt;
+  &lt;CFSET Sorted = CreateObject(&quot;JAVA&quot;, &quot;java.util.TreeSet&quot;)&gt;
+  &lt;CFLOOP INDEX=&quot;D&quot; LIST=&quot;#ArrayToList(Dotcoms)#&quot;&gt;&lt;CFSET Sorted.add(D)&gt;&lt;/CFLOOP&gt;
+  &lt;CFOUTPUT&gt;
+  &lt;P&gt;#ArrayLen(Dotcoms)# companies, sorted by Java: #ArrayToList(Sorted.toArray(), &quot;, &quot;)#&lt;/P&gt;
+  &lt;/CFOUTPUT&gt;
+  &lt;CFTRY&gt;
+    &lt;CFSET N = CreateObject(&quot;JAVA&quot;, &quot;java.lang.Integer&quot;).parseInt(&quot;1999 or bust&quot;)&gt;
+    &lt;CFCATCH TYPE=&quot;Object&quot;&gt;
+      &lt;CFOUTPUT&gt;&lt;P&gt;parseInt threw &lt;B&gt;#CFCATCH.Message#&lt;/B&gt;, as it should.&lt;/P&gt;&lt;/CFOUTPUT&gt;
+    &lt;/CFCATCH&gt;
+  &lt;/CFTRY&gt;
+  &lt;CFCATCH TYPE=&quot;Object&quot;&gt;
+    &lt;CFOUTPUT&gt;&lt;P&gt;Java is not available here: &lt;I&gt;#CFCATCH.Message#&lt;/I&gt;&lt;/P&gt;&lt;/CFOUTPUT&gt;
+  &lt;/CFCATCH&gt;
+&lt;/CFTRY&gt;</PRE>
 <H2>Sending e-mail with CFMAIL</H2>
 <P><A HREF="/CFDOCS/langref/cfmail.htm"><CODE>CFMAIL</CODE></A> sends a message through the SMTP server configured on the Mail page of the Administrator. The body of the tag is the message, and it works like <A HREF="/CFDOCS/langref/cfoutput.htm"><CODE>CFOUTPUT</CODE></A>: expressions in pound signs are evaluated. Messages are written to the spool directory and delivered in the background, so the page does not wait for the mail server. With a <CODE>QUERY</CODE> attribute, <A HREF="/CFDOCS/langref/cfmail.htm"><CODE>CFMAIL</CODE></A> sends one message per row, which is how a 1999 newsletter got out the door.</P>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%"><TR><TD><FONT SIZE=1><B>ch8_mail.cfm</B></FONT></TD><TD ALIGN=RIGHT><FONT SIZE=1><A HREF="examples/ch8_mail.cfm" TARGET="kfrun">Run this example</A> &middot; <A HREF="/CFDOCS/snippets/viewsource.cfm?file=devguide/examples/ch8_mail.cfm" TARGET="kfrun">View source</A></FONT></TD></TR></TABLE>

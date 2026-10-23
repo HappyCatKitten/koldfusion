@@ -69,6 +69,7 @@ static void wddx_val(Buf *b, Val v, int tz) {
         buf_puts(b, "</recordset>");
         break;
     }
+    case VT_OBJECT: buf_puts(b, "<null/>"); break;    /* Java objects cannot be serialized */
     }
 }
 

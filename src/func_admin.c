@@ -225,6 +225,7 @@ F(kfusion_checksyntax) {
 }
 
 Val fn_kfusion_ssl(Ctx *c, int argc, Val *argv, Expr *call);       /* tls.c */
+F(kfusion_java);   /* java.c */
 #define FN(name, mn, mx) {#name, fn_##name, mn, mx}
 const FuncDef ADMIN_FUNCS[] = {
     FN(kfusion_encrypt,1,1), FN(kfusion_decrypt,1,1), FN(kfusion_checkpassword,1,2), FN(kfusion_setpassword,2,2),
@@ -234,5 +235,6 @@ const FuncDef ADMIN_FUNCS[] = {
     FN(kfusion_taglist,0,0), FN(kfusion_functionlist,0,0), FN(kfusion_veritylist,0,0), FN(kfusion_verity,2,6),
     FN(kfusion_runtask,1,1), FN(kfusion_spoollist,1,1), FN(kfusion_respool,0,0), FN(kfusion_spoolnow,0,0), FN(kfusion_checksyntax,1,2),
     FN(kfusion_ssl,0,1),
+    FN(kfusion_java,0,1),
     {NULL, NULL, 0, 0}
 };

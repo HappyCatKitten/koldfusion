@@ -22,18 +22,18 @@ function runExample(name) {
 <DIV CLASS="docbody">
 <H1>CreateObject</H1>
 <P><FONT COLOR="#CC0000" SIZE=1><B>NEW IN KOLDFUSION 4.5</B></FONT></P>
-<P>The function form of <A HREF="cfobject.htm"><CODE>CFOBJECT</CODE></A>: creates an instance of a COM component, a CORBA object or a Java class and returns it, so that you can call its methods and read its properties.</P>
+<P>The function form of <A HREF="cfobject.htm"><CODE>CFOBJECT</CODE></A>: loads a Java class (or creates a COM component or CORBA object) and returns it, so that you can call its methods and read and set its fields.</P>
 <H4>Category</H4><P><A HREF="index.htm#system_functions">System functions</A></P>
 <H4>Syntax</H4>
-<PRE>CreateObject(&quot;COM&quot;, class [, context [, servername ] ])
-CreateObject(&quot;CORBA&quot;, context, class [, locale ])
-CreateObject(&quot;JAVA&quot;, class)</PRE>
+<PRE>CreateObject(&quot;JAVA&quot;, class)
+CreateObject(&quot;COM&quot;, class [, context [, servername ] ])
+CreateObject(&quot;CORBA&quot;, class, context [, locale ])</PRE>
 <H4>Parameters</H4>
 <DL>
 <DT><I>type</I></DT>
-<DD>&quot;COM&quot;, &quot;CORBA&quot; or &quot;JAVA&quot;.</DD>
+<DD>&quot;JAVA&quot;, &quot;COM&quot; or &quot;CORBA&quot;.</DD>
 <DT><I>class</I></DT>
-<DD>COM: the ProgID of the component, such as &quot;Word.Application&quot;. CORBA: the IOR file name or the naming service name. Java: the full class name, such as &quot;java.util.Vector&quot;.</DD>
+<DD>Java: the full class name, such as &quot;java.util.Vector&quot; (case sensitive). COM: the ProgID of the component, such as &quot;Word.Application&quot;. CORBA: the IOR file name or the naming service name.</DD>
 <DT><I>context</I></DT>
 <DD>COM: &quot;InProc&quot;, &quot;Local&quot; or &quot;Remote&quot;. CORBA: &quot;IOR&quot; or &quot;NameService&quot;.</DD>
 <DT><I>servername</I></DT>
@@ -42,28 +42,40 @@ CreateObject(&quot;JAVA&quot;, class)</PRE>
 <DD>CORBA: arguments for the ORB.</DD>
 </DL>
 <H4>Returns</H4>
-<P>The object.</P>
+<P>The object. A Java class is loaded but not yet constructed: call <CODE>init(args)</CODE> to run a constructor, or just call a method, which runs the constructor without arguments first. Static methods and fields work right away.</P>
 <H4>Usage</H4>
-<P CLASS="note"><B>Note</B>&nbsp; KoldFusion for UNIX cannot create objects. COM is a Windows NT technology, no CORBA ORB is bundled and no Java virtual machine is configured, so every call throws an exception of type Object. Wrap calls in <A HREF="cftry.htm"><CODE>CFTRY</CODE></A>/<A HREF="cftry.htm"><CODE>CFCATCH</CODE></A> as shown, so a page written for the Windows server degrades gracefully.</P>
-<P>Use <A HREF="javacast.htm"><CODE>JavaCast</CODE></A> to choose between overloaded Java methods.</P>
+<P>Everything <A HREF="cfobject.htm"><CODE>CFOBJECT</CODE></A> says about Java objects applies: method and field names are not case sensitive, CFML values are converted to and from Java types, <A HREF="javacast.htm"><CODE>JavaCast</CODE></A> picks between overloaded methods, and Java exceptions become errors of type Object (see <A HREF="getexception.htm"><CODE>GetException</CODE></A>). Without a Java Virtual Machine, and always for COM and CORBA on KoldFusion for UNIX, the function throws an error of type Object, so wrap calls in <A HREF="cftry.htm"><CODE>CFTRY</CODE></A> when the page must also run elsewhere. CreateObject is disabled together with <A HREF="cfobject.htm"><CODE>CFOBJECT</CODE></A> by the Basic Security tag restrictions.</P>
+<P>Inside <A HREF="cfscript.htm"><CODE>CFSCRIPT</CODE></A>, Java objects read naturally:</P>
+<PRE>&lt;CFSCRIPT&gt;
+list = CreateObject(&quot;JAVA&quot;, &quot;java.util.Vector&quot;);
+list.addElement(&quot;Netscape&quot;);
+list.addElement(&quot;Mosaic&quot;);
+count = list.size();
+&lt;/CFSCRIPT&gt;</PRE>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="createobject"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('createobject'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
-<PRE CLASS="example">&lt;CFSET Kinds = &quot;COM|Word.Application,JAVA|java.util.Vector&quot;&gt;
+<PRE CLASS="example">&lt;CFSET Kinds = &quot;JAVA|java.util.Vector,JAVA|java.util.Random,COM|Word.Application,CORBA|c:\myobject.ior&quot;&gt;
 &lt;TABLE BORDER=1 CELLPADDING=3&gt;
 &lt;TR&gt;&lt;TH&gt;CreateObject()&lt;/TH&gt;&lt;TH&gt;Result&lt;/TH&gt;&lt;/TR&gt;
 &lt;CFLOOP LIST=&quot;#Kinds#&quot; INDEX=&quot;k&quot;&gt;
-  &lt;CFSET Result = &quot;Created&quot;&gt;
   &lt;CFTRY&gt;
-    &lt;CFSET Obj = CreateObject(ListFirst(k, &quot;|&quot;), ListLast(k, &quot;|&quot;))&gt;
+    &lt;CFSET Obj = CreateObject(ListFirst(k, &quot;|&quot;), ListLast(k, &quot;|&quot;), &quot;IOR&quot;)&gt;
+    &lt;CFSET Result = &quot;Created: &lt;TT&gt;#Obj.toString()#&lt;/TT&gt;&quot;&gt;
   &lt;CFCATCH TYPE=&quot;Object&quot;&gt;
     &lt;CFSET Result = &quot;&lt;I&gt;#CFCATCH.Message#&lt;/I&gt;&quot;&gt;
   &lt;/CFCATCH&gt;
   &lt;/CFTRY&gt;
   &lt;CFOUTPUT&gt;&lt;TR&gt;&lt;TD&gt;&quot;#ListFirst(k, &quot;|&quot;)#&quot;, &quot;#ListLast(k, &quot;|&quot;)#&quot;&lt;/TD&gt;&lt;TD&gt;#Result#&lt;/TD&gt;&lt;/TR&gt;&lt;/CFOUTPUT&gt;
 &lt;/CFLOOP&gt;
-&lt;/TABLE&gt;</PRE>
+&lt;/TABLE&gt;
+&lt;CFTRY&gt;
+  &lt;CFSET Words = CreateObject(&quot;JAVA&quot;, &quot;java.util.StringTokenizer&quot;)&gt;
+  &lt;CFSET Words.init(&quot;one small step for man&quot;, &quot; &quot;)&gt;
+  &lt;CFOUTPUT&gt;&lt;P&gt;StringTokenizer counted #Words.countTokens()# words.&lt;/P&gt;&lt;/CFOUTPUT&gt;
+  &lt;CFCATCH TYPE=&quot;Object&quot;&gt;&lt;CFOUTPUT&gt;&lt;P&gt;&lt;I&gt;#CFCATCH.Message#&lt;/I&gt;&lt;/P&gt;&lt;/CFOUTPUT&gt;&lt;/CFCATCH&gt;
+&lt;/CFTRY&gt;</PRE>
 <H4>See also</H4>
-<P><A HREF="cfobject.htm">CFOBJECT</A>, <A HREF="javacast.htm">JavaCast</A>, <A HREF="cftry.htm">CFTRY</A></P>
+<P><A HREF="cfobject.htm">CFOBJECT</A>, <A HREF="javacast.htm">JavaCast</A>, <A HREF="getexception.htm">GetException</A>, <A HREF="cftry.htm">CFTRY</A></P>
 </DIV>
 <HR NOSHADE SIZE=1>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=2><TR><TD><A HREF="createdatetime.htm"><IMG SRC="/CFDOCS/images/doc_back.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Previous page"></A></TD><TD><A HREF="index.htm"><IMG SRC="/CFDOCS/images/doc_up.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Up one level"></A></TD><TD><A HREF="createodbcdate.htm"><IMG SRC="/CFDOCS/images/doc_next.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Next page"></A></TD><TD><A HREF="/CFDOCS/dochome.cfm"><IMG SRC="/CFDOCS/images/doc_home.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Documentation home"></A></TD><TD><A HREF="/CFDOCS/langref/index.htm"><IMG SRC="/CFDOCS/images/doc_index.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="CFML Language Reference contents"></A></TD></TR></TABLE>

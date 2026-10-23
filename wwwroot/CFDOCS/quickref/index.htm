@@ -274,14 +274,24 @@
     attribute_name=&quot;value&quot; ...&gt;
   [body]
 [&lt;/CFMODULE&gt;]</PRE>
-<P CLASS="qr"><A HREF="/CFDOCS/langref/cfobject.htm"><B>CFOBJECT</B></A> &nbsp;<FONT SIZE=1>Creates a COM, CORBA or Java object. Not available in KoldFusion for UNIX.</FONT></P>
-<PRE CLASS="qr">&lt;CFOBJECT TYPE=&quot;COM/CORBA/JAVA&quot;
+<P CLASS="qr"><A HREF="/CFDOCS/langref/cfobject.htm"><B>CFOBJECT</B></A> &nbsp;<FONT SIZE=1>Creates a Java object (and, on Windows NT, COM and CORBA objects).</FONT></P>
+<PRE CLASS="qr">&lt;CFOBJECT TYPE=&quot;JAVA&quot;
+    ACTION=&quot;Create&quot;
+    CLASS=&quot;java_class_name&quot;
+    NAME=&quot;object_name&quot;&gt;
+
+&lt;CFOBJECT TYPE=&quot;COM&quot;
     ACTION=&quot;Create/Connect&quot;
     CLASS=&quot;program_id&quot;
     NAME=&quot;object_name&quot;
-    CONTEXT=&quot;InProc/Local/Remote/IOR/NameService&quot;
-    SERVER=&quot;server_name&quot;
-    LOCALE=&quot;locale&quot;&gt;</PRE>
+    CONTEXT=&quot;InProc/Local/Remote&quot;
+    SERVER=&quot;server_name&quot;&gt;
+
+&lt;CFOBJECT TYPE=&quot;CORBA&quot;
+    CONTEXT=&quot;IOR/NameService&quot;
+    CLASS=&quot;file_or_naming_service&quot;
+    NAME=&quot;object_name&quot;
+    LOCALE=&quot;type-value arguments&quot;&gt;</PRE>
 <P CLASS="qr"><A HREF="/CFDOCS/langref/cfreport.htm"><B>CFREPORT</B></A> &nbsp;<FONT SIZE=1>Runs a Crystal Reports report. Not available in KoldFusion for UNIX.</FONT></P>
 <PRE CLASS="qr">&lt;CFREPORT REPORT=&quot;report_path&quot;
     ORDERBY=&quot;result_order&quot;
@@ -290,7 +300,7 @@
     FORMULA=&quot;formula&quot;&gt;
   optional record selection formula
 &lt;/CFREPORT&gt;</PRE>
-<P CLASS="qr"><A HREF="/CFDOCS/langref/cfservlet.htm"><B>CFSERVLET</B></A> &nbsp;<FONT SIZE=1>Runs a Java servlet on a JRun servlet engine and returns its output. Not available in KoldFusion.</FONT></P>
+<P CLASS="qr"><A HREF="/CFDOCS/langref/cfservlet.htm"><B>CFSERVLET</B></A> &nbsp;<FONT SIZE=1>Runs a Java servlet and includes its output in the page.</FONT></P>
 <PRE CLASS="qr">&lt;CFSERVLET CODE=&quot;class_name_of_servlet&quot;
     JRUNPROXY=&quot;proxy_server&quot;
     TIMEOUT=&quot;seconds&quot;
@@ -298,7 +308,7 @@
     DEBUG=&quot;Yes/No&quot;&gt;
   &lt;CFSERVLETPARAM ...&gt;
 &lt;/CFSERVLET&gt;</PRE>
-<P CLASS="qr"><A HREF="/CFDOCS/langref/cfservletparam.htm"><B>CFSERVLETPARAM</B></A> &nbsp;<FONT SIZE=1>Passes a parameter to the servlet called by CFSERVLET.</FONT></P>
+<P CLASS="qr"><A HREF="/CFDOCS/langref/cfservletparam.htm"><B>CFSERVLETPARAM</B></A> &nbsp;<FONT SIZE=1>Passes a parameter, or a variable by reference, to the servlet called by CFSERVLET.</FONT></P>
 <PRE CLASS="qr">&lt;CFSERVLETPARAM NAME=&quot;parameter_name&quot;
     VALUE=&quot;value&quot;&gt;
 
@@ -965,7 +975,7 @@
 </TABLE>
 <H3>System functions</H3>
 <TABLE BORDER=0 CELLPADDING=1 CELLSPACING=0 WIDTH="100%">
-<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/createobject.htm"><CODE>CreateObject(&quot;COM&quot;, class [, context [, servername ] ])<BR>CreateObject(&quot;CORBA&quot;, context, class [, locale ])<BR>CreateObject(&quot;JAVA&quot;, class)</CODE></A></TD><TD><FONT SIZE=1>Creates a COM, CORBA or Java object (not available in KoldFusion for UNIX).</FONT></TD></TR>
+<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/createobject.htm"><CODE>CreateObject(&quot;JAVA&quot;, class)<BR>CreateObject(&quot;COM&quot;, class [, context [, servername ] ])<BR>CreateObject(&quot;CORBA&quot;, class, context [, locale ])</CODE></A></TD><TD><FONT SIZE=1>Creates a Java object (and, on Windows NT, COM and CORBA objects).</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/deleteclientvariable.htm"><CODE>DeleteClientVariable(&quot;name&quot;)</CODE></A></TD><TD><FONT SIZE=1>Deletes a client variable for the current visitor.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/directoryexists.htm"><CODE>DirectoryExists(absolute_path)</CODE></A></TD><TD><FONT SIZE=1>Returns YES if a directory exists on the server.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/expandpath.htm"><CODE>ExpandPath(relative_path)</CODE></A></TD><TD><FONT SIZE=1>Turns a relative or URL-style path into an absolute file system path.</FONT></TD></TR>
@@ -976,6 +986,7 @@
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getclientvariableslist.htm"><CODE>GetClientVariablesList()</CODE></A></TD><TD><FONT SIZE=1>Returns a list of the client variables you can change for the current visitor.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getcurrenttemplatepath.htm"><CODE>GetCurrentTemplatePath()</CODE></A></TD><TD><FONT SIZE=1>Returns the full path of the template that contains the call.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getdirectoryfrompath.htm"><CODE>GetDirectoryFromPath(path)</CODE></A></TD><TD><FONT SIZE=1>Extracts the directory part of an absolute path.</FONT></TD></TR>
+<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getexception.htm"><CODE>GetException(object)</CODE></A></TD><TD><FONT SIZE=1>Returns the Java exception thrown by the last method call on a Java object.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getfilefrompath.htm"><CODE>GetFileFromPath(path)</CODE></A></TD><TD><FONT SIZE=1>Extracts the file name from an absolute path.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getfunctionlist.htm"><CODE>GetFunctionList()</CODE></A></TD><TD><FONT SIZE=1>Returns a structure whose keys are the names of all built-in CFML functions.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getmetricdata.htm"><CODE>GetMetricData(&quot;PERF_MONITOR&quot;)</CODE></A></TD><TD><FONT SIZE=1>Returns server performance counters in a structure.</FONT></TD></TR>

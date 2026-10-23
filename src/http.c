@@ -1068,6 +1068,7 @@ static void reset_thread_state(void) {
     tags_form_thread_reset();
     sql_thread_reset();
     parse_thread_reset();
+    java_thread_reset();
 }
 
 static int conns_busy(void) {

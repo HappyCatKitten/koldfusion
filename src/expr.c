@@ -790,6 +790,7 @@ static int get_var(Ctx *c, Expr *e, Val *out, int soft) {
                 kprintf("Error resolving parameter <B>%s</B>", kf_upper(expr_text(e))),
                 kprintf("The query %s does not contain a column named %s.", kf_upper(expr_text(e->a)), kf_upper(e->name)));
         }
+        if (base.t == VT_OBJECT) return java_get_field(c, e, base, e->name, out, soft);
         if (soft) return 0;
         throw_unresolved(c, e, expr_text(e));
     }
@@ -967,6 +968,7 @@ static Val call_function(Ctx *c, Expr *e) {
     int minargs, maxargs;
     if (!strncmp(e->name, "__method.", 9)) {
         Val obj = eval(c, e->a);
+        if (obj.t == VT_OBJECT) return java_invoke(c, e, obj, e->name + 9);
         kf_throw_at(c, e, "Object", kprintf("Cannot call the method %s.", kf_upper(e->name + 9)),
                     kprintf("Methods can only be called on COM, CORBA or Java objects created with CFOBJECT or CreateObject(); "
                             "the value is a %s. KoldFusion for UNIX has no COM support and no Java VM is configured.", v_typename(obj)));
@@ -1166,6 +1168,7 @@ void assign(Ctx *c, Expr *lhs, Val v) {
             kf_throw_at(c, lhs, "Expression", "CGI variables are read-only.", "You cannot assign values to CGI variables.");
         Val *b = lvalue(c, lhs->a, 1, NULL);
         if (b->t == VT_STRUCT) { struct_set(b->u.st, lhs->name, v); return; }
+        if (b->t == VT_OBJECT) { java_set_field(c, lhs, *b, lhs->name, v); return; }
         if (b->t == VT_QUERY) {
             Query *q = b->u.q;
             int ci = query_col_index(q, lhs->name);

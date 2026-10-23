@@ -82,5 +82,7 @@ void tags_io_thread_reset(void);
 void tags_form_thread_reset(void);
 void sql_thread_reset(void);
 void parse_thread_reset(void);
+void java_thread_reset(void);
+void java_ext_thread_reset(void);
 
 #endif

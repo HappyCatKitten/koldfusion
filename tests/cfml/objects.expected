@@ -1,0 +1,10 @@
+JavaCast: 42 -12 3.14 0.5 1999 NO []
+Invalid JavaCast type blob.
+COM objects are not supported on this platform.
+COM objects are not supported on this platform.
+Unable to initialise the CORBA ORB.
+Unable to initialise the CORBA ORB.
+Invalid object type ActiveX.
+Attribute validation error for tag CFOBJECT.
+Context validation error for tag CFSERVLETPARAM.
+Cannot call the method FOO.

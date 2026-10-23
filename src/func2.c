@@ -709,29 +709,8 @@ F(setlocale) {
                 "(KoldFusion formats every locale like English (US).)");
 }
 F(getlocale) { (void)argc; (void)argv; (void)call; return v_str(c->rs->locale ? c->rs->locale : "English (US)"); }
-F(createobject) {
-    const char *type = fa_str(c, call, argv, 0);
-    if (!kf_stricmp(type, "com"))
-        kf_throw_at(c, call, "Object", "COM objects are not supported on this platform.",
-                    "KoldFusion for UNIX does not support COM. The CFOBJECT tag and CreateObject() can only create COM objects "
-                    "on Windows NT.");
-    if (!kf_stricmp(type, "corba"))
-        kf_throw_at(c, call, "Object", "Unable to initialise the CORBA ORB.",
-                    "No Visibroker ORB is installed on this server.");
-    kf_throw_at(c, call, "Object", "Unable to create the Java object.",
-                "The Java Virtual Machine could not be loaded. Check the Java settings in the KoldFusion Administrator "
-                "(Server &gt; Java).");
-}
-F(javacast) {
-    (void)argc;
-    const char *type = fa_str(c, call, argv, 0);
-    if (!kf_stricmp(type, "int") || !kf_stricmp(type, "long")) return v_num(trunc(fa_num(c, call, argv, 1)));
-    if (!kf_stricmp(type, "double") || !kf_stricmp(type, "float")) return v_num(fa_num(c, call, argv, 1));
-    if (!kf_stricmp(type, "boolean")) return v_bool(fa_bool(c, call, argv, 1));
-    if (!kf_stricmp(type, "string")) return v_strdup(fa_str(c, call, argv, 1));
-    kf_throw_at(c, call, "Expression", kprintf("Invalid JavaCast type %s.", kf_html_escape(type)),
-                "The type must be one of boolean, int, long, float, double, string.");
-}
+/* CreateObject, JavaCast and GetException live in java.c */
+F(createobject); F(javacast); F(getexception);
 F(getfunctionlist) {
     (void)argc; (void)argv; (void)call; (void)c;
     Query *q = func_list_all();
@@ -857,7 +836,7 @@ static const FuncDef FUNCS[] = {
     FN(directoryexists,1,1), FN(gettempdirectory,0,0), FN(gettempfile,2,2), FN(getbasetaglist,0,0),
     FN(getbasetagdata,1,2), FN(getprofilestring,3,3), FN(setprofilestring,4,4), FN(getmetricdata,1,1),
     FN(getclientvariableslist,0,0), FN(deleteclientvariable,1,1), FN(setlocale,1,1), FN(getlocale,0,0),
-    FN(createobject,1,-1), FN(javacast,2,2), FN(getfunctionlist,0,0),
+    FN(createobject,1,-1), FN(javacast,2,2), FN(getexception,1,1), FN(getfunctionlist,0,0),
     FN(isauthenticated,0,1), FN(isauthorized,2,3), FN(isprotected,2,3), FN(authenticateduser,0,0),
     FN(authenticatedcontext,0,0),
     {NULL, NULL, 0, 0}

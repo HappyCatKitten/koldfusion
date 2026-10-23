@@ -27,6 +27,7 @@ since this server was installed!</P>
 <UL>
 <LI><A HREF="#server">Your server, by the numbers</A>
 <LI><A HREF="#dice">Roll the dice (a CFX tag written in C)</A>
+<LI><A HREF="java.cfm">Java in your CFML!</A> <IMG SRC="/images/new.gif" WIDTH=44 HEIGHT=22 ALIGN=ABSMIDDLE>
 <LI><A HREF="guestbook.cfm">Sign the Guestbook</A> <IMG SRC="/images/new.gif" WIDTH=44 HEIGHT=22 ALIGN=ABSMIDDLE>
 <LI><A HREF="search.cfm">Search this site with Verity</A>
 <LI><A HREF="wddx.cfm">WDDX: ship a query to JavaScript</A>

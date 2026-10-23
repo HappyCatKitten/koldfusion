@@ -23,7 +23,7 @@ EXT(schedule) EXT(execute) EXT(wddx) EXT(pop) EXT(ftp) EXT(ldap) EXT(object) EXT
 EXT(report) EXT(index) EXT(search) EXT(collection) EXT(authenticate) EXT(impersonate)
 EXT(form) EXT(input) EXT(select) EXT(textinput) EXT(slider) EXT(grid) EXT(gridcolumn)
 EXT(gridrow) EXT(gridupdate) EXT(tree) EXT(treeitem) EXT(applet) EXT(table) EXT(col)
-EXT(adminsecurity) EXT(procparam) EXT(procresult)
+EXT(adminsecurity) EXT(procparam) EXT(procresult) EXT(servletparam)
 
 /* ================================================================ helpers */
 static void exec_body(Ctx *c, Node *n, int *flow) { exec_nodes(c, n->kids, n->nkids, flow); }
@@ -1027,7 +1027,7 @@ static TagDef TAGS[] = {
     {"cfdirectory", tag_directory, 0}, {"cfregistry", tag_registry, 0}, {"cfhttp", tag_http, 1},
     {"cfhttpparam", tag_httpparam, 0}, {"cfschedule", tag_schedule, 0}, {"cfexecute", tag_execute, 1},
     {"cfwddx", tag_wddx, 0}, {"cfpop", tag_pop, 0}, {"cfftp", tag_ftp, 0}, {"cfldap", tag_ldap, 0},
-    {"cfobject", tag_object, 0}, {"cfservlet", tag_servlet, 1}, {"cfservletparam", tag_case, 0},
+    {"cfobject", tag_object, 0}, {"cfservlet", tag_servlet, 1}, {"cfservletparam", tag_servletparam, 0},
     {"cfreport", tag_report, 1}, {"cfindex", tag_index, 0}, {"cfsearch", tag_search, 0},
     {"cfcollection", tag_collection, 0}, {"cfauthenticate", tag_authenticate, 0},
     {"cfimpersonate", tag_impersonate, 2}, {"cfadminsecurity", tag_adminsecurity, 0},

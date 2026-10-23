@@ -102,13 +102,13 @@ static void install_defaults(void) {
         {"Mail", "SpoolInterval", "15"},
         {"Scheduler", "RefreshInterval", "15"},
         {"Scheduler", "LogActivity", "1"},
-        {"Java", "JVMPath", "/usr/java/jdk1.2.2/jre/lib/i386/classic/libjvm.so"},
+        {"Java", "JVMPath", ""},                     /* empty: find one (JAVA_HOME, PATH, /usr/lib/jvm, ~/.local/jdk) */
         {"Java", "ClassPath", ""},
-        {"Java", "InitialHeap", "1024"},
-        {"Java", "MaxHeap", "16384"},
+        {"Java", "InitialHeap", "4096"},             /* KB */
+        {"Java", "MaxHeap", "65536"},
         {"Java", "SystemOptions", ""},
         {"Java", "ImplementationOptions", ""},
-        {"Java", "CFXJarPath", kf_path_join(G.root, "java/classes/cfx.jar")},
+        {"Java", "CFXJarPath", kf_path_join(G.root, "java/cfx.jar")},
         {"SourceControl", "SrcSafeIni", ""},
         {"SourceControl", "WorkingDirectory", ""},
         {"SourceControl", "Timeout", "30"},
@@ -159,6 +159,19 @@ static void install_defaults(void) {
         reg_set(k, "Procedure", "ProcessTagRequest", 0);
         reg_set(k, "KeepLoaded", "1", 0);
         reg_set(k, "Description", CX[i].desc, 0);
+    }
+    struct { const char *name, *cls, *desc; } JX[] = {
+        {"CFX_JAVAHELLO", "JavaHello", "CFX_JAVAHELLO - says hello from the Java Virtual Machine (com.allaire.cfx API)."},
+        {"CFX_JAVAQUERY", "JavaQuery", "CFX_JAVAQUERY - reads and creates queries in Java (com.gibson.cfx API)."},
+        {"CFX_HELLOCOLDFUSION", "HelloColdFusion", "CFX_HELLOCOLDFUSION - the five-line Java CFX from the 1999 manual."},
+        {NULL, NULL, NULL}
+    };
+    for (int i = 0; JX[i].name; i++) {
+        char *k = cfg_key(kprintf("CFX\\%s", JX[i].name));
+        if (reg_exists(k, NULL)) continue;
+        reg_set(k, "Type", "Java", 0);
+        reg_set(k, "ClassName", JX[i].cls, 0);
+        reg_set(k, "Description", JX[i].desc, 0);
     }
     struct { const char *name, *code, *codebase, *w, *h; } AP[] = {
         {"copytext", "copytext.class", "/CFIDE/classes/gibson/controls", "300", "40"},

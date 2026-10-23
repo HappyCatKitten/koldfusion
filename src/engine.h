@@ -454,6 +454,12 @@ Query *verity_list(void);
 /* ---------- cfx.c */
 void cfx_call(Ctx *c, Node *n, const char *name);
 
+/* ---------- java.c (the embedded Java Virtual Machine) */
+Val  java_invoke(Ctx *c, Expr *call, Val obj, const char *method);          /* obj.method(args) */
+int  java_get_field(Ctx *c, Expr *where, Val obj, const char *name, Val *out, int soft);
+void java_set_field(Ctx *c, Expr *where, Val obj, const char *name, Val v);
+void java_cfx_call(Ctx *c, Node *n, const char *tagname, const char *regkey);
+
 /* ---------- datasources (dsn.c) */
 typedef struct Dsn {
     const char *name, *driver, *kind, *path, *description, *username, *password;

@@ -43,7 +43,7 @@
 <TD>Shown in the list of tags</TD>
 </TR>
 </TABLE>
-<P>A Java tag asks only for a <B>Class Name</B>. Since KoldFusion never loads a Java Virtual Machine (see <A HREF="java.htm">Java</A>), calling a Java CFX tag always reports an error.</P>
+<P>A Java tag asks only for a <B>Class Name</B>: the class that implements <CODE>com.allaire.cfx.CustomTag</CODE> (or <CODE>com.gibson.cfx.CustomTag</CODE>), without <CODE>.class</CODE>. Put the class file in <CODE>kfroot/java/classes</CODE> or on the Class Path set on the <A HREF="java.htm">Java</A> page. Classes in <CODE>kfroot/java/classes</CODE> are reloaded when they change; add <CODE>RELOAD=&quot;Always&quot;</CODE> or <CODE>RELOAD=&quot;Never&quot;</CODE> to the tag call to change that. Java CFX tags need a Java Virtual Machine and <CODE>cfx.jar</CODE>.</P>
 <P>Click a tag name in the list to edit it, or to <B>Delete</B> it.</P>
 <H2>The samples</H2>
 <P>Three C tags come registered out of the box:</P>
@@ -66,6 +66,30 @@
 </TR>
 </TABLE>
 <P>A CFX library exports <CODE>void ProcessTagRequest(CFXRequest *pRequest)</CODE>. The interface is declared in <CODE>src/kfx.h</CODE>, and the <CODE>cfx</CODE> directory of the KoldFusion distribution has the sample source code.</P>
+<P>Three Java tags are registered too (they need a Java Virtual Machine):</P>
+<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=1 BGCOLOR="#999999" CLASS="doctable">
+<TR BGCOLOR="#669966" VALIGN=TOP>
+<TH ALIGN=LEFT><FONT COLOR="#FFFFFF">Tag</FONT></TH>
+<TH ALIGN=LEFT><FONT COLOR="#FFFFFF">Class</FONT></TH>
+<TH ALIGN=LEFT><FONT COLOR="#FFFFFF">Does</FONT></TH>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>CFX_JAVAHELLO</TD>
+<TD>JavaHello</TD>
+<TD>Says hello, optionally several times or into a variable (written against <CODE>com.allaire.cfx</CODE>, the 1999 API)</TD>
+</TR>
+<TR BGCOLOR="#FFFBF0" VALIGN=TOP>
+<TD>CFX_JAVAQUERY</TD>
+<TD>JavaQuery</TD>
+<TD>Creates a query of Java system properties, or computes statistics over a query column (<CODE>com.gibson.cfx</CODE>)</TD>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>CFX_HELLOCOLDFUSION</TD>
+<TD>HelloColdFusion</TD>
+<TD>The five-line example from the 1999 manual</TD>
+</TR>
+</TABLE>
+<P>Their source is in the <CODE>java/samples</CODE> directory. A Java CFX tag implements <CODE>processRequest(Request, Response)</CODE>; the interfaces (and the <CODE>DebugRequest</CODE>, <CODE>DebugResponse</CODE> and <CODE>DebugQuery</CODE> classes for testing a tag from the command line) are in <CODE>cfx.jar</CODE>, built from <CODE>java/src</CODE>.</P>
 <P CLASS="note"><B>Note</B>&nbsp; Calling an unregistered tag fails with an error that asks you to check the spelling of the tag against its registry entry. The tag name in the template is not case sensitive.</P>
 </DIV>
 <HR NOSHADE SIZE=1>

@@ -711,37 +711,47 @@ see: Now, GetMetricData, CreateTimeSpan
 @func CreateObject
 category: System functions
 new45: yes
-summary: Creates a COM, CORBA or Java object (not available in KoldFusion for UNIX).
+summary: Creates a Java object (and, on Windows NT, COM and CORBA objects).
 desc:
-The function form of `CFOBJECT`: creates an instance of a COM component, a CORBA object or a Java
-class and returns it, so that you can call its methods and read its properties.
+The function form of `CFOBJECT`: loads a Java class (or creates a COM component or CORBA object) and returns it, so
+that you can call its methods and read and set its fields.
 syntax:
-CreateObject("COM", class [, context [, servername ] ])
-CreateObject("CORBA", context, class [, locale ])
 CreateObject("JAVA", class)
+CreateObject("COM", class [, context [, servername ] ])
+CreateObject("CORBA", class, context [, locale ])
 params:
-type | "COM", "CORBA" or "JAVA".
-class | COM: the ProgID of the component, such as "Word.Application". CORBA: the IOR file name or the naming
-  service name. Java: the full class name, such as "java.util.Vector".
+type | "JAVA", "COM" or "CORBA".
+class | Java: the full class name, such as "java.util.Vector" (case sensitive). COM: the ProgID of the component,
+  such as "Word.Application". CORBA: the IOR file name or the naming service name.
 context | COM: "InProc", "Local" or "Remote". CORBA: "IOR" or "NameService".
 servername | COM with context "Remote": the server running the component.
 locale | CORBA: arguments for the ORB.
 returns:
-The object.
+The object. A Java class is loaded but not yet constructed: call `init(args)` to run a constructor, or just call a
+method, which runs the constructor without arguments first. Static methods and fields work right away.
 usage:
-> KoldFusion for UNIX cannot create objects. COM is a Windows NT technology, no CORBA ORB is bundled and
-> no Java virtual machine is configured, so every call throws an exception of type Object. Wrap calls in
-> `CFTRY`/`CFCATCH` as shown, so a page written for the Windows server degrades gracefully.
+Everything `CFOBJECT` says about Java objects applies: method and field names are not case sensitive, CFML values
+are converted to and from Java types, `JavaCast` picks between overloaded methods, and Java exceptions become
+errors of type Object (see `GetException`). Without a Java Virtual Machine, and always for COM and CORBA on
+KoldFusion for UNIX, the function throws an error of type Object, so wrap calls in `CFTRY` when the page must also
+run elsewhere. CreateObject is disabled together with `CFOBJECT` by the Basic Security tag restrictions.
 
-Use `JavaCast` to choose between overloaded Java methods.
+Inside `CFSCRIPT`, Java objects read naturally:
+
+    <CFSCRIPT>
+    list = CreateObject("JAVA", "java.util.Vector");
+    list.addElement("Netscape");
+    list.addElement("Mosaic");
+    count = list.size();
+    </CFSCRIPT>
 example:
-<CFSET Kinds = "COM|Word.Application,JAVA|java.util.Vector">
+<CFSET Kinds = "JAVA|java.util.Vector,JAVA|java.util.Random,COM|Word.Application,CORBA|c:\myobject.ior">
 <TABLE BORDER=1 CELLPADDING=3>
 <TR><TH>CreateObject()</TH><TH>Result</TH></TR>
 <CFLOOP LIST="#Kinds#" INDEX="k">
-  <CFSET Result = "Created">
   <CFTRY>
-    <CFSET Obj = CreateObject(ListFirst(k, "|"), ListLast(k, "|"))>
+    <CFSET Obj = CreateObject(ListFirst(k, "|"), ListLast(k, "|"), "IOR")>
+    <CFSET Result = "Created: <TT>#Obj.toString()#</TT>">
   <CFCATCH TYPE="Object">
     <CFSET Result = "<I>#CFCATCH.Message#</I>">
   </CFCATCH>
@@ -749,48 +759,98 @@ example:
   <CFOUTPUT><TR><TD>"#ListFirst(k, "|")#", "#ListLast(k, "|")#"</TD><TD>#Result#</TD></TR></CFOUTPUT>
 </CFLOOP>
 </TABLE>
-see: CFOBJECT, JavaCast, CFTRY
+<CFTRY>
+  <CFSET Words = CreateObject("JAVA", "java.util.StringTokenizer")>
+  <CFSET Words.init("one small step for man", " ")>
+  <CFOUTPUT><P>StringTokenizer counted #Words.countTokens()# words.</P></CFOUTPUT>
+  <CFCATCH TYPE="Object"><CFOUTPUT><P><I>#CFCATCH.Message#</I></P></CFOUTPUT></CFCATCH>
+</CFTRY>
+see: CFOBJECT, JavaCast, GetException, CFTRY
 
 @func JavaCast
 category: System functions
 new45: yes
 summary: Marks a value with a Java type for calls to overloaded Java methods.
 desc:
-Converts a CFML value so that it is passed to a Java method as a particular Java type. You need it when
-a Java class has several methods with the same name that differ only in their argument types.
+Converts a CFML value so that it is passed to a Java method as a particular Java type. You need it when a Java
+class has several methods with the same name and the same number of arguments that differ only in their types.
 syntax:
 JavaCast(type, variable)
 params:
-type | "boolean", "int", "long", "double" or "String".
+type | "bool" (or "boolean"), "int", "long", "float", "double" or "String". KoldFusion also accepts "null", which
+  passes a Java null.
 variable | The value to convert.
 returns:
-The value, tagged with the Java type.
+The value, converted and tagged with the Java type. Used anywhere else, it behaves like an ordinary CFML value:
+"int" and "long" truncate to whole numbers, "float" and "double" give a number, "bool" YES or NO, "String" a string.
 usage:
-CFML values have no fixed type, so the server cannot otherwise guess whether 42 should be an int or a
-double. Use `JavaCast` only in the argument list of a method call on an object from `CreateObject`:
+CFML values have no fixed type, so the server cannot always guess whether 42 should be an int, a long, a double or
+a String:
 
-    <CFSET Vec = CreateObject("JAVA", "java.util.Vector")>
-    <CFSET Dummy = Vec.addElement(JavaCast("int", 42))>
+    <CFSET Emp.setJobGrade(JavaCast("int", 3))>      <!--- setJobGrade(int) --->
+    <CFSET Emp.setJobGrade(JavaCast("String", "C"))> <!--- setJobGrade(String) --->
 
-> KoldFusion for UNIX has no Java support (see `CreateObject`), so the converted value is simply returned:
-> "int" and "long" truncate to whole numbers, "double" and "float" make a number, "boolean" a YES/NO value
-> and "string" a string. Pages written for the Windows server still compile.
+Use `JavaCast` only for simple values passed to Java methods. The type sticks to the value when you store the
+result in a variable first (`<CFSET Grade = JavaCast("int", 3)>`) and pass the variable unchanged.
 example:
 <CFOUTPUT>
 <TABLE BORDER=1 CELLPADDING=3>
 <TR><TH>Call</TH><TH>Result</TH></TR>
-<TR><TD>JavaCast("int", 42)</TD><TD>#JavaCast("int", 42)#</TD></TR>
+<TR><TD>JavaCast("int", 42.9)</TD><TD>#JavaCast("int", 42.9)#</TD></TR>
 <TR><TD>JavaCast("double", "3.14")</TD><TD>#JavaCast("double", "3.14")#</TD></TR>
 <TR><TD>JavaCast("String", 1999)</TD><TD>#JavaCast("String", 1999)#</TD></TR>
+<TR><TD>JavaCast("bool", 1)</TD><TD>#JavaCast("bool", 1)#</TD></TR>
 </TABLE>
 </CFOUTPUT>
 <CFTRY>
-  <CFSET Vec = CreateObject("JAVA", "java.util.Vector")>
-<CFCATCH TYPE="Object">
-  <CFOUTPUT><P>Creating the Java object to pass them to: <I>#CFCATCH.Message#</I></CFOUTPUT>
-</CFCATCH>
+  <!--- String.valueOf has an int, a double, a boolean and an Object version --->
+  <CFSET S = CreateObject("JAVA", "java.lang.String")>
+  <CFOUTPUT>
+  <P>valueOf(int 7) = #S.valueOf(JavaCast("int", 7))#<BR>
+  valueOf(double 7) = #S.valueOf(JavaCast("double", 7))#<BR>
+  valueOf(boolean) = #S.valueOf(JavaCast("bool", "yes"))#</P>
+  </CFOUTPUT>
+  <CFCATCH TYPE="Object">
+    <CFOUTPUT><P>Calling Java: <I>#CFCATCH.Message#</I></P></CFOUTPUT>
+  </CFCATCH>
 </CFTRY>
 see: CreateObject, CFOBJECT
+
+@func GetException
+category: System functions
+summary: Returns the Java exception thrown by the last method call on a Java object.
+desc:
+When a method of a Java object throws an exception, KoldFusion raises an error of type Object whose
+`CFCATCH.Message` is just the exception's class name. `GetException` gives you the exception object itself, so you
+can call its methods (`getMessage()`, or the extra methods of your own exception classes).
+syntax:
+GetException(object)
+params:
+object | A Java object created with `CFOBJECT` or `CreateObject`, on which a method has thrown an exception.
+returns:
+The exception, as a Java object. Each successful method call on the object clears it; then `GetException` returns an
+empty string.
+usage:
+`GetException` arrived with ColdFusion 5; KoldFusion 4.5 has it already.
+example:
+<CFTRY>
+  <CFSET Num = CreateObject("JAVA", "java.lang.Integer")>
+  <CFTRY>
+    <CFSET N = Num.parseInt("forty-two")>
+    <CFCATCH TYPE="Object">
+      <CFSET Ex = GetException(Num)>
+      <CFOUTPUT>
+      <P>CFCATCH.Message: <B>#CFCATCH.Message#</B><BR>
+      Ex.getMessage(): <B>#Ex.getMessage()#</B><BR>
+      Ex.getClass().getName(): <B>#Ex.getClass().getName()#</B></P>
+      </CFOUTPUT>
+    </CFCATCH>
+  </CFTRY>
+  <CFCATCH TYPE="Object">
+    <CFOUTPUT><P>No Java Virtual Machine: <I>#CFCATCH.Message#</I></P></CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+see: CFTRY, CFOBJECT, CreateObject
 
 
 @func IsAuthenticated

@@ -50,7 +50,7 @@ Requirements: a C compiler, GNU make, pthreads. No other libraries. SSL (the htt
 uses OpenSSL 3 or 1.1 if it is installed, loaded at run time, so the build never needs its headers; on first start
 `/usr/bin/openssl` makes a self-signed certificate in `kfroot/ssl/` (`curl --cacert kfroot/ssl/kfserver.crt
 https://localhost:8543/` trusts it). Python 3 + Pillow only if you want to regenerate the GIFs (`make graphics`,
-`python3 tools/mkadmin_gfx.py`).
+`python3 tools/mkadmin_gfx.py`). A Java runtime is optional (see [Java](#java)).
 
 ## What's inside
 
@@ -73,7 +73,11 @@ src/            the server (about 15,000 lines of C)
   ldap.c          CFLDAP, an LDAPv3 client; LDAP user directories for Advanced Security
   ldapd.c         the Gibson Directory Server, a bundled LDAPv3 server (LDIF-backed)
   ber.c           BER codec, RFC 2254 filters, DNs, SHA-1 (shared by ldap.c and ldapd.c)
-kfroot/         the install directory ("C:\CFUSION"): registry/, log/, mail/{spool,undelivr}, db/, verity/, cfx/, customtags/, ldap/
+  java.c          the embedded JVM (JNI, loaded with dlopen), Java objects, CreateObject/JavaCast/GetException
+  java_ext.c      Java CFX tags, CFSERVLET/CFSERVLETPARAM      kfjni.h  a hand-written JNI subset (no jni.h needed)
+java/           src/: the Java CFX API (com.gibson.cfx + com.allaire.cfx), a Servlet 2.2 API, the C<->Java bridge;
+                samples/: CFX_JAVAHELLO, CFX_JAVAQUERY, HelloServlet, SnoopServlet, Employee (built into kfroot/java/)
+kfroot/         the install directory ("C:\CFUSION"): registry/, log/, mail/{spool,undelivr}, db/, verity/, cfx/, customtags/, ldap/, java/
 wwwroot/        the web root: Welcome page, /CFIDE/administrator, /CFDOCS, /demos, /cool, /web1999, sites/ (virtual sites)
 cfx/            source of the sample CFX tags (CFX_HELLO, CFX_DICE, CFX_SYSINFO)
 tools/          graphics generators (all GIFs are drawn procedurally — no original artwork is used)
@@ -119,9 +123,9 @@ Every page from the 4.5 navigation is implemented and saves to the registry:
   (admin/Studio passwords, tag restrictions, unsecured tags directory), Advanced Security (user directories, security
   contexts, rules, policies, sandboxes, resource view, map), Variables (client storage in registry/cookie/data source,
   session & application timeouts), Locking (none / full checking / automatic read locking / single-threaded sessions),
-  Mappings, Java, Version Info (with live server statistics).
+  Mappings, Java (JVM settings, a live status line and a Load JVM button), Version Info (with live server statistics).
 - **datasources**: ODBC, Native Drivers, OLE DB, Verify Data Source (plus a table browser).
-- **extensions**: CFX Tags (real `.so` CFX tags written in C), Applets.
+- **extensions**: CFX Tags (real `.so` CFX tags written in C, and Java CFX tags), Applets.
 - **logging**: Settings, Mail Logging, Log Files (viewer, download, delete).
 - **automated tasks**: Scheduler Settings, Scheduled Tasks (one-time, daily/weekly/monthly, every N minutes, RUN now,
   publish to file).
@@ -168,6 +172,27 @@ fresh install has a "Gibson Directory" user directory and a GibsonIntranet conte
 - Windows-only features (COM, CFREPORT/Crystal Reports, NT impersonation, Visual SourceSafe) fail with the same polite
   errors the UNIX version of ColdFusion gave.
 
+## Java
+
+KoldFusion 4.5 embeds a Java Virtual Machine, as ColdFusion 4.5 did: `CFOBJECT TYPE="Java"` and
+`CreateObject("Java", "java.util.Hashtable")` give you Java objects whose methods and public fields you use from CFML
+(`h.put("a", 1)`, `obj.field`, `<CFSET obj.field = 2>`, `obj.init(args)` for constructors, `JavaCast()` for
+overloads, `GetException()`), Java CFX tags (the 1999 `com.allaire.cfx` API runs unchanged) and `CFSERVLET` runs
+servlets in-process. See http://127.0.0.1:8500/cool/java.cfm.
+
+Java is optional and nothing links against it: the server finds `libjvm.so` at run time and loads it with `dlopen()`
+the first time a page needs it. It looks, in order, at the **Java Virtual Machine Path** on the Administrator's Java
+page (the library or a JDK/JRE directory), `$JAVA_HOME`, `java` on the `PATH`, `/usr/lib/jvm/*` and `~/.local/jdk/*`.
+Any JDK or JRE from 1.2 to today works (tested with 17). `make` also builds `kfroot/java/cfx.jar` and the sample
+classes in `kfroot/java/classes/` when it finds `javac` (or `make JAVAC=/path/to/javac`); `CFOBJECT` needs only the
+JVM, Java CFX tags and `CFSERVLET` also need `cfx.jar`. Without a JVM everything else works, and the Java features
+raise a polite error of type Object. `KF_NOJVM=1` pretends there is no JVM.
+
+```bash
+JAVA_HOME=/usr/lib/jvm/java-17-openjdk make     # builds cfx.jar + samples too
+JAVA_HOME=/usr/lib/jvm/java-17-openjdk ./bin/kfserver
+```
+
 ## Testing and tools
 
 | Command | What it does |
@@ -176,7 +201,7 @@ fresh install has a "Gibson Directory" user directory and a GibsonIntranet conte
 | `python3 tests/http_tests.py` | Web server and CFHTTP tests: keep-alive, pipelining, HEAD, 304s, chunked bodies, timeouts, HTTPS, SNI, proxies (starts its own server on ports 8723/8546) |
 | `bash tools/testdocs.sh --all` | Renders every documentation page and all 337 reference snippets |
 | `python3 wwwroot/CFDOCS/exampleapp/selftest.py PORT` | Walks every example-application page and flow against a running server |
-| `make asan` | Builds `bin/kfserver-asan` with AddressSanitizer/UBSan |
+| `make asan` | Builds `bin/kfserver-asan` with AddressSanitizer/UBSan. With a JVM, run it with `ASAN_OPTIONS=handle_segv=0:allow_user_segv_handler=1:detect_leaks=0` (the JVM handles SIGSEGV itself) |
 | `tests/ldap_interop.sh [http-port] [ldap-port]` | Checks the directory server against the OpenLDAP command-line tools |
 | `tests/ldap_fuzz.py PORT` | Throws mutated, truncated and random LDAP messages at the directory server |
 | `tests/ber_fuzz.c` | Fuzzes the BER decoder, filter parser and DN code in-process (build line in the file) |
@@ -184,13 +209,18 @@ fresh install has a "Gibson Directory" user directory and a GibsonIntranet conte
 | `tools/kfstat [-p port] [secs]` | Command-line performance monitor, like `cfstat` (enable performance monitoring on the Debugging page) |
 | `make reset` | Wipes registry, databases, logs, mail and caches for a pristine "fresh install" |
 
-`tests/repro/` holds the minimal repros of bugs found while building the demo gallery (all fixed).
+`tests/repro/` holds the minimal repros of bugs found while building the demo gallery (all fixed). Java tests
+(`tests/cfml/java_*.cfm`) are skipped when no JVM is available; `java_absent.cfm` runs only then.
 
 ## Known limitations
 
-No LDAP over SSL (CFLDAP SECURE=) and no SASL/StartTLS or schema checking in the directory server, no Java or COM objects, no query-of-queries (that is a ColdFusion 5 feature anyway). HTTPS needs OpenSSL
-at run time and the certificate it makes is self-signed, so browsers will warn (as they did in 1999 for anyone who
-skipped VeriSign). The web server uses one thread per connection: fine for a desk, not for the Slashdot effect. The SQL engine is small and rewrites a whole table file on every write — fine for
+No LDAP over SSL (CFLDAP SECURE=) and no SASL/StartTLS or schema checking in the directory server, no COM
+objects (Windows only) and no CORBA (the VisiBroker ORB is not included, and Java removed its own ORB in Java 11),
+no query-of-queries (that is a ColdFusion 5 feature anyway). `CFSERVLET` runs servlets in-process rather than
+through a JRun proxy, against a minimal Servlet 2.2 API. HTTPS needs OpenSSL at run time and the certificate it
+makes is self-signed, so browsers will warn (as they did in 1999 for anyone who skipped VeriSign). The web server
+uses one thread per connection: fine for a desk, not for the Slashdot effect. The SQL engine is small and rewrites
+a whole table file on every write — fine for
 nostalgia, not for production. Please don't run this on a public network.
 
 ## Credits

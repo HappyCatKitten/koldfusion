@@ -3,7 +3,8 @@
 KoldFusion is a C re-creation of an Allaire ColdFusion 4.5 server. Pages are CFML 4.5.
 
 ## Build and run
-- `make` builds `bin/kfserver` and the CFX libraries in `kfroot/cfx/`.
+- `make` builds `bin/kfserver` and the CFX libraries in `kfroot/cfx/`, and, when `javac` is found, `kfroot/java/cfx.jar`
+  plus the Java samples in `kfroot/java/classes/` (see Java below).
 - `./bin/kfserver` serves on http://127.0.0.1:8500/ (`-p PORT` changes the port, `-b ADDR` the bind address), and on
   https://127.0.0.1:8543/ when OpenSSL can be loaded (`--ssl-port PORT` changes it, `--ssl-port 0` turns it off).
 - `./bin/kfserver --run wwwroot/path/page.cfm [query-string]` renders one page to stdout (HTTP headers first) — the fastest way to test.
@@ -52,10 +53,11 @@ cfthrow cfrethrow cfscript cfsetting cfsilent cfprocessingdirective cflocation c
 cfapplication (session/client/application) cflock cferror cfcache (page caching to disk) cfquery (cachedwithin, maxrows) cfqueryparam
 cftransaction cfinsert cfupdate cfstoredproc(error) cfmail/cfmailparam (spooled to kfroot/mail/spool) cffile (upload, read,
 readbinary, write, append, copy, move, rename, delete) cfdirectory cfregistry cfhttp/cfhttpparam (http:// and https://) cfschedule
-cfexecute cfwddx cfpop cfftp (passive-mode client) cfldap (LDAPv3, see below) cfobject(error) cfservlet(error) cfreport(error) cfindex cfsearch
+cfexecute cfwddx cfpop cfftp (passive-mode client) cfldap (LDAPv3, see below) cfobject (Java; COM/CORBA error) cfservlet/cfservletparam
+cfreport(error) cfindex cfsearch
 cfcollection cfauthenticate cfimpersonate cfform cfinput cfselect cftextinput cfslider cfgrid/cfgridcolumn/cfgridrow/
 cfgridupdate cftree/cftreeitem cfapplet cftable/cfcol, custom tags (cf_name, cfmodule; Attributes/Caller/ThisTag),
-CFX tags (cfx_hello, cfx_dice, cfx_sysinfo).
+CFX tags (C: cfx_hello, cfx_dice, cfx_sysinfo; Java: cfx_javahello, cfx_javaquery, cfx_hellocoldfusion).
 
 Not in 4.5 and therefore not supported: CFDUMP, CFSAVECONTENT, CFFLUSH, CFFUNCTION/CFCOMPONENT/CFINVOKE/CFRETURN, CFLOG,
 user-defined functions in CFSCRIPT, query-of-queries (DBTYPE="query"), array/struct literals `[]` `{}`.
@@ -91,6 +93,7 @@ CreateObject CreateODBCDate CreateODBCDateTime CreateODBCTime CreateTime CreateT
 DateConvert DateDiff DateFormat DatePart Day DayOfWeek DayOfWeekAsString DayOfYear DaysInMonth DaysInYear DE DecimalFormat
 DecrementValue Decrypt DeleteClientVariable DirectoryExists DollarFormat Duplicate Encrypt Evaluate Exp ExpandPath
 FileExists Find FindNoCase FindOneOf FirstDayOfMonth Fix FormatBaseN GetBaseTagData GetBaseTagList GetBaseTemplatePath
+GetException
 GetClientVariablesList GetCurrentTemplatePath GetDirectoryFromPath GetFileFromPath GetFunctionList GetHTTPTimeString
 GetLocale GetMetricData GetProfileString GetTempDirectory GetTempFile GetTemplatePath GetTickCount GetTimeZoneInfo
 GetToken Hash Hour HTMLCodeFormat HTMLEditFormat IIf IncrementValue InputBaseN Insert Int IsArray IsAuthenticated
@@ -107,6 +110,37 @@ StructKeyList StructNew StructUpdate Tan TimeFormat ToBase64 ToBinary ToString T
 ValueList Week Wrap WriteOutput XMLFormat Year YesNoFormat.
 `KFUSION_CHECKSYNTAX(code)` (struct OK, Message, Detail, Line, Column) works anywhere; other KFUSION_* functions are
 Administrator-only (`KFUSION_DIRECTORYSERVER(action [, dn])` drives the directory server page).
+
+## Java (src/java.c, src/java_ext.c, java/)
+- The JVM is optional and loaded at run time: `dlopen(libjvm.so)` + `JNI_CreateJavaVM`, once per process, the first time a
+  page needs it (or the Administrator's Load JVM button). No jni.h: `src/kfjni.h` declares the JNI slots used. Search
+  order: registry `Java\JVMPath` (file or JDK dir), `$JAVA_HOME`, `java` on `PATH`, `/usr/lib/jvm/*`, `~/.local/jdk/*`.
+  `KF_NOJVM=1` disables it. Options come from the Java page: class path = cfx.jar + `kfroot/java/classes` + Class Path,
+  `-Xms/-Xmx` (KB), System Options -> `-D`, Implementation Options raw; always `-Xrs -XX:-UsePerfData`, serial GC.
+- `CreateObject("Java", cls)` / `<CFOBJECT TYPE="Java" ACTION="Create" CLASS NAME>` loads the class unconstructed:
+  statics work at once, `obj.init(args)` runs a constructor (returns the object), any instance call/field runs the
+  no-arg constructor. `obj.method(args)`: names case-insensitive, overloads by arg count then type score; JavaCast(int,
+  long, float, double, bool, String, null) hints (also remembered when the cast value is stored in a variable);
+  ambiguous ties are an error; varargs supported. `obj.field` / `<cfset obj.field = v>` for public (static) fields.
+- CF -> Java: strings, numbers, booleans, dates (java.util.Date), arrays (Vector or Java array), structs (Hashtable),
+  binary (byte[]). Java -> CF: String, boxed primitives, Boolean, Date, byte[], arrays/Lists (incl. Vector) -> arrays,
+  Maps (incl. Hashtable) -> structs, char -> its code (use Chr()), null -> ""; anything else stays a Java object.
+- Java exceptions -> CFCATCH TYPE="Object", Message = exception class name (as in 4.5), Detail = its message;
+  `GetException(obj)` (CF5) returns the exception object; a successful call clears it.
+- Values: `VT_OBJECT` holding a JNI global ref, released when its arena is freed. Deep copies into Session/Application/
+  Server (and Duplicate()) take a new global ref to the same Java object, released when that scope expires.
+  CF 4.5 released objects at the end of each page; keeping them in shared scopes is a KoldFusion leniency (use CFLOCK).
+  Objects cannot go into Client scope or WDDX (serialized as null). Request threads attach as daemon threads on first use
+  and detach when the thread exits.
+- Java CFX: registry `CFX\<NAME>` Type=Java, ClassName; class implements com.allaire.cfx.CustomTag or
+  com.gibson.cfx.CustomTag (identical APIs, both in cfx.jar, plus DebugRequest/DebugResponse/DebugQuery). Classes in
+  `kfroot/java/classes` get their own class loader and reload when the .class changes (`RELOAD="Auto|Always|Never"`).
+- `CFSERVLET CODE= [JRUNPROXY= (ignored) TIMEOUT= WRITEOUTPUT=Yes DEBUG=No]` runs the servlet in the embedded JVM
+  (Servlet 2.2 shim in cfx.jar). Parameters: URL/form fields + `CFSERVLETPARAM NAME VALUE`; `NAME VARIABLE [TYPE=INT|
+  DOUBLE|BOOL|DATE|STRING]` passes a variable as a request attribute and copies the servlet's new value back. Result:
+  `CFSERVLET.Output`, one key per response header, `CFSERVLET.StatusCode`/`StatusText`. HttpSession follows the CF session.
+- CORBA always fails politely (no ORB in modern Java); COM too (Windows only).
+- ASan: `ASAN_OPTIONS=handle_segv=0:allow_user_segv_handler=1:detect_leaks=0 ./bin/kfserver-asan` (the JVM uses SIGSEGV).
 
 ## CFML gotchas (all authentically 4.5)
 - Variable names are case-insensitive: `<cfloop index="t">` overwrites a struct named `T`.

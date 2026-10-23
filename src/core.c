@@ -16,7 +16,8 @@
 
 typedef struct Chunk { struct Chunk *next; size_t size, used; char data[]; } Chunk;
 #include <pthread.h>
-struct Arena { Chunk *head; size_t total; size_t limit; int shared; pthread_mutex_t mu; };
+typedef struct Cleanup { void (*fn)(void *); void *arg; struct Cleanup *next; } Cleanup;
+struct Arena { Chunk *head; size_t total; size_t limit; int shared; pthread_mutex_t mu; Cleanup *cleanups; };
 
 __thread Arena *g_arena;
 
@@ -33,8 +34,19 @@ Arena *arena_new_shared(void) {
     return a;
 }
 
+/* external resources (Java object references) that live as long as the arena */
+void arena_on_free(Arena *a, void (*fn)(void *), void *arg) {
+    if (!a) return;
+    Cleanup *c = arena_alloc(a, sizeof *c);
+    c->fn = fn; c->arg = arg;
+    if (a->shared) pthread_mutex_lock(&a->mu);
+    c->next = a->cleanups; a->cleanups = c;
+    if (a->shared) pthread_mutex_unlock(&a->mu);
+}
+
 void arena_free(Arena *a) {
     if (!a) return;
+    for (Cleanup *k = a->cleanups; k; k = k->next) k->fn(k->arg);
     Chunk *c = a->head;
     while (c) { Chunk *n = c->next; free(c); c = n; }
     if (a->shared) pthread_mutex_destroy(&a->mu);
@@ -141,6 +153,7 @@ Val v_arr(Array *a) { Val v; v.t = VT_ARRAY; v.u.a = a; return v; }
 Val v_struct(Struct *s) { Val v; v.t = VT_STRUCT; v.u.st = s; return v; }
 Val v_query(Query *q) { Val v; v.t = VT_QUERY; v.u.q = q; return v; }
 Val v_binary(const char *p, size_t n) { Val v; v.t = VT_BINARY; v.u.str.s = p; v.u.str.len = n; return v; }
+Val v_object(KfObject *o) { Val v; memset(&v, 0, sizeof v); v.t = VT_OBJECT; v.u.obj = o; return v; }
 
 int v_is_simple(Val v) { return v.t <= VT_DATE; }
 
@@ -149,6 +162,7 @@ const char *v_typename(Val v) {
     case VT_NULL: return "null"; case VT_STR: return "string"; case VT_NUM: return "number";
     case VT_BOOL: return "boolean"; case VT_DATE: return "date"; case VT_ARRAY: return "array";
     case VT_STRUCT: return "structure"; case VT_QUERY: return "query"; case VT_BINARY: return "binary";
+    case VT_OBJECT: return "object";
     }
     return "unknown";
 }
@@ -452,6 +466,7 @@ Val v_deepcopy(Val v) {
     case VT_ARRAY: return v_arr(array_copy(v.u.a, 1));
     case VT_STRUCT: return v_struct(struct_copy(v.u.st, 1));
     case VT_QUERY: return v_query(query_copy(v.u.q));
+    case VT_OBJECT: return kfobj_copy(v);
     default: return v;
     }
 }

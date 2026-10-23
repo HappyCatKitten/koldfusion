@@ -13,7 +13,7 @@
 <DIV CLASS="docbody">
 <H1>CFML Language Reference</H1>
 <P>This reference describes every tag and function that the KoldFusion 4.5 server understands, with the syntax, the attributes or parameters, notes on how KoldFusion behaves, and an example you can run. Entries marked <FONT COLOR="#CC0000" SIZE=1>4.5</FONT> are new in this release.</P>
-<P><B>Alphabetical lists:</B> <A HREF="tags.htm">all 73 tags</A> &middot; <A HREF="functions.htm">all 241 functions</A> &middot; <A HREF="/CFDOCS/quickref/index.htm">CFML Quick Reference</A> &middot; <A HREF="/CFDOCS/snippets/index.cfm">Snippets Launcher</A></P>
+<P><B>Alphabetical lists:</B> <A HREF="tags.htm">all 73 tags</A> &middot; <A HREF="functions.htm">all 242 functions</A> &middot; <A HREF="/CFDOCS/quickref/index.htm">CFML Quick Reference</A> &middot; <A HREF="/CFDOCS/snippets/index.cfm">Snippets Launcher</A></P>
 <H2><A NAME="tags">Chapter 1: CFML Tags</A></H2>
 <P><FONT SIZE=1><A HREF="#variable_manipulation">Variable manipulation</A> | <A HREF="#flow_control">Flow control</A> | <A HREF="#exception_handling">Exception handling</A> | <A HREF="#output_and_page_processing">Output and page processing</A> | <A HREF="#database_manipulation">Database manipulation</A> | <A HREF="#application_framework">Application framework</A> | <A HREF="#extensibility">Extensibility</A> | <A HREF="#internet_protocols">Internet protocols</A> | <A HREF="#file_directory_and_system">File, directory and system</A> | <A HREF="#data_interchange">Data interchange</A> | <A HREF="#verity_search">Verity search</A> | <A HREF="#security">Security</A> | <A HREF="#forms">Forms</A></FONT></P>
 <H3><A NAME="variable_manipulation">Variable manipulation</A></H3>
@@ -74,10 +74,10 @@
 <TABLE BORDER=0 CELLPADDING=2 CELLSPACING=0 WIDTH="95%">
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfassociate.htm">CFASSOCIATE</A></TD><TD>Lets a nested custom tag pass its attributes to an ancestor custom tag.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfmodule.htm">CFMODULE</A></TD><TD>Calls a custom tag by template path or by name.</TD></TR>
-<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfobject.htm">CFOBJECT</A></TD><TD>Creates a COM, CORBA or Java object. Not available in KoldFusion for UNIX.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfobject.htm">CFOBJECT</A></TD><TD>Creates a Java object (and, on Windows NT, COM and CORBA objects).</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfreport.htm">CFREPORT</A></TD><TD>Runs a Crystal Reports report. Not available in KoldFusion for UNIX.</TD></TR>
-<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfservlet.htm">CFSERVLET</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Runs a Java servlet on a JRun servlet engine and returns its output. Not available in KoldFusion.</TD></TR>
-<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfservletparam.htm">CFSERVLETPARAM</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Passes a parameter to the servlet called by CFSERVLET.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfservlet.htm">CFSERVLET</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Runs a Java servlet and includes its output in the page.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfservletparam.htm">CFSERVLETPARAM</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Passes a parameter, or a variable by reference, to the servlet called by CFSERVLET.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfx_hello.htm">CFX Tags (CFX_HELLO, CFX_DICE, CFX_SYSINFO)</A></TD><TD>Sample CFX tags (compiled C extensions) that ship with KoldFusion: a greeting, a dice roller and a system query.</TD></TR>
 </TABLE>
 <H3><A NAME="internet_protocols">Internet protocols</A></H3>
@@ -384,7 +384,7 @@
 </TABLE>
 <H3><A NAME="system_functions">System functions</A></H3>
 <TABLE BORDER=0 CELLPADDING=2 CELLSPACING=0 WIDTH="95%">
-<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="createobject.htm">CreateObject</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Creates a COM, CORBA or Java object (not available in KoldFusion for UNIX).</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="createobject.htm">CreateObject</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Creates a Java object (and, on Windows NT, COM and CORBA objects).</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="deleteclientvariable.htm">DeleteClientVariable</A></TD><TD>Deletes a client variable for the current visitor.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="directoryexists.htm">DirectoryExists</A></TD><TD>Returns YES if a directory exists on the server.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="expandpath.htm">ExpandPath</A></TD><TD>Turns a relative or URL-style path into an absolute file system path.</TD></TR>
@@ -395,6 +395,7 @@
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getclientvariableslist.htm">GetClientVariablesList</A></TD><TD>Returns a list of the client variables you can change for the current visitor.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getcurrenttemplatepath.htm">GetCurrentTemplatePath</A></TD><TD>Returns the full path of the template that contains the call.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getdirectoryfrompath.htm">GetDirectoryFromPath</A></TD><TD>Extracts the directory part of an absolute path.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getexception.htm">GetException</A></TD><TD>Returns the Java exception thrown by the last method call on a Java object.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getfilefrompath.htm">GetFileFromPath</A></TD><TD>Extracts the file name from an absolute path.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getfunctionlist.htm">GetFunctionList</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Returns a structure whose keys are the names of all built-in CFML functions.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getmetricdata.htm">GetMetricData</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Returns server performance counters in a structure.</TD></TR>

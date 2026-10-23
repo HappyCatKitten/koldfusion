@@ -14,10 +14,21 @@
 	<cfregistry action="delete" branch="#k#"><cflocation url="cfx.cfm" addtoken="no">
 </cfif>
 <cfif IsDefined("Form.Save")>
+	<cfif IsDefined("Form.ClassName")>
+		<!--- a class name, not a file name: "JavaHello.class" or "com/acme/Zip" work too --->
+		<cfset Form.ClassName = Replace(REReplaceNoCase(Trim(Form.ClassName), "\.class$", ""), "/", ".", "ALL")>
+		<cfif NOT Len(Form.ClassName)>
+			<cfset pageTitle = "Edit CFX Tag">
+			<cfinclude template="../_header.cfm">
+			<cfmodule template="../_tags/status.cfm" message="Enter the name of the Java class that implements the tag." back="cfxedit.cfm?TagName=#URLEncodedFormat(Form.TagName)#">
+			<cfinclude template="../_footer.cfm">
+			<cfabort>
+		</cfif>
+	</cfif>
 	<cfloop list="Type,LibraryPath,Procedure,ClassName,Description" index="f">
 		<cfif IsDefined("Form." & f)><cfregistry action="set" branch="#k#" entry="#f#" value="#Trim(Form[f])#"></cfif>
 	</cfloop>
-	<cfregistry action="set" branch="#k#" entry="KeepLoaded" value="#IIf(IsDefined('Form.KeepLoaded'), 1, 0)#">
+	<cfif Form.Type NEQ "Java"><cfregistry action="set" branch="#k#" entry="KeepLoaded" value="#IIf(IsDefined('Form.KeepLoaded'), 1, 0)#"></cfif>
 	<cflocation url="cfx.cfm" addtoken="no">
 </cfif>
 <cfmodule template="../_tags/getreg.cfm" key="CFX\#Form.TagName#" variable="T">
@@ -35,7 +46,9 @@
 <TABLE BORDER=0 CELLPADDING=4>
 <TR><TD>#Request.f#<B>Tag name</B></FONT></TD><TD>#Request.f#<B>#Form.TagName#</B> (#T.Type#)</FONT></TD></TR>
 <cfif T.Type EQ "Java">
-<TR><TD>#Request.f#<B>Class Name</B></FONT></TD><TD><INPUT TYPE="text" NAME="ClassName" VALUE="#HTMLEditFormat(T.ClassName)#" SIZE=40></TD></TR>
+<TR><TD>#Request.f#<B>Class Name</B></FONT></TD><TD><INPUT TYPE="text" NAME="ClassName" VALUE="#HTMLEditFormat(T.ClassName)#" SIZE=40 STYLE="font-family:Courier New,monospace"><BR>
+	#Request.f#The Java class that implements <TT>CustomTag</TT>, without <TT>.class</TT> (e.g. <TT>JavaHello</TT> or
+	<TT>com.acme.cfx.Zip</TT>). Put it in <TT>java/classes</TT> under the KoldFusion installation, or on the Java Class Path.</FONT></TD></TR>
 <cfelse>
 <TR><TD>#Request.f#<B>Server library (.so)</B></FONT></TD><TD><INPUT TYPE="text" NAME="LibraryPath" VALUE="#HTMLEditFormat(T.LibraryPath)#" SIZE=40 STYLE="font-family:Courier New,monospace">
 	<INPUT TYPE="button" VALUE="Browse Server..." onClick="browseServer('LibraryPath')"></TD></TR>
