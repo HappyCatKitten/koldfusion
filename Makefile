@@ -17,7 +17,7 @@ bin/kfserver: $(OBJ)
 	@mkdir -p bin
 	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LDLIBS)
 
-build/%.o: src/%.c src/kf.h src/engine.h
+build/%.o: src/%.c src/kf.h src/engine.h src/ldap.h
 	@mkdir -p build
 	$(CC) $(CFLAGS) -c -o $@ $<
 
@@ -38,7 +38,7 @@ asan: bin/kfserver-asan
 bin/kfserver-asan: $(ASAN_OBJ)
 	@mkdir -p bin
 	$(CC) -std=gnu99 -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -o $@ $(ASAN_OBJ) $(LDLIBS)
-build/asan/%.o: src/%.c src/kf.h src/engine.h
+build/asan/%.o: src/%.c src/kf.h src/engine.h src/ldap.h
 	@mkdir -p build/asan
 	$(CC) -std=gnu99 -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -Wall -Wno-unused-parameter -c -o $@ $<
 .PHONY: asan
@@ -47,5 +47,5 @@ build/asan/%.o: src/%.c src/kf.h src/engine.h
 # Seed data is rebuilt from kfroot/seed/*.sql the next time the server starts.
 reset:
 	rm -rf kfroot/registry/kf.registry kfroot/db/* kfroot/log/* kfroot/mail/spool/* kfroot/mail/undelivr/* \
-	       kfroot/mail/log/* kfroot/verity/collections/* kfroot/cache kfroot/temp/* kfroot/drive_c
+	       kfroot/mail/log/* kfroot/verity/collections/* kfroot/ldap kfroot/cache kfroot/temp/* kfroot/drive_c
 .PHONY: reset

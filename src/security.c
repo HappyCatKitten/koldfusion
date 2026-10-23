@@ -6,13 +6,16 @@
  *
  * Registry layout under Security\:
  *   UserDirectories\<dir>            Namespace, Location, Description
+ *                                    LDAP namespace: Root, Username, Password (scrambled),
+ *                                    LookupStart, LookupEnd, UserAttribute (see ldap.c)
  *   UserDirectories\<dir>\Users\<u>  Password (scrambled), FullName, Groups
  *   Contexts\<ctx>                   Description, UserDirectories (list)
  *   Contexts\<ctx>\Rules\<rule>      ResourceType, Resource, Actions
- *   Contexts\<ctx>\Policies\<pol>    Rules (list), Users (list)
+ *   Contexts\<ctx>\Policies\<pol>    Rules (list), Users (list), Groups (list)
  */
 #define _GNU_SOURCE
 #include "engine.h"
+#include "ldap.h"
 #include <stdlib.h>
 
 #define TAG(nm) void tag_##nm(Ctx *c, Node *n, int *flow)
@@ -26,19 +29,41 @@ static int list_has(const char *list, const char *item) {
     return 0;
 }
 
-int sec_check_password(const char *context, const char *user, const char *pass) {
+/* check user/password against the context's user directories; *groups gets
+ * the user's groups (registry "Groups" value, or the LDAP groups listing them) */
+static int sec_check(const char *context, const char *user, const char *pass, char **groups) {
+    if (groups) *groups = "";
     char *ck = cfg_key(kprintf("Security\\Contexts\\%s", context));
     if (!reg_exists(ck, NULL)) return 0;
     Array *dirs = list_to_array_k(reg_get(ck, "UserDirectories", ""), ",");
     for (int i = 0; i < dirs->n; i++) {
-        char *uk = cfg_key(kprintf("Security\\UserDirectories\\%s\\Users\\%s", kf_trim(v_tostr(dirs->v[i])), user));
+        const char *dir = kf_trim(v_tostr(dirs->v[i]));
+        char *dk = cfg_key(kprintf("Security\\UserDirectories\\%s", dir));
+        if (!kf_stricmp(reg_get(dk, "Namespace", ""), "LDAP")) {
+            char *g = "";
+            if (ldap_dir_authenticate(dk, user, pass, &g)) { if (groups) *groups = g; return 1; }
+            continue;
+        }
+        char *uk = cfg_key(kprintf("Security\\UserDirectories\\%s\\Users\\%s", dir, user));
         if (!reg_exists(uk, NULL)) continue;
-        if (!strcmp(kf_unscramble(reg_get(uk, "Password", "")), pass)) return 1;
+        if (!strcmp(kf_unscramble(reg_get(uk, "Password", "")), pass)) {
+            if (groups) *groups = reg_get(uk, "Groups", "");
+            return 1;
+        }
     }
     return 0;
 }
 
-static const char *auth_cookie(RState *rs, const char *context) {
+int sec_check_password(const char *context, const char *user, const char *pass) { return sec_check(context, user, pass, NULL); }
+
+static Struct *auth_struct(const char *context, const char *groups) {
+    Struct *a = struct_new();
+    struct_set(a, "context", v_strdup(context));
+    struct_set(a, "groups", v_strdup(groups ? groups : ""));
+    return a;
+}
+
+static const char *auth_cookie(RState *rs, const char *context, char **groups) {
     Val *v = struct_get(rs->cookie, kprintf("CFAUTHORIZATION_%s", context));
     if (!v) return NULL;
     size_t len;
@@ -52,18 +77,18 @@ static const char *auth_cookie(RState *rs, const char *context) {
     if (!c2) return NULL;
     *c2 = 0;
     if (kf_stricmp(ctx, context)) return NULL;
-    if (!sec_check_password(context, raw, kf_unscramble(c2 + 1))) return NULL;
+    if (!sec_check(context, raw, kf_unscramble(c2 + 1), groups)) return NULL;
     return raw;
 }
 
 int sec_is_authenticated(RState *rs, const char *context) {
     if (rs->auth_user && (!context || !rs->auth || !kf_stricmp(v_tostr(*struct_get(rs->auth, "context")), context))) return 1;
     if (context) {
-        const char *u = auth_cookie(rs, context);
+        char *groups = "";
+        const char *u = auth_cookie(rs, context, &groups);
         if (u) {
             rs->auth_user = u;
-            rs->auth = struct_new();
-            struct_set(rs->auth, "context", v_strdup(context));
+            rs->auth = auth_struct(context, groups);
             return 1;
         }
         return 0;
@@ -89,7 +114,17 @@ int sec_is_authorized(RState *rs, const char *type, const char *resource, const 
     Query *pols = reg_list(cfg_key(kprintf("%s\\Policies", base)), 1, 0);
     for (int p = 0; p < pols->nrows; p++) {
         char *pk = cfg_key(kprintf("%s\\Policies\\%s", base, v_tostr(query_get(pols, 0, p))));
-        if (!list_has(reg_get(pk, "Users", ""), rs->auth_user) && !list_has(reg_get(pk, "Users", ""), "*")) continue;
+        const char *pusers = reg_get(pk, "Users", ""), *pgroups = reg_get(pk, "Groups", "");
+        int applies = list_has(pusers, rs->auth_user) || list_has(pusers, "*");
+        /* group membership (LDAP groups or the registry user's Groups) also grants a policy;
+         * group names in the Users list work too */
+        Val *gv = struct_get(rs->auth, "groups");
+        Array *ug = list_to_array_k(gv ? v_tostr(*gv) : "", ",");
+        for (int g = 0; g < ug->n && !applies; g++) {
+            const char *gn = kf_trim(v_tostr(ug->v[g]));
+            if (*gn && (list_has(pgroups, gn) || list_has(pusers, gn))) applies = 1;
+        }
+        if (!applies) continue;
         Array *rules = list_to_array_k(reg_get(pk, "Rules", ""), ",");
         for (int r = 0; r < rules->n; r++) {
             char *rk = cfg_key(kprintf("%s\\Rules\\%s", base, kf_trim(v_tostr(rules->v[r]))));
@@ -128,10 +163,10 @@ TAG(authenticate) {
         kf_throw(c, "Security", kprintf("The security context %s does not exist.", kf_html_escape(ctx)),
                  "Create security contexts on the Advanced Security page of the KoldFusion Administrator.");
     Struct *cfa = struct_new();
-    if (sec_check_password(ctx, user, pass)) {
+    char *groups = "";
+    if (sec_check(ctx, user, pass, &groups)) {
         rs->auth_user = kstrdup(user);
-        rs->auth = struct_new();
-        struct_set(rs->auth, "context", v_strdup(ctx));
+        rs->auth = auth_struct(ctx, groups);
         if (setcookie) {
             char *raw = kprintf("%s:%s:%s", user, ctx, kf_scramble(pass));
             add_set_cookie(rs, kprintf("CFAUTHORIZATION_%s", ctx), base64_encode((unsigned char *)raw, strlen(raw)), NULL, "/", NULL, 0);
@@ -154,13 +189,13 @@ TAG(impersonate) {
     const char *type = attr_str(c, n, "type", "CF");
     if (!kf_stricmp(type, "os"))
         kf_throw(c, "Security", "Impersonation failed.", "Operating system impersonation is only available on Windows NT.");
-    if (!sec_check_password(ctx, user, pass))
+    char *groups = "";
+    if (!sec_check(ctx, user, pass, &groups))
         kf_throw(c, "Security", "Impersonation failed.", kprintf("The user %s could not be authenticated.", kf_html_escape(user)));
     RState *rs = c->rs;
     const char *saved_user = rs->auth_user; Struct *saved_auth = rs->auth;
     rs->auth_user = kstrdup(user);
-    rs->auth = struct_new();
-    struct_set(rs->auth, "context", v_strdup(ctx));
+    rs->auth = auth_struct(ctx, groups);
     exec_nodes(c, n->kids, n->nkids, flow);
     rs->auth_user = saved_user; rs->auth = saved_auth;
 }

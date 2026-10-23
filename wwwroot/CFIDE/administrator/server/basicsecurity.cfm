@@ -1,5 +1,5 @@
 <!--- Basic Server Security --->
-<cfset tags = "CFCONTENT,CFDIRECTORY,CFFILE,CFOBJECT,CFREGISTRY,CFADMINSECURITY,CFEXECUTE">
+<cfset tags = "CFCONTENT,CFDIRECTORY,CFFILE,CFOBJECT,CFREGISTRY,CFADMINSECURITY,CFEXECUTE,CFLDAP">
 <cfset msg = "">
 <cfif IsDefined("Form.Apply")>
 	<cfset problems = "">
