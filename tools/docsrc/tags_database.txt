@@ -85,8 +85,8 @@ CFSQLTYPE | Optional, default "CF_SQL_CHAR" | The SQL type of the value: CF_SQL_
   CF_SQL_TINYINT or CF_SQL_VARCHAR.
 MAXLENGTH | Optional | Maximum length of a string value. A longer value throws a Database exception instead of
   being truncated.
-SCALE | Optional | Number of decimal places for CF_SQL_DECIMAL and CF_SQL_NUMERIC. Accepted for compatibility;
-  KoldFusion ignores it.
+SCALE | Optional | Number of decimal places for CF_SQL_DECIMAL and CF_SQL_NUMERIC; the value is rounded to it
+  before it is sent.
 NULL | Optional, default "No" | Yes sends SQL NULL and ignores VALUE.
 LIST | Optional, default "No" | KoldFusion extension: Yes treats VALUE as a list and binds every element, for use
   inside an IN ( ) clause. Each element is validated separately.
@@ -153,8 +153,8 @@ syntax:
 attrs:
 ACTION | Optional, default "BEGIN" | BEGIN, COMMIT or ROLLBACK. COMMIT and ROLLBACK are used in a nested
   CFTRANSACTION to end the current transaction early (ROLLBACK undoes everything written so far).
-ISOLATION | Optional | ODBC lock level: READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ or SERIALIZABLE.
-  Accepted for compatibility; KoldFusion ignores it.
+ISOLATION | Optional | ODBC lock level: READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ or SERIALIZABLE. Any other
+  value is an error. The flat-file driver always behaves as SERIALIZABLE, since every statement runs alone.
 usage:
 > The built-in flat-file driver has no transaction log, so KoldFusion snapshots the tables of each data
 > source the first time a statement writes to it inside the transaction. If an error escapes the

@@ -266,13 +266,17 @@ static const char *sqltype_class(const char *t) {
     return "s";
 }
 
-static void emit_param_value(Ctx *c, Buf *b, const char *val, const char *cls, const char *type, int maxlen) {
+static void emit_param_value(Ctx *c, Buf *b, const char *val, const char *cls, const char *type, int maxlen, int scale) {
     if (*cls == 'n') {
         double d;
         if (!v_isnumeric_str(val, &d))
             kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
         if (kf_stristr(type, "INT") && d != floor(d))
             kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
+        if (scale >= 0 && (kf_stristr(type, "NUMERIC") || kf_stristr(type, "DECIMAL"))) {   /* SCALE: decimal places */
+            double p = pow(10, scale);
+            d = (d < 0 ? -1 : 1) * floor(fabs(d) * p + 0.5) / p;
+        }
         buf_puts(b, fmt_number(d));
         return;
     }
@@ -308,6 +312,7 @@ TAG(queryparam) {
     Val v = attr_val(c, n, "value", NULL);
     const char *type = attr_str(c, n, "cfsqltype", "CF_SQL_CHAR");
     int maxlen = (int)attr_num(c, n, "maxlength", 0);
+    int scale = (int)attr_num(c, n, "scale", -1);
     int isnull = attr_bool(c, n, "null", 0);
     int list = attr_bool(c, n, "list", 0);
     const char *sep = attr_str(c, n, "separator", ",");
@@ -318,15 +323,25 @@ TAG(queryparam) {
         Array *a = list_to_array_k(val_simple_str(c, v, NULL), sep);
         for (int i = 0; i < a->n; i++) {
             if (i) buf_putc(&b, ',');
-            emit_param_value(c, &b, v_tostr(a->v[i]), cls, type, maxlen);
+            emit_param_value(c, &b, v_tostr(a->v[i]), cls, type, maxlen, scale);
         }
-    } else emit_param_value(c, &b, val_simple_str(c, v, NULL), cls, type, maxlen);
+    } else emit_param_value(c, &b, val_simple_str(c, v, NULL), cls, type, maxlen, scale);
     buf_put(c->rs->out, b.s ? b.s : "", b.len);
 }
 
 TAG(transaction) {
     RState *rs = c->rs;
     const char *action = attr_str(c, n, "action", "begin");
+    const char *iso = attr_str(c, n, "isolation", NULL);      /* the flat-file driver is always SERIALIZABLE */
+    if (iso && kf_stricmp(iso, "read_uncommitted") && kf_stricmp(iso, "read_committed") &&
+        kf_stricmp(iso, "repeatable_read") && kf_stricmp(iso, "serializable") && kf_stricmp(iso, "versioning"))
+        kf_throw(c, "Application", "Attribute validation error for tag CFTRANSACTION.",
+                 kprintf("The value of the attribute ISOLATION, which is currently \"%s\", must be one of the values: "
+                         "READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ, SERIALIZABLE.", kf_html_escape(iso)));
+    if (kf_stricmp(action, "begin") && kf_stricmp(action, "commit") && kf_stricmp(action, "rollback"))
+        kf_throw(c, "Application", "Attribute validation error for tag CFTRANSACTION.",
+                 kprintf("The value of the attribute ACTION, which is currently \"%s\", must be one of the values: BEGIN, COMMIT, ROLLBACK.",
+                         kf_html_escape(action)));
     if (!kf_stricmp(action, "commit") || !kf_stricmp(action, "rollback")) {
         if (!rs->in_txn)
             kf_throw(c, "Template", kprintf("CFTRANSACTION ACTION=\"%s\" must be nested inside a CFTRANSACTION block.", kf_upper(action)), "");

@@ -33,7 +33,7 @@ function runExample(name) {
 <DT><B>ACTION</B></DT>
 <DD><I>Optional, default &quot;BEGIN&quot;.</I> BEGIN, COMMIT or ROLLBACK. COMMIT and ROLLBACK are used in a nested CFTRANSACTION to end the current transaction early (ROLLBACK undoes everything written so far).</DD>
 <DT><B>ISOLATION</B></DT>
-<DD><I>Optional.</I> ODBC lock level: READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ or SERIALIZABLE. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> ODBC lock level: READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ or SERIALIZABLE. Any other value is an error. The flat-file driver always behaves as SERIALIZABLE, since every statement runs alone.</DD>
 </DL>
 <H4>Usage</H4>
 <P CLASS="note"><B>Note</B>&nbsp; The built-in flat-file driver has no transaction log, so KoldFusion snapshots the tables of each data source the first time a statement writes to it inside the transaction. If an error escapes the <B><CODE>CFTRANSACTION</CODE></B> block, or a nested <CODE>&lt;CFTRANSACTION ACTION=&quot;ROLLBACK&quot;&gt;</CODE> runs, the snapshot is restored; otherwise the changes are kept when the end tag is reached. Other requests can see uncommitted changes (there is no isolation), so keep transactions short.</P>

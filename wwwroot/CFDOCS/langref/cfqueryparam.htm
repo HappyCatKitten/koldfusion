@@ -39,7 +39,7 @@ function runExample(name) {
 <DT><B>MAXLENGTH</B></DT>
 <DD><I>Optional.</I> Maximum length of a string value. A longer value throws a Database exception instead of being truncated.</DD>
 <DT><B>SCALE</B></DT>
-<DD><I>Optional.</I> Number of decimal places for CF_SQL_DECIMAL and CF_SQL_NUMERIC. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> Number of decimal places for CF_SQL_DECIMAL and CF_SQL_NUMERIC; the value is rounded to it before it is sent.</DD>
 <DT><B>NULL</B></DT>
 <DD><I>Optional, default &quot;No&quot;.</I> Yes sends SQL NULL and ignores VALUE.</DD>
 <DT><B>LIST</B></DT>
