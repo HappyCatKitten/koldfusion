@@ -73,7 +73,7 @@
 		<P>As a registered user you are entitled to:</P>
 		<UL>
 		<LI>30 days of free installation support (the clock started when you clicked the button)
-		<LI>Discounts on <A HREF="training.cfm">Allair training courses</A>
+		<LI>Discounts on <A HREF="training.cfm">Gibson training courses</A>
 		<LI>One genuine KoldFusion mousepad, which will ship in 6 to 8 weeks
 		<cfif IsDefined("Form.Newsletter")><LI>The <I>KoldFusion Developer Newsletter</I>, sent to #HTMLEditFormat(Form.Email)# whenever we remember</cfif>
 		</UL>
@@ -152,7 +152,7 @@ function checkCard(f) {
 </TABLE>
 </FORM>
 </cfoutput>
-<P><FONT FACE="Arial, Helvetica" SIZE=1><B>Privacy:</B> Allair will never sell, rent or trade your personal
+<P><FONT FACE="Arial, Helvetica" SIZE=1><B>Privacy:</B> Gibson will never sell, rent or trade your personal
 information. It stays right here, in a flat file on your own server, which is honestly the safest place on the Internet.</FONT></P>
 </FONT>
 <cfinclude template="_sitefooter.cfm">

@@ -67,7 +67,7 @@ since this server was installed!</P>
 <IMG SRC="/images/new.gif" WIDTH=44 HEIGHT=22 ALT="New!"><BR><BR>
 <IMG SRC="/images/webring.gif" WIDTH=300 HEIGHT=40 ALT="KoldFusion WebRing"><BR><BR>
 <A HREF="/"><IMG SRC="/images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0></A>
-<IMG SRC="/images/allair_88x31.gif" WIDTH=88 HEIGHT=31>
+<IMG SRC="/images/gibson_88x31.gif" WIDTH=88 HEIGHT=31>
 <IMG SRC="/images/netscape_now.gif" WIDTH=88 HEIGHT=31>
 <IMG SRC="/images/ie_parody.gif" WIDTH=88 HEIGHT=31>
 </CENTER>

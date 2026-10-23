@@ -133,7 +133,7 @@ EXPIRES | Optional | When the cookie expires: a date (`12/31/1999`), a number of
   from now) or `NOW` (deletes the cookie). Without EXPIRES the cookie lasts until the browser is closed.
 SECURE | Optional, default "No" | Yes asks the browser to send the cookie over SSL connections only.
 PATH | Optional, default "/" | URL path the cookie applies to.
-DOMAIN | Optional | Domain the cookie applies to, starting with a period, for example `.allair.com`.
+DOMAIN | Optional | Domain the cookie applies to, starting with a period, for example `.gibson.example`.
 usage:
 The cookie also appears in the Cookie scope of the current request right away, so the page can use
 `Cookie.name` straight after setting it. A cookie deleted with `EXPIRES="NOW"` disappears from the scope.
@@ -546,7 +546,7 @@ syntax:
 <CFLOCATION URL="url"
     ADDTOKEN="Yes/No">
 attrs:
-URL | Required | The page to go to: a relative URL (`thanks.cfm?Order=12`) or an absolute one (`http://www.allair.com/`).
+URL | Required | The page to go to: a relative URL (`thanks.cfm?Order=12`) or an absolute one (`http://www.gibson.example/`).
 ADDTOKEN | Optional, default "Yes" | When client or session management is enabled with `CFAPPLICATION`, Yes appends
   `CFID` and `CFTOKEN` to the URL so a browser without cookies keeps its session. Without client or session
   management nothing is added.

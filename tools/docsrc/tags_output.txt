@@ -574,7 +574,7 @@ attrs:
 TEMPLATE | Required if NAME is not given | Path of the custom tag template, relative to the calling page (or a
   mapping such as "/CFDOCS/snippets/sn_titlebox.cfm").
 NAME | Required if TEMPLATE is not given | Name of a tag below the custom tags directory, with dots for
-  subdirectories: NAME="allair.titlebox" runs `customtags/allair/titlebox.cfm`.
+  subdirectories: NAME="gibson.titlebox" runs `customtags/gibson/titlebox.cfm`.
 ATTRIBUTECOLLECTION | Optional | A structure whose keys and values are passed as attributes, in addition to any
   written out in the call.
 usage:
@@ -692,7 +692,7 @@ category: Extensibility
 new45: yes
 summary: Runs a Java servlet on a JRun servlet engine and returns its output. Not available in KoldFusion.
 desc:
-`CFSERVLET` hands the request to a Java servlet running on an Allair JRun server and includes the servlet's output
+`CFSERVLET` hands the request to a Java servlet running on an Gibson JRun server and includes the servlet's output
 in the page, or stores it in a variable. KoldFusion cannot reach a JRun engine, so the tag always raises an
 Application error; catch it with `CFTRY`.
 syntax:

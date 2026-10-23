@@ -16,6 +16,10 @@
     --cream: #FFFBF0; --ink: #000000; --green: #469320; --link: #0000EE;
   }
   * { box-sizing: border-box; }
+  /* 1999 pages were sized for 800x600; scale up on modern screens (175% on big displays) */
+  @media (min-width: 1400px) { html { zoom: 1.75; } }
+  @media (min-width: 1100px) and (max-width: 1399px) { html { zoom: 1.4; } }
+  @media (min-width: 860px) and (max-width: 1099px) { html { zoom: 1.2; } }
   html { background: #000 url(assets/stars_bg.gif); }
   body {
     margin: 0; padding: 16px; color: var(--ink);
@@ -136,11 +140,12 @@
 <div class="content">
 
   <div class="hero">
-    <img class="logo" src="assets/welcome_logo.gif" width="400" height="105" alt="<allair> KoldFusion 4.5 web application server">
+    <img class="logo" src="assets/welcome_logo.gif" width="400" height="105" alt="<gibson> KoldFusion 4.5 web application server">
     <div>
       <img src="assets/construction.gif" width="140" height="50" alt="Under construction since 1999">
     </div>
   </div>
+  <p class="tiny" style="margin:0">A product of <b>Gibson Mainframe Co.</b> &mdash; <i>Hack the planet.</i></p>
   <p class="tagline">The web application server for the new millennium. <b>Rebuilt from scratch in C, 27 years late.</b></p>
   <p class="sub">A loving, fully working tribute to the CFML application servers of 1999: the tags, the functions, the
   frameset Administrator, the <i>Error Diagnostic Information</i> pages, and the password "encryption" you could break with a pencil.</p>
@@ -175,7 +180,7 @@
 <span class="p">$</span> ./bin/kfserver
 
   KoldFusion Application Server Enterprise 4.5.1 SP2
-  Copyright (c) 1995-1999 Allair Corporation. All rights reserved.
+  Copyright (c) 1995-1999 Gibson Mainframe Co. All rights reserved.
   Listening on      : http://127.0.0.1:8500/
   Administrator     : http://127.0.0.1:8500/CFIDE/administrator/index.cfm</div>
   <p class="tiny">Needs only a C compiler, make and pthreads. Administrator password: <code>admin</code>. Please keep it on
@@ -282,7 +287,7 @@
     <p><a href="https://github.com/HappyCatKitten/koldfusion"><img src="assets/webring.gif" width="300" height="40" alt="KoldFusion WebRing: previous, random, next"></a></p>
     <div class="badges">
       <a href="https://github.com/HappyCatKitten/koldfusion"><img src="assets/powered_by_kf.gif" alt="Powered by KoldFusion"></a>
-      <img src="assets/allair_88x31.gif" alt="&lt;allair&gt;">
+      <img src="assets/gibson_88x31.gif" alt="&lt;gibson&gt;">
       <img src="assets/netscape_now.gif" alt="Best viewed with Navigator 4.x">
       <img src="assets/ie_parody.gif" alt="Best viewed with any browser">
     </div>
@@ -308,7 +313,7 @@ Original code under the MIT licence; the Demo Gallery keeps each script's own li
   // ---- boot sequence ----
   var lines = [
     ['', 'KoldFusion Application Server Enterprise 4.5.1 SP2'],
-    ['', 'Copyright (c) 1995-1999 Allair Corporation. All rights reserved.'],
+    ['', 'Copyright (c) 1995-1999 Gibson Mainframe Co. All rights reserved.'],
     ['', ''],
     ['', 'Reading registry .................... '], ['ok', '[  OK  ]\n'],
     ['', 'Loading CFML engine (80 tags, 230 functions) '], ['ok', '[  OK  ]\n'],

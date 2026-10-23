@@ -59,6 +59,7 @@ static void install_defaults(void) {
         {S, "LogDirectory", kf_path_join(G.root, "log")},
         {S, "CFIDCounter", "1000"},
         {S, "MaxRequestMemoryMB", "256"},
+        {S, "DisplayZoom", "175"},
         {"Server\\TagRestrictions", "CFCONTENT", "1"},
         {"Server\\TagRestrictions", "CFDIRECTORY", "1"},
         {"Server\\TagRestrictions", "CFFILE", "1"},
@@ -158,7 +159,7 @@ static void install_defaults(void) {
         reg_set(k, "Description", CX[i].desc, 0);
     }
     struct { const char *name, *code, *codebase, *w, *h; } AP[] = {
-        {"copytext", "copytext.class", "/CFIDE/classes/allair/controls", "300", "40"},
+        {"copytext", "copytext.class", "/CFIDE/classes/gibson/controls", "300", "40"},
         {"marquee", "Marquee.class", "/CFIDE/classes/applets", "468", "30"},
         {NULL, NULL, NULL, NULL, NULL}
     };
@@ -327,7 +328,7 @@ int main(int argc, char **argv) {
         return kf_run_cli(run_file, run_query);
     }
     printf("\n  KoldFusion Application Server %s %s\n", KF_EDITION, KF_VERSION_STR);
-    printf("  Copyright (c) 1995-1999 Allair Corporation. All rights reserved.\n");
+    printf("  Copyright (c) 1995-1999 Gibson Mainframe Co. All rights reserved.\n");
     printf("  (A nostalgic tribute. Not affiliated with anyone, living or acquired.)\n\n");
     printf("  Install directory : %s\n  Web root          : %s\n", G.root, G.webroot);
     seed_databases();

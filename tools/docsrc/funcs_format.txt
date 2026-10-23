@@ -305,7 +305,7 @@ GetLocale()
 returns:
 A locale name such as "English (US)".
 usage:
-Allair KoldFusion for UNIX ships with the English (US) locale tables only; see `SetLocale` for the
+Gibson KoldFusion for UNIX ships with the English (US) locale tables only; see `SetLocale` for the
 details.
 example:
 <CFOUTPUT>

@@ -2,7 +2,7 @@
 """
 mkgraphics.py -- procedurally generate every GIF used by KoldFusion.
 
-KoldFusion by <allair> is a nostalgic tribute to a certain 1999 web
+KoldFusion by <gibson> is a nostalgic tribute to a certain 1999 web
 application server.  All artwork here is drawn from scratch with Pillow
 (no downloads, no copied logos): emblem, wordmarks, nav bars, 16x16
 icons and a pile of peak-1999 "web page" decorations (88x31 buttons,
@@ -403,16 +403,16 @@ def heavy_text(text, w, h, top=(102, 221, 51), bot=(0, 128, 0), outline=(0, 51, 
     return down(out, (w, h))
 
 
-def allair_wordmark(dr, x, y, size, col=(153, 153, 153), bracket=None, key='mono'):
-    """The "<allair>" wordmark (light monospace, angle brackets)."""
+def gibson_wordmark(dr, x, y, size, col=(153, 153, 153), bracket=None, key='mono'):
+    """The "<gibson>" wordmark (light monospace, angle brackets)."""
     f = font(key, size)
     bracket = bracket or col
     text_at(dr, x, y, '<', f, bracket)
     wl = f.getlength('<')
-    dr.text((x + wl - f.getbbox('<')[0], y - f.getbbox('<')[1]), 'allair', font=f, fill=col)
-    wa = f.getlength('allair')
+    dr.text((x + wl - f.getbbox('<')[0], y - f.getbbox('<')[1]), 'gibson', font=f, fill=col)
+    wa = f.getlength('gibson')
     dr.text((x + wl + wa - f.getbbox('<')[0], y - f.getbbox('<')[1]), '>', font=f, fill=bracket)
-    return f.getlength('<allair>')
+    return f.getlength('<gibson>')
 
 
 def bevel(dr, w, h, light=(255, 255, 255), dark=(102, 102, 102), border=(0, 0, 0)):
@@ -444,13 +444,13 @@ def make_logos():
     dr = ImageDraw.Draw(im)
     em = emblem(54)
     over(im, em, (3, 12))
-    allair_wordmark(dr, 62, 6, 14)
+    gibson_wordmark(dr, 62, 6, 14)
     ht = heavy_text('KOLDFUSION', 134, 27)
     over(im, ht, (61, 27))
     dr2 = aliased(ImageDraw.Draw(im))
     text_at(dr2, 62, 58, 'Server 4.5', font('sans_b', 9), (0, 51, 0))
     save_gif(im, os.path.join(ADMIN_DIR, 'kf_logo.gif'), pal=64,
-             desc='Main admin logo: "<allair>" wordmark, ice-crystal/bolt emblem, heavy green KOLDFUSION')
+             desc='Main admin logo: "<gibson>" wordmark, ice-crystal/bolt emblem, heavy green KOLDFUSION')
 
     # kf_logo_small.gif 120x40
     W, H = 120, 40
@@ -458,7 +458,7 @@ def make_logos():
     dr = ImageDraw.Draw(im)
     over(im, emblem(32), (2, 5))
     aliased(dr)
-    allair_wordmark(dr, 38, 3, 10)
+    gibson_wordmark(dr, 38, 3, 10)
     over(im, heavy_text('KOLDFUSION', 80, 17, o=1, sh=(1, 1)), (37, 17))
     save_gif(im, os.path.join(ADMIN_DIR, 'kf_logo_small.gif'), pal=48,
              desc='Compact header logo (emblem + wordmark + KOLDFUSION)')
@@ -468,7 +468,7 @@ def make_logos():
     im = blank(W, H, WHITE + (255,))
     dr = ImageDraw.Draw(im)
     over(im, emblem(66), (8, 6))
-    allair_wordmark(dr, 86, 5, 15)
+    gibson_wordmark(dr, 86, 5, 15)
     over(im, heavy_text('KOLDFUSION', 196, 31, o=1, sh=(2, 2)), (84, 24))
     f = fit_font('sans_bi', 'Administrator', 400 - 288 - 6, start=22)
     text_at(dr, 288, 38, 'Administrator', f, NAVY)
@@ -664,18 +664,18 @@ def make_buttons():
     save_gif(im, os.path.join(out, 'powered_by_kf.gif'), pal=64,
              desc='88x31 "Powered by KoldFusion" button')
 
-    # allair_88x31.gif
+    # gibson_88x31.gif
     im = blank(88, 31, WHITE + (255,))
     dr = ImageDraw.Draw(im)
     dr.rectangle([1, 21, 86, 29], fill=SAGE)
     bevel(dr, 88, 31, light=(255, 255, 255), dark=(153, 153, 153))
     f = font('mono_b', 15)
-    w = f.getlength('<allair>')
-    allair_wordmark(dr, int((88 - w) / 2), 4, 15, col=(51, 51, 51), bracket=(153, 153, 153), key='mono_b')
+    w = f.getlength('<gibson>')
+    gibson_wordmark(dr, int((88 - w) / 2), 4, 15, col=(51, 51, 51), bracket=(153, 153, 153), key='mono_b')
     aliased(dr)
-    text_center(dr, 44, 22, 'allair.com', font('sans_b', 9), NAVY)
-    save_gif(im, os.path.join(out, 'allair_88x31.gif'), pal='web',
-             desc='88x31 "<allair>" company button')
+    text_center(dr, 44, 22, 'gibson.example', font('sans_b', 9), NAVY)
+    save_gif(im, os.path.join(out, 'gibson_88x31.gif'), pal='web',
+             desc='88x31 "<gibson>" company button')
 
     # netscape_now.gif -> generic "Best viewed with Navigator 4.x"
     im = vgrad(88, 31, [(0, (0, 0, 0)), (1, (0, 0, 102))])

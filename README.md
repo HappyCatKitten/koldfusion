@@ -4,7 +4,7 @@
 
 ```
   KoldFusion Application Server Enterprise 4.5.1 SP2
-  Copyright (c) 1995-1999 Allair Corporation. All rights reserved.
+  Copyright (c) 1995-1999 Gibson Mainframe Co. All rights reserved.
   (A nostalgic tribute. Not affiliated with anyone, living or acquired.)
 ```
 
@@ -16,7 +16,7 @@ KoldFusion is a working web server plus CFML engine that behaves as much as poss
 tags and functions, the same `YES`/`NO` output, the same famous *Error Diagnostic Information* pages, the same
 registry-driven Administrator with the navy-and-sage frameset, the same weak password "encryption", and the same
 `C:\CFUSION`-style install layout. It is not affiliated with Allaire, Macromedia or Adobe; names are changed slightly on
-purpose (KoldFusion by Allair).
+purpose (KoldFusion by Gibson).
 
 ## Quick start
 

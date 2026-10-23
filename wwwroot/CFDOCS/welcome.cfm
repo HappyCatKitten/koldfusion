@@ -47,20 +47,20 @@
 		</TR>
 		</TABLE>
 	</TD>
-	<TD WIDTH=52 BGCOLOR="#003399" VALIGN=TOP ALIGN=CENTER><BR><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>Contact<BR>Allair</B></FONT></TD>
+	<TD WIDTH=52 BGCOLOR="#003399" VALIGN=TOP ALIGN=CENTER><BR><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>Contact<BR>Gibson</B></FONT></TD>
 </TR>
 <TR>
 	<TD></TD>
 	<TD><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#666666">
 	<HR NOSHADE SIZE=1>
-	Allair Corporation (fictional) &middot; 1 Permafrost Plaza &middot; Frostbite Falls, MN 56649<BR>
+	<B>Gibson Mainframe Co.</B> &mdash; <I>Hack the planet.</I> (fictional) &middot; 1 Permafrost Plaza &middot; Frostbite Falls, MN 56649<BR>
 	North American Sales 1-888-KOLDFUS &middot; Worldwide Sales +1-218-555-0145 &middot; <A HREF="mailto:webmaster@localhost">webmaster@localhost</A><BR><BR>
 	</FONT></TD>
 	<TD BGCOLOR="#003399">&nbsp;</TD>
 </TR>
 </TABLE>
 </TD></TR></TABLE>
-<FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">Copyright 1995-2000, Allair Corporation. All rights reserved.
+<FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">Copyright 1995-2000, Gibson Mainframe Co. All rights reserved.
 (A nostalgic tribute: not affiliated with Allaire, Macromedia or Adobe.)</FONT>
 <BR><BR>
 <A HREF="/CFIDE/administrator/index.cfm"><IMG SRC="/images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion"></A>

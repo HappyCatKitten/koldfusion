@@ -15,7 +15,7 @@
 	& "Jennicam,eBay,Amazon.com,CDNow,Pets.com,Kozmo,Webvan,Boo.com,theGlobe.com,Xoom,"
 	& "Winamp,ICQ,AIM,Napster,mIRC,RealPlayer,Shockwave,Macromedia Flash 4,Java Applets,ActiveX,"
 	& "Netscape Navigator 4,Internet Explorer 5,Opera 3,Lynx,Mosaic,HotJava,Cello,NCSA httpd,Apache 1.3,IIS 4,"
-	& "Allair KoldFusion 4.5,PHP/FI,Perl CGI,Matt's Script Archive,FrontPage 98,HomeSite 4,Dreamweaver 2,NetObjects Fusion,"
+	& "Gibson KoldFusion 4.5,PHP/FI,Perl CGI,Matt's Script Archive,FrontPage 98,HomeSite 4,Dreamweaver 2,NetObjects Fusion,"
 	& "WebTV,Prodigy,CompuServe,AOL Keyword,EarthLink,MindSpring,Juno,NetZero,BBS,Usenet,Gopher,Archie,Veronica,"
 	& "Webring,Under Construction GIF,Hit Counter,Guestbook,Frames,Marquee,Blink,Animated GIF,Spacer GIF,"
 	& "Best Viewed in 800x600,Y2K Bug,Push Technology,PointCast,VRML,Microsoft Bob,Clippy,Tamagotchi">

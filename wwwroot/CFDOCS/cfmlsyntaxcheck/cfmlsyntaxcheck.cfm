@@ -194,6 +194,6 @@ the old-fashioned way: at run time, in front of your boss.</FONT></P>
 <P><FONT SIZE=1>Behind the scenes: <A HREF="/CFDOCS/langref/kfusion_checksyntax.htm"><CODE>KFUSION_CHECKSYNTAX(code [, name])</CODE></A>
 returns a structure with the keys OK, Message, Detail, Line and Column. Templates read with <CODE>CFFILE</CODE>,
 directories listed with <CODE>CFDIRECTORY</CODE>.</FONT></P>
-<FONT SIZE=1 CLASS="copyright">Copyright &copy; 1995-1999, Allair Corporation. All rights reserved.</FONT>
+<FONT SIZE=1 CLASS="copyright">Copyright &copy; 1995-1999, Gibson Mainframe Co. All rights reserved.</FONT>
 </BODY>
 </HTML>

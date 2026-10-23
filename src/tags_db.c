@@ -447,7 +447,7 @@ TAG(storedproc) {
     const char *proc = require_attr(c, n, "procedure");
     Dsn d;
     if (!dsn_lookup(dsn, &d)) throw_db(c, kprintf("Data source %s could not be found.", kf_upper(dsn)), NULL, dsn);
-    throw_db(c, kprintf("[Allair][KoldFusion Flat-File Driver] Driver does not support stored procedures (%s). "
+    throw_db(c, kprintf("[Gibson][KoldFusion Flat-File Driver] Driver does not support stored procedures (%s). "
                         "Stored procedures require a native database driver such as Oracle80 or Sybase11.", proc),
              kprintf("{call %s}", proc), d.name);
 }

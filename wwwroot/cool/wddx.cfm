@@ -17,6 +17,6 @@ for (var i = 0; i < products.getRowCount(); i++) {
 document.write("</TABLE>");
 //-->
 </SCRIPT>
-<P>The same data as a WDDX packet (<cfoutput>#Len(packet)#</cfoutput> bytes of XML, the format Allair invented in 1998 so servers could swap data):</P>
+<P>The same data as a WDDX packet (<cfoutput>#Len(packet)#</cfoutput> bytes of XML, the format Gibson invented in 1998 so servers could swap data):</P>
 <TABLE BORDER=1 CELLPADDING=6 BGCOLOR="#EEEEEE"><TR><TD><FONT FACE="Courier New" SIZE=1><cfoutput>#HTMLEditFormat(packet)#</cfoutput></FONT></TD></TR></TABLE>
 <cfinclude template="_bottom.cfm">

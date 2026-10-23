@@ -6,7 +6,7 @@ BIN=${KFSERVER:-./bin/kfserver}
 pass=0; fail=0
 for t in tests/cfml/*.cfm; do
     exp="${t%.cfm}.expected"
-    out=$("$BIN" --run "$t" 2>&1 | awk 'body{print} /^\r?$/{body=1}' | sed 's/\r$//' | grep -v '^[[:space:]]*$')
+    out=$("$BIN" --run "$t" 2>&1 | awk 'body{print} /^\r?$/{body=1}' | sed 's/\r$//' | sed 's#<style type="text/css">html{zoom:[0-9]*%}</style><script type="text/javascript">(function(z).*})([0-9.]*);</script>##' | grep -v '^[[:space:]]*$')
     if [ "$1" = "--record" ]; then printf '%s\n' "$out" > "$exp"; echo "recorded $t"; continue; fi
     if [ -f "$exp" ] && [ "$out" = "$(cat "$exp")" ]; then pass=$((pass+1)); echo "PASS $t"
     else fail=$((fail+1)); echo "FAIL $t"; diff <(printf '%s\n' "$out") "$exp" | head -10; fi

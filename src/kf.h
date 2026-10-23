@@ -1,6 +1,6 @@
 /*
  * KoldFusion Application Server 4.5
- * Copyright (c) 1995-1999 Allair Corporation. All rights reserved. (not really)
+ * Copyright (c) 1995-1999 Gibson Mainframe Co. All rights reserved. (not really)
  *
  * kf.h - core types shared by every module: arenas, strings, values,
  *        structures, arrays and query objects.
@@ -15,12 +15,12 @@
 #include <string.h>
 
 #define KF_PRODUCT       "KoldFusion"
-#define KF_VENDOR        "Allair"
+#define KF_VENDOR        "Gibson"
 #define KF_VERSION       "4, 5, 1, 2"
 #define KF_VERSION_STR   "4.5.1 SP2"
 #define KF_EDITION       "Enterprise"
 #define KF_BUILD         "4.5.1.2001"
-#define KF_REG_ROOT      "HKEY_LOCAL_MACHINE\\SOFTWARE\\Allair\\KoldFusion\\CurrentVersion"
+#define KF_REG_ROOT      "HKEY_LOCAL_MACHINE\\SOFTWARE\\Gibson\\KoldFusion\\CurrentVersion"
 
 /* ------------------------------------------------------------------ arena */
 /* Every request runs inside its own arena. Nothing allocated from an arena

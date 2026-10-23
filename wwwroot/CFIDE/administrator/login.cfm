@@ -59,7 +59,7 @@ function setFocus() { if (document.loginform) document.loginform.AdminPassword.f
 	</TR>
 	</TABLE>
 </TD></TR>
-<TR><TD BGCOLOR="#000066" HEIGHT=18 ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">Copyright 1995-1999, Allair Corporation</FONT></TD></TR>
+<TR><TD BGCOLOR="#000066" HEIGHT=18 ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">Copyright 1995-1999, Gibson Mainframe Co.</FONT></TD></TR>
 </TABLE>
 </TD></TR>
 </TABLE>

@@ -137,7 +137,7 @@ function viewSource(f) {
 </TR>
 </TABLE>
 </TD></TR></TABLE>
-<FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">Copyright 1995-2000, Allair Corporation. All rights reserved.
+<FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">Copyright 1995-2000, Gibson Mainframe Co. All rights reserved.
 GlobalCorp Industries and everyone who works there are fictional.</FONT>
 </CENTER>
 </BODY>

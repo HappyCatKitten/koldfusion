@@ -114,7 +114,7 @@ FUNC_CATEGORIES = [
 FIELDS = ('title', 'also', 'category', 'new45', 'summary', 'desc', 'syntax', 'attrs', 'params',
           'returns', 'usage', 'example', 'nosnippet', 'testargs', 'see')
 FIELD_RE = re.compile(r'^(%s):[ \t]?(.*)$' % '|'.join(FIELDS))
-COPYRIGHT = 'Copyright &copy; 1995-1999, Allair Corporation. All rights reserved.'
+COPYRIGHT = 'Copyright &copy; 1995-1999, Gibson Mainframe Co. All rights reserved.'
 
 
 class DocError(Exception):

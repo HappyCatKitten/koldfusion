@@ -62,7 +62,7 @@ int dsn_verify(const char *name, char *msg, size_t msglen) {
     if (d.disabled) { snprintf(msg, msglen, "Connections to data source %s have been disabled by the administrator.", name); return 0; }
     struct stat st;
     if (stat(d.path, &st) || !S_ISDIR(st.st_mode)) {
-        snprintf(msg, msglen, "[Allair][KoldFusion Flat-File Driver] Could not find database directory '%s'.", d.path);
+        snprintf(msg, msglen, "[Gibson][KoldFusion Flat-File Driver] Could not find database directory '%s'.", d.path);
         return 0;
     }
     Query *q;

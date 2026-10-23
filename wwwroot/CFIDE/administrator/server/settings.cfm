@@ -1,9 +1,9 @@
 <!--- Server Settings --->
 <cfset msg = "">
 <cfif IsDefined("Form.Apply")>
-	<cfset ok = IsNumeric(Form.LimitSimultaneousRequests) AND IsNumeric(Form.RequestTimeout) AND IsNumeric(Form.RestartAt)>
+	<cfset ok = IsNumeric(Form.LimitSimultaneousRequests) AND IsNumeric(Form.RequestTimeout) AND IsNumeric(Form.RestartAt) AND IsNumeric(Form.DisplayZoom) AND Form.DisplayZoom GTE 50 AND Form.DisplayZoom LTE 400>
 	<cfif ok>
-		<cfloop list="LimitSimultaneousRequests,RequestTimeout,RestartAt,MissingTemplateHandler,SiteWideErrorHandler" index="f">
+		<cfloop list="LimitSimultaneousRequests,RequestTimeout,RestartAt,MissingTemplateHandler,SiteWideErrorHandler,DisplayZoom" index="f">
 			<cfmodule template="../_tags/setreg.cfm" key="Server" entry="#f#" value="#Trim(Form[f])#">
 		</cfloop>
 		<cfloop list="TimeoutRequests,RestartUnresponsive,RestartAbnormal,StrictAttributeValidation,SuppressWhitespace" index="f">
@@ -11,7 +11,7 @@
 		</cfloop>
 		<cfset msg = "The server settings have been applied. Changes to the request limit take effect when the KoldFusion Application Server is restarted.">
 	<cfelse>
-		<cfset msg = "The request limit, timeout and restart values must be numeric.">
+		<cfset msg = "The request limit, timeout and restart values must be numeric, and the page zoom between 50 and 400.">
 	</cfif>
 </cfif>
 <cfif IsDefined("Form.Restart")>
@@ -19,6 +19,7 @@
 	<cfset msg = "The KoldFusion Application Server is restarting. Please wait a few seconds and reload this page.">
 </cfif>
 <cfmodule template="../_tags/getreg.cfm" key="Server" variable="S">
+<cfparam name="S.DisplayZoom" default="175">
 <cfset pageTitle = "Server Settings">
 <cfinclude template="../_header.cfm">
 <cfmodule template="../_tags/status.cfm" message="#msg#">
@@ -61,6 +62,10 @@ The template to execute when a requested template cannot be found.</FONT>
 <INPUT TYPE="text" NAME="SiteWideErrorHandler" VALUE="#HTMLEditFormat(S.SiteWideErrorHandler)#" SIZE=50><BR>
 The template to execute when an error occurs while processing a request. It behaves like
 &lt;CFERROR TYPE="EXCEPTION" EXCEPTION="ANY"&gt; in every application.</FONT>
+
+<P>#Request.f#<B>Page zoom</B> <INPUT TYPE="text" NAME="DisplayZoom" VALUE="#S.DisplayZoom#" SIZE=3> <B>percent</B><BR>
+These pages were designed for an 800x600 monitor in 1999. KoldFusion magnifies every HTML page it serves by this
+amount (100 = original 1999 size), scaling framesets and pop-up windows to match. <I>(A KoldFusion extra.)</I></FONT>
 
 <HR NOSHADE SIZE=1>
 <INPUT TYPE="submit" NAME="Apply" VALUE="Apply"> <INPUT TYPE="reset" VALUE="Cancel">

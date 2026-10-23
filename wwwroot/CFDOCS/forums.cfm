@@ -1,4 +1,4 @@
-<!--- /CFDOCS/forums.cfm - Allair Support Forums: a small threaded discussion on the Messages table of cfsnippets --->
+<!--- /CFDOCS/forums.cfm - Gibson Support Forums: a small threaded discussion on the Messages table of cfsnippets --->
 <cfset pageTitle = "Support Forums">
 <cfset section = "forums.cfm">
 <cfparam name="URL.thread" default="0">
@@ -72,8 +72,8 @@
 	<cfquery name="Replies" datasource="cfsnippets">
 	SELECT ParentID, COUNT(*) AS N, MAX(Posted) AS LastPost FROM Messages WHERE ParentID <> 0 GROUP BY ParentID
 	</cfquery>
-	<P>Welcome to the Allair Support Forums, where KoldFusion developers help each other out. Be nice, search
-	before you post, and please do not type your whole message IN CAPITALS. Allair engineers drop by when the
+	<P>Welcome to the Gibson Support Forums, where KoldFusion developers help each other out. Be nice, search
+	before you post, and please do not type your whole message IN CAPITALS. Gibson engineers drop by when the
 	coffee machine is broken.</P>
 	<TABLE BORDER=0 CELLPADDING=4 CELLSPACING=1 BGCOLOR="#999999" WIDTH="100%">
 	<TR BGCOLOR="#669966">

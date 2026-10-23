@@ -82,6 +82,6 @@ All examples use the <CODE>cfsnippets</CODE> data source.</P>
 	</cfif>
 </cfoutput>
 <HR NOSHADE SIZE=1>
-<FONT SIZE=1 CLASS="copyright">Copyright &copy; 1995-1999, Allair Corporation. All rights reserved.</FONT>
+<FONT SIZE=1 CLASS="copyright">Copyright &copy; 1995-1999, Gibson Mainframe Co. All rights reserved.</FONT>
 </BODY>
 </HTML>

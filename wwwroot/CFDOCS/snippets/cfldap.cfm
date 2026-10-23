@@ -1,6 +1,6 @@
 <CFTRY>
-  <CFLDAP ACTION="Query" SERVER="ldap.allair.example" NAME="People"
-          START="o=Allair, c=US" SCOPE="Subtree"
+  <CFLDAP ACTION="Query" SERVER="ldap.gibson.example" NAME="People"
+          START="o=Gibson, c=US" SCOPE="Subtree"
           FILTER="(ou=Engineering)" ATTRIBUTES="cn,mail,telephoneNumber">
   <CFCATCH TYPE="Application">
     <CFOUTPUT><P><B>#CFCATCH.Message#:</B> #CFCATCH.Detail#</P></CFOUTPUT>

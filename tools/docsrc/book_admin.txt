@@ -25,7 +25,7 @@ A fresh installation protects the Administrator with the password `admin`. The l
 KoldFusion runs happily on UNIX, but it keeps the Windows-flavored names its users know. The install directory, which the documentation calls "C:\CFUSION", is the `kfroot/` directory.
 
 | Location | Contents |
-| `kfroot/registry/kf.registry` | The registry: every Administrator setting, in REGEDIT4 format under HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion |
+| `kfroot/registry/kf.registry` | The registry: every Administrator setting, in REGEDIT4 format under HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\CurrentVersion |
 | `kfroot/log/` | Log files (application.log, server.log, mail.log, schedule.log, access.log) |
 | `kfroot/db/` | Data sources: one directory per database, one .tbl file per table |
 | `kfroot/seed/` | SQL scripts that build the sample data sources on first start |
@@ -273,7 +273,7 @@ KoldFusion never loads a Java Virtual Machine, so every field here is cosmetic. 
 
 @page versioninfo | Version Info
 
-The Version Information page tells you exactly what you are running and how busy it is. Nothing here can be changed. It is the page to print out before you call Allair technical support.
+The Version Information page tells you exactly what you are running and how busy it is. Nothing here can be changed. It is the page to print out before you call Gibson technical support.
 
 **Go there:** [Open the Version Info page](/CFIDE/administrator/server/versioninfo.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=server/versioninfo.cfm))
 
@@ -398,7 +398,7 @@ Possible results:
 | Message | Meaning |
 | The connection to the data source was verified successfully. | All is well. |
 | Connections to data source X have been disabled by the administrator. | Clear **Disable Database Connections** on the data source's edit page. |
-| [Allair][KoldFusion Flat-File Driver] Could not find database directory '...'. | The **Database** path is wrong, or the directory was deleted. Open the data source and click Update to create an empty database there. |
+| [Gibson][KoldFusion Flat-File Driver] Could not find database directory '...'. | The **Database** path is wrong, or the directory was deleted. Open the data source and click Update to create an empty database there. |
 
 > To rebuild one of the sample data sources from scratch, stop the server, delete its directory under `kfroot/db/` and start the server again. It is rebuilt from `kfroot/seed/`.
 
@@ -742,7 +742,7 @@ The password is changed before the server starts, and you can log in with it rig
 
 The Unsecured Tags Directory on [Basic Security](basicsecurity.htm) no longer covers the Administrator, and a tag it needs has been disabled. Open `kfroot/registry/kf.registry` in a text editor, find the TagRestrictions key and set the tag back to "1":
 
-    [HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion\Server\TagRestrictions]
+    [HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\CurrentVersion\Server\TagRestrictions]
     "CFREGISTRY"="1"
 
 Save the file. KoldFusion notices the change on the next request.

@@ -33,7 +33,7 @@ function runExample(name) {
 <DT><B>ACTION</B></DT>
 <DD><I>Required.</I> GetAll (list the entries of a key), Get (read one value), Set (create or change a value or subkey) or Delete (remove a value, or a whole key).</DD>
 <DT><B>BRANCH</B></DT>
-<DD><I>Required.</I> Full name of the key, such as <CODE>HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion</CODE>. HKLM is accepted as short for HKEY_LOCAL_MACHINE.</DD>
+<DD><I>Required.</I> Full name of the key, such as <CODE>HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion</CODE>. HKLM is accepted as short for HKEY_LOCAL_MACHINE.</DD>
 <DT><B>NAME</B></DT>
 <DD><I>Required for GetAll.</I> Query that receives the entries, with the columns Entry, Type and Value.</DD>
 <DT><B>ENTRY</B></DT>
@@ -48,11 +48,11 @@ function runExample(name) {
 <DD><I>Optional.</I> For GetAll, columns to sort on, such as &quot;Entry ASC&quot;.</DD>
 </DL>
 <H4>Usage</H4>
-<P>For compatibility with templates written for ColdFusion on Windows NT, any branch that mentions <CODE>SOFTWARE\Allaire\ColdFusion</CODE> is quietly redirected to <CODE>SOFTWARE\Allair\KoldFusion</CODE>, so the old scripts that peek at the server&#x27;s settings keep working.</P>
+<P>For compatibility with templates written for ColdFusion on Windows NT, any branch that mentions <CODE>SOFTWARE\Allaire\ColdFusion</CODE> is quietly redirected to <CODE>SOFTWARE\Gibson\KoldFusion</CODE>, so the old scripts that peek at the server&#x27;s settings keep working.</P>
 <P>The registry is shared by the whole server, including the Administrator. Writing to the wrong key can break your data sources or settings; keep your own data under a key of its own. Restricting the tag is possible on the Basic Security page of the Administrator.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfregistry"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfregistry'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
-<PRE CLASS="example">&lt;CFSET Branch = &quot;HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\Snippets&quot;&gt;
+<PRE CLASS="example">&lt;CFSET Branch = &quot;HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\Snippets&quot;&gt;
 &lt;!--- Create a subkey with two values ---&gt;
 &lt;CFREGISTRY ACTION=&quot;Set&quot; BRANCH=&quot;#Branch#&quot; ENTRY=&quot;Demo&quot; TYPE=&quot;Key&quot;&gt;
 &lt;CFREGISTRY ACTION=&quot;Set&quot; BRANCH=&quot;#Branch#\Demo&quot; ENTRY=&quot;Greeting&quot; TYPE=&quot;String&quot; VALUE=&quot;Hello, registry&quot;&gt;
@@ -78,6 +78,6 @@ function runExample(name) {
 </DIV>
 <HR NOSHADE SIZE=1>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=2><TR><TD><A HREF="cfqueryparam.htm"><IMG SRC="/CFDOCS/images/doc_back.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Previous page"></A></TD><TD><A HREF="index.htm"><IMG SRC="/CFDOCS/images/doc_up.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Up one level"></A></TD><TD><A HREF="cfreport.htm"><IMG SRC="/CFDOCS/images/doc_next.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Next page"></A></TD><TD><A HREF="/CFDOCS/dochome.cfm"><IMG SRC="/CFDOCS/images/doc_home.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Documentation home"></A></TD><TD><A HREF="/CFDOCS/langref/index.htm"><IMG SRC="/CFDOCS/images/doc_index.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="CFML Language Reference contents"></A></TD></TR></TABLE>
-<FONT SIZE=1 CLASS="copyright">Copyright &copy; 1995-1999, Allair Corporation. All rights reserved.</FONT>
+<FONT SIZE=1 CLASS="copyright">Copyright &copy; 1995-1999, Gibson Mainframe Co. All rights reserved.</FONT>
 </BODY>
 </HTML>

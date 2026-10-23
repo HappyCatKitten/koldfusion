@@ -69,7 +69,7 @@ function checkQuestion(f) {
 <input type="text" name="question" size="45" maxlength="200">
 <input type="submit" value="Shake the ball!">
 </form>
-<font face="Arial, Helvetica" size="1">For entertainment purposes only. Allair Corporation is not responsible for decisions made with the help of this 8-Ball.</font>
+<font face="Arial, Helvetica" size="1">For entertainment purposes only. Gibson Mainframe Co. is not responsible for decisions made with the help of this 8-Ball.</font>
 </center>
 <cfinclude template="_footer.cfm">
 </body>

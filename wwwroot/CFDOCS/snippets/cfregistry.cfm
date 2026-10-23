@@ -1,4 +1,4 @@
-<CFSET Branch = "HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\Snippets">
+<CFSET Branch = "HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\Snippets">
 <!--- Create a subkey with two values --->
 <CFREGISTRY ACTION="Set" BRANCH="#Branch#" ENTRY="Demo" TYPE="Key">
 <CFREGISTRY ACTION="Set" BRANCH="#Branch#\Demo" ENTRY="Greeting" TYPE="String" VALUE="Hello, registry">

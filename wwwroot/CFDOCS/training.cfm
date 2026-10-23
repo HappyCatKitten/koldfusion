@@ -1,4 +1,4 @@
-<!--- /CFDOCS/training.cfm - Allair Education and Training (course catalog from the cfsnippets Courses table) --->
+<!--- /CFDOCS/training.cfm - Gibson Education and Training (course catalog from the cfsnippets Courses table) --->
 <cfset pageTitle = "Education and Training">
 <cfset section = "training.cfm">
 <cfparam name="URL.enroll" default="0">
@@ -11,7 +11,7 @@ ORDER BY c.Number
 <cfset Variables.cities = "Boston MA,Frostbite Falls MN,San Francisco CA,Chicago IL,Washington DC,Dallas TX,Seattle WA,London UK">
 <cfinclude template="_siteheader.cfm">
 <FONT FACE="Arial, Helvetica" SIZE=2>
-<P>Allair Authorized Training gets you productive with KoldFusion fast. Our instructors are certified
+<P>Gibson Authorized Training gets you productive with KoldFusion fast. Our instructors are certified
 KoldFusion developers who have seen every error message at least twice. Classes are small, hands-on,
 and include lunch, a binder and a commemorative mug.</P>
 
@@ -61,7 +61,7 @@ and include lunch, a binder and a commemorative mug.</P>
 receive 10% off; <A HREF="registration.cfm">register now</A>. Classes in Frostbite Falls include a free parka
 from November through April.</FONT></P>
 
-<H3>Allair Certified KoldFusion Developer</H3>
+<H3>Gibson Certified KoldFusion Developer</H3>
 <P>Prove your skills with the certification exam: 60 multiple-choice questions, 90 minutes, no
 <CODE>CFDUMP</CODE> allowed (it does not exist yet). Study tips:</P>
 <UL>

@@ -308,6 +308,76 @@ static int form_validation(RState *rs, Buf *errs) {
     return bad;
 }
 
+/* ================================================================ zoom */
+/* Server Settings > Page zoom: 1999 pages were designed for 800x600 at 96 dpi; on
+ * today's screens they are tiny, so every HTML page is served with a CSS zoom
+ * (175% by default). Framesets are left alone; their frames are zoomed. */
+/* scale the pixel sizes in <FRAMESET COLS="175,*"> so zoomed frames still fit */
+static const char *zoom_frameset(const char *body, size_t len, size_t *outlen, int zoom) {
+    Buf b; buf_init(&b);
+    size_t i = 0;
+    while (i < len) {
+        if (body[i] == '<' && i + 9 < len && !kf_strnicmp(body + i, "<frameset", 9)) {
+            const char *gt = memchr(body + i, '>', len - i);
+            size_t end = gt ? (size_t)(gt - body) + 1 : len;
+            for (size_t k = i; k < end; ) {
+                if ((!kf_strnicmp(body + k, "cols", 4) || !kf_strnicmp(body + k, "rows", 4)) && k + 4 < end) {
+                    size_t q = k + 4;
+                    while (q < end && (body[q] == ' ' || body[q] == '=')) q++;
+                    char quote = (body[q] == '"' || body[q] == '\'') ? body[q] : 0;
+                    buf_put(&b, body + k, q - k + (quote ? 1 : 0));
+                    q += quote ? 1 : 0;
+                    while (q < end && body[q] != quote && body[q] != '>' && !(quote == 0 && isspace((unsigned char)body[q]))) {
+                        if (isdigit((unsigned char)body[q])) {
+                            size_t d = q; long v = 0;
+                            while (d < end && isdigit((unsigned char)body[d])) v = v * 10 + (body[d++] - '0');
+                            if (d < end && (body[d] == '%' || body[d] == '*')) buf_put(&b, body + q, d - q);   /* relative: keep */
+                            else buf_printf(&b, "%ld", (v * zoom + 50) / 100);
+                            q = d;
+                        } else buf_putc(&b, body[q++]);
+                    }
+                    k = q;
+                } else buf_putc(&b, body[k++]);
+            }
+            i = end;
+        } else buf_putc(&b, body[i++]);
+    }
+    *outlen = b.len;
+    return buf_cstr(&b);
+}
+
+/* Server Settings > Page zoom: 1999 pages were designed for 800x600 at 96 dpi; on
+ * today's screens they are tiny, so every HTML page is served with a CSS zoom
+ * (175% by default). Pop-up windows opened by the page are scaled to match, and
+ * framesets get their pixel widths scaled while their frames do the zooming. */
+static const char *apply_zoom(const char *body, size_t len, size_t *outlen) {
+    *outlen = len;
+    int zoom = cfg_int(REG_SERVER, "DisplayZoom", 175);
+    if (zoom <= 0 || zoom == 100) return body;
+    const char *head = NULL;
+    for (size_t i = 0; i + 9 < len && i < 4096; i++) {
+        if (body[i] != '<') continue;
+        if (!kf_strnicmp(body + i, "<frameset", 9)) return zoom_frameset(body, len, outlen, zoom);
+        if (!head && !kf_strnicmp(body + i, "<head", 5)) {
+            const char *gt = memchr(body + i, '>', len - i);
+            if (gt) head = gt + 1;
+        }
+    }
+    char *inject = kprintf(
+        "<style type=\"text/css\">html{zoom:%d%%}</style>"
+        "<script type=\"text/javascript\">(function(z){var o=window.open,r=window.resizeTo;"
+        "window.open=function(u,n,f){if(f)f=String(f).replace(/(width|height)=(\\d+)/gi,function(m,k,v){return k+'='+Math.round(v*z)});"
+        "return o.call(window,u,n,f)};if(r)window.resizeTo=function(w,h){return r.call(window,Math.round(w*z),Math.round(h*z))}})(%g);</script>",
+        zoom, zoom / 100.0);
+    size_t at = head ? (size_t)(head - body) : 0;
+    Buf b; buf_init(&b);
+    buf_put(&b, body, at);
+    buf_puts(&b, inject);
+    buf_put(&b, body + at, len - at);
+    *outlen = b.len;
+    return buf_cstr(&b);
+}
+
 /* ================================================================ response */
 static char *suppress_whitespace(const char *s, size_t n, size_t *outlen) {
     Buf o; buf_init(&o);
@@ -365,6 +435,7 @@ static void send_engine_response(int fd, RState *rs) {
     }
     const char *ctype = rs->content_type ? rs->content_type : "text/html";
     if (rs->suppress_ws && !kf_strnicmp(ctype, "text/html", 9)) body = suppress_whitespace(body, blen, &blen);
+    if (!kf_strnicmp(ctype, "text/html", 9)) body = apply_zoom(body, blen, &blen);
     buf_printf(&h, "Content-Type: %s\r\nContent-Length: %zu\r\nConnection: close\r\n\r\n", ctype, blen);
     write_all(fd, h.s, h.len);
     write_all(fd, body, blen);
@@ -422,14 +493,16 @@ static void serve_static(int fd, HttpReq *req, const char *path) {
         return;
     }
     size_t len;
-    char *data = kf_read_file(path, &len);
-    if (!data) { simple_response(fd, 403, "Forbidden", "You do not have permission to read this file."); return; }
+    char *raw = kf_read_file(path, &len);
+    if (!raw) { simple_response(fd, 403, "Forbidden", "You do not have permission to read this file."); return; }
+    const char *data = raw;
+    if (!strcmp(mime_type_for(path), "text/html")) data = apply_zoom(raw, len, &len);
     char *hdr = kprintf("HTTP/1.0 200 OK\r\nServer: %s\r\nDate: %s\r\nLast-Modified: %s\r\nContent-Type: %s\r\n"
                         "Content-Length: %zu\r\nConnection: close\r\n\r\n",
                         SERVER_SOFTWARE, http_date(time(NULL)), lm, mime_type_for(path), len);
     write_all(fd, hdr, strlen(hdr));
     if (strcmp(req->method, "HEAD")) write_all(fd, data, len);
-    free(data);
+    free(raw);
 }
 
 static void setup_cgi(RState *rs, HttpReq *req, const char *script_name, const char *filepath) {

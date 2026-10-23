@@ -183,12 +183,12 @@ Remember the CFML operators: <CODE>EQ NEQ GT LT GTE LTE AND OR NOT MOD &amp;</CO
 The Expression Evaluator that shipped in 1999 had two extra buttons, <I>Open</I> and <I>Upload</I>, so you could
 load a file into it and save one back. They were handy. They also worked for any visitor on the Internet, on any file
 the server could reach, which made every freshly installed server a public file manager with a CFML calculator
-attached. Allair security bulletin ASB99-01 recommended removing the sample pages from production servers, and a
+attached. Gibson security bulletin ASB99-01 recommended removing the sample pages from production servers, and a
 lot of administrators spent a long weekend finding out why. This edition has no file features at all, and it refuses
 to talk to anyone but 127.0.0.1. You are welcome.</P>
 <P><FONT SIZE=1>Production tip: remove <CODE>/CFDOCS</CODE> from public servers anyway. Old habits keep you safe.</FONT></P>
 
 <HR NOSHADE SIZE=1>
-<FONT SIZE=1 CLASS="copyright">Copyright &copy; 1995-1999, Allair Corporation. All rights reserved.</FONT>
+<FONT SIZE=1 CLASS="copyright">Copyright &copy; 1995-1999, Gibson Mainframe Co. All rights reserved.</FONT>
 </BODY>
 </HTML>

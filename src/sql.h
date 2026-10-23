@@ -19,7 +19,7 @@
  * statements run in order (each atomic on its own, the batch is not), *out is
  * the last result set produced and *affected the count of the last statement.
  * Returns 1 on success; 0 on error with a message in err (CF/ODBC-flavoured, e.g.
- * "[Allair][KoldFusion Flat-File Driver] Table 'FOO' not found."). */
+ * "[Gibson][KoldFusion Flat-File Driver] Table 'FOO' not found."). */
 int sql_exec(const char *dbdir, const char *sql, Query **out, long *affected, char *err, size_t errlen);
 
 /* Run a script of ;-separated statements (-- and slash-star comments are

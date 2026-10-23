@@ -106,7 +106,7 @@ example:
         SUBJECT="Your Y2K readiness report">
 <CFMAILPARAM NAME="Reply-To" VALUE="helpdesk@localhost">
 <CFMAILPARAM NAME="X-Priority" VALUE="1">
-<CFMAILPARAM NAME="Organization" VALUE="Allair Corporation">
+<CFMAILPARAM NAME="Organization" VALUE="Gibson Mainframe Co.">
 Good news: all 25 workstations passed the December 31, 1999 rollover test.
 </CFMAIL>
 
@@ -115,7 +115,7 @@ Good news: all 25 workstations passed the December 31, 1999 rollover test.
 <TR><TH>Header</TH><TH>Value</TH></TR>
 <TR><TD>Reply-To</TD><TD>helpdesk@localhost</TD></TR>
 <TR><TD>X-Priority</TD><TD>1 (urgent)</TD></TR>
-<TR><TD>Organization</TD><TD>Allair Corporation</TD></TR>
+<TR><TD>Organization</TD><TD>Gibson Mainframe Co.</TD></TR>
 </TABLE>
 see: CFMAIL, CFPOP, CFHTTPPARAM
 
@@ -460,8 +460,8 @@ server. Pages that may also run on a Windows NT ColdFusion server can catch it a
 lookup, as the example does with the Employees table.
 example:
 <CFTRY>
-  <CFLDAP ACTION="Query" SERVER="ldap.allair.example" NAME="People"
-          START="o=Allair, c=US" SCOPE="Subtree"
+  <CFLDAP ACTION="Query" SERVER="ldap.gibson.example" NAME="People"
+          START="o=Gibson, c=US" SCOPE="Subtree"
           FILTER="(ou=Engineering)" ATTRIBUTES="cn,mail,telephoneNumber">
   <CFCATCH TYPE="Application">
     <CFOUTPUT><P><B>#CFCATCH.Message#:</B> #CFCATCH.Detail#</P></CFOUTPUT>
@@ -651,7 +651,7 @@ syntax:
 attrs:
 ACTION | Required | GetAll (list the entries of a key), Get (read one value), Set (create or change a value or
   subkey) or Delete (remove a value, or a whole key).
-BRANCH | Required | Full name of the key, such as `HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion`. HKLM is
+BRANCH | Required | Full name of the key, such as `HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion`. HKLM is
   accepted as short for HKEY_LOCAL_MACHINE.
 NAME | Required for GetAll | Query that receives the entries, with the columns Entry, Type and Value.
 ENTRY | Required for Get and Set; optional for Delete | The value (or, for Set with TYPE="Key", the subkey) to
@@ -663,14 +663,14 @@ VALUE | Optional | For Set, the data to store.
 SORT | Optional | For GetAll, columns to sort on, such as "Entry ASC".
 usage:
 For compatibility with templates written for ColdFusion on Windows NT, any branch that mentions
-`SOFTWARE\Allaire\ColdFusion` is quietly redirected to `SOFTWARE\Allair\KoldFusion`, so the old scripts that
+`SOFTWARE\Allaire\ColdFusion` is quietly redirected to `SOFTWARE\Gibson\KoldFusion`, so the old scripts that
 peek at the server's settings keep working.
 
 The registry is shared by the whole server, including the Administrator. Writing to the wrong key can
 break your data sources or settings; keep your own data under a key of its own. Restricting the tag is
 possible on the Basic Security page of the Administrator.
 example:
-<CFSET Branch = "HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\Snippets">
+<CFSET Branch = "HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\Snippets">
 <!--- Create a subkey with two values --->
 <CFREGISTRY ACTION="Set" BRANCH="#Branch#" ENTRY="Demo" TYPE="Key">
 <CFREGISTRY ACTION="Set" BRANCH="#Branch#\Demo" ENTRY="Greeting" TYPE="String" VALUE="Hello, registry">
@@ -792,7 +792,7 @@ FILE | Required if PUBLISH is Yes | Name of the published file.
 RESOLVEURL | Optional | Stored with the task. Accepted for compatibility; KoldFusion does not rewrite links in
   published pages.
 usage:
-Tasks are kept in the registry under `HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion\Schedule`,
+Tasks are kept in the registry under `HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\CurrentVersion\Schedule`,
 one subkey per task. The scheduler looks for due tasks once a minute; Run starts the task in the background
 and returns immediately. Every run is written to `schedule.log`.
 
@@ -805,7 +805,7 @@ example:
             INTERVAL="Daily" REQUESTTIMEOUT="60" PUBLISH="No">
 
 <CFREGISTRY ACTION="GetAll" NAME="Stored" TYPE="String" SORT="Entry"
-  BRANCH="HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion\Schedule\SnippetDemoTask">
+  BRANCH="HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\CurrentVersion\Schedule\SnippetDemoTask">
 <P>The scheduler now knows this task:</P>
 <TABLE BORDER=1 CELLPADDING=3>
 <TR><TH>Setting</TH><TH>Value</TH></TR>

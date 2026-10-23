@@ -72,7 +72,7 @@ static void E(const char *sql, const char *want) {
     int ok = sql_exec(DB, sql, &q, &n, err, sizeof err);
     if (ok) { fails++; printf("  FAIL (expected error '%s'): %s\n", want, sql); return; }
     if (verbose) printf("    ! %s\n", err);
-    CHECK(strstr(err, "[Allair][KoldFusion Flat-File Driver] ") == err, "error prefix: %s", err);
+    CHECK(strstr(err, "[Gibson][KoldFusion Flat-File Driver] ") == err, "error prefix: %s", err);
     CHECK(strstr(err, want) != NULL, "error for [%s] should contain [%s] but was [%s]", sql, want, err);
 }
 

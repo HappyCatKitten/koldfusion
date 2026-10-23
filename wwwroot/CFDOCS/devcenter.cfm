@@ -1,4 +1,4 @@
-<!--- /CFDOCS/devcenter.cfm - the Allair Developer Center --->
+<!--- /CFDOCS/devcenter.cfm - the Gibson Developer Center --->
 <cfset pageTitle = "Developer Center">
 <cfset section = "devcenter.cfm">
 <cfparam name="URL.download" default="">

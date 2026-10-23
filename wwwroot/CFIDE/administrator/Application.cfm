@@ -1,6 +1,6 @@
 <!--- KoldFusion Administrator: application framework and password check --->
 <cfapplication name="KFAdministrator" sessionmanagement="no" clientmanagement="no">
-<cfset Request.reg = "HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion">
+<cfset Request.reg = "HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\CurrentVersion">
 <cfset Request.f = "<FONT FACE=""Arial, Helvetica"" SIZE=""2"">">
 <cfset Request.adm = "/CFIDE/administrator">
 <cfsetting showdebugoutput="no">

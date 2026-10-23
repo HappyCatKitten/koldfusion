@@ -82,7 +82,7 @@ function runExample(name) {
 <DD><I>Optional.</I> Stored with the task. Accepted for compatibility; KoldFusion does not rewrite links in published pages.</DD>
 </DL>
 <H4>Usage</H4>
-<P>Tasks are kept in the registry under <CODE>HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion\Schedule</CODE>, one subkey per task. The scheduler looks for due tasks once a minute; Run starts the task in the background and returns immediately. Every run is written to <CODE>schedule.log</CODE>.</P>
+<P>Tasks are kept in the registry under <CODE>HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\CurrentVersion\Schedule</CODE>, one subkey per task. The scheduler looks for due tasks once a minute; Run starts the task in the background and returns immediately. Every run is written to <CODE>schedule.log</CODE>.</P>
 <P>Deleting or running a task that does not exist throws an Application exception.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfschedule"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfschedule'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
@@ -93,7 +93,7 @@ function runExample(name) {
             INTERVAL=&quot;Daily&quot; REQUESTTIMEOUT=&quot;60&quot; PUBLISH=&quot;No&quot;&gt;
 
 &lt;CFREGISTRY ACTION=&quot;GetAll&quot; NAME=&quot;Stored&quot; TYPE=&quot;String&quot; SORT=&quot;Entry&quot;
-  BRANCH=&quot;HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion\Schedule\SnippetDemoTask&quot;&gt;
+  BRANCH=&quot;HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\CurrentVersion\Schedule\SnippetDemoTask&quot;&gt;
 &lt;P&gt;The scheduler now knows this task:&lt;/P&gt;
 &lt;TABLE BORDER=1 CELLPADDING=3&gt;
 &lt;TR&gt;&lt;TH&gt;Setting&lt;/TH&gt;&lt;TH&gt;Value&lt;/TH&gt;&lt;/TR&gt;
@@ -114,6 +114,6 @@ function runExample(name) {
 </DIV>
 <HR NOSHADE SIZE=1>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=2><TR><TD><A HREF="cfrethrow.htm"><IMG SRC="/CFDOCS/images/doc_back.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Previous page"></A></TD><TD><A HREF="index.htm"><IMG SRC="/CFDOCS/images/doc_up.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Up one level"></A></TD><TD><A HREF="cfscript.htm"><IMG SRC="/CFDOCS/images/doc_next.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Next page"></A></TD><TD><A HREF="/CFDOCS/dochome.cfm"><IMG SRC="/CFDOCS/images/doc_home.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Documentation home"></A></TD><TD><A HREF="/CFDOCS/langref/index.htm"><IMG SRC="/CFDOCS/images/doc_index.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="CFML Language Reference contents"></A></TD></TR></TABLE>
-<FONT SIZE=1 CLASS="copyright">Copyright &copy; 1995-1999, Allair Corporation. All rights reserved.</FONT>
+<FONT SIZE=1 CLASS="copyright">Copyright &copy; 1995-1999, Gibson Mainframe Co. All rights reserved.</FONT>
 </BODY>
 </HTML>

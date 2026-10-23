@@ -21,7 +21,7 @@
 <P>The password is changed before the server starts, and you can log in with it right away.</P>
 <H2>The Administrator says &quot;denied access to CFREGISTRY&quot;</H2>
 <P>The Unsecured Tags Directory on <A HREF="basicsecurity.htm">Basic Security</A> no longer covers the Administrator, and a tag it needs has been disabled. Open <CODE>kfroot/registry/kf.registry</CODE> in a text editor, find the TagRestrictions key and set the tag back to &quot;1&quot;:</P>
-<PRE>[HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion\Server\TagRestrictions]
+<PRE>[HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\CurrentVersion\Server\TagRestrictions]
 &quot;CFREGISTRY&quot;=&quot;1&quot;</PRE>
 <P>Save the file. KoldFusion notices the change on the next request.</P>
 <H2>Restarting the server</H2>
@@ -39,6 +39,6 @@
 </DIV>
 <HR NOSHADE SIZE=1>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=2><TR><TD><A HREF="sourcecontrol.htm"><IMG SRC="/CFDOCS/images/doc_back.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Previous page"></A></TD><TD><A HREF="index.htm"><IMG SRC="/CFDOCS/images/doc_up.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Up one level"></A></TD><TD><IMG SRC="/CFDOCS/images/doc_next_off.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT=""></TD><TD><A HREF="/CFDOCS/dochome.cfm"><IMG SRC="/CFDOCS/images/doc_home.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Documentation home"></A></TD><TD><A HREF="/CFDOCS/langref/index.htm"><IMG SRC="/CFDOCS/images/doc_index.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="CFML Language Reference contents"></A></TD></TR></TABLE>
-<FONT SIZE=1 CLASS="copyright">Copyright &copy; 1995-1999, Allair Corporation. All rights reserved.</FONT>
+<FONT SIZE=1 CLASS="copyright">Copyright &copy; 1995-1999, Gibson Mainframe Co. All rights reserved.</FONT>
 </BODY>
 </HTML>

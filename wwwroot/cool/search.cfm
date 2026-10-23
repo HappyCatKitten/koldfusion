@@ -2,7 +2,7 @@
 <cfset pageTitle = "Search This Site">
 <cfparam name="URL.criteria" default="">
 <cfset colls = "">
-<cfregistry action="getall" branch="HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion\Verity\Collections" name="colls" type="key">
+<cfregistry action="getall" branch="HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\CurrentVersion\Verity\Collections" name="colls" type="key">
 <cfif NOT ListFindNoCase(ValueList(colls.Entry), "kfsite") OR IsDefined("URL.reindex")>
 	<cfif NOT ListFindNoCase(ValueList(colls.Entry), "kfsite")><cfcollection action="create" collection="kfsite"></cfif>
 	<cfindex collection="kfsite" action="refresh" type="path" key="#ExpandPath('/')#" extensions=".htm,.html,.cfm" recurse="yes" urlpath="/">

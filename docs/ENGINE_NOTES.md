@@ -71,7 +71,7 @@ Administrator-only.
 ## 1999 house style
 HTML 3.2/4.0 only: `<FONT FACE="Arial, Helvetica" SIZE="2">`, layout tables, BGCOLOR/BACKGROUND attributes, `<CENTER>`,
 GIFs (see `wwwroot/images/` and `wwwroot/CFIDE/administrator/images/`), JavaScript 1.2 style (`var`, `document.forms`),
-no CSS frameworks, no modern JS. Product name "KoldFusion" by "Allair"; never copy original Allaire/Macromedia text verbatim.
+no CSS frameworks, no modern JS. Product name "KoldFusion" by "Gibson"; never copy original Allaire/Macromedia text verbatim.
 
 ## Compatibility leniencies (things real 4.5 was stricter or different about)
 - XHTML-style `<cfset x = 1 />` and `<cfinclude ... />` closers (CFMX syntax) are accepted.

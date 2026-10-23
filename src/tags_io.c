@@ -293,7 +293,7 @@ static char *map_branch(const char *b) {
     for (char *p = r; *p; p++) if (*p == '/') *p = '\\';
     const char *pat = "SOFTWARE\\Allaire\\ColdFusion";
     const char *m = kf_stristr(r, pat);
-    if (m) r = kprintf("%.*sSOFTWARE\\Allair\\KoldFusion%s", (int)(m - r), r, m + strlen(pat));
+    if (m) r = kprintf("%.*sSOFTWARE\\Gibson\\KoldFusion%s", (int)(m - r), r, m + strlen(pat));
     if (!kf_strnicmp(r, "HKLM\\", 5)) r = kprintf("HKEY_LOCAL_MACHINE\\%s", r + 5);
     return r;
 }

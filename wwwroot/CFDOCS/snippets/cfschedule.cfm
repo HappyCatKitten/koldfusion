@@ -5,7 +5,7 @@
             INTERVAL="Daily" REQUESTTIMEOUT="60" PUBLISH="No">
 
 <CFREGISTRY ACTION="GetAll" NAME="Stored" TYPE="String" SORT="Entry"
-  BRANCH="HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion\Schedule\SnippetDemoTask">
+  BRANCH="HKEY_LOCAL_MACHINE\SOFTWARE\Gibson\KoldFusion\CurrentVersion\Schedule\SnippetDemoTask">
 <P>The scheduler now knows this task:</P>
 <TABLE BORDER=1 CELLPADDING=3>
 <TR><TH>Setting</TH><TH>Value</TH></TR>

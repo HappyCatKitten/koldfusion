@@ -37,7 +37,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#define DRV        "[Allair][KoldFusion Flat-File Driver] "
+#define DRV        "[Gibson][KoldFusion Flat-File Driver] "
 #define MAX_SRC    64            /* tables per SELECT (bitmask width) */
 #define CACHE_MAX  64            /* parsed tables kept in memory */
 #ifndef KF_SQL_FSYNC

@@ -1,4 +1,4 @@
-<!--- /CFDOCS/support.cfm - Allair Technical Support: a tiny Knowledge Base and a support request form
+<!--- /CFDOCS/support.cfm - Gibson Technical Support: a tiny Knowledge Base and a support request form
       (requests are stored in the Comments table of cfsnippets with CommtType "Support"). --->
 <cfset pageTitle = "Technical Support">
 <cfset section = "support.cfm">

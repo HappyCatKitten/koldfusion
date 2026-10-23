@@ -1,19 +1,19 @@
-<!--- Header for the "Allair Online" resource pages (forums, support, training, devcenter, registration).
+<!--- Header for the "Gibson Online" resource pages (forums, support, training, devcenter, registration).
       Set Variables.pageTitle and Variables.section before including. --->
-<cfparam name="Variables.pageTitle" default="Allair Online">
+<cfparam name="Variables.pageTitle" default="Gibson Online">
 <cfparam name="Variables.section" default="">
 <cfset Variables.siteNav = "registration.cfm=Register KoldFusion,support.cfm=Technical Support,forums.cfm=Support Forums,training.cfm=Education &amp; Training,devcenter.cfm=Developer Center,dochome.cfm=Documentation,/CFDOCS/index.cfm=Server Home">
 <cfoutput>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
-<TITLE>Allair Online - #Variables.pageTitle#</TITLE>
+<TITLE>Gibson Online - #Variables.pageTitle#</TITLE>
 <LINK REL="stylesheet" TYPE="text/css" HREF="/CFDOCS/kfdocs.css">
 </HEAD>
 <BODY BGCOLOR="##FFFFFF" TEXT="##000000" LINK="##003399" VLINK="##669966" ALINK="##CC0000" LEFTMARGIN=0 TOPMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0 STYLE="margin:0px; background-color:##FFFFFF">
 <TABLE WIDTH="100%" BORDER=0 CELLPADDING=0 CELLSPACING=0>
 <TR BGCOLOR="##000066">
-	<TD WIDTH=150 HEIGHT=40>&nbsp;<FONT FACE="Arial, Helvetica" SIZE=4 COLOR="##FFFFFF"><B><I>allair</I></B></FONT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="##99CCFF"> online</FONT></TD>
+	<TD WIDTH=150 HEIGHT=40>&nbsp;<FONT FACE="Arial, Helvetica" SIZE=4 COLOR="##FFFFFF"><B><I>gibson</I></B></FONT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="##99CCFF"> online</FONT></TD>
 	<TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="##FFFFFF">
 	<A HREF="/CFDOCS/index.cfm" STYLE="color:##FFFFFF">Home</A> &middot;
 	<A HREF="/CFDOCS/dochome.cfm" STYLE="color:##FFFFFF">Products</A> &middot;
