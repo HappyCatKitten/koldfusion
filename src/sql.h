@@ -42,6 +42,8 @@ int sql_valid_table_name(const char *name);
 
 /* Drop every cached parsed table (they are re-read from disk on next use). */
 void sql_cache_flush(void);
+void sql_lock(void);
+void sql_unlock(void);
 
 /* Execute exactly ONE statement (no batch splitting, no procedure handling).
  * typed != 0 keeps SQL NULLs (VT_NULL) and dates (VT_DATE) in the result

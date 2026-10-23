@@ -9,6 +9,8 @@
 #include <ctype.h>
 #include <math.h>
 #include <pthread.h>
+#include <errno.h>
+#include <time.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -136,13 +138,63 @@ static int copy_tables(const char *from, const char *to, int clear_dest) {
     return 1;
 }
 
-static void txn_touch(RState *rs, const char *dbdir) {
+/* Like Access's file locking, one transaction at a time may hold a data source: a second page that wants to change it
+ * waits (up to 10 seconds) for the first to commit or roll back. Without this, two rollbacks could each restore the
+ * other's half-written snapshot. */
+static pthread_mutex_t txn_mu = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t txn_cv = PTHREAD_COND_INITIALIZER;
+#define TXN_MAX_HELD 64
+static struct { char *dir; const RState *owner; } txn_held[TXN_MAX_HELD];
+
+static int txn_acquire(const RState *rs, const char *dbdir) {
+    struct timespec until;
+    clock_gettime(CLOCK_REALTIME, &until);
+    until.tv_sec += 10;
+    pthread_mutex_lock(&txn_mu);
+    for (;;) {
+        int busy = 0, freeslot = -1;
+        for (int i = 0; i < TXN_MAX_HELD; i++) {
+            if (!txn_held[i].dir) { if (freeslot < 0) freeslot = i; continue; }
+            if (!strcmp(txn_held[i].dir, dbdir) && txn_held[i].owner != rs) busy = 1;
+        }
+        if (!busy && freeslot >= 0) {
+            txn_held[freeslot].dir = strdup(dbdir);
+            txn_held[freeslot].owner = rs;
+            pthread_mutex_unlock(&txn_mu);
+            return 1;
+        }
+        if (pthread_cond_timedwait(&txn_cv, &txn_mu, &until) == ETIMEDOUT) {
+            pthread_mutex_unlock(&txn_mu);
+            return 0;
+        }
+    }
+}
+
+static void txn_release(const RState *rs, const char *dbdir) {
+    pthread_mutex_lock(&txn_mu);
+    for (int i = 0; i < TXN_MAX_HELD; i++)
+        if (txn_held[i].dir && txn_held[i].owner == rs && !strcmp(txn_held[i].dir, dbdir)) {
+            free(txn_held[i].dir);
+            txn_held[i].dir = NULL;
+            txn_held[i].owner = NULL;
+        }
+    pthread_cond_broadcast(&txn_cv);
+    pthread_mutex_unlock(&txn_mu);
+}
+
+static void txn_touch(Ctx *c, const char *dbdir, const char *sql, const char *dsn) {
+    RState *rs = c->rs;
     if (!rs->in_txn) return;
     if (!rs->txn) rs->txn = struct_new();
     if (struct_get(rs->txn, dbdir)) return;
+    if (!txn_acquire(rs, dbdir))
+        throw_db(c, "[Gibson][KoldFusion Flat-File Driver] Could not lock the data source; it is in use by another "
+                    "user's transaction.", sql, dsn);
     static long seq;
     char *snap = kprintf("%s/temp/txn_%d_%ld", G.root, (int)getpid(), __sync_add_and_fetch(&seq, 1));
+    sql_lock();
     copy_tables(dbdir, snap, 1);
+    sql_unlock();
     struct_set(rs->txn, dbdir, v_strdup(snap));
 }
 
@@ -150,12 +202,15 @@ static void txn_end(RState *rs, int rollback) {
     if (!rs->txn) return;
     for (int i = 0; i < rs->txn->n; i++) {
         const char *db = rs->txn->e[i].key, *snap = v_tostr(rs->txn->e[i].v);
+        sql_lock();
         if (rollback) copy_tables(snap, db, 1);
+        sql_unlock();
         copy_tables("/nonexistent", snap, 1);   /* clear the snapshot */
         rmdir(snap);
+        if (rollback) sql_cache_flush();
+        txn_release(rs, db);
     }
     struct_clear(rs->txn);
-    if (rollback) sql_cache_flush();
 }
 
 static Query *run_sql(Ctx *c, const char *dsn_name, const char *sql, const char *qname, long *affected) {
@@ -172,7 +227,7 @@ static Query *run_sql(Ctx *c, const char *dsn_name, const char *sql, const char 
     char err[2048];
     Query *q = NULL;
     *affected = 0;
-    if (k != 1) txn_touch(c->rs, d.path);
+    if (k != 1) txn_touch(c, d.path, sql, d.name);
     double t0 = kf_time_ms();
     if (!sql_exec(d.path, sql, &q, affected, err, sizeof err)) throw_db(c, err, sql, d.name);
     double ms = kf_time_ms() - t0;
@@ -588,7 +643,7 @@ TAG(storedproc) {
     if (d.restrict_sp)
         throw_db(c, kprintf("The SQL operation is restricted for data source %s.", d.name), sqltext, d.name);
 
-    txn_touch(rs, d.path);
+    txn_touch(c, d.path, sqltext, d.name);
     SqlProcResult res;
     char err[2048];
     double t0 = kf_time_ms();

@@ -55,7 +55,7 @@ https://localhost:8543/` trusts it). Python 3 + Pillow only if you want to regen
 ## What's inside
 
 ```
-src/            the server (about 15,000 lines of C)
+src/            the server (about 27,000 lines of C)
   core.c          arenas, values, structs, arrays, queries, dates
   parse.c         CFML template parser (tags, <!--- comments --->, #expressions#)
   expr.c          expression parser/evaluator (IS, EQ, CONTAINS, MOD, &, IMP...), scopes, assignment
@@ -204,6 +204,7 @@ JAVA_HOME=/usr/lib/jvm/java-17-openjdk ./bin/kfserver
 |---|---|
 | `tests/run_tests.sh` | CFML regression tests (`tests/cfml/*.cfm` vs `*.expected`) |
 | `python3 tests/http_tests.py` | Web server and CFHTTP tests: keep-alive, pipelining, HEAD, 304s, chunked bodies, timeouts, HTTPS, SNI, proxies (starts its own server on ports 8723/8546) |
+| `python3 tests/txn_concurrency.py [PORT]` | Concurrent CFTRANSACTION rollbacks against a running server; checks no table is lost |
 | `bash tools/testdocs.sh --all` | Renders every documentation page and every reference snippet |
 | `python3 wwwroot/CFDOCS/exampleapp/selftest.py PORT` | Walks every example-application page and flow against a running server |
 | `make asan` | Builds `bin/kfserver-asan` with AddressSanitizer/UBSan. With a JVM, run it with `ASAN_OPTIONS=handle_segv=0:allow_user_segv_handler=1:detect_leaks=0` (the JVM handles SIGSEGV itself) |

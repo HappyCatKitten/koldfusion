@@ -1586,6 +1586,10 @@ static void cache_drop(const char *path) {
     }
 }
 
+/* CFTRANSACTION copies whole table directories; it holds this so no statement sees a half-copied directory */
+void sql_lock(void) { pthread_mutex_lock(&g_lock); }
+void sql_unlock(void) { pthread_mutex_unlock(&g_lock); }
+
 void sql_cache_flush(void) {
     pthread_mutex_lock(&g_lock);
     while (g_cache) { CEnt *c = g_cache; g_cache = c->next; cent_free(c); }
