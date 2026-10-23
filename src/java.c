@@ -1031,7 +1031,7 @@ jobject kfj_to_java(JNIEnv *env, Val v, int hint) {
     }
     case VT_OBJECT: {
         KfObject *o = v.u.obj;
-        if (!o->inst) { int ok; const char *why; ensure_constructed(env, o, &ok, &why); }
+        if (!o->inst) { int ok; const char *why; ensure_constructed(env, o, &ok, &why); xc(env); }
         return o->inst ? j_NewLocalRef(env, o->inst) : NULL;
     }
     default: return NULL;

@@ -96,16 +96,20 @@ void java_cfx_call(Ctx *c, Node *n, const char *tagname, const char *regkey) {
     const char **an = kmalloc(sizeof(char *) * (n->nattrs + 1)), **av = kmalloc(sizeof(char *) * (n->nattrs + 1));
     const char *reload = "auto", *qattr = NULL;
     int debug = 0;
+    Query *q = NULL;
     for (int i = 0; i < n->nattrs; i++) {
         Val v = eval(c, n->attrs[i].val);
+        if (v.t == VT_QUERY && !kf_stricmp(n->attrs[i].name, "query")) {    /* QUERY="#q#" as well as QUERY="q" */
+            q = v.u.q;
+            v = v_str(q->name ? q->name : "query");
+        }
         const char *s = val_simple_str(c, v, n->attrs[i].val);
         if (!kf_stricmp(n->attrs[i].name, "reload")) { reload = s; continue; }
         if (!kf_stricmp(n->attrs[i].name, "query")) qattr = s;
         if (!kf_stricmp(n->attrs[i].name, "debug")) debug = 1;
         an[na] = n->attrs[i].name; av[na] = s; na++;
     }
-    Query *q = NULL;
-    if (qattr) {
+    if (qattr && !q) {
         Val qv;
         if (!resolve_path(c, qattr, &qv) || qv.t != VT_QUERY)
             kf_throw(c, "Application", kprintf("The query %s passed to %s was not found.", kf_html_escape(qattr), tagname),
@@ -258,7 +262,17 @@ void tag_servlet(Ctx *c, Node *n, int *flow) {
     Buf *saved_out = rs->out;
     Buf junk; buf_init(&junk);
     rs->out = &junk;
-    exec_nodes(c, n->kids, n->nkids, flow);
+    JmpFrame jf; jf.prev = rs->jf; rs->jf = &jf;
+    if (setjmp(jf.jb) == 0) {
+        exec_nodes(c, n->kids, n->nkids, flow);
+        rs->jf = jf.prev;
+    } else {
+        /* an error in the body: put things back before passing it on */
+        rs->jf = jf.prev;
+        rs->out = saved_out;
+        t_sparams = saved;
+        kf_throw_err(rs, rs->err);
+    }
     rs->out = saved_out;
     Array *params = t_sparams;
     t_sparams = saved;
