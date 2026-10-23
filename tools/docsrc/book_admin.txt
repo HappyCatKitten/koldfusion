@@ -416,7 +416,7 @@ Type a name (letters, digits, spaces, hyphens and underscores), pick an **ODBC D
 | Restrict SQL Operations | Real. Checked statements (SELECT, INSERT, UPDATE, DELETE, Stored Procedures) are refused for this data source. |
 | Enable retrieval of long text, Long Text Buffer Size | Stored; cosmetic |
 
-Click **Create**. KoldFusion creates the database directory if it does not exist yet and verifies the new data source. Later, **Update** saves your changes, **Delete** removes the data source (the database directory stays on disk) and **View Tables...** shows each table's columns and first ten rows.
+Click **Create**. KoldFusion creates the database directory if it does not exist yet and verifies the new data source. Later, **Update** saves your changes, **Delete** removes the data source (the database directory stays on disk) and **View Tables...** shows each table's columns and first ten rows, and lists the data source's stored procedures with their parameters; click a procedure to read its source.
 
 # The list
 
@@ -797,6 +797,21 @@ Select a collection in the list (it shows the path and number of documents) and 
     <cfoutput query="hits"><a href="#URL#">#Title#</a> (#Score#)<br></cfoutput>
 
 > Re-index after you change your site, or new pages will not show up in search results. A nightly [Scheduled Task](scheduledtasks.htm) that runs a `CFINDEX ACTION="Refresh"` template does the job.
+
+# Verity K2 Server
+
+The search engine also answers as a Verity K2 Server: a search server that keeps collections open and serves
+them to any number of pages. The **Verity K2 Server** section at the bottom of the page shows whether it is
+online, how many collections and documents it serves, and that it is a stand-alone server rather than a broker.
+
+| Field | Default | Meaning |
+| Document count limit | 250000 | The licensed maximum number of documents. `IsK2ServerDocCountExceeded()` returns YES above it. |
+| K2 Server port | 9901 | The port the K2 Server is said to listen on (informational) |
+| Run the K2 Server | checked | Unchecked, `IsK2ServerOnline()` returns NO and `GetK2ServerCollections()` an empty list |
+
+The settings live in the registry under `Verity\K2Server`. Templates read the same figures with
+`GetK2ServerCollections`, `GetK2ServerDocCount`, `GetK2ServerDocCountLimit`, `IsK2ServerABroker`,
+`IsK2ServerDocCountExceeded` and `IsK2ServerOnline`.
 
 @page sourcecontrol | Source Control
 

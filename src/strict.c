@@ -47,6 +47,11 @@ static const struct { const char *tag, *attrs; } ALLOWED[] = {
     {"cfprocessingdirective", "suppresswhitespace"},
     {"cfhtmlhead", "text"},
     {"cfexecute", "name,arguments,outputfile,timeout"},
+    {"cfstoredproc", "procedure,datasource,username,password,dbserver,dbname,blockfactor,provider,providerdsn,debug,returncode,dbtype"},
+    {"cfprocparam", "type,variable,dbvarname,value,cfsqltype,maxlength,scale,null"},
+    {"cfprocresult", "name,resultset,maxrows"},
+    {"cftransaction", "action,isolation"},
+    {"cfpop", "server,port,username,password,action,name,messagenumber,attachmentpath,timeout,maxrows,startrow,generateuniquefilenames"},
     {NULL, NULL}
 };
 

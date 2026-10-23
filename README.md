@@ -63,6 +63,7 @@ src/            the server (about 15,000 lines of C)
   interp.c        execution, template cache, Application.cfm, error pages, debug output
   tags*.c         ~80 CFML tags        func*.c   ~230 built-in functions
   sql.c           the "KoldFusion Flat-File Driver": a small SQL engine over text tables
+  sqlproc.c       its stored procedures (CREATE PROCEDURE, T-SQL bodies, EXEC, CFSTOREDPROC)
   http.c          HTTP/1.1 web server (keep-alive)     session.c  session/application/client scopes, CFLOCK
   netio.c, tls.c  sockets with deadlines; SSL via OpenSSL loaded at run time      httpc.c  CFHTTP client
   registry.c      REGEDIT4-format registry           crypto.c   CFMX_COMPAT Encrypt(), MD5 Hash(), uuencode
@@ -124,13 +125,13 @@ Every page from the 4.5 navigation is implemented and saves to the registry:
   contexts, rules, policies, sandboxes, resource view, map), Variables (client storage in registry/cookie/data source,
   session & application timeouts), Locking (none / full checking / automatic read locking / single-threaded sessions),
   Mappings, Java (JVM settings, a live status line and a Load JVM button), Version Info (with live server statistics).
-- **datasources**: ODBC, Native Drivers, OLE DB, Verify Data Source (plus a table browser).
+- **datasources**: ODBC, Native Drivers, OLE DB, Verify Data Source (plus a browser for tables and stored procedures).
 - **extensions**: CFX Tags (real `.so` CFX tags written in C, and Java CFX tags), Applets.
 - **logging**: Settings, Mail Logging, Log Files (viewer, download, delete).
 - **automated tasks**: Scheduler Settings, Scheduled Tasks (one-time, daily/weekly/monthly, every N minutes, RUN now,
   publish to file).
 - **miscellaneous**: Mail (verify, spool and undeliverable folder), Debugging (debug output appended to pages, IP
-  restrictions), Verity (create/index/repair/optimize/purge/delete collections), Source Control, Directory Server
+  restrictions), Verity (create/index/repair/optimize/purge/delete collections, Verity K2 Server settings), Source Control, Directory Server
   (the bundled LDAP directory: settings, start/stop, restore the sample directory, browse the tree).
 
 ## LDAP: CFLDAP and the Gibson Directory Server
@@ -169,6 +170,10 @@ fresh install has a "Gibson Directory" user directory and a GibsonIntranet conte
   those arrived in ColdFusion 5.
 - CFGRID, CFTREE, CFSLIDER and CFTEXTINPUT were Java applets; they render as working HTML equivalents. CFGRID edit mode
   with CFGRIDUPDATE really updates the table.
+- `CFSTOREDPROC` works against the flat-file driver: procedures are written in SQL Server-style T-SQL
+  (`CREATE PROCEDURE ... @param OUTPUT`, `IF`/`WHILE`, `SELECT @v = ...`, `RAISERROR`), called as
+  `{? = call Proc(?, ?)}`, and fail with SQL Server's own wording ("Procedure 'X' expects parameter '@Y', which was
+  not supplied.").
 - Windows-only features (COM, CFREPORT/Crystal Reports, NT impersonation, Visual SourceSafe) fail with the same polite
   errors the UNIX version of ColdFusion gave.
 
@@ -199,7 +204,7 @@ JAVA_HOME=/usr/lib/jvm/java-17-openjdk ./bin/kfserver
 |---|---|
 | `tests/run_tests.sh` | CFML regression tests (`tests/cfml/*.cfm` vs `*.expected`) |
 | `python3 tests/http_tests.py` | Web server and CFHTTP tests: keep-alive, pipelining, HEAD, 304s, chunked bodies, timeouts, HTTPS, SNI, proxies (starts its own server on ports 8723/8546) |
-| `bash tools/testdocs.sh --all` | Renders every documentation page and all 337 reference snippets |
+| `bash tools/testdocs.sh --all` | Renders every documentation page and every reference snippet |
 | `python3 wwwroot/CFDOCS/exampleapp/selftest.py PORT` | Walks every example-application page and flow against a running server |
 | `make asan` | Builds `bin/kfserver-asan` with AddressSanitizer/UBSan. With a JVM, run it with `ASAN_OPTIONS=handle_segv=0:allow_user_segv_handler=1:detect_leaks=0` (the JVM handles SIGSEGV itself) |
 | `tests/ldap_interop.sh [http-port] [ldap-port]` | Checks the directory server against the OpenLDAP command-line tools |

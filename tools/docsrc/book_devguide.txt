@@ -725,6 +725,48 @@ WHERE ProductID = <CFQUERYPARAM VALUE="#NewID#" CFSQLTYPE="CF_SQL_INTEGER">
 > touched inside the transaction and restores them if an error escapes the block or `<CFTRANSACTION
 > ACTION="ROLLBACK">` runs. With a server database such as SQL Server or Oracle the database itself does this.
 
+# Calling stored procedures
+
+A stored procedure is a named set of SQL statements kept in the database. Calling one with `CFSTOREDPROC` keeps
+the SQL out of your templates, and the procedure can return several result sets, output parameters and a status
+code in one trip. The cfsnippets data source has an AddEmployee procedure that checks the department, refuses
+duplicates and hands back the new employee's ID:
+
+<<run storedproc.cfm>>
+<CFPARAM NAME="URL.Dept" DEFAULT="Training">
+<CFTRANSACTION>
+  <CFSTOREDPROC PROCEDURE="AddEmployee" DATASOURCE="cfsnippets" RETURNCODE="Yes">
+    <CFPROCPARAM CFSQLTYPE="CF_SQL_VARCHAR" DBVARNAME="@FirstName" VALUE="Ramona">
+    <CFPROCPARAM CFSQLTYPE="CF_SQL_VARCHAR" DBVARNAME="@LastName" VALUE="Flowers">
+    <CFPROCPARAM CFSQLTYPE="CF_SQL_VARCHAR" DBVARNAME="@Department" VALUE="#URL.Dept#">
+    <CFPROCPARAM TYPE="Out" CFSQLTYPE="CF_SQL_INTEGER" DBVARNAME="@NewID" VARIABLE="NewID">
+  </CFSTOREDPROC>
+  <!--- this is only a demonstration: undo the insert --->
+  <CFTRANSACTION ACTION="ROLLBACK"/>
+</CFTRANSACTION>
+
+<CFOUTPUT>
+<CFSWITCH EXPRESSION="#CFSTOREDPROC.StatusCode#">
+  <CFCASE VALUE="0"><P>Ramona Flowers joined #URL.Dept# as employee number #NewID#.</P></CFCASE>
+  <CFCASE VALUE="1"><P>There is no #URL.Dept# department.</P></CFCASE>
+  <CFCASE VALUE="2"><P>Ramona Flowers is already employee number #NewID#.</P></CFCASE>
+</CFSWITCH>
+<P><A HREF="storedproc.cfm?Dept=Sales">Try Sales</A> |
+<A HREF="storedproc.cfm?Dept=Catering">Try a department that does not exist</A></P>
+</CFOUTPUT>
+<<end>>
+
+The procedure itself was created with an ordinary `CFQUERY`. You can write your own the same way:
+
+    <CFQUERY DATASOURCE="cfsnippets">
+    CREATE PROCEDURE GetStaff @Dept VARCHAR(30) = 'Sales'
+    AS
+        SELECT FirstName, LastName FROM Employees
+        WHERE Department = @Dept ORDER BY LastName
+    </CFQUERY>
+
+See `CFSTOREDPROC` in the CFML Language Reference for the statements a procedure may use.
+
 @page applications | Building an Application
 
 So far every template has stood alone. A real site is a set of pages that share settings, a look and some memory

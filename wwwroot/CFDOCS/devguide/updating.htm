@@ -127,6 +127,38 @@ WHERE ProductID = &lt;CFQUERYPARAM VALUE=&quot;#NewID#&quot; CFSQLTYPE=&quot;CF_
 &lt;/CFQUERY&gt;
 &lt;CFOUTPUT&gt;&lt;P&gt;The demo product (ID #NewID#) has been deleted again.&lt;/P&gt;&lt;/CFOUTPUT&gt;</PRE>
 <P CLASS="note"><B>Note</B>&nbsp; The built-in flat-file driver behind cfsnippets has no transaction log, so KoldFusion snapshots the tables touched inside the transaction and restores them if an error escapes the block or <CODE>&lt;CFTRANSACTION ACTION=&quot;ROLLBACK&quot;&gt;</CODE> runs. With a server database such as SQL Server or Oracle the database itself does this.</P>
+<H2>Calling stored procedures</H2>
+<P>A stored procedure is a named set of SQL statements kept in the database. Calling one with <A HREF="/CFDOCS/langref/cfstoredproc.htm"><CODE>CFSTOREDPROC</CODE></A> keeps the SQL out of your templates, and the procedure can return several result sets, output parameters and a status code in one trip. The cfsnippets data source has an AddEmployee procedure that checks the department, refuses duplicates and hands back the new employee&#x27;s ID:</P>
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%"><TR><TD><FONT SIZE=1><B>storedproc.cfm</B></FONT></TD><TD ALIGN=RIGHT><FONT SIZE=1><A HREF="examples/storedproc.cfm" TARGET="kfrun">Run this example</A> &middot; <A HREF="/CFDOCS/snippets/viewsource.cfm?file=devguide/examples/storedproc.cfm" TARGET="kfrun">View source</A></FONT></TD></TR></TABLE>
+<PRE CLASS="example">&lt;CFPARAM NAME=&quot;URL.Dept&quot; DEFAULT=&quot;Training&quot;&gt;
+&lt;CFTRANSACTION&gt;
+  &lt;CFSTOREDPROC PROCEDURE=&quot;AddEmployee&quot; DATASOURCE=&quot;cfsnippets&quot; RETURNCODE=&quot;Yes&quot;&gt;
+    &lt;CFPROCPARAM CFSQLTYPE=&quot;CF_SQL_VARCHAR&quot; DBVARNAME=&quot;@FirstName&quot; VALUE=&quot;Ramona&quot;&gt;
+    &lt;CFPROCPARAM CFSQLTYPE=&quot;CF_SQL_VARCHAR&quot; DBVARNAME=&quot;@LastName&quot; VALUE=&quot;Flowers&quot;&gt;
+    &lt;CFPROCPARAM CFSQLTYPE=&quot;CF_SQL_VARCHAR&quot; DBVARNAME=&quot;@Department&quot; VALUE=&quot;#URL.Dept#&quot;&gt;
+    &lt;CFPROCPARAM TYPE=&quot;Out&quot; CFSQLTYPE=&quot;CF_SQL_INTEGER&quot; DBVARNAME=&quot;@NewID&quot; VARIABLE=&quot;NewID&quot;&gt;
+  &lt;/CFSTOREDPROC&gt;
+  &lt;!--- this is only a demonstration: undo the insert ---&gt;
+  &lt;CFTRANSACTION ACTION=&quot;ROLLBACK&quot;/&gt;
+&lt;/CFTRANSACTION&gt;
+
+&lt;CFOUTPUT&gt;
+&lt;CFSWITCH EXPRESSION=&quot;#CFSTOREDPROC.StatusCode#&quot;&gt;
+  &lt;CFCASE VALUE=&quot;0&quot;&gt;&lt;P&gt;Ramona Flowers joined #URL.Dept# as employee number #NewID#.&lt;/P&gt;&lt;/CFCASE&gt;
+  &lt;CFCASE VALUE=&quot;1&quot;&gt;&lt;P&gt;There is no #URL.Dept# department.&lt;/P&gt;&lt;/CFCASE&gt;
+  &lt;CFCASE VALUE=&quot;2&quot;&gt;&lt;P&gt;Ramona Flowers is already employee number #NewID#.&lt;/P&gt;&lt;/CFCASE&gt;
+&lt;/CFSWITCH&gt;
+&lt;P&gt;&lt;A HREF=&quot;storedproc.cfm?Dept=Sales&quot;&gt;Try Sales&lt;/A&gt; |
+&lt;A HREF=&quot;storedproc.cfm?Dept=Catering&quot;&gt;Try a department that does not exist&lt;/A&gt;&lt;/P&gt;
+&lt;/CFOUTPUT&gt;</PRE>
+<P>The procedure itself was created with an ordinary <A HREF="/CFDOCS/langref/cfquery.htm"><CODE>CFQUERY</CODE></A>. You can write your own the same way:</P>
+<PRE>&lt;CFQUERY DATASOURCE=&quot;cfsnippets&quot;&gt;
+CREATE PROCEDURE GetStaff @Dept VARCHAR(30) = &#x27;Sales&#x27;
+AS
+    SELECT FirstName, LastName FROM Employees
+    WHERE Department = @Dept ORDER BY LastName
+&lt;/CFQUERY&gt;</PRE>
+<P>See <A HREF="/CFDOCS/langref/cfstoredproc.htm"><CODE>CFSTOREDPROC</CODE></A> in the CFML Language Reference for the statements a procedure may use.</P>
 </DIV>
 <HR NOSHADE SIZE=1>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=2><TR><TD><A HREF="forms.htm"><IMG SRC="/CFDOCS/images/doc_back.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Previous page"></A></TD><TD><A HREF="index.htm"><IMG SRC="/CFDOCS/images/doc_up.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Up one level"></A></TD><TD><A HREF="applications.htm"><IMG SRC="/CFDOCS/images/doc_next.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Next page"></A></TD><TD><A HREF="/CFDOCS/dochome.cfm"><IMG SRC="/CFDOCS/images/doc_home.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Documentation home"></A></TD><TD><A HREF="/CFDOCS/langref/index.htm"><IMG SRC="/CFDOCS/images/doc_index.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="CFML Language Reference contents"></A></TD></TR></TABLE>

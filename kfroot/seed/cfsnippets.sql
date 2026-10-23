@@ -282,3 +282,78 @@ CREATE TABLE Registrations (
 
 INSERT INTO Registrations (FirstName, LastName, Company, Email, Platform, WebServer, Modem, HeardFrom, Y2KReady, Newsletter, Comments, Registered) VALUES
     ('Gil', 'Bates', 'Macrohard Corp.', 'gil@macrohard.example', 'Windows NT 4.0 SP4', 'IIS 4.0', 'T1', 'Trade magazine', 1, 1, 'Very nice. We may buy you.', {ts '1999-11-15 10:00:00'});
+
+-- ---------------------------------------------------------- Stored procedures
+-- Called by the CFSTOREDPROC, CFPROCPARAM and CFPROCRESULT examples. Each
+-- body is a BEGIN ... END block, so the semicolons inside it stay with the
+-- procedure (in SQL Server style scripts a line holding GO works too).
+DROP PROCEDURE IF EXISTS GetEmployeesByDept;
+DROP PROCEDURE IF EXISTS AddEmployee;
+DROP PROCEDURE IF EXISTS CountByDept;
+DROP PROCEDURE IF EXISTS GetEmployee;
+
+CREATE PROCEDURE GetEmployeesByDept
+    @Department VARCHAR(30)
+AS
+BEGIN
+    SELECT Emp_ID, FirstName, LastName, Email, Phone, StartDate
+      FROM Employees
+     WHERE Department = @Department
+     ORDER BY LastName, FirstName;
+    RETURN @@ROWCOUNT;
+END;
+
+CREATE PROCEDURE AddEmployee
+    @FirstName  VARCHAR(30),
+    @LastName   VARCHAR(30),
+    @Email      VARCHAR(60) = NULL,
+    @Phone      VARCHAR(20) = NULL,
+    @Department VARCHAR(30) = 'Sales',
+    @Salary     MONEY = 0,
+    @NewID      INT OUTPUT
+AS
+BEGIN
+    -- status 1: no such department, 2: already on file
+    IF NOT EXISTS (SELECT * FROM Departments WHERE Dept_Name = @Department)
+    BEGIN
+        SET @NewID = 0;
+        RETURN 1;
+    END
+    SELECT @NewID = Emp_ID FROM Employees WHERE FirstName = @FirstName AND LastName = @LastName;
+    IF @NewID IS NOT NULL
+        RETURN 2;
+    INSERT INTO Employees (FirstName, LastName, Email, Phone, Department, StartDate, Salary, Contract)
+    VALUES (@FirstName, @LastName, @Email, @Phone, @Department, DATE(), @Salary, 0);
+    SET @NewID = @@IDENTITY;
+    RETURN 0;
+END;
+
+CREATE PROCEDURE CountByDept
+    @Department VARCHAR(30) = NULL,
+    @Total      INT OUTPUT
+AS
+BEGIN
+    -- result set 1: head count and payroll per department
+    SELECT Department, COUNT(*) AS Employees, SUM(Salary) AS Payroll
+      FROM Employees
+     WHERE @Department IS NULL OR Department = @Department
+     GROUP BY Department
+     ORDER BY Department;
+    -- result set 2: where those departments are
+    SELECT Dept_ID, Dept_Name, Location
+      FROM Departments
+     WHERE @Department IS NULL OR Dept_Name = @Department
+     ORDER BY Dept_Name;
+    SELECT @Total = COUNT(*) FROM Employees WHERE @Department IS NULL OR Department = @Department;
+END;
+
+CREATE PROCEDURE GetEmployee
+    @EmpID INT
+AS
+BEGIN
+    IF NOT EXISTS (SELECT * FROM Employees WHERE Emp_ID = @EmpID)
+        RAISERROR ('Employee %d is not on file.', 16, 1, @EmpID);
+    SELECT e.Emp_ID, e.FirstName, e.LastName, e.Email, e.Phone, e.Department, d.Location, e.StartDate
+      FROM Employees e LEFT JOIN Departments d ON d.Dept_Name = e.Department
+     WHERE e.Emp_ID = @EmpID;
+END;

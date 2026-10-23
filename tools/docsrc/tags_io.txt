@@ -136,7 +136,8 @@ syntax:
     ATTACHMENTPATH="path"
     TIMEOUT="seconds"
     MAXROWS="number"
-    STARTROW="number">
+    STARTROW="number"
+    GENERATEUNIQUEFILENAMES="Yes/No">
 attrs:
 SERVER | Required | Host name or IP address of the POP3 server.
 PORT | Optional, default "110" | POP3 port.
@@ -147,14 +148,18 @@ ACTION | Optional, default "GetHeaderOnly" | GetHeaderOnly returns header fields
 NAME | Required for GetHeaderOnly and GetAll | Name of the query that receives the messages.
 MESSAGENUMBER | Optional | Comma-separated list of message numbers to retrieve or delete. Required for Delete.
   When it is given, STARTROW and MAXROWS are ignored.
-ATTACHMENTPATH | Optional | Directory for saving attachments. Accepted for compatibility; KoldFusion ignores it.
+ATTACHMENTPATH | Optional | With GetAll, the directory the attachments are saved in. It must exist.
+GENERATEUNIQUEFILENAMES | Optional, default "No" | Yes saves an attachment whose name is already taken under a
+  numbered name (report1.txt, report2.txt, ...) instead of overwriting the file.
 TIMEOUT | Optional, default "60" | Seconds to wait for the server.
 MAXROWS | Optional | Maximum number of messages to return.
 STARTROW | Optional, default "1" | First message number to return.
 usage:
 The query has the columns Date, From, MessageNumber, ReplyTo, Subject, CC, To and Header. With GetAll
-it also has Body, Attachments and AttachmentFiles. KoldFusion does not decode MIME attachments: the Body column
-holds the raw message text after the headers, and Attachments and AttachmentFiles are always empty.
+it also has Body, Attachments and AttachmentFiles. Body holds the readable text of the message: for a MIME
+message the first text/plain part (or the text/html part if there is no plain one), decoded from base64 or
+quoted-printable. Attachments is a tab-separated list of the attachments' file names, and AttachmentFiles a
+tab-separated list of the full paths they were saved to (empty unless ATTACHMENTPATH is given).
 
 If the server cannot be reached or rejects the login, an Application exception is thrown. Wrap `CFPOP` in
 `CFTRY` so a mail server that is down for the night does not take your page with it.
@@ -364,14 +369,15 @@ syntax:
     EXISTING="old_name"
     NEW="new_name"
     FAILIFEXISTS="Yes/No"
-    TRANSFERMODE="Binary"
+    TRANSFERMODE="ASCII/Binary/Auto"
+    ASCIIEXTENSIONLIST="extensions"
     PASSIVE="Yes"
     PROXYSERVER="proxyserver"
     RETRYCOUNT="number"
     AGENTNAME="name">
 attrs:
 ACTION | Required | Open, Close, ChangeDir, CreateDir, RemoveDir, ListDir, GetFile, PutFile, Remove, Rename,
-  GetCurrentDir, ExistsDir, ExistsFile or Exists.
+  GetCurrentDir, GetCurrentURL, ExistsDir, ExistsFile or Exists.
 SERVER | Required for Open | FTP server name or address. Other actions may also give SERVER instead of
   CONNECTION, in which case a temporary connection is opened and closed around the operation.
 USERNAME | Optional, default "anonymous" | Login name.
@@ -391,15 +397,18 @@ ITEM | Required for Remove, Exists | Remote file to delete or test.
 EXISTING | Required for Rename | Current remote name.
 NEW | Required for Rename | New remote name.
 FAILIFEXISTS | Optional, default "Yes" | For GetFile: fail if LOCALFILE already exists.
-TRANSFERMODE | Optional | Accepted for compatibility; KoldFusion always transfers in binary (image) mode.
+TRANSFERMODE | Optional, default "Auto" | ASCII transfers text (CRLF line ends on the wire, LF on this UNIX server),
+  Binary copies the bytes unchanged, and Auto picks ASCII for the extensions in ASCIIEXTENSIONLIST.
+ASCIIEXTENSIONLIST | Optional, default "txt;htm;html;cfm;cfml;shtm;shtml;css;asp;asa" | Semicolon-separated
+  extensions that Auto mode transfers as ASCII.
 PASSIVE | Optional | Accepted for compatibility; KoldFusion always uses passive mode.
 PROXYSERVER | Optional | Accepted for compatibility; KoldFusion ignores it.
 RETRYCOUNT | Optional | Accepted for compatibility; KoldFusion ignores it.
 AGENTNAME | Optional | Accepted for compatibility; KoldFusion ignores it.
 usage:
 After every call, `CFFTP.Succeeded` is YES or NO, `CFFTP.ErrorCode` and `CFFTP.ErrorText` hold the FTP
-reply when something failed, and `CFFTP.ReturnValue` holds the answer of GetCurrentDir, ExistsDir, ExistsFile
-and Exists.
+reply when something failed, and `CFFTP.ReturnValue` holds the answer of GetCurrentDir, GetCurrentURL (such as
+`ftp://ftp.example.com/pub`), ExistsDir, ExistsFile and Exists.
 
 Connections live until the end of the request; any connection you forget to close is closed for you.
 example:

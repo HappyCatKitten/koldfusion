@@ -13,7 +13,7 @@
 <DIV CLASS="docbody">
 <H1>CFML Language Reference</H1>
 <P>This reference describes every tag and function that the KoldFusion 4.5 server understands, with the syntax, the attributes or parameters, notes on how KoldFusion behaves, and an example you can run. Entries marked <FONT COLOR="#CC0000" SIZE=1>4.5</FONT> are new in this release.</P>
-<P><B>Alphabetical lists:</B> <A HREF="tags.htm">all 73 tags</A> &middot; <A HREF="functions.htm">all 242 functions</A> &middot; <A HREF="/CFDOCS/quickref/index.htm">CFML Quick Reference</A> &middot; <A HREF="/CFDOCS/snippets/index.cfm">Snippets Launcher</A></P>
+<P><B>Alphabetical lists:</B> <A HREF="tags.htm">all 73 tags</A> &middot; <A HREF="functions.htm">all 252 functions</A> &middot; <A HREF="/CFDOCS/quickref/index.htm">CFML Quick Reference</A> &middot; <A HREF="/CFDOCS/snippets/index.cfm">Snippets Launcher</A></P>
 <H2><A NAME="tags">Chapter 1: CFML Tags</A></H2>
 <P><FONT SIZE=1><A HREF="#variable_manipulation">Variable manipulation</A> | <A HREF="#flow_control">Flow control</A> | <A HREF="#exception_handling">Exception handling</A> | <A HREF="#output_and_page_processing">Output and page processing</A> | <A HREF="#database_manipulation">Database manipulation</A> | <A HREF="#application_framework">Application framework</A> | <A HREF="#extensibility">Extensibility</A> | <A HREF="#internet_protocols">Internet protocols</A> | <A HREF="#file_directory_and_system">File, directory and system</A> | <A HREF="#data_interchange">Data interchange</A> | <A HREF="#verity_search">Verity search</A> | <A HREF="#security">Security</A> | <A HREF="#forms">Forms</A></FONT></P>
 <H3><A NAME="variable_manipulation">Variable manipulation</A></H3>
@@ -61,7 +61,7 @@
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfprocresult.htm">CFPROCRESULT</A></TD><TD>Names a result set returned by a stored procedure called with CFSTOREDPROC.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfquery.htm">CFQUERY</A></TD><TD>Passes SQL statements to a data source and returns the result set as a query.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfqueryparam.htm">CFQUERYPARAM</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Binds a typed, validated value into the SQL of a CFQUERY.</TD></TR>
-<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfstoredproc.htm">CFSTOREDPROC</A></TD><TD>Calls a stored procedure in a database server.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfstoredproc.htm">CFSTOREDPROC</A></TD><TD>Calls a stored procedure in a data source.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cftransaction.htm">CFTRANSACTION</A></TD><TD>Groups several CFQUERY operations into a single database transaction.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="cfupdate.htm">CFUPDATE</A></TD><TD>Updates an existing table row from the fields of a submitted form, without writing any SQL.</TD></TR>
 </TABLE>
@@ -373,6 +373,8 @@
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structcount.htm">StructCount</A></TD><TD>Returns the number of keys in a structure.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structdelete.htm">StructDelete</A></TD><TD>Removes a key from a structure.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structfind.htm">StructFind</A></TD><TD>Returns the value stored under a key.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structfindkey.htm">StructFindKey</A></TD><TD>Searches nested structures and arrays for keys with a given name.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structfindvalue.htm">StructFindValue</A></TD><TD>Searches nested structures and arrays for keys with a given value.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structget.htm">StructGet</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Returns a structure at a variable path, creating it if needed.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structinsert.htm">StructInsert</A></TD><TD>Adds a key-value pair to a structure.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structisempty.htm">StructIsEmpty</A></TD><TD>Determines whether a structure has no keys.</TD></TR>
@@ -380,6 +382,7 @@
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structkeyexists.htm">StructKeyExists</A></TD><TD>Determines whether a structure contains a key.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structkeylist.htm">StructKeyList</A></TD><TD>Returns the keys of a structure as a list.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structnew.htm">StructNew</A></TD><TD>Creates a new, empty structure.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structsort.htm">StructSort</A></TD><TD>Returns the top-level keys of a structure sorted by their values.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="structupdate.htm">StructUpdate</A></TD><TD>Changes the value of an existing key.</TD></TR>
 </TABLE>
 <H3><A NAME="system_functions">System functions</A></H3>
@@ -398,12 +401,19 @@
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getexception.htm">GetException</A></TD><TD>Returns the Java exception thrown by the last method call on a Java object.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getfilefrompath.htm">GetFileFromPath</A></TD><TD>Extracts the file name from an absolute path.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getfunctionlist.htm">GetFunctionList</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Returns a structure whose keys are the names of all built-in CFML functions.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="gethttprequestdata.htm">GetHttpRequestData</A></TD><TD>Returns the HTTP request headers, body, method and protocol in a structure.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getk2servercollections.htm">GetK2ServerCollections</A></TD><TD>Returns the collections the Verity K2 Server serves.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getk2serverdoccount.htm">GetK2ServerDocCount</A></TD><TD>Returns the number of documents indexed in the Verity K2 Server&#x27;s collections.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getk2serverdoccountlimit.htm">GetK2ServerDocCountLimit</A></TD><TD>Returns the maximum number of documents the Verity K2 Server may index.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getmetricdata.htm">GetMetricData</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Returns server performance counters in a structure.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="getprofilestring.htm">GetProfileString</A></TD><TD>Reads one entry from a Windows-style initialization (.ini) file.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="gettempdirectory.htm">GetTempDirectory</A></TD><TD>Returns the path of the server&#x27;s directory for temporary files.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="gettempfile.htm">GetTempFile</A></TD><TD>Creates an empty file with a unique name and returns its path.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="gettemplatepath.htm">GetTemplatePath</A></TD><TD>Older name for GetBaseTemplatePath.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="gettickcount.htm">GetTickCount</A></TD><TD>Returns a millisecond counter for timing code.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="isk2serverabroker.htm">IsK2ServerABroker</A></TD><TD>Tells whether the Verity K2 Server is a broker for other K2 Servers.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="isk2serverdoccountexceeded.htm">IsK2ServerDocCountExceeded</A></TD><TD>Tells whether the Verity K2 Server holds more documents than its limit.</TD></TR>
+<TR VALIGN=TOP><TD WIDTH="30%"><A HREF="isk2serveronline.htm">IsK2ServerOnline</A></TD><TD>Tells whether the Verity K2 Server is running.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="javacast.htm">JavaCast</A> <FONT COLOR="#CC0000" SIZE=1>4.5</FONT></TD><TD>Marks a value with a Java type for calls to overloaded Java methods.</TD></TR>
 <TR VALIGN=TOP><TD WIDTH="30%"><A HREF="setprofilestring.htm">SetProfileString</A></TD><TD>Writes one entry to a Windows-style initialization (.ini) file.</TD></TR>
 </TABLE>

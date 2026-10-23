@@ -79,7 +79,11 @@ static const char *sqlstate_for(const char *msg) {
     if (kf_stristr(msg, "not found") && kf_stristr(msg, "table")) return "S0002 (Base table not found)";
     if (kf_stristr(msg, "column") && (kf_stristr(msg, "not found") || kf_stristr(msg, "unknown"))) return "S0022 (Column not found)";
     if (kf_stristr(msg, "syntax")) return "37000 (Syntax error or access violation)";
-    if (kf_stristr(msg, "already exists")) return "S0001 (Base table already exists)";
+    if (kf_stristr(msg, "already exists") || kf_stristr(msg, "already an object")) return "S0001 (Base table already exists)";
+    if (kf_stristr(msg, "Wrong number of parameters") || kf_stristr(msg, "expects parameter") ||
+        kf_stristr(msg, "too many arguments")) return "07001 (Wrong number of parameters)";
+    if (kf_stristr(msg, "Could not find stored procedure") || kf_stristr(msg, "Must declare the variable"))
+        return "37000 (Syntax error or access violation)";
     if (kf_stristr(msg, "type") || kf_stristr(msg, "mismatch")) return "22005 (Error in assignment)";
     return "S1000 (General error)";
 }
@@ -262,27 +266,31 @@ static const char *sqltype_class(const char *t) {
     return "s";
 }
 
-static void emit_param_value(Ctx *c, Buf *b, const char *val, const char *cls, const char *type, int maxlen) {
+static void emit_param_value(Ctx *c, Buf *b, const char *val, const char *cls, const char *type, int maxlen, int scale) {
     if (*cls == 'n') {
         double d;
         if (!v_isnumeric_str(val, &d))
-            kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
         if (kf_stristr(type, "INT") && d != floor(d))
-            kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
+        if (scale >= 0 && (kf_stristr(type, "NUMERIC") || kf_stristr(type, "DECIMAL"))) {   /* SCALE: decimal places */
+            double p = pow(10, scale);
+            d = (d < 0 ? -1 : 1) * floor(fabs(d) * p + 0.5) / p;
+        }
         buf_puts(b, fmt_number(d));
         return;
     }
     if (*cls == 'b') {
         int bv;
         if (!v_tobool(v_str(val), &bv))
-            kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
         buf_puts(b, bv ? "1" : "0");
         return;
     }
     if (*cls == 'd') {
         double d;
         if (!date_parse(val, &d))
-            kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
         int y, mo, dd, h, mi, s;
         date_to_parts(d, &y, &mo, &dd, &h, &mi, &s);
         if (kf_stristr(type, "TIMESTAMP")) buf_printf(b, "{ts '%04d-%02d-%02d %02d:%02d:%02d'}", y, mo, dd, h, mi, s);
@@ -291,7 +299,7 @@ static void emit_param_value(Ctx *c, Buf *b, const char *val, const char *cls, c
         return;
     }
     if (maxlen > 0 && (int)strlen(val) > maxlen)
-        kf_throw(c, "Database", kprintf("The cfqueryparam value exceeds the MAXLENGTH setting (%d).", maxlen), "");
+        kf_throw(c, "Database", kprintf("Invalid data '%s' value exceeds MAXLENGTH setting '%d'.", kf_html_escape(val), maxlen), "");
     buf_putc(b, '\'');
     for (const char *p = val; *p; p++) { if (*p == '\'') buf_putc(b, '\''); buf_putc(b, *p); }
     buf_putc(b, '\'');
@@ -304,6 +312,7 @@ TAG(queryparam) {
     Val v = attr_val(c, n, "value", NULL);
     const char *type = attr_str(c, n, "cfsqltype", "CF_SQL_CHAR");
     int maxlen = (int)attr_num(c, n, "maxlength", 0);
+    int scale = (int)attr_num(c, n, "scale", -1);
     int isnull = attr_bool(c, n, "null", 0);
     int list = attr_bool(c, n, "list", 0);
     const char *sep = attr_str(c, n, "separator", ",");
@@ -314,15 +323,25 @@ TAG(queryparam) {
         Array *a = list_to_array_k(val_simple_str(c, v, NULL), sep);
         for (int i = 0; i < a->n; i++) {
             if (i) buf_putc(&b, ',');
-            emit_param_value(c, &b, v_tostr(a->v[i]), cls, type, maxlen);
+            emit_param_value(c, &b, v_tostr(a->v[i]), cls, type, maxlen, scale);
         }
-    } else emit_param_value(c, &b, val_simple_str(c, v, NULL), cls, type, maxlen);
+    } else emit_param_value(c, &b, val_simple_str(c, v, NULL), cls, type, maxlen, scale);
     buf_put(c->rs->out, b.s ? b.s : "", b.len);
 }
 
 TAG(transaction) {
     RState *rs = c->rs;
     const char *action = attr_str(c, n, "action", "begin");
+    const char *iso = attr_str(c, n, "isolation", NULL);      /* the flat-file driver is always SERIALIZABLE */
+    if (iso && kf_stricmp(iso, "read_uncommitted") && kf_stricmp(iso, "read_committed") &&
+        kf_stricmp(iso, "repeatable_read") && kf_stricmp(iso, "serializable") && kf_stricmp(iso, "versioning"))
+        kf_throw(c, "Application", "Attribute validation error for tag CFTRANSACTION.",
+                 kprintf("The value of the attribute ISOLATION, which is currently \"%s\", must be one of the values: "
+                         "READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ, SERIALIZABLE.", kf_html_escape(iso)));
+    if (kf_stricmp(action, "begin") && kf_stricmp(action, "commit") && kf_stricmp(action, "rollback"))
+        kf_throw(c, "Application", "Attribute validation error for tag CFTRANSACTION.",
+                 kprintf("The value of the attribute ACTION, which is currently \"%s\", must be one of the values: BEGIN, COMMIT, ROLLBACK.",
+                         kf_html_escape(action)));
     if (!kf_stricmp(action, "commit") || !kf_stricmp(action, "rollback")) {
         if (!rs->in_txn)
             kf_throw(c, "Template", kprintf("CFTRANSACTION ACTION=\"%s\" must be nested inside a CFTRANSACTION block.", kf_upper(action)), "");
@@ -441,15 +460,271 @@ TAG(update) {
     run_sql(c, dsn, sql, "CFUPDATE", &aff);
 }
 
+/* ================================================================ CFSTOREDPROC
+ * <CFSTOREDPROC PROCEDURE DATASOURCE ...> with nested <CFPROCPARAM> and
+ * <CFPROCRESULT> tags. Like the ODBC driver of the day, the call is sent as
+ * {? = call Proc(?, ?)} with the parameters bound by position (or by name
+ * with DBVARNAME). */
+typedef struct ProcParamInfo {
+    const char *variable, *cfsqltype, *dbvarname, *type, *shown;
+    int maxlength, scale, isnull;
+} ProcParamInfo;
+
+typedef struct ProcCall {
+    SqlParam *p; ProcParamInfo *info; int np, cap;
+    Array *results;              /* structs: name, resultset, maxrows */
+} ProcCall;
+static __thread ProcCall *t_proc;
+
+static double num_or(Val *v, double def) {
+    double d;
+    return v && v_tonum(*v, &d) ? d : def;
+}
+
+static const char *CF_SQL_TYPES[] = {
+    "CF_SQL_BIGINT", "CF_SQL_BIT", "CF_SQL_CHAR", "CF_SQL_DATE", "CF_SQL_DECIMAL", "CF_SQL_DOUBLE",
+    "CF_SQL_FLOAT", "CF_SQL_IDSTAMP", "CF_SQL_INTEGER", "CF_SQL_LONGVARCHAR", "CF_SQL_MONEY", "CF_SQL_MONEY4",
+    "CF_SQL_NUMERIC", "CF_SQL_REAL", "CF_SQL_REFCURSOR", "CF_SQL_SMALLINT", "CF_SQL_TIME", "CF_SQL_TIMESTAMP",
+    "CF_SQL_TINYINT", "CF_SQL_VARCHAR", NULL
+};
+
+/* a CFPROCPARAM value converted the way the ODBC driver would bind it */
+static Val proc_bind_value(Ctx *c, const char *val, const char *type, int maxlen) {
+    const char *cls = sqltype_class(type);
+    double d;
+    if (*cls == 'n') {
+        if (!v_isnumeric_str(kf_trim(val), &d) || (kf_stristr(type, "INT") && d != floor(d)))
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
+        return v_num(d);
+    }
+    if (*cls == 'b') {
+        int bv;
+        if (!v_tobool(v_str(val), &bv))
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
+        return v_num(bv ? 1 : 0);
+    }
+    if (*cls == 'd') {
+        if (!date_parse(val, &d))
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
+        if (kf_stristr(type, "TIME") && !kf_stristr(type, "TIMESTAMP")) d -= floor(d);
+        else if (!kf_stristr(type, "TIME")) d = floor(d);
+        return v_date(d);
+    }
+    if (maxlen > 0 && (int)strlen(val) > maxlen)
+        kf_throw(c, "Database", kprintf("Invalid data '%s' value exceeds MAXLENGTH setting '%d'.", kf_html_escape(val), maxlen),
+                 kprintf("The value is %d characters long.", (int)strlen(val)));
+    return v_strdup(val);
+}
+
+/* an OUT value as CF hands it back: NULL is an empty string, dates like query columns */
+static Val proc_out_value(Val v, ProcParamInfo *pi) {
+    if (v.t == VT_NULL) return v_str("");
+    if (v.t == VT_DATE) {
+        int y, mo, d, h, mi, s;
+        date_to_parts(v.u.n, &y, &mo, &d, &h, &mi, &s);
+        return v_str(kprintf("%04d-%02d-%02d %02d:%02d:%02d", y, mo, d, h, mi, s));
+    }
+    if (v.t == VT_NUM && pi->scale > 0) {
+        double p = pow(10, pi->scale);
+        return v_num(round(v.u.n * p) / p);
+    }
+    if (v.t == VT_STR && pi->maxlength > 0 && (int)v.u.str.len > pi->maxlength) return v_strn(v.u.str.s, pi->maxlength);
+    return v;
+}
+
 TAG(storedproc) {
-    (void)flow;
-    const char *dsn = require_attr(c, n, "datasource");
+    RState *rs = c->rs;
     const char *proc = require_attr(c, n, "procedure");
+    const char *dsn = attr_str(c, n, "datasource", NULL);
+    if (!dsn) {
+        Val *def = struct_get(c->variables, "__kf_default_dsn");
+        if (!def) kf_throw(c, "Application", "Attribute validation error for tag CFSTOREDPROC.",
+                           "The tag requires the attribute(s): DATASOURCE.");
+        dsn = v_tostr(*def);
+    }
+    int retcode = attr_bool(c, n, "returncode", 0);
+    int debug = attr_bool(c, n, "debug", 0);
+    int present;
+    Val bf = attr_val(c, n, "blockfactor", &present);
+    double bfn;
+    if (present && (!v_tonum(bf, &bfn) || bfn < 1 || bfn > 100 || bfn != floor(bfn)))
+        kf_throw(c, "Application", "Attribute validation error for tag CFSTOREDPROC.",
+                 kprintf("The value of the attribute BLOCKFACTOR, which is currently \"%s\", must be an integer between 1 and 100.",
+                         kf_html_escape(val_simple_str(c, bf, NULL))));
+    const char *dbtype = attr_str(c, n, "dbtype", "odbc");    /* every driver type reaches the same engine */
+    static const char *DBTYPES[] = {"odbc", "oledb", "oracle73", "oracle80", "sybase11", "db2", "informix73", NULL};
+    int okt = 0;
+    for (int i = 0; DBTYPES[i]; i++) if (!kf_stricmp(DBTYPES[i], dbtype)) okt = 1;
+    if (!okt)
+        kf_throw(c, "Application", "Attribute validation error for tag CFSTOREDPROC.",
+                 kprintf("The value of the attribute DBTYPE, which is currently \"%s\", must be one of the values: "
+                         "ODBC, OLEDB, Oracle73, Oracle80, Sybase11, DB2, Informix73.", kf_html_escape(dbtype)));
+
+    /* collect the CFPROCPARAM / CFPROCRESULT children */
+    ProcCall pc; memset(&pc, 0, sizeof pc);
+    pc.results = array_new();
+    ProcCall *saved = t_proc;
+    t_proc = &pc;
+    JmpFrame jf; jf.prev = rs->jf; rs->jf = &jf;
+    if (setjmp(jf.jb) != 0) {
+        rs->jf = jf.prev;
+        t_proc = saved;
+        kf_throw_err(rs, rs->err);
+    }
+    exec_nodes(c, n->kids, n->nkids, flow);
+    rs->jf = jf.prev;
+    t_proc = saved;
+    *flow = FL_OK;
+
     Dsn d;
     if (!dsn_lookup(dsn, &d)) throw_db(c, kprintf("Data source %s could not be found.", kf_upper(dsn)), NULL, dsn);
-    throw_db(c, kprintf("[Gibson][KoldFusion Flat-File Driver] Driver does not support stored procedures (%s). "
-                        "Stored procedures require a native database driver such as Oracle80 or Sybase11.", proc),
-             kprintf("{call %s}", proc), d.name);
+    Buf call; buf_init(&call);
+    buf_printf(&call, "{%scall %s", retcode ? "? = " : "", proc);
+    for (int i = 0; i < pc.np; i++) buf_puts(&call, i ? ", ?" : "(?");
+    buf_puts(&call, pc.np ? ")}" : "}");
+    const char *sqltext = buf_cstr(&call);
+    if (d.disabled)
+        throw_db(c, kprintf("Connections to the data source %s have been disabled by the KoldFusion Administrator.", d.name), sqltext, d.name);
+    if (d.restrict_sp)
+        throw_db(c, kprintf("The SQL operation is restricted for data source %s.", d.name), sqltext, d.name);
+
+    txn_touch(rs, d.path);
+    SqlProcResult res;
+    char err[2048];
+    double t0 = kf_time_ms();
+    if (!sql_call_procedure(d.path, proc, pc.p, pc.np, &res, err, sizeof err)) throw_db(c, err, sqltext, d.name);
+    double ms = kf_time_ms() - t0;
+
+    /* CFPROCRESULT: result set n -> query */
+    for (int i = 0; i < pc.results->n; i++) {
+        Struct *r = pc.results->v[i].u.st;
+        int set = (int)num_or(struct_get(r, "resultset"), 1);
+        int maxrows = (int)num_or(struct_get(r, "maxrows"), -1);
+        if (set < 1 || set > res.nsets) continue;          /* no such result set: the variable is not created */
+        Query *q = query_copy(res.sets[set - 1]);
+        if (maxrows >= 0 && q->nrows > maxrows) q->nrows = maxrows;
+        q->name = kstrdup(v_tostr(*struct_get(r, "name")));
+        q->sql = sqltext;
+        q->datasource = d.name;
+        q->exectime_ms = ms;
+        q->currentrow = 0;
+        assign_path(c, q->name, v_query(q));
+    }
+    /* CFPROCPARAM TYPE="OUT"/"INOUT": VARIABLE gets the value */
+    for (int i = 0; i < pc.np; i++)
+        if (pc.p[i].dir != SQL_PARAM_IN && pc.info[i].variable)
+            assign_path(c, pc.info[i].variable, proc_out_value(pc.p[i].has_out ? pc.p[i].out : v_null(), &pc.info[i]));
+
+    Struct *sp = struct_new();
+    struct_set(sp, "ExecutionTime", v_num(floor(ms)));
+    if (retcode) struct_set(sp, "StatusCode", v_num(res.status));
+    struct_set(c->variables, "CFSTOREDPROC", v_struct(sp));
+
+    if (rs->show_query_info || (debug && rs->show_debug)) {
+        Buf dbg; buf_init(&dbg);
+        buf_puts(&dbg, sqltext);
+        for (int i = 0; i < pc.np; i++) {
+            ProcParamInfo *pi = &pc.info[i];
+            buf_printf(&dbg, "\n(param %d) = [type='%s', class='%s', value='%s'%s%s]", i + 1, pi->type, pi->cfsqltype,
+                       pc.p[i].dir == SQL_PARAM_OUT ? "" : pi->isnull ? "[NULL]" : pi->shown,
+                       pi->dbvarname ? kprintf(", dbvarname='%s'", pi->dbvarname) : "",
+                       pc.p[i].dir != SQL_PARAM_IN ? kprintf(", variable='%s', out='%s'", pi->variable ? pi->variable : "",
+                                                             v_tostr(proc_out_value(pc.p[i].out, pi))) : "");
+        }
+        if (retcode) buf_printf(&dbg, "\nStatusCode = %s", fmt_number(res.status));
+        buf_printf(&dbg, "\nResult sets: %d", res.nsets);
+        DebugQuery *dq = kmalloc(sizeof(DebugQuery));
+        dq->name = kprintf("%s (stored procedure)", proc);
+        dq->datasource = d.name; dq->sql = buf_cstr(&dbg); dq->ms = ms;
+        dq->records = res.nsets ? res.sets[0]->nrows : 0;
+        dq->template = rs->cur_tpl ? rs->cur_tpl->path : "";
+        dq->next = rs->dq; rs->dq = dq;
+    }
 }
-TAG(procparam) { (void)c; (void)n; (void)flow; }
-TAG(procresult) { (void)c; (void)n; (void)flow; }
+
+TAG(procparam) {
+    (void)flow;
+    ProcCall *pc = t_proc;
+    if (!pc)
+        kf_throw(c, "Template", "Context validation error for tag CFPROCPARAM.", "The tag must be nested inside a CFSTOREDPROC tag.");
+    const char *type = attr_str(c, n, "type", "IN");
+    int dir = !kf_stricmp(type, "in") ? SQL_PARAM_IN : !kf_stricmp(type, "out") ? SQL_PARAM_OUT :
+              !kf_stricmp(type, "inout") ? SQL_PARAM_INOUT : 0;
+    if (!dir)
+        kf_throw(c, "Application", "Attribute validation error for tag CFPROCPARAM.",
+                 kprintf("The value of the attribute TYPE, which is currently \"%s\", must be one of the values: IN, OUT, INOUT.", kf_html_escape(type)));
+    const char *cfsqltype = require_attr(c, n, "cfsqltype");
+    int known = 0;
+    for (int i = 0; CF_SQL_TYPES[i]; i++) if (!kf_stricmp(CF_SQL_TYPES[i], cfsqltype)) known = 1;
+    if (!known)
+        kf_throw(c, "Application", "Attribute validation error for tag CFPROCPARAM.",
+                 kprintf("The value of the attribute CFSQLTYPE, which is currently \"%s\", is invalid. Valid types are %s and CF_SQL_VARCHAR.",
+                         kf_html_escape(cfsqltype), "CF_SQL_BIGINT, CF_SQL_BIT, CF_SQL_CHAR, CF_SQL_DATE, CF_SQL_DECIMAL, CF_SQL_DOUBLE, "
+                         "CF_SQL_FLOAT, CF_SQL_IDSTAMP, CF_SQL_INTEGER, CF_SQL_LONGVARCHAR, CF_SQL_MONEY, CF_SQL_MONEY4, CF_SQL_NUMERIC, "
+                         "CF_SQL_REAL, CF_SQL_REFCURSOR, CF_SQL_SMALLINT, CF_SQL_TIME, CF_SQL_TIMESTAMP, CF_SQL_TINYINT"));
+    if (!kf_stricmp(cfsqltype, "CF_SQL_REFCURSOR"))
+        kf_throw(c, "Database", "CF_SQL_REFCURSOR is only supported by the Oracle native drivers.",
+                 "The KoldFusion Flat-File Driver returns result sets directly; use CFPROCRESULT.");
+    ProcParamInfo pi; memset(&pi, 0, sizeof pi);
+    pi.type = kf_upper(type);
+    pi.cfsqltype = kf_upper(cfsqltype);
+    pi.variable = attr_str(c, n, "variable", NULL);
+    pi.dbvarname = attr_str(c, n, "dbvarname", NULL);
+    if (pi.dbvarname && !*pi.dbvarname) pi.dbvarname = NULL;
+    pi.maxlength = (int)attr_num(c, n, "maxlength", 0);
+    pi.scale = (int)attr_num(c, n, "scale", 0);
+    pi.isnull = attr_bool(c, n, "null", 0);
+    if (dir != SQL_PARAM_IN && !pi.variable)
+        kf_throw(c, "Application", "Attribute validation error for tag CFPROCPARAM.",
+                 kprintf("The tag requires the attribute(s): VARIABLE when TYPE is %s.", pi.type));
+    SqlParam sp; memset(&sp, 0, sizeof sp);
+    sp.name = pi.dbvarname;
+    sp.dir = dir;
+    sp.value = v_null();
+    if (dir != SQL_PARAM_OUT && !pi.isnull) {
+        int present;
+        Val v = attr_val(c, n, "value", &present);
+        if (!present)
+            kf_throw(c, "Application", "Attribute validation error for tag CFPROCPARAM.",
+                     "The tag requires the attribute(s): VALUE (or NULL=\"Yes\") when TYPE is IN or INOUT.");
+        pi.shown = val_simple_str(c, v, NULL);
+        sp.value = proc_bind_value(c, pi.shown, cfsqltype, pi.maxlength);
+    }
+    if (!pi.shown) pi.shown = "";
+    if (pc->np == pc->cap) {
+        pc->cap = pc->cap ? pc->cap * 2 : 8;
+        SqlParam *np = kmalloc(sizeof(SqlParam) * pc->cap);
+        ProcParamInfo *ni = kmalloc(sizeof(ProcParamInfo) * pc->cap);
+        if (pc->np) { memcpy(np, pc->p, sizeof(SqlParam) * pc->np); memcpy(ni, pc->info, sizeof(ProcParamInfo) * pc->np); }
+        pc->p = np; pc->info = ni;
+    }
+    pc->p[pc->np] = sp;
+    pc->info[pc->np] = pi;
+    pc->np++;
+}
+
+TAG(procresult) {
+    (void)flow;
+    if (!t_proc)
+        kf_throw(c, "Template", "Context validation error for tag CFPROCRESULT.", "The tag must be nested inside a CFSTOREDPROC tag.");
+    const char *name = require_attr(c, n, "name");
+    double set = attr_num(c, n, "resultset", 1);
+    if (set < 1 || set != floor(set))
+        kf_throw(c, "Application", "Attribute validation error for tag CFPROCRESULT.",
+                 "The value of the attribute RESULTSET must be a positive integer.");
+    Struct *r = struct_new();
+    struct_set(r, "name", v_strdup(name));
+    struct_set(r, "resultset", v_num(set));
+    struct_set(r, "maxrows", v_num(attr_num(c, n, "maxrows", -1)));
+    array_push(t_proc->results, v_struct(r));
+}
+
+/* CFOBJECTCACHE ACTION="Clear": the undocumented 4.x tag that empties the query cache */
+TAG(objectcache) {
+    (void)flow;
+    const char *action = require_attr(c, n, "action");
+    if (kf_stricmp(action, "clear"))
+        kf_throw(c, "Application", "Attribute validation error for tag CFOBJECTCACHE.",
+                 kprintf("The value of the attribute ACTION, which is currently \"%s\", must be CLEAR.", kf_html_escape(action)));
+    qcache_flush();
+}

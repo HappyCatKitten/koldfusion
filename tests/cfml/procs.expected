@@ -1,0 +1,37 @@
+1|16|small|32|8|4|xyz|NO|YES
+2|4|small|abcde|NO
+3|11|50|25|big|1
+4|2|YES|EMP_ID,FIRSTNAME,LASTNAME,EMAIL,PHONE,STARTDATE
+4|Engineering|YES|Cambridge, MA
+4|0|Testcase|Training|2|YES
+4|1|0
+4|0
+5|YES|YES
+5|Engineering|YES|1999-12-31 00:00:00|[]
+5|4|1
+6|1|37000|Could not find stored procedure 'NoSuchProc'.
+6|2|07001|Procedure 'KfTestFlow' expects parameter '@Limit', which was not supplied.
+6|3|07001|Procedure or function KfTestFlow has too many arguments specified.
+6|4|S1000|The formal parameter "@Limit" was not declared as an OUTPUT parameter, but the actual parameter passed in requested output.
+6|5|S1000|@Bogus is not a parameter for procedure KfTestFlow.
+6|6|S1000|Must pass parameter number 2 and subsequent parameters as '@name = value'. After the form '@name = value' has been used, all subsequent parameters must be passed in the form '@name = value'.
+6|7|37000|Must declare the variable '@undeclared'.
+6|8|22005|Conversion failed when converting the value 'abc' to data type int.
+6|9|S1000|The variable name '@i' has already been declared. Variable names must be unique within a query batch or stored procedure.
+6|10|07001|Wrong number of parameters: the statement has parameter markers (?) but no values were bound to them.
+6|11|S1000|Cannot drop the procedure 'NoSuchProc', because it does not exist or you do not have permission.
+6|12|S0001|There is already an object named 'Employees' in the database.
+6|13|S0001|There is already an object named 'KfTestFlow' in the database.
+6|14|22005|Column, parameter, or variable: Cannot find data type FOOTYPE.
+6|15|37000|Syntax error: BEGIN without a matching END. (procedure KfBad, line 1)
+6|16|S1000|Cannot use a BREAK statement outside the scope of a WHILE statement. (procedure KfBad, line 1)
+6|17|S1000|Custom failure abc/42
+6|[Gibson][KoldFusion Flat-File Driver] Employee 99999 is not on file.|0
+6|Invalid data '1.5' for CFSQLTYPE 'CF_SQL_INTEGER'.
+6|Attribute validation error for tag CFPROCPARAM.
+6|Attribute validation error for tag CFPROCPARAM.|The tag requires the attribute(s): VARIABLE when TYPE is OUT.
+6|Context validation error for tag CFPROCPARAM.
+6|The value of the attribute BLOCKFACTOR, which is currently "500", must be an integer between 1 and 100.
+7|dropped|37000
+8|GET|HTTP/|0|YES
+8|YES|NO|YES|YES|YES|YES

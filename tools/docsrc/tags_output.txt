@@ -306,6 +306,7 @@ copy is older than TIMEOUT or the cache is flushed.
 syntax:
 <CFCACHE ACTION="CACHE/FLUSH/CLIENTCACHE/OPTIMAL"
     DIRECTORY="directory"
+    CACHEDIRECTORY="directory"
     TIMEOUT="date_time"
     EXPIREURL="url"
     PROTOCOL="http://"
@@ -313,10 +314,13 @@ syntax:
     USERNAME="username"
     PASSWORD="password">
 attrs:
-ACTION | Optional, default "CACHE" | "CACHE" serves and saves cached copies. "FLUSH" deletes cached copies.
-  CLIENTCACHE and OPTIMAL (browser caching in ColdFusion) are treated like CACHE.
+ACTION | Optional, default "CACHE" | "CACHE" serves and saves cached copies on the server. "FLUSH" deletes cached
+  copies. "CLIENTCACHE" lets the browser cache the page: the response carries a Last-Modified date (the template's
+  date, or TIMEOUT if that is later) and a browser that asks again with that date gets "304 Not Modified". "OPTIMAL"
+  does both.
 DIRECTORY | Optional | Absolute path of the directory that holds the cached copies. The default is the
-  `cache` directory of the KoldFusion installation.
+  `cache` directory of the KoldFusion installation. With ACTION="FLUSH", the directory to flush.
+CACHEDIRECTORY | Optional | Directory the cached copies are written to with ACTION="CACHE" or "OPTIMAL"; overrides DIRECTORY.
 TIMEOUT | Optional | A date/time. A cached copy made before this moment is stale and the page is run again.
   `DateAdd("h", -1, Now())` means "no copy older than an hour". Without TIMEOUT a copy never expires.
 EXPIREURL | Optional | With ACTION="FLUSH": only flush copies whose URL starts with this text, for example

@@ -51,6 +51,7 @@ function runExample(name) {
 <P>After the query runs, each result set exposes the variables <CODE>query_name.RecordCount</CODE>, <CODE>query_name.ColumnList</CODE> and <CODE>query_name.CurrentRow</CODE>. The variable <CODE>CFQUERY.ExecutionTime</CODE> holds the number of milliseconds the last query took.</P>
 <P>Text values in WHERE clauses need single quotes; single quotes inside CFML variables are doubled automatically. Use <A HREF="cfqueryparam.htm"><CODE>CFQUERYPARAM</CODE></A> to bind typed values safely.</P>
 <P>The maximum number of cached queries is set on the Caching page of the Administrator.</P>
+<P>A CFQUERY can also call a stored procedure (<CODE>EXEC GetEmployeesByDept &#x27;Sales&#x27;</CODE> or <CODE>{call GetEmployeesByDept(&#x27;Sales&#x27;)}</CODE>), which returns the procedure&#x27;s first result set, or run a small batch with variables (<CODE>DECLARE @n INT; SELECT @n = MAX(Emp_ID) FROM Employees; SELECT ... WHERE Emp_ID = @n</CODE>). Use <A HREF="cfstoredproc.htm"><CODE>CFSTOREDPROC</CODE></A> to get output parameters, status codes and every result set.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfquery"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfquery'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
 <PRE CLASS="example">&lt;!--- List the engineers, newest first ---&gt;
@@ -72,7 +73,7 @@ in #CFQUERY.ExecutionTime# ms. Columns: #GetEngineers.ColumnList#&lt;/P&gt;
 &lt;/CFOUTPUT&gt;
 &lt;/UL&gt;</PRE>
 <H4>See also</H4>
-<P><A HREF="cfqueryparam.htm">CFQUERYPARAM</A>, <A HREF="cfoutput.htm">CFOUTPUT</A>, <A HREF="cftransaction.htm">CFTRANSACTION</A>, <A HREF="cfinsert.htm">CFINSERT</A>, <A HREF="cfupdate.htm">CFUPDATE</A>, <A HREF="createtimespan.htm">CreateTimeSpan</A></P>
+<P><A HREF="cfqueryparam.htm">CFQUERYPARAM</A>, <A HREF="cfoutput.htm">CFOUTPUT</A>, <A HREF="cftransaction.htm">CFTRANSACTION</A>, <A HREF="cfinsert.htm">CFINSERT</A>, <A HREF="cfupdate.htm">CFUPDATE</A>, <A HREF="cfstoredproc.htm">CFSTOREDPROC</A>, <A HREF="createtimespan.htm">CreateTimeSpan</A></P>
 </DIV>
 <HR NOSHADE SIZE=1>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=2><TR><TD><A HREF="cfprocresult.htm"><IMG SRC="/CFDOCS/images/doc_back.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Previous page"></A></TD><TD><A HREF="index.htm"><IMG SRC="/CFDOCS/images/doc_up.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Up one level"></A></TD><TD><A HREF="cfqueryparam.htm"><IMG SRC="/CFDOCS/images/doc_next.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Next page"></A></TD><TD><A HREF="/CFDOCS/dochome.cfm"><IMG SRC="/CFDOCS/images/doc_home.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Documentation home"></A></TD><TD><A HREF="/CFDOCS/langref/index.htm"><IMG SRC="/CFDOCS/images/doc_index.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="CFML Language Reference contents"></A></TD></TR></TABLE>

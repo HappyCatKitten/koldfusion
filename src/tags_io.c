@@ -804,6 +804,7 @@ static const char *hdr_field(const char *msg, const char *name) {
     return "";
 }
 
+void mime_extract(const char *msg, const char *attach_dir, int unique, char **body, char **names, char **files);
 TAG(pop) {
     (void)flow;
     const char *server = require_attr(c, n, "server");
@@ -842,6 +843,14 @@ TAG(pop) {
         return;
     }
     int full = !kf_stricmp(action, "getall");
+    const char *attach_dir = attr_str(c, n, "attachmentpath", NULL);
+    struct stat ast;
+    if (attach_dir && (stat((attach_dir = kf_native_path(attach_dir)), &ast) != 0 || !S_ISDIR(ast.st_mode))) {
+        pop_cmd(fd, "QUIT", &r);
+        close(fd);
+        kf_throw(c, "Application", "Error processing CFPOP",
+                 kprintf("The ATTACHMENTPATH directory %s does not exist.", kf_html_escape(attr_str(c, n, "attachmentpath", ""))));
+    }
     const char *cols[] = {"Date", "From", "MessageNumber", "ReplyTo", "Subject", "CC", "To", "Body", "Header", "Attachments", "AttachmentFiles"};
     Query *q = query_new(full ? 11 : 9, cols);
     int start = (int)attr_num(c, n, "startrow", 1), maxrows = (int)attr_num(c, n, "maxrows", count);
@@ -865,10 +874,12 @@ TAG(pop) {
         query_set(q, 5, row, v_str(hdr_field(hdrs, "Cc")));
         query_set(q, 6, row, v_str(hdr_field(hdrs, "To")));
         if (full) {
-            query_set(q, 7, row, v_str(sep ? sep + 2 : ""));
+            char *mbody, *anames, *afiles;          /* mime.c: text body + attachments saved to ATTACHMENTPATH */
+            mime_extract(msg, attach_dir, attr_bool(c, n, "generateuniquefilenames", 0), &mbody, &anames, &afiles);
+            query_set(q, 7, row, v_str(mbody));
             query_set(q, 8, row, v_str(hdrs));
-            query_set(q, 9, row, v_str(""));
-            query_set(q, 10, row, v_str(""));
+            query_set(q, 9, row, v_str(anames));
+            query_set(q, 10, row, v_str(afiles));
         } else query_set(q, 8, row, v_str(hdrs));
     }
     pop_cmd(fd, "QUIT", &r);

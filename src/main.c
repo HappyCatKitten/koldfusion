@@ -250,6 +250,10 @@ static void seed_databases(void) {
                 fprintf(stderr, "KoldFusion: seeding %s failed: %s\n", name, err);
             else
                 fprintf(stderr, "  Created sample data source %s\n", name);
+        } else {
+            char err[1024];          /* databases made before stored procedures existed get the seed's procedures */
+            if (!sql_seed_procedures(dir, sql, err, sizeof err))
+                fprintf(stderr, "KoldFusion: adding stored procedures to %s failed: %s\n", name, err);
         }
         free(sql);
     }

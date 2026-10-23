@@ -159,6 +159,33 @@ static Query *parse_list(const char *dir, const char *text, const char *host) {
     return q;
 }
 
+/* TRANSFERMODE: ASCII, BINARY or AUTO (ASCII for the extensions in ASCIIEXTENSIONLIST) */
+static int ftp_ascii(Ctx *c, Node *n, const char *file) {
+    const char *mode = attr_str(c, n, "transfermode", "auto");
+    if (!kf_stricmp(mode, "ascii")) return 1;
+    if (!kf_stricmp(mode, "binary")) return 0;
+    if (kf_stricmp(mode, "auto"))
+        kf_throw(c, "Application", "Attribute validation error for tag CFFTP.",
+                 kprintf("The value of the attribute TRANSFERMODE, which is currently \"%s\", must be one of the values: ASCII, BINARY, AUTO.",
+                         kf_html_escape(mode)));
+    const char *dot = strrchr(file, '.');
+    if (!dot || strchr(dot, '/')) return 0;
+    Array *exts = list_to_array_k(attr_str(c, n, "asciiextensionlist", "txt;htm;html;cfm;cfml;shtm;shtml;css;asp;asa"), ";");
+    for (int i = 0; i < exts->n; i++) if (!kf_stricmp(kf_trim(v_tostr(exts->v[i])), dot + 1)) return 1;
+    return 0;
+}
+/* ASCII transfers: CRLF on the wire, LF on this (UNIX) machine */
+static char *eol_convert(const char *data, size_t len, size_t *outlen, int to_crlf) {
+    Buf b; buf_init(&b);
+    for (size_t i = 0; i < len; i++) {
+        if (to_crlf && data[i] == '\n' && (i == 0 || data[i - 1] != '\r')) buf_putc(&b, '\r');
+        if (!to_crlf && data[i] == '\r' && i + 1 < len && data[i + 1] == '\n') continue;
+        buf_putc(&b, data[i]);
+    }
+    *outlen = b.len;
+    return buf_cstr(&b);
+}
+
 TAG(ftp) {
     (void)flow;
     const char *action = require_attr(c, n, "action");
@@ -201,6 +228,11 @@ TAG(ftp) {
         code = ftp_cmd(fc->fd, "PWD", &t); ok = code == 257;
         const char *q1 = strchr(buf_cstr(&t), '"');
         if (q1) { const char *q2 = strchr(q1 + 1, '"'); if (q2) ret = v_str(kstrndup(q1 + 1, q2 - q1 - 1)); }
+    } else if (!kf_stricmp(action, "getcurrenturl")) {
+        code = ftp_cmd(fc->fd, "PWD", &t); ok = code == 257;
+        const char *q1 = strchr(buf_cstr(&t), '"'), *dir = "/";
+        if (q1) { const char *q2 = strchr(q1 + 1, '"'); if (q2) dir = kstrndup(q1 + 1, q2 - q1 - 1); }
+        ret = v_str(kprintf("ftp://%s%s%s", fc->host, *dir == '/' ? "" : "/", dir));
     } else if (!kf_stricmp(action, "existsdir") || !kf_stricmp(action, "existsfile") || !kf_stricmp(action, "exists")) {
         const char *item = attr_str(c, n, "directory", attr_str(c, n, "remotefile", attr_str(c, n, "item", "")));
         int exists;
@@ -226,11 +258,14 @@ TAG(ftp) {
     } else if (!kf_stricmp(action, "getfile")) {
         const char *rf = require_attr(c, n, "remotefile"), *lf = require_attr(c, n, "localfile");
         if (attr_bool(c, n, "failifexists", 1) && access(lf, F_OK) == 0) { fail(c, n, 0, kprintf("The local file %s already exists.", lf)); if (temp) ftp_cleanup(rs); return; }
+        int ascii = ftp_ascii(c, n, rf);
+        ftp_cmd(fc->fd, ascii ? "TYPE A" : "TYPE I", &t);
         int dfd = ftp_pasv(fc, &t);
         if (dfd < 0) { fail(c, n, 425, "Unable to open a passive data connection."); if (temp) ftp_cleanup(rs); return; }
         code = ftp_cmd(fc->fd, kprintf("RETR %s", rf), &t);
         if (code == 150 || code == 125) {
             size_t len; char *data = read_all(dfd, &len);
+            if (ascii) data = eol_convert(data, len, &len, 0);
             kf_write_file(lf, data, len, 0);
             code = ftp_reply(fc->fd, &t);
             ok = code == 226 || code == 250;
@@ -240,12 +275,16 @@ TAG(ftp) {
         size_t len;
         char *data = kf_read_file(lf, &len);
         if (!data) { fail(c, n, 0, kprintf("The local file %s could not be read.", lf)); if (temp) ftp_cleanup(rs); return; }
+        int ascii = ftp_ascii(c, n, lf);
+        ftp_cmd(fc->fd, ascii ? "TYPE A" : "TYPE I", &t);
+        const char *wire = data;
+        if (ascii) wire = eol_convert(data, len, &len, 1);
         int dfd = ftp_pasv(fc, &t);
         if (dfd < 0) { free(data); fail(c, n, 425, "Unable to open a passive data connection."); if (temp) ftp_cleanup(rs); return; }
         code = ftp_cmd(fc->fd, kprintf("STOR %s", rf), &t);
         if (code == 150 || code == 125) {
             size_t off = 0;
-            while (off < len) { ssize_t w = send(dfd, data + off, len - off, MSG_NOSIGNAL); if (w <= 0) break; off += (size_t)w; }
+            while (off < len) { ssize_t w = send(dfd, wire + off, len - off, MSG_NOSIGNAL); if (w <= 0) break; off += (size_t)w; }
             close(dfd);
             code = ftp_reply(fc->fd, &t);
             ok = code == 226 || code == 250;

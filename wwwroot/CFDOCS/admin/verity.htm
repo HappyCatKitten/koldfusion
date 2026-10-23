@@ -75,6 +75,31 @@
 <PRE>&lt;cfsearch name=&quot;hits&quot; collection=&quot;sitedocs&quot; criteria=&quot;frosty&quot;&gt;
 &lt;cfoutput query=&quot;hits&quot;&gt;&lt;a href=&quot;#URL#&quot;&gt;#Title#&lt;/a&gt; (#Score#)&lt;br&gt;&lt;/cfoutput&gt;</PRE>
 <P CLASS="note"><B>Note</B>&nbsp; Re-index after you change your site, or new pages will not show up in search results. A nightly <A HREF="scheduledtasks.htm">Scheduled Task</A> that runs a <CODE>CFINDEX ACTION=&quot;Refresh&quot;</CODE> template does the job.</P>
+<H2>Verity K2 Server</H2>
+<P>The search engine also answers as a Verity K2 Server: a search server that keeps collections open and serves them to any number of pages. The <B>Verity K2 Server</B> section at the bottom of the page shows whether it is online, how many collections and documents it serves, and that it is a stand-alone server rather than a broker.</P>
+<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=1 BGCOLOR="#999999" CLASS="doctable">
+<TR BGCOLOR="#669966" VALIGN=TOP>
+<TH ALIGN=LEFT><FONT COLOR="#FFFFFF">Field</FONT></TH>
+<TH ALIGN=LEFT><FONT COLOR="#FFFFFF">Default</FONT></TH>
+<TH ALIGN=LEFT><FONT COLOR="#FFFFFF">Meaning</FONT></TH>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>Document count limit</TD>
+<TD>250000</TD>
+<TD>The licensed maximum number of documents. <A HREF="/CFDOCS/langref/isk2serverdoccountexceeded.htm"><CODE>IsK2ServerDocCountExceeded()</CODE></A> returns YES above it.</TD>
+</TR>
+<TR BGCOLOR="#FFFBF0" VALIGN=TOP>
+<TD>K2 Server port</TD>
+<TD>9901</TD>
+<TD>The port the K2 Server is said to listen on (informational)</TD>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>Run the K2 Server</TD>
+<TD>checked</TD>
+<TD>Unchecked, <A HREF="/CFDOCS/langref/isk2serveronline.htm"><CODE>IsK2ServerOnline()</CODE></A> returns NO and <A HREF="/CFDOCS/langref/getk2servercollections.htm"><CODE>GetK2ServerCollections()</CODE></A> an empty list</TD>
+</TR>
+</TABLE>
+<P>The settings live in the registry under <CODE>Verity\K2Server</CODE>. Templates read the same figures with <A HREF="/CFDOCS/langref/getk2servercollections.htm"><CODE>GetK2ServerCollections</CODE></A>, <A HREF="/CFDOCS/langref/getk2serverdoccount.htm"><CODE>GetK2ServerDocCount</CODE></A>, <A HREF="/CFDOCS/langref/getk2serverdoccountlimit.htm"><CODE>GetK2ServerDocCountLimit</CODE></A>, <A HREF="/CFDOCS/langref/isk2serverabroker.htm"><CODE>IsK2ServerABroker</CODE></A>, <A HREF="/CFDOCS/langref/isk2serverdoccountexceeded.htm"><CODE>IsK2ServerDocCountExceeded</CODE></A> and <A HREF="/CFDOCS/langref/isk2serveronline.htm"><CODE>IsK2ServerOnline</CODE></A>.</P>
 </DIV>
 <HR NOSHADE SIZE=1>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=2><TR><TD><A HREF="debugging.htm"><IMG SRC="/CFDOCS/images/doc_back.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Previous page"></A></TD><TD><A HREF="index.htm"><IMG SRC="/CFDOCS/images/doc_up.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Up one level"></A></TD><TD><A HREF="sourcecontrol.htm"><IMG SRC="/CFDOCS/images/doc_next.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Next page"></A></TD><TD><A HREF="/CFDOCS/dochome.cfm"><IMG SRC="/CFDOCS/images/doc_home.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Documentation home"></A></TD><TD><A HREF="/CFDOCS/langref/index.htm"><IMG SRC="/CFDOCS/images/doc_index.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="CFML Language Reference contents"></A></TD></TR></TABLE>

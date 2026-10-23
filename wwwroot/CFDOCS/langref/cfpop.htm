@@ -34,7 +34,8 @@ function runExample(name) {
     ATTACHMENTPATH=&quot;path&quot;
     TIMEOUT=&quot;seconds&quot;
     MAXROWS=&quot;number&quot;
-    STARTROW=&quot;number&quot;&gt;</PRE>
+    STARTROW=&quot;number&quot;
+    GENERATEUNIQUEFILENAMES=&quot;Yes/No&quot;&gt;</PRE>
 <H4>Attributes</H4>
 <DL>
 <DT><B>SERVER</B></DT>
@@ -52,7 +53,9 @@ function runExample(name) {
 <DT><B>MESSAGENUMBER</B></DT>
 <DD><I>Optional.</I> Comma-separated list of message numbers to retrieve or delete. Required for Delete. When it is given, STARTROW and MAXROWS are ignored.</DD>
 <DT><B>ATTACHMENTPATH</B></DT>
-<DD><I>Optional.</I> Directory for saving attachments. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> With GetAll, the directory the attachments are saved in. It must exist.</DD>
+<DT><B>GENERATEUNIQUEFILENAMES</B></DT>
+<DD><I>Optional, default &quot;No&quot;.</I> Yes saves an attachment whose name is already taken under a numbered name (report1.txt, report2.txt, ...) instead of overwriting the file.</DD>
 <DT><B>TIMEOUT</B></DT>
 <DD><I>Optional, default &quot;60&quot;.</I> Seconds to wait for the server.</DD>
 <DT><B>MAXROWS</B></DT>
@@ -61,7 +64,7 @@ function runExample(name) {
 <DD><I>Optional, default &quot;1&quot;.</I> First message number to return.</DD>
 </DL>
 <H4>Usage</H4>
-<P>The query has the columns Date, From, MessageNumber, ReplyTo, Subject, CC, To and Header. With GetAll it also has Body, Attachments and AttachmentFiles. KoldFusion does not decode MIME attachments: the Body column holds the raw message text after the headers, and Attachments and AttachmentFiles are always empty.</P>
+<P>The query has the columns Date, From, MessageNumber, ReplyTo, Subject, CC, To and Header. With GetAll it also has Body, Attachments and AttachmentFiles. Body holds the readable text of the message: for a MIME message the first text/plain part (or the text/html part if there is no plain one), decoded from base64 or quoted-printable. Attachments is a tab-separated list of the attachments&#x27; file names, and AttachmentFiles a tab-separated list of the full paths they were saved to (empty unless ATTACHMENTPATH is given).</P>
 <P>If the server cannot be reached or rejects the login, an Application exception is thrown. Wrap <B><CODE>CFPOP</CODE></B> in <A HREF="cftry.htm"><CODE>CFTRY</CODE></A> so a mail server that is down for the night does not take your page with it.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfpop"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfpop'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
