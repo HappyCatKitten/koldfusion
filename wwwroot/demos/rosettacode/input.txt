@@ -1,0 +1,2 @@
+Hello from input.txt!
+This file is a KoldFusion Demo Gallery companion: file_io.cfm copies it to output.txt.

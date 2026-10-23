@@ -1,0 +1,7 @@
+Source:  https://en.wikipedia.org/wiki/ColdFusion_Markup_Language ("Custom tags" section; wikitext fetched via action=raw, revision 1374037879, 2026-09-09)
+Author:  Wikipedia contributors
+License: CC BY-SA 4.0 (Wikipedia text licence)
+Description: The canonical minimal custom-tag example: addition.cfm sets caller.addition = attributes.first + attributes.second and exits;
+             call_addition.cfm invokes it as <cf_addition first="1" second="2"> (then #addition# is available to the caller).
+CF features: custom tags (CF_ prefix lookup in current dir / CustomTags), ATTRIBUTES and CALLER scopes, CFEXIT method="exitTag".
+Datasource: none. CF4.5 compatible: yes. (call_addition.cfm is verbatim and does not itself output the result.)

@@ -1,0 +1,9 @@
+<CFSET Tests = "1999|-3.14|1.5E3|1,234.5|$5|twelve">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String</TH><TH>LSIsNumeric</TH></TR>
+<CFLOOP INDEX="S" LIST="#Tests#" DELIMITERS="|">
+<CFOUTPUT>
+<TR><TD>#S#</TD><TD>#LSIsNumeric(S)#</TD></TR>
+</CFOUTPUT>
+</CFLOOP>
+</TABLE>

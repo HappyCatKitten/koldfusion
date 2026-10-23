@@ -1,0 +1,7 @@
+<CFSET Values = "42,-42,0,-3.75,1999">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Abs(number)</TH></TR>
+<CFLOOP INDEX="n" LIST="#Values#">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD ALIGN="RIGHT">#Abs(n)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>

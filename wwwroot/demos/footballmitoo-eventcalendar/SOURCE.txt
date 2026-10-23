@@ -1,0 +1,12 @@
+Source:  https://github.com/Bluefieldscom/football-mitoo-open-source  (EventCalendar.cfm, InclEventLoop1.cfm, queries/qry_MonthsEvents.cfm, EventCalendarStyle.css)
+Author:  Bluefields / FootballMitoo ("the UK's biggest independent free league management system"), early-2000s codebase
+License: MIT (LICENSE.md in repo)
+Description: League "Diary" month calendar: CFSCRIPT computes first weekday/offset/days-in-month, then nested CFLOOPs render a 7-col table,
+             highlighting today and days with events (from a query) and linking to EventCalendarShow.cfm.
+CF features: CFLOCK scope=session readonly, SESSION/REQUEST/URL scopes, CFSETTING showdebugoutput, CFPARAM with IIf defaults, CFINCLUDE,
+             CFSILENT, CFSCRIPT (if, assignments), CFLOOP index/from/to, CFBREAK, CFQUERY; funcs ValueList ListFind MonthAsString DayOfWeek
+             DaysInMonth CreateODBCDate Month Year Day Now Trim StructKeyExists IIf.
+             Not saved: InclEventLoop2.cfm (admin variant, referenced when request.SecurityLevel is Silver/Skyblue) and images click_*.png.
+Datasource: YES - #request.DSN#, table event(EventDate, LeagueID, ...). Needs session.SeasonStartDate/SeasonEndDate/LeagueID,
+            request.SecurityLevel and a LeagueCode variable set by the host app.
+CF4.5 compatible: yes (written for CF MX 6 but uses only CF4.5-era features).

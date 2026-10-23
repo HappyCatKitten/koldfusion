@@ -1,0 +1,8 @@
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Year</TH><TH>DaysInYear</TH></TR>
+<CFLOOP INDEX="Y" LIST="1900,1996,1999,2000">
+<TR><TD>#Y#</TD><TD>#DaysInYear(CreateDate(Y, 1, 1))#</TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>

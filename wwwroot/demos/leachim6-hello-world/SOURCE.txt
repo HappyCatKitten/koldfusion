@@ -1,0 +1,5 @@
+Source:  https://github.com/leachim6/hello-world/blob/main/c/ColdFusion.cfm
+Author:  leachim6/hello-world contributors
+License: MIT (repo LICENSE)
+Description: Hello World in CFML (CFSET + CFOUTPUT).
+CF features: CFSET, CFOUTPUT. Datasource: none. CF4.5 compatible: yes.

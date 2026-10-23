@@ -1,0 +1,14 @@
+# KoldFusion Demo Gallery status file, read by /demos/index.cfm (results of running every file on KoldFusion).
+# One line per file:  file | status | note | run
+#   status: works, partial, cf5 (needs CF5+), cfmx (needs CFMX+), fails, include (not a page), shim (gallery companion)
+#   run:    optional page to open instead of the file ("-" = no Run link)
+@title balanceTags (Leonard Lin, 2001)
+@blurb A stack-based HTML tag balancer written "as an exercise to learn Cold Fusion 4.0" - the ancestor of WordPress's balanceTags(). Only the custom-tag version is 4.x code; the rest use CF5 UDFs.
+@order 5
+callstag.cfm                    | works   | Test page for <CF_balanceTags>: relies on CF 4.x letting <cfset attributes=""> shadow the scope name | 
+cfml_version_balancer.cfm       | include | The custom tag itself (CF 4.x code); run it through callstag.cfm | callstag.cfm
+balancetags.cfm           | shim    | One-line shim so <CF_balanceTags> finds cfml_version_balancer.cfm | -
+balancer.cfm              | cf5     | v1.51 as CFSCRIPT user-defined functions (CF5) |
+balancerd.cfm             | cf5     | v1.0 UDF variant with timing harness (CF5) |
+highlighter.cfm           | cf5     | UDF keyword highlighter (CF5) |
+test.cfm                  | cf5     | REFind subexpression scratch test inside a UDF (CF5) |

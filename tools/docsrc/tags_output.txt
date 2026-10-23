@@ -1,0 +1,873 @@
+# CFML Language Reference - output and page processing, application framework and extensibility tags.
+# Format: see the docstring at the top of tools/mkdocs.py.
+
+@tag CFOUTPUT
+category: Output and page processing
+summary: Evaluates the #expressions# in its body and writes the result, optionally once per query row or group.
+desc:
+`CFOUTPUT` is the tag that turns `#Variable#` into text. Inside its body every expression between pound
+signs is evaluated and written to the page. Give it a QUERY attribute and the body is repeated once for each
+row of the query; add GROUP and you get one pass per group of rows, with nested `CFOUTPUT` tags walking the
+rows inside each group.
+syntax:
+<CFOUTPUT QUERY="query_name"
+    GROUP="column[,column]"
+    GROUPCASESENSITIVE="Yes/No"
+    STARTROW="start_row"
+    MAXROWS="max_rows_output">
+  Literal text, HTML and #expressions#
+</CFOUTPUT>
+attrs:
+QUERY | Optional | Name of the query to loop over. Inside the body, columns of the current row can be written
+  without the query prefix (`#LastName#`), and `query_name.CurrentRow` tells you where you are.
+GROUP | Optional | Column (or comma-separated list of columns) that defines a group. The body runs once for each
+  run of consecutive rows with the same value, so the query should be sorted by that column with ORDER BY.
+  Nested `CFOUTPUT` tags without a QUERY attribute output the rows (or sub-groups) of the current group.
+GROUPCASESENSITIVE | Optional, default "Yes" | Whether grouping compares values case-sensitively. With "No",
+  "Apple" and "APPLE" fall into the same group.
+STARTROW | Optional, default "1" | First row of the query to output.
+MAXROWS | Optional | Maximum number of rows (or, with GROUP, groups) to output.
+usage:
+Outside a `CFOUTPUT` block, pound signs are just pound signs. Inside one, write `##` to get a literal `#`, which
+matters for HTML colors: `<TD BGCOLOR="##CCCCFF">`.
+
+Grouping works on consecutive rows only. Sort the query by the group columns (ORDER BY Region, State) or the same
+group will show up more than once. You can nest as many grouped levels as there are GROUP columns; the innermost
+`CFOUTPUT` without GROUP prints the detail rows. Only the outermost tag may name the query: a query-driven
+`CFOUTPUT` inside another query-driven `CFOUTPUT` raises "Invalid tag nesting configuration".
+
+STARTROW and MAXROWS are the classic building blocks of "next 10 records" pages. Use `CFLOOP` with QUERY when you
+want to loop over a second query inside an output block, and `CFSETTING` ENABLECFOUTPUTONLY when you want everything
+outside `CFOUTPUT` to be silent.
+example:
+<!--- One pass per region, one line per state, every park listed --->
+<CFQUERY NAME="GetParks" DATASOURCE="cfsnippets">
+SELECT ParkName, Region, State
+FROM Parks
+WHERE Region IN ('Southwest', 'Pacific West')
+ORDER BY Region, State, ParkName
+</CFQUERY>
+
+<CFOUTPUT QUERY="GetParks" GROUP="Region">
+  <H4>#Region#</H4>
+  <UL>
+  <CFOUTPUT GROUP="State">
+    <LI><B>#State#</B>:
+    <CFOUTPUT>&middot; #ParkName# </CFOUTPUT>
+  </CFOUTPUT>
+  </UL>
+</CFOUTPUT>
+
+<H4>Rows 3 and 4 only (STARTROW="3" MAXROWS="2")</H4>
+<TABLE BORDER=1 CELLPADDING=3>
+<CFOUTPUT QUERY="GetParks" STARTROW="3" MAXROWS="2">
+  <TR><TD>#CurrentRow#</TD><TD>#ParkName#</TD><TD>#State#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: CFLOOP, CFQUERY, CFSETTING, CFTABLE, HTMLEditFormat
+
+@tag CFSETTING
+category: Output and page processing
+summary: Controls page-level processing settings such as output outside CFOUTPUT and debug output.
+desc:
+`CFSETTING` changes how the rest of the request is processed. Its most popular use is ENABLECFOUTPUTONLY, which
+suppresses everything that is not inside a `CFOUTPUT` block, so that the blank lines left behind by `CFSET`,
+`CFQUERY` and friends do not bloat your page.
+syntax:
+<CFSETTING ENABLECFOUTPUTONLY="Yes/No"
+    SHOWDEBUGOUTPUT="Yes/No"
+    CATCHEXCEPTIONSBYPATTERN="Yes/No">
+attrs:
+ENABLECFOUTPUTONLY | Optional | "Yes" suppresses all text outside `CFOUTPUT` blocks; "No" switches it back off.
+SHOWDEBUGOUTPUT | Optional, default "Yes" | "No" hides the debugging information that the Administrator would
+  otherwise append to the end of this page. It cannot turn debugging on if the Administrator has it off.
+CATCHEXCEPTIONSBYPATTERN | Optional | Accepted for compatibility; KoldFusion ignores it and always picks the
+  `CFCATCH` block whose TYPE matches the error, in the order the blocks appear.
+usage:
+ENABLECFOUTPUTONLY settings nest: each "Yes" must be balanced by a matching "No", so a custom tag or included template
+can switch it on and off without upsetting its caller. Put the matching "No" at the end of the template, or the rest of
+the request stays silent.
+
+`CFSILENT` is the 4.5 alternative for a single block of code. `CFPROCESSINGDIRECTIVE` compresses whitespace without
+hiding anything.
+example:
+<CFSETTING ENABLECFOUTPUTONLY="Yes">
+This sentence is outside CFOUTPUT, so you will not see it.
+<CFSET Today = Now()>
+<CFQUERY NAME="Depts" DATASOURCE="cfsnippets">
+SELECT Dept_Name, Location FROM Departments ORDER BY Dept_Name
+</CFQUERY>
+<CFOUTPUT>
+<P>With ENABLECFOUTPUTONLY on, only CFOUTPUT text reaches the browser.
+Today is #DateFormat(Today, "dddd, mmmm d, yyyy")#.</P>
+<TABLE BORDER=1 CELLPADDING=3>
+</CFOUTPUT>
+<CFOUTPUT QUERY="Depts"><TR><TD>#Dept_Name#</TD><TD>#Location#</TD></TR></CFOUTPUT>
+<CFOUTPUT></TABLE></CFOUTPUT>
+<CFSETTING ENABLECFOUTPUTONLY="No">
+<P>ENABLECFOUTPUTONLY is off again, so plain text shows up as usual.</P>
+see: CFOUTPUT, CFSILENT, CFPROCESSINGDIRECTIVE, IsDebugMode
+
+@tag CFSILENT
+category: Output and page processing
+new45: yes
+summary: Runs the CFML in its body but throws away all the output it generates.
+desc:
+Everything between `<CFSILENT>` and `</CFSILENT>` runs normally (queries execute, variables are set) but nothing it
+writes reaches the browser, not even text inside a `CFOUTPUT`. It is the simplest way to keep the blank lines of a
+long stretch of `CFSET` and `CFQUERY` tags out of your page.
+syntax:
+<CFSILENT>
+  CFML whose output is discarded
+</CFSILENT>
+usage:
+Errors raised inside the block are not silenced: they propagate to `CFTRY`/`CFCATCH` or the error page as usual.
+
+`CFSILENT` affects only its own body. To suppress output selectively across a whole page use `CFSETTING`
+ENABLECFOUTPUTONLY; to keep the output but squeeze the whitespace use `CFPROCESSINGDIRECTIVE`.
+example:
+<CFSILENT>
+  This text, the blank lines below and even the CFOUTPUT are discarded.
+  <CFQUERY NAME="Staff" DATASOURCE="cfsnippets">
+  SELECT Department, Salary FROM Employees
+  </CFQUERY>
+  <CFSET Payroll = ArraySum(ListToArray(ValueList(Staff.Salary)))>
+  <CFSET Average = Payroll / Staff.RecordCount>
+  <CFOUTPUT>You will never see this line.</CFOUTPUT>
+</CFSILENT>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>Employees</TD><TD ALIGN=RIGHT>#Staff.RecordCount#</TD></TR>
+<TR><TD>Annual payroll</TD><TD ALIGN=RIGHT>#DollarFormat(Payroll)#</TD></TR>
+<TR><TD>Average salary</TD><TD ALIGN=RIGHT>#DollarFormat(Average)#</TD></TR>
+</TABLE>
+<P>The variables set inside CFSILENT are available afterwards.</P>
+</CFOUTPUT>
+see: CFSETTING, CFPROCESSINGDIRECTIVE, CFOUTPUT
+
+@tag CFPROCESSINGDIRECTIVE
+category: Output and page processing
+new45: yes
+summary: Compresses runs of whitespace in the output generated by its body.
+desc:
+With SUPPRESSWHITESPACE="Yes", every run of spaces, tabs and line breaks produced by the body is squeezed down to a
+single character (a line break if the run contained one, otherwise a space). Pages full of indented CFML come out
+noticeably smaller, which your visitors on 28.8K modems will appreciate.
+syntax:
+<CFPROCESSINGDIRECTIVE SUPPRESSWHITESPACE="Yes/No">
+  CFML and HTML
+</CFPROCESSINGDIRECTIVE>
+attrs:
+SUPPRESSWHITESPACE | Required | "Yes" compresses whitespace in the body's output; "No" leaves it alone.
+usage:
+Compression is applied to the generated output, including whitespace inside `<PRE>` and `<TEXTAREA>`, so keep
+preformatted text outside the block. A nested SUPPRESSWHITESPACE="No" block does not restore the original
+whitespace inside an outer "Yes" block.
+
+The Administrator's "Suppress whitespace by default" setting compresses every page; this tag lets you do it for
+just one region. Compare `CFSILENT`, which drops output entirely.
+example:
+<CFSET Colors = "Red,Green,Blue">
+<P>Without the directive, every indent survives:</P>
+<PRE>
+<CFLOOP LIST="#Colors#" INDEX="c">
+        <CFOUTPUT>[#c#]</CFOUTPUT>
+</CFLOOP>
+</PRE>
+<P>With SUPPRESSWHITESPACE="Yes", the runs of blanks collapse:</P>
+<PRE>
+<CFPROCESSINGDIRECTIVE SUPPRESSWHITESPACE="Yes">
+<CFLOOP LIST="#Colors#" INDEX="c">
+        <CFOUTPUT>[#c#]</CFOUTPUT>
+</CFLOOP>
+</CFPROCESSINGDIRECTIVE>
+</PRE>
+see: CFSILENT, CFSETTING, CFOUTPUT
+
+@tag CFCONTENT
+category: Output and page processing
+summary: Sets the MIME type of the response and optionally sends a file instead of the page.
+desc:
+`CFCONTENT` tells the browser what kind of document it is getting. Use TYPE to send plain text, comma-separated data
+for a spreadsheet, or anything else your page generates; use FILE to send an existing file (a PDF, an image, a
+download) straight from disk.
+syntax:
+<CFCONTENT TYPE="file_type"
+    FILE="filename"
+    DELETEFILE="Yes/No"
+    RESET="Yes/No">
+attrs:
+TYPE | Optional | MIME type of the response, for example "text/plain", "application/vnd.ms-excel" or
+  "image/gif". If you send a FILE without a TYPE, KoldFusion guesses the type from the file extension.
+FILE | Optional | Full path of a file to send as the response body. Processing of the page stops at the tag.
+DELETEFILE | Optional, default "No" | "Yes" deletes FILE after it has been sent. Handy for temporary reports.
+RESET | Optional, default "Yes" | "Yes" discards any output the page generated before the tag, so the response
+  contains only what comes after it (or the FILE). "No" keeps it.
+usage:
+`CFCONTENT` can be restricted in the Administrator (Basic Security, Tag Restrictions), because FILE can read any
+file the server can. Restricted tags only work in templates under the unsecured tags directory.
+
+Use `CFHEADER` to add a header such as Content-Disposition when you want the browser to offer a "Save As" dialog. If
+you send plain text, remember that the browser shows it verbatim: HTML tags will appear as text.
+example:
+<!--- Everything before CFCONTENT is thrown away by RESET="Yes" --->
+<H1>You will not see this heading</H1>
+<CFQUERY NAME="Depts" DATASOURCE="cfsnippets">
+SELECT Dept_Name, Location FROM Departments ORDER BY Dept_Name
+</CFQUERY>
+<CFCONTENT TYPE="text/plain" RESET="Yes"><CFOUTPUT>KoldFusion department report (text/plain)
+Generated #DateFormat(Now(), "mm/dd/yyyy")# #TimeFormat(Now(), "HH:mm")#
+
+<CFLOOP QUERY="Depts">#LJustify(Dept_Name, 16)##Location#
+</CFLOOP>
+#Depts.RecordCount# departments. <B>Tags</B> are shown as text in a text/plain page.
+</CFOUTPUT>
+see: CFHEADER, CFFILE, CFLOCATION, GetTempFile
+
+@tag CFHEADER
+category: Output and page processing
+summary: Adds an HTTP header to the response or sets the HTTP status code.
+desc:
+`CFHEADER` writes a custom line into the HTTP response header: cache control, expiry dates, a Content-Disposition for
+downloads, or any header of your own. With STATUSCODE it changes the status line instead.
+syntax:
+<CFHEADER NAME="header_name"
+    VALUE="header_value">
+
+<CFHEADER STATUSCODE="status_code"
+    STATUSTEXT="status_text">
+attrs:
+NAME | Required if STATUSCODE is not given | Name of the header, for example "Expires" or "Cache-Control".
+VALUE | Optional | Value of the header.
+STATUSCODE | Required if NAME is not given | HTTP status code, for example 404 or 503.
+STATUSTEXT | Optional | Text that follows the status code in the status line, for example "Not Found".
+usage:
+Headers are collected while the page runs and sent when it finishes, so `CFHEADER` can appear anywhere in the page.
+Setting the same header twice keeps the last value. A Content-Type header is the same as `CFCONTENT` TYPE.
+
+HTTP dates must be in GMT and in the RFC 1123 format; `GetHTTPTimeString` makes one for you. To see the headers your
+page sends, use View, Page Info in Netscape Navigator. Cookies have their own tag, `CFCOOKIE`.
+example:
+<!--- Tell browsers and proxies not to keep a copy of this page --->
+<CFSET Stamp = GetHTTPTimeString(Now())>
+<CFHEADER NAME="Expires" VALUE="#Stamp#">
+<CFHEADER NAME="Pragma" VALUE="no-cache">
+<CFHEADER NAME="Cache-Control" VALUE="no-cache, must-revalidate">
+<CFHEADER NAME="X-Snippet" VALUE="CFHEADER example">
+
+<P>This response was sent with these extra headers:</P>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR BGCOLOR="##CCCCFF"><TH>Header</TH><TH>Value</TH></TR>
+<TR><TD>Expires</TD><TD>#Stamp#</TD></TR>
+<TR><TD>Pragma</TD><TD>no-cache</TD></TR>
+<TR><TD>Cache-Control</TD><TD>no-cache, must-revalidate</TD></TR>
+<TR><TD>X-Snippet</TD><TD>CFHEADER example</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: CFCONTENT, CFCOOKIE, CFLOCATION, GetHTTPTimeString
+
+@tag CFHTMLHEAD
+category: Output and page processing
+summary: Writes text into the HEAD section of the page being generated.
+desc:
+`CFHTMLHEAD` lets code anywhere in a page (a custom tag, an included file, the bottom of a long template) add a
+`<META>`, `<STYLE>`, `<SCRIPT>` or `<TITLE>` to the document head after the head has already been written.
+syntax:
+<CFHTMLHEAD TEXT="text">
+attrs:
+TEXT | Required | The text to add. Double any quotation marks that match the ones around the value.
+usage:
+The text is inserted when the page is finished, just before the first `</HEAD>` tag of the output. If the page has
+no `</HEAD>`, it goes at the very top. Several `CFHTMLHEAD` tags add their text in order.
+
+It is particularly useful in custom tags that need JavaScript functions or styles defined once in the head of the
+calling page. Text is ignored if the page is replaced with `CFCONTENT` FILE.
+example:
+<HTML>
+<HEAD><TITLE>CFHTMLHEAD example</TITLE></HEAD>
+<BODY>
+<H3 CLASS="fancy">A heading styled from the bottom of the page</H3>
+<P>The style sheet for the heading above is defined by a CFHTMLHEAD tag that runs
+after the heading has been written. View the source of this frame to see where it went.</P>
+<CFSET Shade = "##336699">
+<CFHTMLHEAD TEXT="<STYLE TYPE=""text/css"">H3.fancy { color: #Shade#; font-family: Arial, Helvetica; }</STYLE>">
+</BODY>
+</HTML>
+see: CFHEADER, CFCONTENT, CFMODULE
+
+@tag CFCACHE
+category: Output and page processing
+summary: Saves the generated page to a file and serves that copy to later visitors.
+desc:
+Put `CFCACHE` at the top of a page whose content rarely changes. The first request runs the page normally and saves
+the finished HTML; later requests for the same URL get the saved copy without running any CFML at all, until the
+copy is older than TIMEOUT or the cache is flushed.
+syntax:
+<CFCACHE ACTION="CACHE/FLUSH/CLIENTCACHE/OPTIMAL"
+    DIRECTORY="directory"
+    TIMEOUT="date_time"
+    EXPIREURL="url"
+    PROTOCOL="http://"
+    PORT="port"
+    USERNAME="username"
+    PASSWORD="password">
+attrs:
+ACTION | Optional, default "CACHE" | "CACHE" serves and saves cached copies. "FLUSH" deletes cached copies.
+  CLIENTCACHE and OPTIMAL (browser caching in ColdFusion) are treated like CACHE.
+DIRECTORY | Optional | Absolute path of the directory that holds the cached copies. The default is the
+  `cache` directory of the KoldFusion installation.
+TIMEOUT | Optional | A date/time. A cached copy made before this moment is stale and the page is run again.
+  `DateAdd("h", -1, Now())` means "no copy older than an hour". Without TIMEOUT a copy never expires.
+EXPIREURL | Optional | With ACTION="FLUSH": only flush copies whose URL starts with this text, for example
+  "/CFDOCS/snippets/cfcache.cfm". Without it every copy in DIRECTORY is deleted.
+PROTOCOL | Optional | Accepted for compatibility; KoldFusion ignores it.
+PORT | Optional | Accepted for compatibility; KoldFusion ignores it.
+USERNAME | Optional | Accepted for compatibility; KoldFusion ignores it.
+PASSWORD | Optional | Accepted for compatibility; KoldFusion ignores it.
+usage:
+Each distinct URL, including its query string, gets its own cached copy, so detail.cfm?id=1 and detail.cfm?id=2 are
+cached separately. Pages that show session data, personal greetings or form results should not be cached.
+
+A cached copy is only saved when the page finishes normally: pages that fail, redirect with `CFLOCATION` or send a
+file with `CFCONTENT` are never cached. Use ACTION="FLUSH" after you update the data a cached page shows.
+example:
+<!--- ?flush=yes deletes the cached copy and comes back here --->
+<CFIF IsDefined("URL.flush")>
+  <CFCACHE ACTION="FLUSH" DIRECTORY="#GetTempDirectory()#" EXPIREURL="#CGI.SCRIPT_NAME#">
+  <CFLOCATION URL="cfcache.cfm" ADDTOKEN="No">
+</CFIF>
+<!--- Serve a saved copy if it is less than one minute old --->
+<CFCACHE ACTION="CACHE" DIRECTORY="#GetTempDirectory()#" TIMEOUT="#DateAdd('n', -1, Now())#">
+
+<CFQUERY NAME="Courses" DATASOURCE="cfsnippets">
+SELECT CorName, CorLevel FROM CourseList WHERE CorLevel = 'Advanced' ORDER BY CorName
+</CFQUERY>
+<CFOUTPUT>
+<P>This page was generated at <B>#TimeFormat(Now(), "HH:mm:ss")#</B>. Reload it: for the next
+minute you get the cached copy, and the time does not change.</P>
+<UL><CFLOOP QUERY="Courses"><LI>#CorName#</CFLOOP></UL>
+<P><A HREF="cfcache.cfm?flush=yes">Flush the cache</A></P>
+</CFOUTPUT>
+see: CFQUERY, CFHEADER, CFLOCATION, GetTempDirectory
+
+@tag CFTABLE
+category: Output and page processing
+summary: Builds a table from a query, either as preformatted text or as an HTML table.
+desc:
+`CFTABLE` is the quick way to show a query. Describe each column with a `CFCOL` tag and `CFTABLE` does the
+looping. By default it produces a fixed-width text table inside `<PRE>`, which every browser since Mosaic can show;
+add HTMLTABLE for a real HTML table.
+syntax:
+<CFTABLE QUERY="query_name"
+    MAXROWS="max_rows"
+    COLSPACING="number_of_spaces"
+    HEADERLINES="number_of_lines"
+    HTMLTABLE
+    BORDER
+    COLHEADERS
+    STARTROW="row">
+  <CFCOL ...>
+</CFTABLE>
+attrs:
+QUERY | Required | Name of the query to display.
+MAXROWS | Optional | Maximum number of rows to show.
+STARTROW | Optional, default "1" | First row to show.
+COLSPACING | Optional, default "2" | Number of spaces between columns in the text format.
+HEADERLINES | Optional, default "2" | Lines used by the header in the text format: the header row plus blank lines.
+HTMLTABLE | Optional | Produce an HTML `<TABLE>` instead of preformatted text.
+BORDER | Optional | Draw a border around an HTML table.
+COLHEADERS | Optional | Show the HEADER of each `CFCOL` as a heading row. Without it there is no header.
+usage:
+HTMLTABLE, BORDER and COLHEADERS are switches: just write the attribute name. In the text format each column is
+padded or cut to the WIDTH given in its `CFCOL`, and any HTML tags in the column text count towards that width, so
+keep markup out of text tables.
+
+`CFTABLE` is convenient, but for anything fancier (colors, links, totals) use `CFOUTPUT` with QUERY and write the
+table yourself.
+example:
+<CFQUERY NAME="Staff" DATASOURCE="cfsnippets" MAXROWS="6">
+SELECT FirstName, LastName, Department, Salary
+FROM Employees
+ORDER BY LastName
+</CFQUERY>
+
+<H4>HTML table</H4>
+<CFTABLE QUERY="Staff" HTMLTABLE BORDER COLHEADERS>
+  <CFCOL HEADER="Name" TEXT="#FirstName# #LastName#">
+  <CFCOL HEADER="Department" TEXT="#Department#">
+  <CFCOL HEADER="Salary" ALIGN="Right" TEXT="#DollarFormat(Salary)#">
+</CFTABLE>
+
+<H4>Preformatted text, rows 2 to 4</H4>
+<CFTABLE QUERY="Staff" COLHEADERS STARTROW="2" MAXROWS="3" COLSPACING="3">
+  <CFCOL HEADER="Last name" WIDTH="12" TEXT="#LastName#">
+  <CFCOL HEADER="Department" WIDTH="12" TEXT="#Department#">
+  <CFCOL HEADER="Salary" WIDTH="12" ALIGN="Right" TEXT="#DollarFormat(Salary)#">
+</CFTABLE>
+see: CFCOL, CFOUTPUT, CFQUERY, CFLOOP
+
+@tag CFCOL
+category: Output and page processing
+summary: Defines one column of a CFTABLE.
+desc:
+Each `CFCOL` inside a `CFTABLE` describes one column: its heading, its width and alignment, and the text to show for
+every row. The TEXT is evaluated once per row, so it can mix column names, functions and literal text.
+syntax:
+<CFCOL HEADER="column_header"
+    WIDTH="number_of_characters"
+    ALIGN="Left/Right/Center"
+    TEXT="#column_text#">
+attrs:
+HEADER | Optional | Heading for the column, shown when the `CFTABLE` has COLHEADERS.
+WIDTH | Optional, default "20" | Column width in characters. Text tables pad or cut the text to this width; HTML
+  tables use it as a hint for the heading cell.
+ALIGN | Optional, default "Left" | Left, Right or Center.
+TEXT | Optional | What to show in each row, usually built from query columns: `TEXT="#LastName#, #FirstName#"`.
+usage:
+`CFCOL` is only valid inside `CFTABLE`; on its own it raises a context validation error. Columns appear in the order
+of the `CFCOL` tags. Right alignment makes number and money columns much easier to read.
+example:
+<CFQUERY NAME="Courses" DATASOURCE="cfsnippets" MAXROWS="6">
+SELECT CorNumber, CorName, CorLevel FROM CourseList ORDER BY CorNumber
+</CFQUERY>
+<P>Three alignments in a text table:</P>
+<CFTABLE QUERY="Courses" COLHEADERS HEADERLINES="1">
+  <CFCOL HEADER="No." WIDTH="6" ALIGN="Right" TEXT="#CorNumber#">
+  <CFCOL HEADER="Course" WIDTH="34" ALIGN="Left" TEXT="#CorName#">
+  <CFCOL HEADER="Level" WIDTH="14" ALIGN="Center" TEXT="#CorLevel#">
+</CFTABLE>
+see: CFTABLE, CFOUTPUT, LJustify, RJustify
+
+@tag CFAPPLICATION
+category: Application framework
+summary: Names the application and switches on application, session and client variables.
+desc:
+`CFAPPLICATION` ties a page to a named application. Pages that use the same NAME share the `Application` scope, and,
+when you switch them on, each visitor gets their own `Session` and `Client` variables, recognized by the CFID and
+CFTOKEN cookies. The tag normally lives in `Application.cfm`, so that every page of the application runs it first.
+syntax:
+<CFAPPLICATION NAME="application_name"
+    CLIENTMANAGEMENT="Yes/No"
+    CLIENTSTORAGE="Registry/Cookie/datasource_name"
+    SETCLIENTCOOKIES="Yes/No"
+    SETDOMAINCOOKIES="Yes/No"
+    SESSIONMANAGEMENT="Yes/No"
+    SESSIONTIMEOUT="#CreateTimeSpan(days, hours, minutes, seconds)#"
+    APPLICATIONTIMEOUT="#CreateTimeSpan(days, hours, minutes, seconds)#">
+attrs:
+NAME | Required | Name of the application. The `Application` scope and the session/client data belong to it.
+CLIENTMANAGEMENT | Optional, default "No" | "Yes" enables the persistent `Client` scope.
+CLIENTSTORAGE | Optional | Where client variables are kept: "Registry", "Cookie", or the name of a data source.
+  The default is set on the Variables page of the Administrator.
+SETCLIENTCOOKIES | Optional, default "Yes" | "No" stops KoldFusion from sending the CFID and CFTOKEN cookies; you then
+  have to pass `Session.URLToken` along in every link and form yourself.
+SETDOMAINCOOKIES | Optional, default "No" | Accepted for compatibility; KoldFusion ignores it.
+SESSIONMANAGEMENT | Optional, default "No" | "Yes" enables the `Session` scope.
+SESSIONTIMEOUT | Optional | How long an idle session lives, as a `CreateTimeSpan` value. The default (20 minutes)
+  and the maximum are set on the Variables page of the Administrator.
+APPLICATIONTIMEOUT | Optional | How long an idle application lives. Default and maximum (2 days) come from the
+  Administrator.
+usage:
+A session is identified by `Session.CFID` and `Session.CFTOKEN`; `Session.SessionID` and `Session.URLToken`
+(ready to append to a URL as CFID=...&CFTOKEN=...) are set for you. `Application.ApplicationName` holds the NAME.
+
+Application and session variables are shared between simultaneous requests, so read and write them inside `CFLOCK`
+blocks. Use `CFERROR` in the same `Application.cfm` to give the whole application a friendly error page.
+example:
+<CFAPPLICATION NAME="KFSnippets"
+    SESSIONMANAGEMENT="Yes"
+    SESSIONTIMEOUT="#CreateTimeSpan(0, 0, 20, 0)#">
+
+<CFLOCK SCOPE="Session" TYPE="Exclusive" TIMEOUT="10">
+  <CFPARAM NAME="Session.Visits" DEFAULT="0">
+  <CFSET Session.Visits = Session.Visits + 1>
+  <CFSET Visits = Session.Visits>
+  <CFSET Token = Session.URLToken>
+</CFLOCK>
+
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>Application.ApplicationName</TD><TD>#Application.ApplicationName#</TD></TR>
+<TR><TD>Session.URLToken</TD><TD>#Token#</TD></TR>
+<TR><TD>Visits in this session</TD><TD>#Visits#</TD></TR>
+</TABLE>
+<P><A HREF="cfapplication.cfm">Reload</A> and watch the counter go up.</P>
+</CFOUTPUT>
+see: CFLOCK, CFERROR, CFCOOKIE, CreateTimeSpan, DeleteClientVariable
+
+@tag CFLOCK
+category: Application framework
+summary: Makes sure only one request at a time runs a block of code (or only readers run it together).
+desc:
+KoldFusion runs many requests at once, and they all share the `Application`, `Server` and (for framed pages) `Session`
+scopes. `CFLOCK` serializes access: an exclusive lock lets one request in at a time, a read-only lock lets any
+number of readers in as long as nobody holds the exclusive lock.
+syntax:
+<CFLOCK SCOPE="Application/Session/Server"
+    NAME="lock_name"
+    TIMEOUT="seconds"
+    TYPE="ReadOnly/Exclusive"
+    THROWONTIMEOUT="Yes/No">
+  CFML
+</CFLOCK>
+attrs:
+SCOPE | Required if NAME is not given | Lock a whole scope: "Application" (the current application),
+  "Session" (the current visitor's session) or "Server".
+NAME | Required if SCOPE is not given | Name of the lock. All `CFLOCK` tags with the same name, on any page, share
+  the lock. Use names for things like a file or a non-thread-safe COM object.
+TIMEOUT | Required | Maximum number of seconds to wait for the lock.
+TYPE | Optional, default "Exclusive" | "Exclusive" for code that writes, "ReadOnly" for code that only reads.
+THROWONTIMEOUT | Optional, default "Yes" | "Yes" throws an error of type Lock when the timeout expires; "No" skips the
+  body and continues after the `</CFLOCK>`.
+usage:
+Lock every read and write of `Application` and `Session` variables. Keep locks short: do the slow work (queries,
+`CFHTTP`) outside, and copy the shared values into local variables. The lock is released when the body ends, even if
+an error is thrown inside it. Avoid nesting one lock inside another: two requests nesting them in opposite orders will
+wait for each other until one times out.
+
+SCOPE is new in 4.5; earlier versions only had named locks. Catch timeouts with `<CFCATCH TYPE="Lock">`.
+example:
+<CFAPPLICATION NAME="KFSnippets" SESSIONMANAGEMENT="Yes">
+
+<!--- Writers take an exclusive lock... --->
+<CFLOCK SCOPE="Application" TYPE="Exclusive" TIMEOUT="10">
+  <CFPARAM NAME="Application.LockDemoHits" DEFAULT="0">
+  <CFSET Application.LockDemoHits = Application.LockDemoHits + 1>
+</CFLOCK>
+
+<!--- ...readers share a read-only lock and copy what they need --->
+<CFLOCK SCOPE="Application" TYPE="ReadOnly" TIMEOUT="10">
+  <CFSET Hits = Application.LockDemoHits>
+</CFLOCK>
+
+<!--- A named lock with THROWONTIMEOUT="No" simply skips its body on a timeout --->
+<CFSET GotIt = "No">
+<CFLOCK NAME="SnippetsGuestBook" TYPE="Exclusive" TIMEOUT="5" THROWONTIMEOUT="No">
+  <CFSET GotIt = "Yes">
+</CFLOCK>
+
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>Hits on this example since the server started</TD><TD ALIGN=RIGHT>#Hits#</TD></TR>
+<TR><TD>Got the named lock SnippetsGuestBook?</TD><TD ALIGN=RIGHT>#GotIt#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: CFAPPLICATION, CFTRY, CFTHROW, CFOBJECT
+
+@tag CFMODULE
+category: Extensibility
+summary: Calls a custom tag by template path or by name.
+desc:
+Custom tags are ordinary CFML templates that you call like tags. `<CF_TITLEBOX>` runs `titlebox.cfm` from the
+directory of the calling page or from the custom tags directory; `CFMODULE` does the same thing for a template you
+name explicitly, which avoids name clashes and lets you keep tags anywhere. Every other attribute of the call is
+passed to the tag.
+syntax:
+<CFMODULE TEMPLATE="path"
+    NAME="tag_name"
+    ATTRIBUTECOLLECTION="structure"
+    attribute_name="value" ...>
+  [body]
+[</CFMODULE>]
+attrs:
+TEMPLATE | Required if NAME is not given | Path of the custom tag template, relative to the calling page (or a
+  mapping such as "/CFDOCS/snippets/sn_titlebox.cfm").
+NAME | Required if TEMPLATE is not given | Name of a tag below the custom tags directory, with dots for
+  subdirectories: NAME="allair.titlebox" runs `customtags/allair/titlebox.cfm`.
+ATTRIBUTECOLLECTION | Optional | A structure whose keys and values are passed as attributes, in addition to any
+  written out in the call.
+usage:
+Inside a custom tag, three scopes connect it with the outside world:
+
+- `Attributes`: the attributes of the call. Use `CFPARAM` to give them defaults.
+- `Caller`: the calling page's local variables. `<CFSET Caller.Result = 42>` hands a value back.
+- `ThisTag`: `ThisTag.ExecutionMode` ("start" or "end"), `ThisTag.HasEndTag`, `ThisTag.GeneratedContent` (the
+  output of the body, which the end pass may change) and `ThisTag.AssocAttribs` (see `CFASSOCIATE`).
+
+A tag called with an end tag (or with the XML-style `<CF_TAG/>`) runs twice: once in start mode, then the body runs
+in the caller's context, then the tag runs again in end mode. Without an end tag it runs once. The tag's own
+variables are private: they are not visible to the caller and vanish when the tag ends. `CFEXIT` leaves a tag early
+(METHOD="ExitTag", "ExitTemplate" or "Loop" to run the body again). `GetBaseTagList` and `GetBaseTagData` let nested
+tags find their ancestors.
+example:
+<!--- sn_titlebox.cfm is a custom tag in this directory --->
+<CFSET BoxesDrawn = 0>
+
+<CFMODULE TEMPLATE="sn_titlebox.cfm" TITLE="Called with CFMODULE" COLOR="##CCCCFF">
+  The text between the start and end tags is the body.
+</CFMODULE>
+
+<CF_SN_TITLEBOX TITLE="Called as CF_SN_TITLEBOX" SHOUT="Yes">
+  The end pass of this tag turned the body into capitals.
+</CF_SN_TITLEBOX>
+
+<CF_SN_TITLEBOX TITLE="Called without an end tag">
+
+<CFOUTPUT><P>The tag counted its boxes in Caller.BoxesDrawn: #BoxesDrawn#</P></CFOUTPUT>
+see: CFASSOCIATE, CFEXIT, CFINCLUDE, GetBaseTagList, GetBaseTagData
+
+@tag CFASSOCIATE
+category: Extensibility
+summary: Lets a nested custom tag pass its attributes to an ancestor custom tag.
+desc:
+When custom tags work as a family (a menu and its items, an order and its lines), the inner tags use `CFASSOCIATE` to
+file their `Attributes` with the outer "base" tag. The base tag finds them, one structure per child tag, in an array
+when it runs in end mode.
+syntax:
+<CFASSOCIATE BASETAG="CF_TAGNAME"
+    DATACOLLECTION="collection_name">
+attrs:
+BASETAG | Required | Name of the ancestor tag to associate with, written as it was called: "CF_SN_CART" for a
+  tag called as `<CF_SN_CART>`, "CFMODULE" for one called through `CFMODULE`.
+DATACOLLECTION | Optional, default "AssocAttribs" | Name of the array in the base tag's `ThisTag` scope that receives the
+  attributes.
+usage:
+`CFASSOCIATE` belongs in the child tag's template, not in the calling page. If the named base tag is not among the
+ancestors, an error is raised. The base tag reads the array (`ThisTag.AssocAttribs` by default) in end mode, after
+all the children have run; it usually also clears `ThisTag.GeneratedContent` so that the children's whitespace does
+not show.
+example:
+<!--- sn_cart.cfm is the base tag, sn_cartitem.cfm the child; both live in this directory --->
+<CF_SN_CART CUSTOMER="Ada Lovelace">
+  <CF_SN_CARTITEM ITEM="56K modem" QTY="1" PRICE="129.95">
+  <CF_SN_CARTITEM ITEM="Zip disks (10 pack)" QTY="2" PRICE="89.50">
+  <CF_SN_CARTITEM ITEM="Y2K compliance sticker" QTY="5" PRICE="0.99">
+</CF_SN_CART>
+see: CFMODULE, CFEXIT, GetBaseTagList, GetBaseTagData
+
+@tag CFOBJECT
+category: Extensibility
+summary: Creates a COM, CORBA or Java object. Not available in KoldFusion for UNIX.
+desc:
+On ColdFusion for Windows NT, `CFOBJECT` creates a COM object (Word, Excel, your own ActiveX DLLs), connects to a CORBA
+server or instantiates a Java class, and you then call its methods and properties from CFML. KoldFusion for UNIX has no
+COM subsystem and ships without a configured JVM or ORB, so the tag always raises an error of type Object.
+syntax:
+<CFOBJECT TYPE="COM/CORBA/JAVA"
+    ACTION="Create/Connect"
+    CLASS="program_id"
+    NAME="object_name"
+    CONTEXT="InProc/Local/Remote/IOR/NameService"
+    SERVER="server_name"
+    LOCALE="locale">
+attrs:
+TYPE | Optional, default "COM" | Kind of object: COM, CORBA or JAVA.
+ACTION | Required for COM and JAVA | "Create" makes a new object; "Connect" attaches to a running COM server.
+CLASS | Required | ProgID of the COM object (for example "Excel.Application"), Java class name, or for CORBA the IOR
+  file name or naming service path.
+NAME | Required | Variable that receives the object.
+CONTEXT | Optional | COM: InProc, Local or Remote. CORBA: IOR or NameService.
+SERVER | Optional | COM server name for CONTEXT="Remote".
+LOCALE | Optional | CORBA locale setting.
+usage:
+Because the tag always fails here, wrap it in `CFTRY` and catch TYPE="Object" so the page can fall back to something
+else. `CreateObject` (new in 4.5) is the function form and behaves the same way.
+
+`CFOBJECT` can be disabled in the Administrator (Basic Security, Tag Restrictions); a restricted tag raises a security
+error instead.
+example:
+<!--- Try to start Excel; on UNIX, plan B is a plain HTML table --->
+<CFTRY>
+  <CFOBJECT TYPE="COM" ACTION="Create" CLASS="Excel.Application" NAME="Excel">
+  <P>Excel is running. Remarkable.</P>
+  <CFCATCH TYPE="Object">
+    <CFOUTPUT>
+    <P><B>No COM today:</B> #CFCATCH.Message#<BR>
+    <I>#CFCATCH.Detail#</I></P>
+    </CFOUTPUT>
+    <CFQUERY NAME="Depts" DATASOURCE="cfsnippets">
+    SELECT Dept_Name, Location FROM Departments ORDER BY Dept_Name
+    </CFQUERY>
+    <P>Here is the spreadsheet as an HTML table instead:</P>
+    <TABLE BORDER=1 CELLPADDING=3>
+    <CFOUTPUT QUERY="Depts"><TR><TD>#Dept_Name#</TD><TD>#Location#</TD></TR></CFOUTPUT>
+    </TABLE>
+  </CFCATCH>
+</CFTRY>
+see: CreateObject, CFTRY, CFLOCK, CFX_HELLO
+
+@tag CFSERVLET
+category: Extensibility
+new45: yes
+summary: Runs a Java servlet on a JRun servlet engine and returns its output. Not available in KoldFusion.
+desc:
+`CFSERVLET` hands the request to a Java servlet running on an Allair JRun server and includes the servlet's output
+in the page, or stores it in a variable. KoldFusion cannot reach a JRun engine, so the tag always raises an
+Application error; catch it with `CFTRY`.
+syntax:
+<CFSERVLET CODE="class_name_of_servlet"
+    JRUNPROXY="proxy_server"
+    TIMEOUT="seconds"
+    WRITEOUTPUT="Yes/No"
+    DEBUG="Yes/No">
+  <CFSERVLETPARAM ...>
+</CFSERVLET>
+attrs:
+CODE | Required | Class name of the servlet to run.
+JRUNPROXY | Optional | Host and port of the JRun proxy, for example "127.0.0.1:8081".
+TIMEOUT | Optional | Seconds to wait for the servlet.
+WRITEOUTPUT | Optional, default "Yes" | "Yes" writes the servlet's response into the page; "No" stores it in
+  `CFSERVLET.Output` instead.
+DEBUG | Optional, default "No" | "Yes" writes extra information about the call.
+usage:
+Parameters are passed with `CFSERVLETPARAM` tags in the body. In ColdFusion the servlet's status and headers come
+back in the `CFSERVLET` structure.
+example:
+<CFTRY>
+  <CFSERVLET CODE="HelloWorldServlet" WRITEOUTPUT="Yes" TIMEOUT="10">
+    <CFSERVLETPARAM NAME="greeting" VALUE="Hello from KoldFusion">
+  </CFSERVLET>
+  <CFCATCH TYPE="Application">
+    <CFOUTPUT>
+    <TABLE BORDER=1 CELLPADDING=3>
+    <TR BGCOLOR="##FFCCCC"><TH COLSPAN=2>The servlet could not run</TH></TR>
+    <TR><TD>Message</TD><TD>#CFCATCH.Message#</TD></TR>
+    <TR><TD>Detail</TD><TD>#CFCATCH.Detail#</TD></TR>
+    </TABLE>
+    </CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+see: CFSERVLETPARAM, CFOBJECT, CFHTTP, CFTRY
+
+@tag CFSERVLETPARAM
+category: Extensibility
+new45: yes
+summary: Passes a parameter to the servlet called by CFSERVLET.
+desc:
+`CFSERVLETPARAM` tags go inside a `CFSERVLET` block. Each one passes a value (or, by reference, a variable) to the
+Java servlet. Since KoldFusion cannot run servlets, the tag does nothing on its own.
+syntax:
+<CFSERVLETPARAM NAME="parameter_name"
+    VALUE="value">
+
+<CFSERVLETPARAM NAME="servlet_attribute_name"
+    VARIABLE="variable_name"
+    TYPE="INT/DOUBLE/BOOL/DATE/STRING">
+attrs:
+NAME | Required | Name of the parameter, or of the servlet attribute when passing by reference.
+VALUE | Optional | Value passed as a request parameter.
+VARIABLE | Optional | Name of a CFML variable passed by reference as a servlet attribute; changes made by the
+  servlet come back into the variable.
+TYPE | Optional, default "STRING" | Java type of a VARIABLE: INT, DOUBLE, BOOL, DATE or STRING.
+usage:
+The tag is accepted anywhere and ignored; the enclosing `CFSERVLET` raises the error. See `CFSERVLET` for how to
+handle it.
+example:
+<CFSET Visitor = "Netscape 4.7 user">
+<CFTRY>
+  <CFSERVLET CODE="GuestCounterServlet">
+    <CFSERVLETPARAM NAME="page" VALUE="cfservletparam.cfm">
+    <CFSERVLETPARAM NAME="visitor" VARIABLE="Visitor" TYPE="STRING">
+  </CFSERVLET>
+  <CFCATCH TYPE="Any">
+    <CFOUTPUT>
+    <P>No servlet engine here, so the parameters went nowhere.<BR>
+    <I>#CFCATCH.Detail#</I></P>
+    <P>The variable passed by reference still says: <B>#Visitor#</B></P>
+    </CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+see: CFSERVLET, CFHTTPPARAM, CFTRY
+
+@tag CFREPORT
+category: Extensibility
+summary: Runs a Crystal Reports report. Not available in KoldFusion for UNIX.
+desc:
+On Windows NT, `CFREPORT` runs a report designed in Crystal Reports (.rpt) against its data source and sends the
+result to the browser. Crystal Reports has no UNIX edition, so in KoldFusion the tag always raises an Application error.
+syntax:
+<CFREPORT REPORT="report_path"
+    ORDERBY="result_order"
+    USERNAME="username"
+    PASSWORD="password"
+    FORMULA="formula">
+  optional record selection formula
+</CFREPORT>
+attrs:
+REPORT | Required | Path of the .rpt file.
+ORDERBY | Optional | Sort order of the report records, overriding the report's own.
+USERNAME | Optional | User name for the report's data source.
+PASSWORD | Optional | Password for the report's data source.
+FORMULA | Optional | One or more Crystal formulas, separated by semicolons, in the form name='value'.
+usage:
+Catch the error with `CFTRY` and build the report with `CFQUERY` and `CFOUTPUT` instead: grouped output (GROUP=)
+does most of what a banded report does.
+example:
+<CFTRY>
+  <CFREPORT REPORT="c:\reports\salaries.rpt" ORDERBY="Department">
+  </CFREPORT>
+  <CFCATCH TYPE="Application">
+    <CFOUTPUT><P><I>#CFCATCH.Detail#</I> Here is a home-made report instead.</P></CFOUTPUT>
+    <CFQUERY NAME="Pay" DATASOURCE="cfsnippets">
+    SELECT Department, Salary FROM Employees ORDER BY Department
+    </CFQUERY>
+    <TABLE BORDER=1 CELLPADDING=3>
+    <TR BGCOLOR="#CCCCFF"><TH>Department</TH><TH>Staff</TH><TH>Payroll</TH></TR>
+    <CFOUTPUT QUERY="Pay" GROUP="Department">
+      <CFSET Total = 0><CFSET Staff = 0>
+      <CFOUTPUT><CFSET Total = Total + Salary><CFSET Staff = Staff + 1></CFOUTPUT>
+      <TR><TD>#Department#</TD><TD ALIGN=RIGHT>#Staff#</TD><TD ALIGN=RIGHT>#DollarFormat(Total)#</TD></TR>
+    </CFOUTPUT>
+    </TABLE>
+  </CFCATCH>
+</CFTRY>
+see: CFOUTPUT, CFQUERY, CFTRY, CFTABLE
+
+@tag CFX_HELLO
+title: CFX Tags (CFX_HELLO, CFX_DICE, CFX_SYSINFO)
+also: CFX_DICE, CFX_SYSINFO
+category: Extensibility
+summary: Sample CFX tags (compiled C extensions) that ship with KoldFusion: a greeting, a dice roller and a system query.
+desc:
+CFX tags are custom tags written in C or C++ and compiled into a shared library. They are registered on the CFX
+Tags page of the Administrator and then called like any other tag, with a name starting with CFX_. KoldFusion ships
+three samples (sources in the `cfx` directory of the distribution): `CFX_HELLO` writes a greeting, `CFX_DICE`
+rolls dice, and `CFX_SYSINFO` returns a query describing the server machine.
+syntax:
+<CFX_HELLO NAME="name"
+    VARIABLE="variable_name"
+    DEBUG>
+
+<CFX_DICE ROLLS="number"
+    SIDES="number"
+    VARIABLE="variable_name">
+
+<CFX_SYSINFO NAME="query_name">
+attrs:
+NAME (CFX_HELLO) | Optional, default "World" | Who to greet. The greeting is written to the page unless VARIABLE is given.
+VARIABLE (CFX_HELLO) | Optional | Variable that receives the greeting instead of the page.
+DEBUG (CFX_HELLO) | Optional | When present, the tag also writes a line of debug output after the greeting.
+ROLLS (CFX_DICE) | Optional, default "2" | Number of dice to roll, 1 to 100.
+SIDES (CFX_DICE) | Optional, default "6" | Sides per die, 2 to 1000.
+VARIABLE (CFX_DICE) | Optional | Variable that receives the total. The rolls (for example "3 + 5 = 8") are always written to the page.
+NAME (CFX_SYSINFO) | Required | Name of the query to create, with the columns Item and Value: operating system,
+  release, machine, host name, uptime, load average, memory, processors and a note.
+usage:
+A CFX tag sees its attributes, can write to the page, set variables in the calling page, read a query passed in a
+QUERY attribute, create new queries and raise errors, which reach your page as type Application and can be caught
+with `CFTRY`. Calling an unregistered CFX tag raises "The CFX custom tag ... was not found in the custom tag database".
+
+To write your own, include `kfx.h` and export a function `ProcessTagRequest(CFXRequest *request)`; the request
+offers AttributeExists, GetAttribute, GetAttributeList, GetQuery, Write, SetVariable, AddQuery, Debug, WriteDebug and
+ThrowException, much like the CFX API of ColdFusion. Build it as a .so file, put it in the `cfx` directory and register
+it in the Administrator. Java CFX tags need a JVM, which KoldFusion does not configure. For tags written in CFML, see
+`CFMODULE`.
+example:
+<P><B>CFX_HELLO</B>: <CFX_HELLO NAME="Netscape Navigator user"></P>
+<CFX_HELLO NAME="Ada" VARIABLE="Greeting">
+<CFOUTPUT><P>Stored in a variable: <I>#Greeting#</I></P></CFOUTPUT>
+
+<P><B>CFX_DICE</B>: <CFX_DICE ROLLS="3" SIDES="6" VARIABLE="Total"></P>
+<CFOUTPUT><P>The total, from VARIABLE: #Total#<CFIF Total GTE 15> (jackpot!)</CFIF></P></CFOUTPUT>
+<CFTRY>
+  <CFX_DICE ROLLS="0">
+  <CFCATCH TYPE="Application"><CFOUTPUT><P>Zero dice: #CFCATCH.Message#</P></CFOUTPUT></CFCATCH>
+</CFTRY>
+
+<P><B>CFX_SYSINFO</B>:</P>
+<CFX_SYSINFO NAME="Sys">
+<TABLE BORDER=1 CELLPADDING=3>
+<CFOUTPUT QUERY="Sys"><TR><TD>#Item#</TD><TD>#Value#</TD></TR></CFOUTPUT>
+</TABLE>
+see: CFMODULE, CFOBJECT, CFTRY, GetMetricData

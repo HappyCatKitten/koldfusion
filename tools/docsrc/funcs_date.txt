@@ -1,0 +1,939 @@
+# CFML Language Reference - date and time functions.
+# Format: see the docstring at the top of tools/mkdocs.py.
+#
+# Shared facts (checked against src/func2.c and src/core.c):
+#   - date values print as {ts 'yyyy-mm-dd hh:mm:ss'}
+#   - datepart strings: yyyy q m y d w ww h n s
+#   - two-digit years in date strings: 00-29 -> 2000-2029, 30-99 -> 1930-1999
+
+@func CreateDate
+category: Date and time functions
+summary: Returns a date/time value for a year, month and day.
+desc:
+Builds a date/time value from three numbers. The time part is midnight (00:00:00).
+syntax:
+CreateDate(year, month, day)
+params:
+year | Four-digit year, from 100 to 9999.
+month | Month, 1 to 12.
+day | Day of the month, 1 to the last day of that month.
+returns:
+A date/time value. Printed directly it looks like `{ts '1999-10-22 00:00:00'}`.
+usage:
+Every part is checked: February 29, 1999 or month 13 throws an "Invalid date." error that you can catch with
+`CFTRY`/`CFCATCH`. Two-digit years use the same sliding window as date strings: 0 to 29 become 2000 to 2029 and
+30 to 99 become 1930 to 1999, so `CreateDate(99, 12, 31)` is New Year's Eve 1999, not A.D. 99. Write four digits
+anyway; it is the year 2000 problem in miniature.
+
+When you output a date/time value without formatting, you get the ODBC timestamp form `{ts '...'}`. Wrap it in
+`DateFormat` or `TimeFormat` for anything a human will read. To add a time, use `CreateDateTime`.
+example:
+<CFSET Launch = CreateDate(1999, 10, 22)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Expression</TH><TH>Result</TH></TR>
+<TR><TD>CreateDate(1999, 10, 22)</TD><TD>#Launch#</TD></TR>
+<TR><TD>DateFormat(...)</TD><TD>#DateFormat(Launch, "dddd, mmmm d, yyyy")#</TD></TR>
+<TR><TD>Year / Month / Day</TD><TD>#Year(Launch)# / #Month(Launch)# / #Day(Launch)#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+
+<!--- Invalid dates throw an error --->
+<CFTRY>
+  <CFSET Bad = CreateDate(1999, 2, 29)>
+<CFCATCH TYPE="Expression">
+  <CFOUTPUT><P>CreateDate(1999, 2, 29): <B>#CFCATCH.Message#</B> 1999 was not a leap year.</P></CFOUTPUT>
+</CFCATCH>
+</CFTRY>
+see: CreateDateTime, CreateTime, CreateODBCDate, DateFormat, ParseDateTime
+
+@func CreateDateTime
+category: Date and time functions
+summary: Returns a date/time value for a year, month, day, hour, minute and second.
+desc:
+Builds a complete date/time value from six numbers.
+syntax:
+CreateDateTime(year, month, day, hour, minute, second)
+params:
+year | Four-digit year, from 100 to 9999.
+month | Month, 1 to 12.
+day | Day of the month, 1 to the last day of that month.
+hour | Hour, 0 to 23 (24-hour clock).
+minute | Minute, 0 to 59.
+second | Second, 0 to 59.
+returns:
+A date/time value, which prints as `{ts '1999-12-31 23:59:59'}`.
+usage:
+All six arguments are required. If any part is out of range (month 13, hour 24, June 31) the function throws an
+"Invalid date/time." error. Use `DateFormat` and `TimeFormat` together to display the result, and
+`CreateODBCDateTime` when you need the value inside SQL.
+example:
+<CFSET Midnight = CreateDateTime(1999, 12, 31, 23, 59, 59)>
+<CFSET Rollover = DateAdd("s", 1, Midnight)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH></TH><TH>Raw value</TH><TH>Formatted</TH></TR>
+<TR><TD>Last second of 1999</TD><TD>#Midnight#</TD>
+    <TD>#DateFormat(Midnight, "mmm d, yyyy")# #TimeFormat(Midnight, "HH:mm:ss")#</TD></TR>
+<TR><TD>One second later</TD><TD>#Rollover#</TD>
+    <TD>#DateFormat(Rollover, "mmm d, yyyy")# #TimeFormat(Rollover, "HH:mm:ss")#</TD></TR>
+</TABLE>
+<P>Still running? Then your server is Y2K-ready.</P>
+</CFOUTPUT>
+see: CreateDate, CreateTime, CreateODBCDateTime, DateFormat, TimeFormat
+
+@func CreateODBCDate
+category: Date and time functions
+summary: Returns a date in ODBC date format, {d 'yyyy-mm-dd'}.
+desc:
+Converts a date/time value or date string into an ODBC date escape such as `{d '1999-10-22'}`. Any time part is
+dropped.
+syntax:
+CreateODBCDate(date)
+params:
+date | A date/time value or a string that can be converted to one.
+returns:
+A string in the form `{d 'yyyy-mm-dd'}`.
+usage:
+ODBC escapes are understood by every ODBC driver (and by the KoldFusion built-in engine), so they are the safest
+way to put a date into a `CFQUERY` without worrying about the database's own date syntax. Do not put quotes
+around the result in your SQL; the escape already contains them.
+example:
+<CFSET Cutoff = CreateDate(1998, 1, 1)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Input</TH><TH>CreateODBCDate</TH></TR>
+<TR><TD>CreateDate(1998, 1, 1)</TD><TD>#CreateODBCDate(Cutoff)#</TD></TR>
+<TR><TD>"10/22/1999 9:42 PM"</TD><TD>#CreateODBCDate("10/22/1999 9:42 PM")#</TD></TR>
+<TR><TD>Now()</TD><TD>#CreateODBCDate(Now())#</TD></TR>
+</TABLE>
+<P>In a query you would write:</P>
+<PRE>
+SELECT FirstName, LastName FROM Employees
+WHERE StartDate &gt;= #CreateODBCDate(Cutoff)#
+</PRE>
+</CFOUTPUT>
+see: CreateODBCDateTime, CreateODBCTime, CreateDate, CFQUERY, CFQUERYPARAM
+
+@func CreateODBCDateTime
+category: Date and time functions
+summary: Returns a date/time in ODBC timestamp format, {ts 'yyyy-mm-dd hh:mm:ss'}.
+desc:
+Converts a date/time value or string into an ODBC timestamp escape such as `{ts '1999-10-22 21:42:00'}`.
+syntax:
+CreateODBCDateTime(date)
+params:
+date | A date/time value or a string that can be converted to one.
+returns:
+A string in the form `{ts 'yyyy-mm-dd hh:mm:ss'}`.
+usage:
+This happens to be exactly how KoldFusion prints any date/time value, so `#Now()#` and
+`#CreateODBCDateTime(Now())#` look the same. The difference is that this function always returns a string, and it
+accepts date strings ("10/22/1999 9:42 PM") as input. Use it in SQL for columns that store both a date and a time;
+use `CreateODBCDate` when only the day matters.
+example:
+<CFSET Posted = ParseDateTime("October 22, 1999 9:42 PM")>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Function</TH><TH>Result</TH></TR>
+<TR><TD>CreateODBCDateTime</TD><TD>#CreateODBCDateTime(Posted)#</TD></TR>
+<TR><TD>CreateODBCDate</TD><TD>#CreateODBCDate(Posted)#</TD></TR>
+<TR><TD>CreateODBCTime</TD><TD>#CreateODBCTime(Posted)#</TD></TR>
+<TR><TD>From a string</TD><TD>#CreateODBCDateTime("12/31/1999 11:59 PM")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: CreateODBCDate, CreateODBCTime, CreateDateTime, Now, CFQUERY
+
+@func CreateODBCTime
+category: Date and time functions
+summary: Returns a time in ODBC time format, {t 'hh:mm:ss'}.
+desc:
+Converts the time part of a date/time value or string into an ODBC time escape such as `{t '21:42:00'}`. The date
+part is dropped.
+syntax:
+CreateODBCTime(date)
+params:
+date | A date/time value or a string that can be converted to one, for example "9:42 PM".
+returns:
+A string in the form `{t 'hh:mm:ss'}` using the 24-hour clock.
+usage:
+Handy for SQL columns that store only a time of day, such as an opening hour or a scheduled task time.
+See `CreateODBCDate` and `CreateODBCDateTime` for the other two escapes.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Input</TH><TH>CreateODBCTime</TH></TR>
+<TR><TD>"9:42 PM"</TD><TD>#CreateODBCTime("9:42 PM")#</TD></TR>
+<TR><TD>CreateTime(8, 30, 0)</TD><TD>#CreateODBCTime(CreateTime(8, 30, 0))#</TD></TR>
+<TR><TD>"12/31/1999 23:59:59"</TD><TD>#CreateODBCTime("12/31/1999 23:59:59")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: CreateODBCDate, CreateODBCDateTime, CreateTime, TimeFormat
+
+@func CreateTime
+category: Date and time functions
+summary: Returns a date/time value for an hour, minute and second.
+desc:
+Builds a time-of-day value from three numbers. Because every date/time value also has a date, the date part is
+the zero date, December 30, 1899.
+syntax:
+CreateTime(hour, minute, second)
+params:
+hour | Hour, 0 to 23.
+minute | Minute, 0 to 59.
+second | Second, 0 to 59.
+returns:
+A date/time value. Printed directly it shows the zero date: `{ts '1899-12-30 14:30:00'}`.
+usage:
+Display the result with `TimeFormat`; `DateFormat` would faithfully show you December 30, 1899, which is rarely
+what anyone wants. Out-of-range values throw an "Invalid time." error. To combine a date and a time in one value,
+use `CreateDateTime`.
+example:
+<CFSET Lunch = CreateTime(12, 30, 0)>
+<CFSET Quitting = CreateTime(17, 0, 0)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH></TH><TH>Raw value</TH><TH>TimeFormat</TH></TR>
+<TR><TD>Lunch</TD><TD>#Lunch#</TD><TD>#TimeFormat(Lunch, "h:mm tt")#</TD></TR>
+<TR><TD>Quitting time</TD><TD>#Quitting#</TD><TD>#TimeFormat(Quitting, "h:mm tt")#</TD></TR>
+</TABLE>
+<P>Afternoon shift: #DateDiff("h", Lunch, Quitting)# hours (and a half).</P>
+</CFOUTPUT>
+see: CreateDateTime, CreateODBCTime, TimeFormat, Hour, Minute
+
+@func CreateTimeSpan
+category: Date and time functions
+summary: Returns a time span (a number of days) for use with date arithmetic and query caching.
+desc:
+Converts days, hours, minutes and seconds into a single number of days, including the fraction. Add it to a
+date, or pass it to the `CACHEDWITHIN` attribute of `CFQUERY` or the timeout attributes of `CFAPPLICATION`.
+syntax:
+CreateTimeSpan(days, hours, minutes, seconds)
+params:
+days | Number of days.
+hours | Number of hours.
+minutes | Number of minutes.
+seconds | Number of seconds.
+returns:
+A number: the length of the span in days. `CreateTimeSpan(0, 6, 0, 0)` is 0.25.
+usage:
+All four arguments are required, even if they are zero. Values need not stay in their usual ranges:
+`CreateTimeSpan(0, 0, 90, 0)` is simply an hour and a half.
+
+Adding a time span to a date gives a plain number of days rather than a date/time value, so wrap the sum in
+`DateFormat`/`TimeFormat` (or `CreateODBCDateTime`) before you show it.
+example:
+<CFSET Span = CreateTimeSpan(0, 6, 0, 0)>
+<CFSET Start = CreateDateTime(1999, 12, 31, 20, 0, 0)>
+<CFSET Finish = Start + Span>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>CreateTimeSpan(0, 6, 0, 0)</TD><TD>#Span# days</TD></TR>
+<TR><TD>CreateTimeSpan(1, 12, 0, 0)</TD><TD>#CreateTimeSpan(1, 12, 0, 0)# days</TD></TR>
+<TR><TD>Party starts</TD><TD>#DateFormat(Start, "mmm d, yyyy")# #TimeFormat(Start, "h:mm tt")#</TD></TR>
+<TR><TD>Plus six hours</TD><TD>#DateFormat(Finish, "mmm d, yyyy")# #TimeFormat(Finish, "h:mm tt")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+<!--- Cache this query for 15 minutes --->
+<CFQUERY NAME="Depts" DATASOURCE="cfsnippets" CACHEDWITHIN="#CreateTimeSpan(0, 0, 15, 0)#">
+SELECT Dept_Name FROM Departments
+</CFQUERY>
+<CFOUTPUT><P>#Depts.RecordCount# departments, cached for 15 minutes.</P></CFOUTPUT>
+see: CFQUERY, CFAPPLICATION, DateAdd, Now
+
+@func DateAdd
+category: Date and time functions
+summary: Adds a number of years, months, days, hours, etc. to a date.
+desc:
+Returns a new date/time value that is a given number of units later (or earlier, for a negative number) than
+the date you pass in.
+syntax:
+DateAdd(datepart, number, date)
+params:
+datepart | The unit to add, one of:
+  `yyyy` year, `q` quarter, `m` month, `y` day of year, `d` day, `w` weekday, `ww` week,
+  `h` hour, `n` minute, `s` second. Case does not matter.
+number | How many units to add. Use a negative number to go back in time. Fractions are dropped (1.7 adds 1).
+date | A date/time value or a string that can be converted to one.
+returns:
+A date/time value.
+usage:
+`y`, `d` and `w` all add whole days in KoldFusion, `ww` adds seven days at a time. Note that minutes are `n`;
+`m` is months, a classic source of appointments booked thirty days too late.
+
+Adding months, quarters or years keeps the day of the month where possible. If the target month is shorter, the
+result is pinned to its last day: one month after January 31, 2000 is February 29, 2000 (a leap year, despite
+the rumors), and one year after February 29, 2000 is February 28, 2001.
+
+Any other datepart throws an "Invalid date part" error.
+example:
+<CFSET Base = CreateDate(2000, 1, 31)>
+<CFOUTPUT>
+<P>Starting from #DateFormat(Base, "mmmm d, yyyy")#:</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Expression</TH><TH>Result</TH></TR>
+<CFLOOP INDEX="Part" LIST="yyyy,q,m,ww,d">
+<TR><TD>DateAdd("#Part#", 1, Base)</TD>
+    <TD>#DateFormat(DateAdd(Part, 1, Base), "mmm d, yyyy")#</TD></TR>
+</CFLOOP>
+<TR><TD>DateAdd("d", -31, Base)</TD><TD>#DateFormat(DateAdd("d", -31, Base), "mmm d, yyyy")#</TD></TR>
+<TR><TD>DateAdd("h", 36, Base)</TD><TD>#DateAdd("h", 36, Base)#</TD></TR>
+<TR><TD>DateAdd("n", 90, Base)</TD><TD>#DateAdd("n", 90, Base)#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: DateDiff, DatePart, CreateTimeSpan, DateCompare
+
+@func DateCompare
+category: Date and time functions
+summary: Compares two dates and returns -1, 0 or 1.
+desc:
+Tells you whether the first date is earlier than (-1), equal to (0) or later than (1) the second date. An optional
+third argument sets how precisely to compare.
+syntax:
+DateCompare(date1, date2 [, datePart ])
+params:
+date1 | A date/time value or a string that can be converted to one.
+date2 | A date/time value or a string that can be converted to one.
+datePart | Optional precision: `yyyy` year, `m` month, `d` day, `h` hour, `n` minute or `s` second. Default `s`.
+  The comparison ignores everything smaller than this unit. Other datepart strings compare to the second.
+returns:
+-1 if date1 is earlier, 0 if they are the same (at the chosen precision), 1 if date1 is later.
+usage:
+Comparing by day is the easy way to ask "is this the same day?" without worrying about the clock:
+`DateCompare(Posted, Now(), "d") EQ 0`. Date values can also be compared directly with `LT`, `GT` and `EQ`
+in an expression.
+example:
+<CFSET A = CreateDateTime(1999, 12, 31, 10, 0, 0)>
+<CFSET B = CreateDateTime(1999, 12, 31, 18, 30, 0)>
+<CFOUTPUT>
+<P>A = #A#<BR>B = #B#</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Precision</TH><TH>DateCompare(A, B, ...)</TH></TR>
+<CFLOOP INDEX="Part" LIST="s,n,h,d,m,yyyy">
+<TR><TD>#Part#</TD><TD>#DateCompare(A, B, Part)#</TD></TR>
+</CFLOOP>
+</TABLE>
+<P>DateCompare(B, A) = #DateCompare(B, A)#</P>
+</CFOUTPUT>
+see: DateDiff, DateAdd, IsDate, Now
+
+@func DateConvert
+category: Date and time functions
+summary: Converts a date/time between local time and Coordinated Universal Time (UTC).
+desc:
+Converts local server time to UTC, or UTC to local server time, using the server's time zone settings.
+syntax:
+DateConvert(conversionType, date)
+params:
+conversionType | `local2Utc` to convert local time to UTC, or `utc2Local` for the reverse. Case does not matter.
+date | A date/time value or a string that can be converted to one.
+returns:
+The converted date/time value.
+usage:
+KoldFusion applies the server's offset from UTC as it is right now (including daylight saving time if it is in
+effect today), whatever the season of the date you pass. Any other conversion type throws an "Invalid conversion
+type." error. See `GetTimeZoneInfo` for the offset itself and `GetHTTPTimeString` for HTTP-style GMT strings.
+example:
+<CFSET Local = Now()>
+<CFSET UTC = DateConvert("local2Utc", Local)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>Server local time</TD><TD>#TimeFormat(Local, "HH:mm:ss")#</TD></TR>
+<TR><TD>UTC</TD><TD>#TimeFormat(UTC, "HH:mm:ss")#</TD></TR>
+<TR><TD>Back to local</TD><TD>#TimeFormat(DateConvert("utc2Local", UTC), "HH:mm:ss")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: GetTimeZoneInfo, GetHTTPTimeString, Now
+
+@func DateDiff
+category: Date and time functions
+summary: Returns the number of whole units (years, days, hours, ...) between two dates.
+desc:
+Counts how many complete units of a datepart lie between two dates. The result is positive if the second date is
+later than the first, negative if it is earlier.
+syntax:
+DateDiff(datepart, date1, date2)
+params:
+datepart | The unit to count, one of:
+  `yyyy` years, `q` quarters, `m` months, `y` days, `d` days, `w` days, `ww` weeks,
+  `h` hours, `n` minutes, `s` seconds.
+date1 | The starting date/time value, or a string that can be converted to one.
+date2 | The ending date/time value, or a string that can be converted to one.
+returns:
+A whole number: `date2` minus `date1`, in the units asked for. Partial units are dropped (rounded toward zero).
+usage:
+Years, quarters and months count completed calendar months: from December 31, 1999 to January 1, 2000 is 1 day
+but 0 years, even though the year number changed. To see whether two dates fall in different years, compare
+`Year()` values instead.
+
+In KoldFusion `y`, `d` and `w` all count days, and `ww` counts whole weeks. Note the argument order: the earlier
+date normally comes first.
+example:
+<CFSET Start = CreateDateTime(1999, 1, 1, 9, 0, 0)>
+<CFSET Y2K = CreateDateTime(2000, 1, 1, 0, 0, 0)>
+<CFOUTPUT>
+<P>From #DateFormat(Start, "mmm d, yyyy")# #TimeFormat(Start, "h:mm tt")#
+to the year 2000:</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Datepart</TH><TH>DateDiff</TH></TR>
+<CFLOOP INDEX="Part" LIST="yyyy,q,m,ww,d,h">
+<TR><TD>#Part#</TD><TD ALIGN="RIGHT">#DateDiff(Part, Start, Y2K)#</TD></TR>
+</CFLOOP>
+</TABLE>
+<P>Dec 31, 1999 to Jan 1, 2000: #DateDiff("d", "12/31/1999", "1/1/2000")# day,
+#DateDiff("yyyy", "12/31/1999", "1/1/2000")# years.</P>
+</CFOUTPUT>
+see: DateAdd, DatePart, DateCompare, CreateTimeSpan
+
+@func DatePart
+category: Date and time functions
+summary: Returns one part (year, month, weekday, hour, ...) of a date as a number.
+desc:
+Extracts a single part of a date/time value, selected by a datepart string.
+syntax:
+DatePart(datepart, date)
+params:
+datepart | The part to return:
+  `yyyy` year, `q` quarter (1-4), `m` month (1-12), `y` day of the year (1-366), `d` day of the month,
+  `w` day of the week (1 = Sunday ... 7 = Saturday), `ww` week of the year (1-53), `h` hour (0-23),
+  `n` minute, `s` second.
+date | A date/time value or a string that can be converted to one.
+returns:
+An integer.
+usage:
+Each datepart also has its own shortcut function: `Year`, `Quarter`, `Month`, `DayOfYear`, `Day`, `DayOfWeek`,
+`Week`, `Hour`, `Minute` and `Second`. Weeks start on Sunday, and week 1 is the week containing January 1.
+An unknown datepart throws an "Invalid date part" error.
+example:
+<CFSET D = CreateDateTime(1999, 12, 31, 23, 59, 58)>
+<CFOUTPUT>
+<P>Date: #D#</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Datepart</TH><TH>Result</TH></TR>
+<CFLOOP INDEX="Part" LIST="yyyy,q,m,y,d,w,ww,h,n,s">
+<TR><TD>#Part#</TD><TD ALIGN="RIGHT">#DatePart(Part, D)#</TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>
+see: DateAdd, DateDiff, Year, DayOfWeek, Week
+
+@func Day
+category: Date and time functions
+summary: Returns the day of the month (1-31) of a date.
+desc:
+Returns the day-of-the-month number of a date/time value.
+syntax:
+Day(date)
+params:
+date | A date/time value or a string that can be converted to one.
+returns:
+A number from 1 to 31.
+usage:
+Same as `DatePart("d", date)`. Use `DayOfWeek` for the weekday and `DayOfYear` for the day within the year.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Date</TH><TH>Day()</TH></TR>
+<TR><TD>"October 22, 1999"</TD><TD>#Day("October 22, 1999")#</TD></TR>
+<TR><TD>"2/29/2000"</TD><TD>#Day("2/29/2000")#</TD></TR>
+<TR><TD>Today</TD><TD>#Day(Now())#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: Month, Year, DayOfWeek, DayOfYear, DatePart
+
+@func DayOfWeek
+category: Date and time functions
+summary: Returns the day of the week (1 = Sunday to 7 = Saturday) of a date.
+desc:
+Returns the weekday of a date/time value as a number, with Sunday as day 1.
+syntax:
+DayOfWeek(date)
+params:
+date | A date/time value or a string that can be converted to one.
+returns:
+A number from 1 (Sunday) to 7 (Saturday).
+usage:
+Pass the result to `DayOfWeekAsString` to get the name. Same as `DatePart("w", date)`.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Date</TH><TH>DayOfWeek</TH><TH>Name</TH></TR>
+<CFLOOP INDEX="D" LIST="12/31/1999,1/1/2000,2/29/2000">
+<TR><TD>#D#</TD><TD>#DayOfWeek(D)#</TD><TD>#DayOfWeekAsString(DayOfWeek(D))#</TD></TR>
+</CFLOOP>
+</TABLE>
+<P>Today is day #DayOfWeek(Now())# of the week.</P>
+</CFOUTPUT>
+see: DayOfWeekAsString, DayOfYear, Day, DatePart
+
+@func DayOfWeekAsString
+category: Date and time functions
+summary: Returns the name of a weekday (1 = Sunday) as a string.
+desc:
+Converts a weekday number from 1 to 7 into its English name.
+syntax:
+DayOfWeekAsString(day_of_week)
+params:
+day_of_week | A number from 1 (Sunday) to 7 (Saturday).
+returns:
+The full English name of the day, for example "Friday".
+usage:
+A number outside 1 to 7 throws a parameter validation error. For a localized or abbreviated name of an actual
+date, use `DateFormat` with the `ddd` or `dddd` mask instead.
+example:
+<UL>
+<CFLOOP INDEX="I" FROM="1" TO="7">
+  <CFOUTPUT><LI>#I# = #DayOfWeekAsString(I)#</CFOUTPUT>
+</CFLOOP>
+</UL>
+see: DayOfWeek, MonthAsString, DateFormat
+
+@func DayOfYear
+category: Date and time functions
+summary: Returns the day of the year (1-366) of a date.
+desc:
+Returns how many days into its year a date falls; January 1 is day 1.
+syntax:
+DayOfYear(date)
+params:
+date | A date/time value or a string that can be converted to one.
+returns:
+A number from 1 to 365, or 366 on December 31 of a leap year.
+usage:
+Same as `DatePart("y", date)`. Combine with `DaysInYear` to compute how much of the year is left.
+example:
+<CFSET D = CreateDate(2000, 12, 31)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>DayOfYear("3/1/1999")</TD><TD>#DayOfYear("3/1/1999")#</TD></TR>
+<TR><TD>DayOfYear("3/1/2000")</TD><TD>#DayOfYear("3/1/2000")#</TD></TR>
+<TR><TD>DayOfYear(Dec 31, 2000)</TD><TD>#DayOfYear(D)#</TD></TR>
+<TR><TD>Days left this year</TD><TD>#DaysInYear(Now()) - DayOfYear(Now())#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: DaysInYear, FirstDayOfMonth, Day, DatePart
+
+@func DaysInMonth
+category: Date and time functions
+summary: Returns the number of days in the month of a date.
+desc:
+Returns 28, 29, 30 or 31: the length of the month in which the given date falls.
+syntax:
+DaysInMonth(date)
+params:
+date | A date/time value or a string that can be converted to one. Only its year and month matter.
+returns:
+The number of days in that month.
+usage:
+The argument is a date, not a month number; to ask about February 2000, pass any date in it, such as
+`CreateDate(2000, 2, 1)`. Leap years are handled correctly, including the century rule.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Month</TH><TH>Days</TH></TR>
+<CFLOOP INDEX="Y" LIST="1900,1999,2000">
+<TR><TD>February #Y#</TD><TD>#DaysInMonth(CreateDate(Y, 2, 1))#</TD></TR>
+</CFLOOP>
+<CFLOOP INDEX="M" FROM="9" TO="12">
+<TR><TD>#MonthAsString(M)# 1999</TD><TD>#DaysInMonth(CreateDate(1999, M, 1))#</TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>
+see: DaysInYear, IsLeapYear, FirstDayOfMonth, Month
+
+@func DaysInYear
+category: Date and time functions
+summary: Returns the number of days (365 or 366) in the year of a date.
+desc:
+Returns the length of the year in which a date falls.
+syntax:
+DaysInYear(date)
+params:
+date | A date/time value or a string that can be converted to one. Only its year matters.
+returns:
+365, or 366 for a leap year.
+usage:
+The argument is a date, not a year number: `DaysInYear(2000)` would treat 2000 as a day count, not as the year
+2000. Pass `CreateDate(2000, 1, 1)` instead, or use `IsLeapYear` with a plain year number.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Year</TH><TH>DaysInYear</TH></TR>
+<CFLOOP INDEX="Y" LIST="1900,1996,1999,2000">
+<TR><TD>#Y#</TD><TD>#DaysInYear(CreateDate(Y, 1, 1))#</TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>
+see: DaysInMonth, IsLeapYear, DayOfYear
+
+@func FirstDayOfMonth
+category: Date and time functions
+summary: Returns the day of the year on which the month of a date begins.
+desc:
+Returns the day-of-the-year number (1-366) of the first day of the month in which a date falls. It does not
+return a date or a weekday.
+syntax:
+FirstDayOfMonth(date)
+params:
+date | A date/time value or a string that can be converted to one.
+returns:
+A number: 1 for any date in January, 32 for February, 60 for March (61 in a leap year), and so on.
+usage:
+To get the first of the month as a date, use `CreateDate(Year(d), Month(d), 1)`. To find which weekday the month
+starts on (useful for drawing a calendar), wrap that in `DayOfWeek`.
+example:
+<CFSET D = CreateDate(2000, 3, 15)>
+<CFSET First = CreateDate(Year(D), Month(D), 1)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>FirstDayOfMonth(March 15, 2000)</TD><TD>#FirstDayOfMonth(D)#</TD></TR>
+<TR><TD>FirstDayOfMonth(March 15, 1999)</TD><TD>#FirstDayOfMonth("3/15/1999")#</TD></TR>
+<TR><TD>First of the month as a date</TD><TD>#DateFormat(First, "mmmm d, yyyy")#</TD></TR>
+<TR><TD>...falls on a</TD><TD>#DayOfWeekAsString(DayOfWeek(First))#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: DayOfYear, DaysInMonth, CreateDate, DayOfWeek
+
+@func GetHTTPTimeString
+category: Date and time functions
+new45: yes
+summary: Formats a date/time as a GMT string for HTTP headers.
+desc:
+Converts a local date/time value to Greenwich Mean Time and formats it the way HTTP headers such as `Expires`
+and `Last-Modified` require, for example `Fri, 31 Dec 1999 23:59:59 GMT`.
+syntax:
+GetHTTPTimeString([ date ])
+params:
+date | Optional. A date/time value in server local time, or a string that can be converted to one. Default: `Now()`.
+returns:
+A string in RFC 1123 format: `ddd, dd mmm yyyy HH:mm:ss GMT`.
+usage:
+Use it with `CFHEADER` to control how long browsers and proxy servers keep a copy of your page. The conversion
+uses the server's current offset from GMT (see `GetTimeZoneInfo`), so the hour shown depends on where your server
+lives.
+example:
+<CFSET Expires = DateAdd("d", 1, Now())>
+<CFHEADER NAME="Expires" VALUE="#GetHTTPTimeString(Expires)#">
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>GetHTTPTimeString()</TD><TD>#GetHTTPTimeString()#</TD></TR>
+<TR><TD>Tomorrow (sent as Expires)</TD><TD>#GetHTTPTimeString(Expires)#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: CFHEADER, DateConvert, GetTimeZoneInfo, Now
+
+@func GetTimeZoneInfo
+category: Date and time functions
+summary: Returns a structure describing the server's time zone.
+desc:
+Returns a structure with the server's offset from Coordinated Universal Time (UTC) and whether daylight saving time
+is in effect.
+syntax:
+GetTimeZoneInfo()
+returns:
+A structure with four keys:
+
+| Key | Contents |
+| utcTotalOffset | Seconds to add to local time to get UTC. Positive west of Greenwich (US Eastern Standard Time is 18000). |
+| utcHourOffset | Whole hours of the offset, with the same sign. |
+| utcMinuteOffset | Remaining minutes (0 for most zones, 30 for places such as India). |
+| isDSTOn | YES if daylight saving time is in effect right now. |
+usage:
+The sign convention trips people up: the offset is what you add to local time to reach UTC, so a server in Berlin
+(one hour ahead of UTC in winter) reports -3600. `DateConvert` does the arithmetic for you.
+example:
+<CFSET TZ = GetTimeZoneInfo()>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Key</TH><TH>Value</TH></TR>
+<TR><TD>utcTotalOffset</TD><TD>#TZ.utcTotalOffset#</TD></TR>
+<TR><TD>utcHourOffset</TD><TD>#TZ.utcHourOffset#</TD></TR>
+<TR><TD>utcMinuteOffset</TD><TD>#TZ.utcMinuteOffset#</TD></TR>
+<TR><TD>isDSTOn</TD><TD>#TZ.isDSTOn#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: DateConvert, GetHTTPTimeString, Now
+
+@func Hour
+category: Date and time functions
+summary: Returns the hour (0-23) of a date/time.
+desc:
+Returns the hour part of a date/time value, on the 24-hour clock.
+syntax:
+Hour(date)
+params:
+date | A date/time value or a string that can be converted to one, including a bare time such as "2:30 PM".
+returns:
+A number from 0 to 23.
+usage:
+Same as `DatePart("h", date)`. Midnight is 0 and 2:30 PM is 14.
+example:
+<CFSET H = Hour(Now())>
+<CFOUTPUT>
+<P>Hour("2:30 PM") = #Hour("2:30 PM")#, Hour(CreateTime(0, 15, 0)) = #Hour(CreateTime(0, 15, 0))#</P>
+<P>It is #H# o'clock at the server. Good
+<CFIF H LT 12>morning<CFELSEIF H LT 18>afternoon<CFELSE>evening</CFIF>!</P>
+</CFOUTPUT>
+see: Minute, Second, TimeFormat, DatePart
+
+@func IsLeapYear
+category: Date and time functions
+summary: Returns YES if a year is a leap year.
+desc:
+Tests whether a year has a February 29.
+syntax:
+IsLeapYear(year)
+params:
+year | A year number, such as 2000. This is a number, not a date.
+returns:
+YES if the year is a leap year, NO otherwise.
+usage:
+The full Gregorian rule applies: years divisible by 4 are leap years, except century years, which must also be
+divisible by 400. So 1900 was not a leap year, but 2000 is, and a surprising number of 1999-vintage programs got
+that wrong. The year is used as given, so pass all four digits.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Year</TH><TH>IsLeapYear</TH></TR>
+<CFLOOP INDEX="Y" LIST="1900,1996,1999,2000,2004,2100">
+<TR><TD>#Y#</TD><TD>#IsLeapYear(Y)#</TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>
+see: DaysInYear, DaysInMonth, Year, IsDate
+
+@func Minute
+category: Date and time functions
+summary: Returns the minute (0-59) of a date/time.
+desc:
+Returns the minute part of a date/time value.
+syntax:
+Minute(date)
+params:
+date | A date/time value or a string that can be converted to one.
+returns:
+A number from 0 to 59.
+usage:
+Same as `DatePart("n", date)` (remember: `n` is minutes, `m` is months).
+example:
+<CFSET T = CreateDateTime(1999, 12, 31, 23, 45, 30)>
+<CFOUTPUT>
+<P>#T#</P>
+<P>Hour #Hour(T)#, minute #Minute(T)#, second #Second(T)#.
+Only #60 - Minute(T)# minutes until the year 2000!</P>
+</CFOUTPUT>
+see: Hour, Second, DatePart, TimeFormat
+
+@func Month
+category: Date and time functions
+summary: Returns the month (1-12) of a date.
+desc:
+Returns the month number of a date/time value; January is 1.
+syntax:
+Month(date)
+params:
+date | A date/time value or a string that can be converted to one.
+returns:
+A number from 1 to 12.
+usage:
+Same as `DatePart("m", date)`. Pass the result to `MonthAsString` for the month's name.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Date</TH><TH>Month</TH><TH>Name</TH></TR>
+<CFLOOP INDEX="D" LIST="1/15/2000,Jul 4 1999,10/22/1999">
+<TR><TD>#D#</TD><TD>#Month(D)#</TD><TD>#MonthAsString(Month(D))#</TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>
+see: MonthAsString, Year, Day, Quarter, DatePart
+
+@func MonthAsString
+category: Date and time functions
+summary: Returns the name of a month (1 = January) as a string.
+desc:
+Converts a month number from 1 to 12 into its English name.
+syntax:
+MonthAsString(month_number)
+params:
+month_number | A number from 1 to 12.
+returns:
+The full English name of the month, for example "October".
+usage:
+A number outside 1 to 12 throws a parameter validation error. For an abbreviated name, use `Left` or
+`DateFormat` with the `mmm` mask.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR>
+<CFLOOP INDEX="M" FROM="1" TO="12">
+  <TD>#M#<BR><B>#MonthAsString(M)#</B><BR>#Left(MonthAsString(M), 3)#</TD>
+  <CFIF M MOD 4 EQ 0></TR><TR></CFIF>
+</CFLOOP>
+</TR>
+</TABLE>
+</CFOUTPUT>
+see: Month, DayOfWeekAsString, DateFormat
+
+@func Now
+category: Date and time functions
+summary: Returns the current date and time of the server.
+desc:
+Returns the server's current local date and time as a date/time value.
+syntax:
+Now()
+returns:
+A date/time value, which prints as `{ts '1999-10-22 21:42:00'}`.
+usage:
+`Now()` reads the server's clock, not the browser's. Use `DateFormat` and `TimeFormat` to make it presentable,
+`DateConvert` to turn it into UTC, and `DateAdd` to calculate dates relative to today. The value is precise to the
+second; for timing code, use `GetTickCount`.
+example:
+<CFSET Right_Now = Now()>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>Now()</TD><TD>#Right_Now#</TD></TR>
+<TR><TD>Formatted</TD><TD>#DateFormat(Right_Now, "dddd, mmmm d, yyyy")# at #TimeFormat(Right_Now, "h:mm tt")#</TD></TR>
+<TR><TD>A week from now</TD><TD>#DateFormat(DateAdd("ww", 1, Right_Now), "mmmm d, yyyy")#</TD></TR>
+<TR><TD>Days since Jan 1, 2000</TD><TD>#DateDiff("d", CreateDate(2000, 1, 1), Right_Now)#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: DateFormat, TimeFormat, DateAdd, GetTickCount, CreateDateTime
+
+@func ParseDateTime
+category: Date and time functions
+summary: Converts a date/time string into a date/time value.
+desc:
+Reads a string containing a date, a time or both and returns a real date/time value.
+syntax:
+ParseDateTime(date_string [, pop_conversion_method ])
+params:
+date_string | A string such as "10/22/1999", "Oct 22, 1999 9:42 PM", "22-Oct-99", "1999-10-22 21:42:00"
+  or an ODBC escape such as `{ts '1999-10-22 21:42:00'}`.
+pop_conversion_method | Optional. "POP" or "STANDARD", for dates read from Internet mail headers. Accepted for
+  compatibility; KoldFusion ignores it.
+returns:
+A date/time value.
+usage:
+Numeric dates are read in US order, month/day/year (or year-month-day when the year comes first). Month names
+can be full or three letters, and weekday names are skipped. Times may use AM/PM or the 24-hour clock; a time
+on its own gets the zero date, December 30, 1899.
+
+**Two-digit years** are converted with a sliding window: 00 to 29 become 2000 to 2029, and 30 to 99 become
+1930 to 1999. So "1/1/29" is in 2029 and "1/1/30" is in 1930. This applies everywhere KoldFusion converts a
+string to a date, not just here. We recommend four-digit years anyway; the year 2030 will come sooner than you think.
+
+A string that is not a valid date throws a parameter validation error; test it first with `IsDate`.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String</TH><TH>ParseDateTime</TH></TR>
+<CFLOOP INDEX="S" LIST="10/22/1999|Oct 22 1999 9:42 PM|Friday 22-Oct-99|1999-10-22 21:42:00|1/1/00|1/1/29|1/1/30|14:30" DELIMITERS="|">
+<TR><TD>#S#</TD><TD>#ParseDateTime(S)#</TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>
+see: IsDate, CreateDateTime, LSParseDateTime, DateFormat
+
+@func Quarter
+category: Date and time functions
+summary: Returns the quarter of the year (1-4) of a date.
+desc:
+Returns which quarter of the calendar year a date falls in: January to March is 1, October to December is 4.
+syntax:
+Quarter(date)
+params:
+date | A date/time value or a string that can be converted to one.
+returns:
+A number from 1 to 4.
+usage:
+Same as `DatePart("q", date)`. Calendar quarters only; if your fiscal year starts in July, shift the date with
+`DateAdd` first.
+example:
+<CFQUERY NAME="Hires" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName, StartDate FROM Employees ORDER BY StartDate
+</CFQUERY>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Employee</TH><TH>Started</TH><TH>Quarter</TH></TR>
+<CFOUTPUT QUERY="Hires" MAXROWS="8">
+<TR><TD>#FirstName# #LastName#</TD><TD>#DateFormat(StartDate, "mmm d, yyyy")#</TD>
+    <TD>Q#Quarter(StartDate)# #Year(StartDate)#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: Month, Year, DatePart
+
+@func Second
+category: Date and time functions
+summary: Returns the second (0-59) of a date/time.
+desc:
+Returns the seconds part of a date/time value.
+syntax:
+Second(date)
+params:
+date | A date/time value or a string that can be converted to one.
+returns:
+A number from 0 to 59.
+usage:
+Same as `DatePart("s", date)`. Date/time values are kept to the whole second; for millisecond timing use
+`GetTickCount`.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>Second("11:59:42 PM")</TD><TD>#Second("11:59:42 PM")#</TD></TR>
+<TR><TD>Second(CreateTime(12, 0, 7))</TD><TD>#Second(CreateTime(12, 0, 7))#</TD></TR>
+<TR><TD>Seconds on the server clock</TD><TD>#Second(Now())#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: Minute, Hour, DatePart, GetTickCount
+
+@func Week
+category: Date and time functions
+summary: Returns the week of the year (1-53) of a date.
+desc:
+Returns the week number of a date within its year. Weeks start on Sunday, and the week containing January 1 is
+week 1.
+syntax:
+Week(date)
+params:
+date | A date/time value or a string that can be converted to one.
+returns:
+A number from 1 to 53 (or 54 in a rare leap year that starts on a Saturday).
+usage:
+Same as `DatePart("ww", date)`. This is the simple US-style numbering, not the ISO 8601 week used in much of
+Europe, so January 1 is always in week 1 even if it falls on a Saturday.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Date</TH><TH>Weekday</TH><TH>Week</TH></TR>
+<CFLOOP INDEX="D" LIST="1/1/2000,1/2/2000,1/9/2000,12/31/1999">
+<TR><TD>#D#</TD><TD>#DayOfWeekAsString(DayOfWeek(D))#</TD><TD>#Week(D)#</TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>
+see: DatePart, DayOfWeek, DayOfYear
+
+@func Year
+category: Date and time functions
+summary: Returns the year of a date, always with four digits.
+desc:
+Returns the year part of a date/time value as a four-digit number.
+syntax:
+Year(date)
+params:
+date | A date/time value or a string that can be converted to one.
+returns:
+A number such as 1999 or 2000.
+usage:
+Same as `DatePart("yyyy", date)`. If the string has a two-digit year, the sliding window described under
+`ParseDateTime` applies: "10/22/99" is 1999 and "1/1/00" is 2000.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Date</TH><TH>Year</TH></TR>
+<CFLOOP INDEX="D" LIST="10/22/99,1/1/00,12/31/29,1/1/30,Jan 1 2000">
+<TR><TD>#D#</TD><TD>#Year(D)#</TD></TR>
+</CFLOOP>
+<TR><TD>Now()</TD><TD>#Year(Now())#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: Month, Day, Quarter, DatePart, IsLeapYear

@@ -1,0 +1,9 @@
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Date</TH><TH>Year</TH></TR>
+<CFLOOP INDEX="D" LIST="10/22/99,1/1/00,12/31/29,1/1/30,Jan 1 2000">
+<TR><TD>#D#</TD><TD>#Year(D)#</TD></TR>
+</CFLOOP>
+<TR><TD>Now()</TD><TD>#Year(Now())#</TD></TR>
+</TABLE>
+</CFOUTPUT>

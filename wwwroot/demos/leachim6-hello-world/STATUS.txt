@@ -1,0 +1,8 @@
+# KoldFusion Demo Gallery status file, read by /demos/index.cfm (results of running every file on KoldFusion).
+# One line per file:  file | status | note | run
+#   status: works, partial, cf5 (needs CF5+), cfmx (needs CFMX+), fails, include (not a page), shim (gallery companion)
+#   run:    optional page to open instead of the file ("-" = no Run link)
+@title Hello, World!
+@blurb From leachim6/hello-world, the repository with Hello World in every language ever.
+@order 9
+ColdFusion.cfm | works | CFSET + CFOUTPUT |

@@ -1,0 +1,8 @@
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Date</TH><TH>Weekday</TH><TH>Week</TH></TR>
+<CFLOOP INDEX="D" LIST="1/1/2000,1/2/2000,1/9/2000,12/31/1999">
+<TR><TD>#D#</TD><TD>#DayOfWeekAsString(DayOfWeek(D))#</TD><TD>#Week(D)#</TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>

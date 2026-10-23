@@ -1,0 +1,74 @@
+Source: Rosetta Code (https://rosettacode.org), ColdFusion sections of task pages
+         (fetched 2026-10-22 via https://rosettacode.org/w/index.php?title=<Task>&action=raw;
+          each file is one <syntaxhighlight> block copied verbatim, only leading/trailing blank lines trimmed)
+Author:  Rosetta Code contributors (see each page's history for individual authors)
+License: GNU Free Documentation License 1.2 (per https://rosettacode.org/wiki/Rosetta_Code:Copyrights)
+         Note: GFDL is not a software licence; keep attribution + licence notice if redistributed.
+Datasource needed: none for any file.
+
+File-by-file (URL / description / CF features / CF4.5 compatibility):
+
+100_doors.cfm                  https://rosettacode.org/wiki/100_doors
+  "Another Route" solution: toggles 100 doors in a comma list.
+  Tags: CFPARAM CFLOOP(from/to/step) CFIF/CFELSE CFSET CFOUTPUT. Funcs: ListGetAt ListSetAt. CF4: yes. Mixed-case tag names (<Cfset>) - good parser test.
+
+100_doors_cfscript_fragment.cfm https://rosettacode.org/wiki/100_doors
+  "Basic Solution" CFScript body WITHOUT <cfscript> wrapper (verbatim). Needs wrapping in <cfscript> to run.
+  Script: while loops, if/else. Funcs: ListAppend ListLen ListGetAt ListSetAt Int. CF4.5 cfscript: yes.
+
+99_bottles.cfm                 https://rosettacode.org/wiki/99_bottles_of_beer
+  Classic tag-based 99 Bottles. Tags: CFOUTPUT CFLOOP(step=-1) CFSET. Funcs: IIf DE. CF4: yes.
+  (Loop goes to 0 - prints a "0 bottles" verse - that's in the original.)
+
+fizzbuzz.cfm                   https://rosettacode.org/wiki/FizzBuzz
+  Tags: CFLOOP CFIF/CFELSEIF/CFELSE CFOUTPUT; MOD operator. CF4: yes.
+  (Original has Fizz/Buzz swapped for 3/5 - a known quirk of the entry.)
+
+harshad_niven.cfm              https://rosettacode.org/wiki/Harshad_or_Niven_series
+  First 20 Harshad numbers + first > 1000. Tags: CFLOOP(condition) CFIF CFSET CFOUTPUT. Funcs: Len Left Right; MOD. CF4: yes.
+
+evolutionary_weasel.cfm        https://rosettacode.org/wiki/Evolutionary_algorithm
+  Dawkins "METHINKS IT IS LIKE A WEASEL". Tags: CFLOOP(condition/from-to) CFPARAM(dynamic name "child#child#") CFIF CFFLUSH CFOUTPUT.
+  Funcs: Mid RandRange Rand Len NumberFormat; variables["child" & n] struct-style scope access.
+  CF4.5: NO as-is - CFFLUSH is CF5+, bracket access to VARIABLES scope is CF5/MX-era. Easy to adapt (Evaluate/SetVariable).
+
+day_of_week.cfm                https://rosettacode.org/wiki/Day_of_the_week
+  Years 2008-2121 where Dec 25 is a Sunday. Tags: CFLOOP CFSET CFIF CFOUTPUT. Funcs: CreateDate DayOfWeek. CF4: yes (uses XHTML-style "/>" closers).
+
+substring.cfm                  https://rosettacode.org/wiki/Substring
+  Classic tag version. Tags: CFOUTPUT CFSET; CFML comments. Funcs: Mid Right Left Len Find. CF4: yes.
+
+greatest_element_loop.cfm      https://rosettacode.org/wiki/Greatest_element_of_a_list
+  CFLOOP list= over '1, 1000, 250, 13'. Tags: CFSET CFPARAM CFLOOP(list) CFIF CFOUTPUT. CF4: yes.
+greatest_element_listsort.cfm  (same page) Funcs: ListFirst ListSort(numeric,desc). CF4: yes.
+
+strip_chars.cfm                https://rosettacode.org/wiki/Strip_a_set_of_characters_from_a_string
+  Funcs: Replace(...,'all') Mid Len. Tags: CFLOOP CFSET CFOUTPUT. CF4: yes.
+
+repeat_string.cfm              https://rosettacode.org/wiki/Repeat_a_string
+  Tags: CFSET CFOUTPUT CFLOOP. CF4: yes. (RepeatString() would be the one-liner.)
+
+loops_nested.cfm               https://rosettacode.org/wiki/Loops/Nested
+  Random numbers until 20. Tags: CFLOOP(condition, from/to) CFBREAK CFIF CFOUTPUT. Funcs: RandRange. CF4: yes.
+
+loops_break.cfm                https://rosettacode.org/wiki/Loops/Break
+  Tags: CFLOOP(condition) CFBREAK CFIF CFOUTPUT. Funcs: RandRange. CF4: yes.
+
+is_numeric.cfm                 https://rosettacode.org/wiki/Determine_if_a_string_is_numeric
+  Tags: CFSET CFIF/CFELSE CFOUTPUT. Funcs: IsNumeric. CF4: yes.
+
+walk_directory.cfm             https://rosettacode.org/wiki/Walk_a_directory/Non-recursively
+  CFDIRECTORY action=list filter="*.html" + CFOUTPUT query=. Needs filesystem (C:\temp). CF4: yes.
+
+file_io.cfm                    https://rosettacode.org/wiki/File_input/output
+  CFFILE read/write. Funcs: FileExists ExpandPath. CF4: yes.
+
+date_format.cfm                https://rosettacode.org/wiki/Date_format
+  Funcs: DateFormat Now. CF4: yes.
+
+cfswitch_example.cfm           https://rosettacode.org/wiki/Conditional_structures
+  Skeleton CFSWITCH/CFCASE/CFDEFAULTCASE (expects variable x). CF4: yes.
+
+Not saved from Rosetta (need CF8+/CFC features): Monty Hall (cfscript function, ++, array literal, do/while),
+Ethiopian multiplication & Integer/String comparison (CFFUNCTION), Stable marriage (component), JSON, SOAP,
+Power set, Hash from two arrays, Array length (literal arrays), XML/XPath (CFSAVECONTENT/XmlParse).

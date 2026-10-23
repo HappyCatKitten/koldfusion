@@ -1,0 +1,10 @@
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR>
+<CFLOOP INDEX="M" FROM="1" TO="12">
+  <TD>#M#<BR><B>#MonthAsString(M)#</B><BR>#Left(MonthAsString(M), 3)#</TD>
+  <CFIF M MOD 4 EQ 0></TR><TR></CFIF>
+</CFLOOP>
+</TR>
+</TABLE>
+</CFOUTPUT>

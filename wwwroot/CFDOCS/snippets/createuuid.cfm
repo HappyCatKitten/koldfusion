@@ -1,0 +1,7 @@
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>No.</TH><TH>CreateUUID()</TH><TH>Len</TH></TR>
+<CFLOOP INDEX="i" FROM="1" TO="4">
+  <CFSET ID = CreateUUID()>
+  <CFOUTPUT><TR><TD>#i#</TD><TD><TT>#ID#</TT></TD><TD>#Len(ID)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>

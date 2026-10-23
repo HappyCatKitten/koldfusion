@@ -1,0 +1,1201 @@
+# CFML Language Reference - array, structure and query functions.
+# Format: see the docstring at the top of tools/mkdocs.py.
+
+@func ArrayAppend
+category: Array functions
+summary: Adds an element to the end of an array.
+desc:
+Appends a value to the end of an array, making the array one element longer. The value can be
+anything: a string, a number, a date, or even another array or structure.
+syntax:
+ArrayAppend(array, value)
+params:
+array | The array to change. The array is changed in place.
+value | The value to add as the new last element.
+returns:
+TRUE (prints as YES) when the element was added.
+usage:
+Because the function changes the array you pass and only returns TRUE, the 1999 idiom is
+`<CFSET Temp = ArrayAppend(MyArray, "value")>`. To add an element at the front, use
+`ArrayPrepend`; to add one in the middle, use `ArrayInsertAt`.
+
+Appending an array to a one-dimensional array is how you build a two-dimensional array row by row.
+example:
+<!--- Build a shopping list one item at a time --->
+<CFSET Groceries = ArrayNew(1)>
+<CFSET Temp = ArrayAppend(Groceries, "Coffee")>
+<CFSET Temp = ArrayAppend(Groceries, "Bagels")>
+<CFSET Temp = ArrayAppend(Groceries, "Floppy disks")>
+
+<CFOUTPUT>
+<P>The list now has #ArrayLen(Groceries)# items:</P>
+<OL>
+<CFLOOP INDEX="i" FROM="1" TO="#ArrayLen(Groceries)#">
+  <LI>#Groceries[i]#
+</CFLOOP>
+</OL>
+</CFOUTPUT>
+see: ArrayPrepend, ArrayInsertAt, ArrayLen, ArrayNew
+
+@func ArrayAvg
+category: Array functions
+summary: Returns the average of the values in a numeric array.
+desc:
+Adds up every element of a one-dimensional array and divides by the number of elements.
+syntax:
+ArrayAvg(array)
+params:
+array | A one-dimensional array whose elements are all numbers (or strings that look like numbers).
+returns:
+The average as a number. An empty array returns 0.
+usage:
+If any element is not numeric, KoldFusion throws an Expression exception ("Non-numeric value in
+array"). Related functions: `ArraySum`, `ArrayMin`, `ArrayMax`.
+example:
+<!--- Average of five modem connection speeds --->
+<CFSET Speeds = ListToArray("28.8,33.6,56,14.4,56")>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Speeds (Kbps)</TH><TD>#ArrayToList(Speeds, ", ")#</TD></TR>
+<TR><TH>ArrayAvg</TH><TD>#NumberFormat(ArrayAvg(Speeds), "__.__")#</TD></TR>
+<TR><TH>ArraySum</TH><TD>#ArraySum(Speeds)#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: ArraySum, ArrayMin, ArrayMax, ListToArray
+
+@func ArrayClear
+category: Array functions
+summary: Removes all elements from an array.
+desc:
+Empties an array. The array itself still exists (and keeps its number of dimensions), it just has
+no elements any more.
+syntax:
+ArrayClear(array)
+params:
+array | The array to empty.
+returns:
+TRUE (prints as YES).
+usage:
+After `ArrayClear`, `ArrayLen` returns 0 and `ArrayIsEmpty` returns TRUE. To remove a single element,
+use `ArrayDeleteAt`.
+example:
+<CFSET Tasks = ListToArray("Patch Y2K bug,Back up server,Order pizza")>
+<CFOUTPUT>
+<P>Before: #ArrayLen(Tasks)# tasks (#ArrayToList(Tasks, "; ")#)</P>
+<CFSET Temp = ArrayClear(Tasks)>
+<P>After ArrayClear: #ArrayLen(Tasks)# tasks.
+ArrayIsEmpty says <B>#ArrayIsEmpty(Tasks)#</B>.</P>
+</CFOUTPUT>
+see: ArrayDeleteAt, ArrayIsEmpty, ArrayLen, StructClear
+
+@func ArrayDeleteAt
+category: Array functions
+summary: Deletes an element from an array and closes the gap.
+desc:
+Removes the element at the given position. Every element after it moves down one position, so the
+array becomes one element shorter.
+syntax:
+ArrayDeleteAt(array, position)
+params:
+array | The array to change.
+position | Position of the element to delete, from 1 to `ArrayLen(array)`.
+returns:
+TRUE (prints as YES).
+usage:
+A position outside the array throws an Expression exception ("Array index out of range").
+
+When you delete several elements in a loop, loop from the end of the array toward the start, so the
+positions you have not visited yet do not shift underneath you.
+example:
+<CFSET Browsers = ListToArray("Netscape 4.7,Mosaic,Internet Explorer 5,Lynx")>
+<CFOUTPUT>
+<P>Before: #ArrayToList(Browsers, ", ")#</P>
+<!--- Mosaic has retired --->
+<CFSET Temp = ArrayDeleteAt(Browsers, 2)>
+<P>After ArrayDeleteAt(Browsers, 2): #ArrayToList(Browsers, ", ")#</P>
+<P>Element 2 is now <B>#Browsers[2]#</B>.</P>
+</CFOUTPUT>
+see: ArrayInsertAt, ArrayClear, ArrayLen, ListDeleteAt
+
+@func ArrayInsertAt
+category: Array functions
+summary: Inserts a value into an array at a given position.
+desc:
+Inserts a new element at the given position. The element that was there, and every element after
+it, moves up one position.
+syntax:
+ArrayInsertAt(array, position, value)
+params:
+array | The array to change.
+position | Where the new element goes, from 1 to `ArrayLen(array)` + 1. Using `ArrayLen(array)` + 1 is the
+  same as `ArrayAppend`.
+value | The value to insert.
+returns:
+TRUE (prints as YES).
+usage:
+Any other position throws an Expression exception ("Array index out of range"). To replace an element
+without shifting the others, simply assign it: `<CFSET MyArray[2] = "new">`.
+example:
+<CFSET Planets = ListToArray("Mercury,Earth,Mars")>
+<CFSET Temp = ArrayInsertAt(Planets, 2, "Venus")>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Position</TH><TH>Planet</TH></TR>
+<CFLOOP INDEX="i" FROM="1" TO="#ArrayLen(Planets)#">
+<TR><TD ALIGN="CENTER">#i#</TD><TD>#Planets[i]#</TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>
+see: ArrayAppend, ArrayPrepend, ArrayDeleteAt, ListInsertAt
+
+@func ArrayIsEmpty
+category: Array functions
+summary: Determines whether an array has no elements.
+desc:
+Returns TRUE if the array contains no elements.
+syntax:
+ArrayIsEmpty(array)
+params:
+array | The array to test. Passing something that is not an array is an error; test it first with `IsArray`.
+returns:
+TRUE (YES) if the array is empty, otherwise FALSE (NO).
+usage:
+`ArrayIsEmpty(a)` is the same test as `ArrayLen(a) EQ 0`, just easier to read.
+example:
+<CFSET Inbox = ArrayNew(1)>
+<CFOUTPUT>
+<P>Inbox empty? <B>#ArrayIsEmpty(Inbox)#</B></P>
+<CFSET Temp = ArrayAppend(Inbox, "You've got mail!")>
+<P>After one message arrives: <B>#ArrayIsEmpty(Inbox)#</B></P>
+</CFOUTPUT>
+see: ArrayLen, ArrayClear, IsArray, StructIsEmpty
+
+@func ArrayLen
+category: Array functions
+summary: Returns the number of elements in an array.
+desc:
+Returns the length of an array: the position of its last element. For a two- or three-dimensional
+array it returns the length of the first dimension.
+syntax:
+ArrayLen(array)
+params:
+array | The array to measure.
+returns:
+The number of elements as an integer.
+usage:
+`ArrayLen` is what you use as the TO value of an index `CFLOOP` over an array.
+
+For a two-dimensional array, `ArrayLen(Grid)` is the number of rows and `ArrayLen(Grid[2])` the number
+of columns in row 2. Rows may have different lengths.
+example:
+<!--- A small two-dimensional array: 2 rows, 3 columns --->
+<CFSET Grid = ArrayNew(2)>
+<CFSET Grid[1][1] = "A1"><CFSET Grid[1][2] = "B1"><CFSET Grid[1][3] = "C1">
+<CFSET Grid[2][1] = "A2"><CFSET Grid[2][2] = "B2"><CFSET Grid[2][3] = "C2">
+
+<CFOUTPUT>
+<P>ArrayLen(Grid) = #ArrayLen(Grid)# rows,
+ArrayLen(Grid[1]) = #ArrayLen(Grid[1])# columns.</P>
+<TABLE BORDER=1 CELLPADDING=4>
+<CFLOOP INDEX="r" FROM="1" TO="#ArrayLen(Grid)#">
+  <TR><CFLOOP INDEX="c" FROM="1" TO="#ArrayLen(Grid[r])#"><TD>#Grid[r][c]#</TD></CFLOOP></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>
+see: ArrayNew, ArrayIsEmpty, ArrayResize, ListLen
+
+@func ArrayMax
+category: Array functions
+summary: Returns the largest number in an array.
+desc:
+Returns the largest value in a one-dimensional array of numbers.
+syntax:
+ArrayMax(array)
+params:
+array | A one-dimensional array of numeric values.
+returns:
+The largest element as a number; 0 for an empty array.
+usage:
+The comparison is numeric, so "10" is larger than "9". A non-numeric element throws an Expression
+exception. For the smallest value, use `ArrayMin`.
+example:
+<CFSET Scores = ListToArray("4200,15750,980,8800")>
+<CFOUTPUT>
+<P>Pinball scores: #ArrayToList(Scores, ", ")#</P>
+<P>High score: <B>#NumberFormat(ArrayMax(Scores), ",")#</B><BR>
+Low score: #NumberFormat(ArrayMin(Scores), ",")#</P>
+</CFOUTPUT>
+see: ArrayMin, ArrayAvg, ArraySum, Max
+
+@func ArrayMin
+category: Array functions
+summary: Returns the smallest number in an array.
+desc:
+Returns the smallest value in a one-dimensional array of numbers.
+syntax:
+ArrayMin(array)
+params:
+array | A one-dimensional array of numeric values.
+returns:
+The smallest element as a number; 0 for an empty array.
+usage:
+The comparison is numeric. A non-numeric element throws an Expression exception. For the largest
+value, use `ArrayMax`.
+example:
+<CFSET Temps = ListToArray("12,-3,7,0,-8,4")>
+<CFOUTPUT>
+<P>Overnight temperatures this week: #ArrayToList(Temps, ", ")#</P>
+<P>Coldest night: <B>#ArrayMin(Temps)#</B> degrees.
+Bring a sweater to the server room.</P>
+</CFOUTPUT>
+see: ArrayMax, ArrayAvg, ArraySum, Min
+
+@func ArrayNew
+category: Array functions
+summary: Creates an empty array of one, two or three dimensions.
+desc:
+Creates a new, empty array. Arrays in CFML grow automatically as you assign elements, so you do not
+declare a size, only the number of dimensions.
+syntax:
+ArrayNew(dimension)
+params:
+dimension | 1, 2 or 3. Any other number throws an Expression exception ("Invalid array dimension").
+returns:
+A new, empty array.
+usage:
+Array positions start at 1. Assign elements with bracket notation: `<CFSET Names[1] = "Ann">`, or for
+two dimensions `<CFSET Grid[2][3] = "x">`.
+
+Unlike structures, arrays are copied when you assign them: after `<CFSET B = A>`, changing `B` does not
+change `A`. Array literals such as `[1, 2, 3]` did not exist yet in 1999; use `ArrayNew` plus
+assignments, or `ListToArray`.
+example:
+<CFSET Week = ArrayNew(1)>
+<CFSET Week[1] = "Monday">
+<CFSET Week[2] = "Tuesday">
+<CFSET Week[3] = "Wednesday">
+
+<CFSET Copy = Week>
+<CFSET Copy[1] = "Blue Monday">
+
+<CFOUTPUT>
+<P>Week has #ArrayLen(Week)# elements; IsArray(Week) is #IsArray(Week)#.</P>
+<P>Week[1] = #Week[1]#<BR>
+Copy[1] = #Copy[1]# (assignment made a separate copy)</P>
+</CFOUTPUT>
+see: ArrayLen, ArrayAppend, IsArray, ListToArray, Duplicate
+
+@func ArrayPrepend
+category: Array functions
+summary: Adds an element to the beginning of an array.
+desc:
+Inserts a value at position 1. All existing elements move up one position.
+syntax:
+ArrayPrepend(array, value)
+params:
+array | The array to change.
+value | The value to add as the new first element.
+returns:
+TRUE (prints as YES).
+usage:
+`ArrayPrepend(a, v)` is the same as `ArrayInsertAt(a, 1, v)`. To add at the end, use `ArrayAppend`.
+example:
+<CFSET Countdown = ListToArray("2,1,Happy New Year!")>
+<CFSET Temp = ArrayPrepend(Countdown, "3")>
+<CFSET Temp = ArrayPrepend(Countdown, "4")>
+<CFOUTPUT>
+<P>#ArrayToList(Countdown, " ... ")#</P>
+<P>First element: <B>#Countdown[1]#</B></P>
+</CFOUTPUT>
+see: ArrayAppend, ArrayInsertAt, ListPrepend
+
+@func ArrayResize
+category: Array functions
+summary: Makes an array at least a given number of elements long.
+desc:
+Grows an array to the given minimum size in one step. The new elements are empty.
+syntax:
+ArrayResize(array, minimum_size)
+params:
+array | The array to grow.
+minimum_size | The length the array should have afterwards.
+returns:
+TRUE (prints as YES).
+usage:
+Arrays grow by themselves when you assign to a higher position, but resizing once up front is faster
+when you know you will fill many hundreds of elements.
+
+`ArrayResize` never shrinks an array; if the array is already that long or longer, nothing happens.
+Use `ArrayDeleteAt` or `ArrayClear` to remove elements.
+example:
+<CFSET Seats = ArrayNew(1)>
+<CFSET Temp = ArrayResize(Seats, 6)>
+<CFSET Seats[2] = "Ann">
+<CFSET Seats[5] = "Bob">
+<CFOUTPUT>
+<P>ArrayLen(Seats) = #ArrayLen(Seats)#</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><CFLOOP INDEX="i" FROM="1" TO="#ArrayLen(Seats)#"><TH>Seat #i#</TH></CFLOOP></TR>
+<TR><CFLOOP INDEX="i" FROM="1" TO="#ArrayLen(Seats)#"><TD>#Seats[i]#&nbsp;</TD></CFLOOP></TR>
+</TABLE>
+</CFOUTPUT>
+see: ArrayNew, ArraySet, ArrayLen
+
+@func ArraySet
+category: Array functions
+summary: Sets a range of array elements to the same value.
+desc:
+Assigns one value to every element from a start position to an end position, growing the array if
+the range goes past its end.
+syntax:
+ArraySet(array, start_pos, end_pos, value)
+params:
+array | A one-dimensional array.
+start_pos | First position to set.
+end_pos | Last position to set.
+value | The value given to every element in the range.
+returns:
+TRUE (prints as YES).
+usage:
+Handy for initializing counters to 0 before a loop. If the value is a structure, every element refers
+to the same structure; use a loop with `StructNew` if each element needs its own.
+example:
+<!--- Seven zeroed counters, one per weekday --->
+<CFSET Hits = ArrayNew(1)>
+<CFSET Temp = ArraySet(Hits, 1, 7, 0)>
+<CFSET Hits[3] = Hits[3] + 42>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><CFLOOP INDEX="d" FROM="1" TO="7"><TH>#Left(DayOfWeekAsString(d), 3)#</TH></CFLOOP></TR>
+<TR><CFLOOP INDEX="d" FROM="1" TO="7"><TD ALIGN="RIGHT">#Hits[d]#</TD></CFLOOP></TR>
+</TABLE>
+</CFOUTPUT>
+see: ArrayResize, ArrayNew, ArrayClear
+
+@func ArraySort
+category: Array functions
+summary: Sorts the elements of an array in place.
+desc:
+Sorts a one-dimensional array numerically or alphabetically, ascending or descending. The array you
+pass is rearranged; nothing new is created.
+syntax:
+ArraySort(array, sort_type [, sort_order ])
+params:
+array | The array to sort.
+sort_type | `numeric` (every element must be a number), `text` (case-sensitive: uppercase letters sort
+  before lowercase), or `textnocase`.
+sort_order | `asc` (the default) or `desc`.
+returns:
+TRUE (prints as YES).
+usage:
+Any other sort type throws an Expression exception. In a numeric sort a non-numeric element throws
+"Non-numeric value found in numeric sort".
+
+Note that a text sort puts "10" before "9", because it compares character by character. Use
+`numeric` for numbers. `ListSort` does the same job for lists.
+example:
+<CFSET Words = ListToArray("modem,Browser,applet,Cookie")>
+<CFSET Nums = ListToArray("10,9,100,1")>
+<CFSET Temp = ArraySort(Nums, "numeric", "desc")>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Call</TH><TH>Result</TH></TR>
+<TR><TD>numeric, desc</TD><TD>#ArrayToList(Nums, ", ")#</TD></TR>
+<CFSET Temp = ArraySort(Nums, "text")>
+<TR><TD>text (on numbers!)</TD><TD>#ArrayToList(Nums, ", ")#</TD></TR>
+<CFSET Temp = ArraySort(Words, "text")>
+<TR><TD>text</TD><TD>#ArrayToList(Words, ", ")#</TD></TR>
+<CFSET Temp = ArraySort(Words, "textnocase")>
+<TR><TD>textnocase</TD><TD>#ArrayToList(Words, ", ")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: ListSort, ArraySwap, ArrayToList
+
+@func ArraySum
+category: Array functions
+summary: Returns the sum of the values in a numeric array.
+desc:
+Adds up all the elements of a one-dimensional array of numbers.
+syntax:
+ArraySum(array)
+params:
+array | A one-dimensional array of numeric values.
+returns:
+The total as a number; 0 for an empty array.
+usage:
+A non-numeric element throws an Expression exception ("Non-numeric value in array").
+example:
+<CFSET Cart = ArrayNew(1)>
+<CFSET Cart[1] = 19.95>
+<CFSET Cart[2] = 4.50>
+<CFSET Cart[3] = 129.00>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<CFLOOP INDEX="i" FROM="1" TO="#ArrayLen(Cart)#">
+<TR><TD>Item #i#</TD><TD ALIGN="RIGHT">#DollarFormat(Cart[i])#</TD></TR>
+</CFLOOP>
+<TR><TH>Total</TH><TH ALIGN="RIGHT">#DollarFormat(ArraySum(Cart))#</TH></TR>
+</TABLE>
+</CFOUTPUT>
+see: ArrayAvg, ArrayMin, ArrayMax
+
+@func ArraySwap
+category: Array functions
+summary: Swaps two elements of an array.
+desc:
+Exchanges the values at two positions of an array.
+syntax:
+ArraySwap(array, position1, position2)
+params:
+array | The array to change.
+position1 | Position of the first element.
+position2 | Position of the second element.
+returns:
+TRUE (prints as YES).
+usage:
+Both positions must exist; otherwise an Expression exception ("Array index out of range") is thrown.
+`ArraySwap` is the building block of hand-written shuffles and sorts.
+example:
+<CFSET Podium = ListToArray("Silver,Gold,Bronze")>
+<CFOUTPUT>
+<P>Before: #ArrayToList(Podium, " | ")#</P>
+<CFSET Temp = ArraySwap(Podium, 1, 2)>
+<P>After ArraySwap(Podium, 1, 2): #ArrayToList(Podium, " | ")#</P>
+</CFOUTPUT>
+see: ArraySort, ArrayInsertAt, ArrayDeleteAt
+
+@func ArrayToList
+category: Array functions
+summary: Converts a one-dimensional array to a delimited list.
+desc:
+Joins the elements of a one-dimensional array into a single string, with a delimiter between the
+elements.
+syntax:
+ArrayToList(array [, delimiter ])
+params:
+array | A one-dimensional array of simple values.
+delimiter | String to put between elements. The default is a comma. The whole string is used, so ", " gives a
+  comma followed by a space.
+returns:
+The list as a string.
+usage:
+Every element must be a simple value; an element that is itself an array or structure throws an
+error (so `ArrayToList` does not work on a two-dimensional array, but it does on one of its rows).
+Empty elements produce empty list positions. The opposite function is `ListToArray`.
+example:
+<CFSET Colors = ArrayNew(1)>
+<CFSET Colors[1] = "Red">
+<CFSET Colors[2] = "Green">
+<CFSET Colors[3] = "Blue">
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>ArrayToList(Colors)</TD><TD>#ArrayToList(Colors)#</TD></TR>
+<TR><TD>ArrayToList(Colors, " + ")</TD><TD>#ArrayToList(Colors, " + ")#</TD></TR>
+<TR><TD>ListLen of the result</TD><TD>#ListLen(ArrayToList(Colors))#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: ListToArray, ValueList, StructKeyList
+
+@func StructAppend
+category: Structure functions
+new45: yes
+summary: Copies all keys of one structure into another.
+desc:
+Adds every key and value of the second structure to the first. The first structure is changed in
+place; the second is left alone.
+syntax:
+StructAppend(struct1, struct2 [, overwriteFlag ])
+params:
+struct1 | The structure that receives the keys.
+struct2 | The structure whose keys are copied.
+overwriteFlag | YES (the default): keys that already exist in struct1 get the value from struct2.
+  NO: existing keys in struct1 keep their values.
+returns:
+TRUE (prints as YES).
+usage:
+A handy way to apply defaults: append a structure of default settings with overwriteFlag NO, and only
+the settings the user did not choose are filled in.
+
+Values that are themselves structures are copied by reference, the same as `StructCopy`.
+example:
+<CFSET Prefs = StructNew()>
+<CFSET Prefs.Color = "Teal">
+<CFSET Defaults = StructNew()>
+<CFSET Defaults.Color = "Gray">
+<CFSET Defaults.Font = "Arial">
+<CFSET Defaults.Modem = "56K">
+
+<CFSET Temp = StructAppend(Prefs, Defaults, "No")>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Key</TH><TH>Value</TH></TR>
+<CFLOOP LIST="#StructKeyList(Prefs)#" INDEX="Key">
+<CFOUTPUT><TR><TD>#Key#</TD><TD>#Prefs[Key]#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: StructInsert, StructCopy, StructUpdate, Duplicate
+
+@func StructClear
+category: Structure functions
+summary: Removes all keys from a structure.
+desc:
+Deletes every key and value from a structure. The structure itself stays, empty.
+syntax:
+StructClear(structure)
+params:
+structure | The structure to empty.
+returns:
+TRUE (prints as YES).
+usage:
+Because structures are passed by reference, every variable that points to the same structure sees it
+emptied. `StructClear` also works on scopes that behave like structures; `StructClear(Session)`
+inside an exclusive `CFLOCK` is the classic "log out" button.
+example:
+<CFSET Basket = StructNew()>
+<CFSET Basket.Apples = 3>
+<CFSET Basket.Pears = 2>
+<CFSET SameBasket = Basket>
+<CFOUTPUT>
+<P>Before: #StructCount(Basket)# keys</P>
+<CFSET Temp = StructClear(Basket)>
+<P>After StructClear: #StructCount(Basket)# keys.
+StructIsEmpty(SameBasket) = #StructIsEmpty(SameBasket)#
+(it is the same structure).</P>
+</CFOUTPUT>
+see: StructDelete, StructIsEmpty, StructNew, ArrayClear
+
+@func StructCopy
+category: Structure functions
+summary: Makes a shallow copy of a structure.
+desc:
+Returns a new structure with the same keys and values. Simple values and arrays are copied; structures and
+queries nested inside are shared between the original and the copy.
+syntax:
+StructCopy(structure)
+params:
+structure | The structure to copy.
+returns:
+A new structure.
+usage:
+Remember that a plain assignment, `<CFSET B = A>`, does not copy a structure at all: `A` and `B` are
+two names for the same structure. Three levels of "copy" are available:
+
+| Code | Top-level keys | Nested structures |
+| `<CFSET B = A>` | shared | shared |
+| `B = StructCopy(A)` | copied (arrays too) | shared |
+| `B = Duplicate(A)` | copied | copied |
+
+With `StructCopy` you can add, delete or change top-level keys of the copy without affecting the
+original, but changing `B.Address.City` also changes `A.Address.City`, because both point to the same
+nested structure. Nested queries are shared too; nested arrays are copied, as they are on every assignment.
+When the structure contains other structures, use `Duplicate`.
+example:
+<CFSET Orig = StructNew()>
+<CFSET Orig.Name = "Ann">
+<CFSET Orig.Address = StructNew()>
+<CFSET Orig.Address.City = "Boston">
+
+<CFSET Alias = Orig>
+<CFSET Shallow = StructCopy(Orig)>
+<CFSET Deep = Duplicate(Orig)>
+
+<CFSET Shallow.Name = "Bob">
+<CFSET Shallow.Address.City = "Cambridge">
+<CFSET Deep.Address.City = "Denver">
+
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>&nbsp;</TH><TH>Name</TH><TH>Address.City</TH></TR>
+<TR><TD>Orig</TD><TD>#Orig.Name#</TD><TD>#Orig.Address.City#</TD></TR>
+<TR><TD>Alias (same structure)</TD><TD>#Alias.Name#</TD><TD>#Alias.Address.City#</TD></TR>
+<TR><TD>Shallow (StructCopy)</TD><TD>#Shallow.Name#</TD><TD>#Shallow.Address.City#</TD></TR>
+<TR><TD>Deep (Duplicate)</TD><TD>#Deep.Name#</TD><TD>#Deep.Address.City#</TD></TR>
+</TABLE>
+<P>Changing Shallow.Name left Orig.Name alone, but changing Shallow.Address.City
+also changed Orig's city: the nested structure is shared. Deep is fully independent.</P>
+</CFOUTPUT>
+see: Duplicate, StructAppend, StructNew
+
+@func StructCount
+category: Structure functions
+summary: Returns the number of keys in a structure.
+desc:
+Counts the top-level keys of a structure.
+syntax:
+StructCount(structure)
+params:
+structure | The structure to count.
+returns:
+The number of keys as an integer.
+usage:
+Keys inside nested structures are not counted. `StructCount(s) EQ 0` is the same test as
+`StructIsEmpty(s)`.
+example:
+<CFSET Employee = StructNew()>
+<CFSET Employee.FirstName = "Ann">
+<CFSET Employee.LastName = "Achebe">
+<CFSET Employee.Phone = "555-0199">
+<CFOUTPUT>
+<P>The Employee structure has <B>#StructCount(Employee)#</B> keys:
+#StructKeyList(Employee, ", ")#</P>
+</CFOUTPUT>
+see: StructIsEmpty, StructKeyList, ArrayLen
+
+@func StructDelete
+category: Structure functions
+summary: Removes a key from a structure.
+desc:
+Deletes a key and its value from a structure.
+syntax:
+StructDelete(structure, key [, indicatenotexisting ])
+params:
+structure | The structure to change.
+key | The key to remove (not case-sensitive).
+indicatenotexisting | If TRUE, the function returns FALSE when the key was not there. The default is
+  FALSE, in which case the function always returns TRUE.
+returns:
+TRUE (YES), or FALSE (NO) if indicatenotexisting is TRUE and the key did not exist.
+usage:
+Deleting a key that does not exist is not an error. `StructDelete` also works on scopes that behave
+like structures, such as `Session` and `Application`, which is the usual way to forget one session
+variable (wrap it in `CFLOCK`).
+example:
+<CFSET Cart = StructNew()>
+<CFSET Cart.Modem = 1>
+<CFSET Cart.Mousepad = 2>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Call</TH><TH>Returns</TH></TR>
+<TR><TD>StructDelete(Cart, "Mousepad")</TD><TD>#StructDelete(Cart, "Mousepad")#</TD></TR>
+<TR><TD>StructDelete(Cart, "Mousepad", TRUE)</TD><TD>#StructDelete(Cart, "Mousepad", TRUE)#</TD></TR>
+<TR><TD>StructDelete(Cart, "Mousepad")</TD><TD>#StructDelete(Cart, "Mousepad")#</TD></TR>
+</TABLE>
+<P>Keys left: #StructKeyList(Cart)#</P>
+</CFOUTPUT>
+see: StructClear, StructInsert, StructKeyExists
+
+@func StructFind
+category: Structure functions
+summary: Returns the value stored under a key.
+desc:
+Looks up a key in a structure and returns its value.
+syntax:
+StructFind(structure, key)
+params:
+structure | The structure to search.
+key | The key to look up (not case-sensitive).
+returns:
+The value stored under the key.
+usage:
+If the key does not exist, an Expression exception is thrown, so test with `StructKeyExists` first.
+
+`StructFind(s, k)` gives the same result as the bracket notation `s[k]` or, for a fixed key, `s.key`.
+It is useful when the key name is in a variable.
+example:
+<CFSET Capitals = StructNew()>
+<CFSET Capitals.France = "Paris">
+<CFSET Capitals.Japan = "Tokyo">
+<CFSET Capitals.Peru = "Lima">
+<CFSET Country = "Japan">
+<CFOUTPUT>
+<P>The capital of #Country# is <B>#StructFind(Capitals, Country)#</B>.</P>
+</CFOUTPUT>
+<CFTRY>
+  <CFSET Temp = StructFind(Capitals, "Atlantis")>
+<CFCATCH TYPE="Expression">
+  <CFOUTPUT><P>Atlantis: <I>#CFCATCH.Message#</I></P></CFOUTPUT>
+</CFCATCH>
+</CFTRY>
+see: StructKeyExists, StructInsert, StructUpdate
+
+@func StructGet
+category: Structure functions
+new45: yes
+summary: Returns a structure at a variable path, creating it if needed.
+desc:
+Takes the name of a structure as a string, such as "Request.Shop.Cart", and returns that structure.
+Any part of the path that does not exist yet is created as an empty structure first.
+syntax:
+StructGet(pathDesired)
+params:
+pathDesired | A dotted variable name, optionally starting with a scope (Variables, Request, Session,
+  Application...).
+returns:
+The structure at that path. It is the real structure, not a copy, so keys you set on the result appear in
+the variable.
+usage:
+`StructGet` saves a stack of `IsDefined` checks and `StructNew` calls when you build nested structures.
+It is especially handy in custom tags that keep their data in the Request scope.
+example:
+<!--- Neither Request.Shop nor Request.Shop.Cart exists yet --->
+<CFSET Cart = StructGet("Request.Shop.Cart")>
+<CFSET Cart.Modems = 2>
+<CFSET Cart.Cables = 5>
+
+<!--- Asking again returns the same structure --->
+<CFSET Again = StructGet("Request.Shop.Cart")>
+<CFOUTPUT>
+<P>IsStruct(Request.Shop) = #IsStruct(Request.Shop)#</P>
+<P>Request.Shop.Cart.Modems = #Request.Shop.Cart.Modems#</P>
+<P>Keys seen through the second call: #StructKeyList(Again)#</P>
+</CFOUTPUT>
+see: StructNew, IsStruct, IsDefined, StructInsert
+
+@func StructInsert
+category: Structure functions
+summary: Adds a key-value pair to a structure.
+desc:
+Inserts a new key and value into a structure. By default it refuses to replace an existing key.
+syntax:
+StructInsert(structure, key, value [, allowoverwrite ])
+params:
+structure | The structure to change.
+key | The key name. It can contain characters that dot notation cannot, such as spaces.
+value | The value to store.
+allowoverwrite | If TRUE, an existing key is replaced. The default is FALSE: inserting an existing key throws
+  an Expression exception.
+returns:
+TRUE (prints as YES).
+usage:
+Key names are not case-sensitive; `StructKeyList` reports them in uppercase. Simply assigning
+`<CFSET s.key = value>` also adds a key, and replaces it without complaint if it is already there.
+example:
+<CFSET Phone = StructNew()>
+<CFSET Temp = StructInsert(Phone, "Help Desk", "x4357")>
+<CFSET Temp = StructInsert(Phone, "Cafeteria", "x2233")>
+<CFTRY>
+  <CFSET Temp = StructInsert(Phone, "Help Desk", "x0000")>
+<CFCATCH TYPE="Expression">
+  <CFOUTPUT><P><I>#CFCATCH.Message#</I></P></CFOUTPUT>
+</CFCATCH>
+</CFTRY>
+<CFSET Temp = StructInsert(Phone, "Cafeteria", "x2234", TRUE)>
+<TABLE BORDER=1 CELLPADDING=3>
+<CFLOOP COLLECTION="#Phone#" ITEM="Who">
+<CFOUTPUT><TR><TD>#Who#</TD><TD>#Phone[Who]#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: StructUpdate, StructAppend, StructFind, StructDelete
+
+@func StructIsEmpty
+category: Structure functions
+summary: Determines whether a structure has no keys.
+desc:
+Returns TRUE if the structure contains no keys.
+syntax:
+StructIsEmpty(structure)
+params:
+structure | The structure to test.
+returns:
+TRUE (YES) if the structure is empty, otherwise FALSE (NO).
+usage:
+Passing something that is not a structure is an error; check with `IsStruct` first if you are not sure.
+example:
+<CFSET Errors = StructNew()>
+<CFPARAM NAME="URL.Email" DEFAULT="nobody">
+<CFIF Find("@", URL.Email) EQ 0>
+  <CFSET Errors.Email = "That does not look like an e-mail address.">
+</CFIF>
+<CFOUTPUT>
+<CFIF StructIsEmpty(Errors)>
+  <P>All fields are fine.</P>
+<CFELSE>
+  <P><B>Please fix #StructCount(Errors)# field(s):</B> #Errors.Email#</P>
+</CFIF>
+</CFOUTPUT>
+see: StructCount, StructClear, IsStruct, ArrayIsEmpty
+
+@func StructKeyArray
+category: Structure functions
+summary: Returns the keys of a structure as an array.
+desc:
+Returns a one-dimensional array containing the names of all top-level keys of a structure.
+syntax:
+StructKeyArray(structure)
+params:
+structure | The structure whose keys you want.
+returns:
+An array of key names, in uppercase.
+usage:
+The array is a new copy; changing it does not change the structure. Do not depend on the order of the
+keys. Sort the array with `ArraySort` if order matters. `StructKeyList` returns the same names as a list.
+example:
+<CFSET Fruit = StructNew()>
+<CFSET Fruit.Pear = 3>
+<CFSET Fruit.Apple = 7>
+<CFSET Fruit.Kiwi = 1>
+<CFSET Keys = StructKeyArray(Fruit)>
+<CFSET Temp = ArraySort(Keys, "textnocase")>
+<TABLE BORDER=1 CELLPADDING=3>
+<CFLOOP INDEX="i" FROM="1" TO="#ArrayLen(Keys)#">
+<CFOUTPUT><TR><TD>#Keys[i]#</TD><TD ALIGN="RIGHT">#Fruit[Keys[i]]#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: StructKeyList, ArraySort, StructCount
+
+@func StructKeyExists
+category: Structure functions
+summary: Determines whether a structure contains a key.
+desc:
+Returns TRUE if the given key exists in the structure.
+syntax:
+StructKeyExists(structure, key)
+params:
+structure | The structure to search.
+key | The key name to look for (not case-sensitive).
+returns:
+TRUE (YES) or FALSE (NO).
+usage:
+Use this before `StructFind` or `StructUpdate`, which throw an exception for a missing key. Unlike
+`IsDefined`, the key name can be any string, including one with spaces.
+example:
+<CFSET Inventory = StructNew()>
+<CFSET Inventory.Modems = 12>
+<CFSET Inventory["Zip Disks"] = 40>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<CFLOOP LIST="Modems,zip disks,Pagers" INDEX="Item">
+<TR><TD>#Item#</TD>
+<TD><CFIF StructKeyExists(Inventory, Item)>#Inventory[Item]# in stock<CFELSE>not carried</CFIF></TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>
+see: StructFind, IsDefined, StructKeyList
+
+@func StructKeyList
+category: Structure functions
+summary: Returns the keys of a structure as a list.
+desc:
+Returns the names of all top-level keys of a structure, as a delimited list.
+syntax:
+StructKeyList(structure [, delimiter ])
+params:
+structure | The structure whose keys you want.
+delimiter | Delimiter between key names. The default is a comma.
+returns:
+A list of key names, in uppercase.
+usage:
+Do not depend on the order of the keys; KoldFusion lists them in the order they were added, but other
+servers do not. If order matters, use `ListSort` on the result. To visit every key, you can also use
+`CFLOOP` with the COLLECTION attribute.
+example:
+<CFSET Server_Info = StructNew()>
+<CFSET Server_Info.OS = "Windows NT 4.0">
+<CFSET Server_Info.RAM = "128 MB">
+<CFSET Server_Info.Modem = "56K">
+<CFOUTPUT>
+<P>StructKeyList: #StructKeyList(Server_Info)#</P>
+<P>With " / ": #StructKeyList(Server_Info, " / ")#</P>
+<P>Sorted: #ListSort(StructKeyList(Server_Info), "text")#</P>
+</CFOUTPUT>
+see: StructKeyArray, StructCount, ListSort, CFLOOP
+
+@func StructNew
+category: Structure functions
+summary: Creates a new, empty structure.
+desc:
+Returns a new structure with no keys. A structure stores values under names (keys), like a small
+dictionary.
+syntax:
+StructNew()
+returns:
+A new, empty structure.
+usage:
+Add keys with dot notation (`<CFSET s.Name = "Ann">`), bracket notation (`<CFSET s["Full Name"] = "Ann">`)
+or `StructInsert`. Key names are not case-sensitive.
+
+Structures are passed by reference: after `<CFSET B = A>` both names refer to the same structure. Use
+`StructCopy` or `Duplicate` to get a real copy. Literal syntax like `{name="Ann"}` is from a later
+century; in 4.5 you always start with `StructNew`.
+example:
+<CFSET Visitor = StructNew()>
+<CFSET Visitor.Name = "Pat">
+<CFSET Visitor.Browser = "Netscape 4.7">
+<CFSET Visitor["Favorite Site"] = "www.allair.com">
+<CFOUTPUT>
+<P>IsStruct(Visitor) = #IsStruct(Visitor)#, #StructCount(Visitor)# keys.</P>
+<UL>
+<CFLOOP COLLECTION="#Visitor#" ITEM="Key">
+  <LI><B>#Key#</B>: #Visitor[Key]#
+</CFLOOP>
+</UL>
+</CFOUTPUT>
+see: StructInsert, IsStruct, StructCopy, Duplicate, ArrayNew
+
+@func StructUpdate
+category: Structure functions
+summary: Changes the value of an existing key.
+desc:
+Replaces the value stored under a key that already exists in the structure.
+syntax:
+StructUpdate(structure, key, value)
+params:
+structure | The structure to change.
+key | An existing key.
+value | The new value.
+returns:
+TRUE (prints as YES).
+usage:
+If the key does not exist, an Expression exception is thrown; use `StructInsert` to add new keys.
+This makes `StructUpdate` a cheap way to catch misspelled key names.
+example:
+<CFSET Stock = StructNew()>
+<CFSET Stock.Modems = 12>
+<CFSET Temp = StructUpdate(Stock, "Modems", Stock.Modems - 1)>
+<CFOUTPUT><P>Sold a modem. Modems left: <B>#Stock.Modems#</B></P></CFOUTPUT>
+<CFTRY>
+  <CFSET Temp = StructUpdate(Stock, "Modemz", 0)>
+<CFCATCH TYPE="Expression">
+  <CFOUTPUT><P>Typo caught: <I>#CFCATCH.Message#</I></P></CFOUTPUT>
+</CFCATCH>
+</CFTRY>
+see: StructInsert, StructFind, StructKeyExists
+
+@func Duplicate
+category: Structure functions
+new45: yes
+summary: Returns a complete, independent copy of any variable.
+desc:
+Makes a deep copy of a variable. Structures, arrays and queries nested at any depth are copied too, so
+nothing is shared between the original and the copy.
+syntax:
+Duplicate(variable)
+params:
+variable | Any variable: a simple value, array, structure or query.
+returns:
+A copy of the value.
+usage:
+Use `Duplicate` whenever you need a private copy of a structure or query, for example to copy a
+structure out of the `Session` or `Application` scope so that you only need a `CFLOCK` for the copy
+itself, not for every later read.
+
+Assignment copies arrays but not structures or queries; `StructCopy` copies only the top level of a
+structure. See `StructCopy` for a comparison table.
+example:
+<CFSET App = StructNew()>
+<CFSET App.Settings = StructNew()>
+<CFSET App.Settings.Theme = "Classic">
+<CFSET App.Users = QueryNew("Name")>
+<CFSET Temp = QueryAddRow(App.Users)>
+<CFSET Temp = QuerySetCell(App.Users, "Name", "Ann")>
+
+<CFSET Mine = Duplicate(App)>
+<CFSET Mine.Settings.Theme = "Hot Dog Stand">
+<CFSET Temp = QuerySetCell(Mine.Users, "Name", "Bob", 1)>
+
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>&nbsp;</TH><TH>Settings.Theme</TH><TH>Users.Name</TH></TR>
+<TR><TD>App (original)</TD><TD>#App.Settings.Theme#</TD><TD>#App.Users.Name#</TD></TR>
+<TR><TD>Mine (Duplicate)</TD><TD>#Mine.Settings.Theme#</TD><TD>#Mine.Users.Name#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: StructCopy, StructNew, CFLOCK, QueryNew
+
+@func QueryAddColumn
+category: Query functions
+summary: Adds a column to a query and fills it from an array.
+desc:
+Adds a new column to a query and puts the elements of a one-dimensional array into it, one element
+per row.
+syntax:
+QueryAddColumn(query, column_name, array_name)
+params:
+query | A query, from `QueryNew` or `CFQUERY`.
+column_name | Name of the new column.
+array_name | A one-dimensional array with the values for the column.
+returns:
+The number of the new column (its position in the column list).
+usage:
+If the array has more elements than the query has rows, rows are added; the other columns are empty
+in those rows. If it has fewer, the remaining rows get empty values.
+example:
+<CFSET Movies = QueryNew("Title")>
+<CFSET Temp = QueryAddRow(Movies, 3)>
+<CFSET Temp = QuerySetCell(Movies, "Title", "The Matrix", 1)>
+<CFSET Temp = QuerySetCell(Movies, "Title", "Toy Story 2", 2)>
+<CFSET Temp = QuerySetCell(Movies, "Title", "The Phantom Menace", 3)>
+
+<CFSET Stars = ListToArray("4,5,3")>
+<CFSET ColNum = QueryAddColumn(Movies, "Rating", Stars)>
+
+<CFOUTPUT><P>Rating is column #ColNum#. Columns: #Movies.ColumnList#</P></CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Title</TH><TH>Rating</TH></TR>
+<CFOUTPUT QUERY="Movies">
+<TR><TD>#Title#</TD><TD>#RepeatString("*", Rating)#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: QueryNew, QueryAddRow, QuerySetCell
+
+@func QueryAddRow
+category: Query functions
+summary: Adds empty rows to a query.
+desc:
+Adds one or more empty rows to the end of a query. Fill them with `QuerySetCell`.
+syntax:
+QueryAddRow(query [, number ])
+params:
+query | A query, from `QueryNew` or `CFQUERY`.
+number | How many rows to add. The default is 1.
+returns:
+The total number of rows in the query after the addition.
+usage:
+The usual pattern is to add one row, then call `QuerySetCell` without a row number, which fills the
+last row. Adding rows to a query returned by `CFQUERY` changes only the copy in memory, never the
+database.
+example:
+<CFSET Team = QueryNew("Name, Role")>
+<CFLOOP LIST="Ann:Coder,Bob:Tester,Cy:Pizza runner" INDEX="Pair">
+  <CFSET Rows = QueryAddRow(Team)>
+  <CFSET Temp = QuerySetCell(Team, "Name", ListFirst(Pair, ":"))>
+  <CFSET Temp = QuerySetCell(Team, "Role", ListLast(Pair, ":"))>
+</CFLOOP>
+<CFOUTPUT><P>The query has #Rows# rows (RecordCount = #Team.RecordCount#).</P></CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<CFOUTPUT QUERY="Team">
+<TR><TD>#CurrentRow#</TD><TD>#Name#</TD><TD>#Role#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: QueryNew, QuerySetCell, QueryAddColumn
+
+@func QueryNew
+category: Query functions
+summary: Creates an empty query with the given columns.
+desc:
+Creates a new query object with the columns you name and no rows. You can then fill it and use it
+anywhere a `CFQUERY` result works: `CFOUTPUT QUERY`, `CFLOOP QUERY`, `CFTABLE`, `ValueList` and so on.
+syntax:
+QueryNew(columnlist)
+params:
+columnlist | A comma-separated list of column names. Spaces around the names are ignored. An empty string
+  gives a query with no columns, to which you can add columns with `QueryAddColumn`.
+returns:
+An empty query. Its `RecordCount` is 0 and its `ColumnList` holds the column names in uppercase.
+usage:
+Hand-made queries are a convenient way to hold tabular data that does not come from a database, such
+as the result of parsing a text file. Remember that queries, like structures, are passed by reference;
+use `Duplicate` for a private copy.
+example:
+<CFSET Modems = QueryNew("Speed, Year")>
+<CFSET Temp = QueryAddRow(Modems, 3)>
+<CFSET Temp = QuerySetCell(Modems, "Speed", "14.4K", 1)>
+<CFSET Temp = QuerySetCell(Modems, "Year", 1991, 1)>
+<CFSET Temp = QuerySetCell(Modems, "Speed", "28.8K", 2)>
+<CFSET Temp = QuerySetCell(Modems, "Year", 1994, 2)>
+<CFSET Temp = QuerySetCell(Modems, "Speed", "56K", 3)>
+<CFSET Temp = QuerySetCell(Modems, "Year", 1998, 3)>
+
+<CFOUTPUT><P>RecordCount: #Modems.RecordCount#, ColumnList: #Modems.ColumnList#</P></CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Speed</TH><TH>Year</TH></TR>
+<CFOUTPUT QUERY="Modems">
+<TR><TD>#Speed#</TD><TD>#Year#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: QueryAddRow, QuerySetCell, QueryAddColumn, IsQuery, CFQUERY
+
+@func QuerySetCell
+category: Query functions
+summary: Sets the value of one cell in a query.
+desc:
+Stores a value in the given column of the given row of a query.
+syntax:
+QuerySetCell(query, column_name, value [, row_number ])
+params:
+query | A query, from `QueryNew` or `CFQUERY`.
+column_name | Name of an existing column. An unknown column throws an Expression exception.
+value | The value to store.
+row_number | The row to change, from 1 to `query.RecordCount`. The default is the last row.
+returns:
+TRUE (prints as YES).
+usage:
+The row must already exist; use `QueryAddRow` first. You can also change cells of a `CFQUERY` result,
+for example to add a calculated value before output. Only the query in memory changes.
+example:
+<CFQUERY NAME="GetStaff" DATASOURCE="cfsnippets">
+SELECT TOP 4 FirstName, LastName, Salary
+FROM Employees
+ORDER BY LastName
+</CFQUERY>
+<!--- Give everybody a Y2K bonus (in memory only!) --->
+<CFLOOP QUERY="GetStaff">
+  <CFSET Temp = QuerySetCell(GetStaff, "Salary", Salary + 2000, CurrentRow)>
+</CFLOOP>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Name</TH><TH>Salary with bonus</TH></TR>
+<CFOUTPUT QUERY="GetStaff">
+<TR><TD>#FirstName# #LastName#</TD><TD ALIGN="RIGHT">#DollarFormat(Salary)#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: QueryAddRow, QueryNew, QueryAddColumn
+
+@func ValueList
+category: Query functions
+summary: Returns all values of a query column as a list.
+desc:
+Returns the values of one column, for every row of a query, as a delimited list.
+syntax:
+ValueList(query.column [, delimiter ])
+params:
+query.column | A column reference written literally as query name, dot, column name. It cannot be a string
+  or a variable that holds the name.
+delimiter | String placed between the values. The default is a comma.
+returns:
+The list as a string. An empty query returns an empty string.
+usage:
+A classic use is to feed the result of one query into the WHERE clause of another:
+`WHERE Dept_ID IN (#ValueList(GetDepts.Dept_ID)#)`. That works for numeric columns; for text columns
+use `QuotedValueList`.
+example:
+<CFQUERY NAME="GetSales" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName
+FROM Employees
+WHERE Department = 'Sales'
+ORDER BY LastName
+</CFQUERY>
+<CFOUTPUT>
+<P>Sales staff (#GetSales.RecordCount#): #ValueList(GetSales.LastName, ", ")#</P>
+<P>As a list, ListLen = #ListLen(ValueList(GetSales.LastName))#
+and the first one is #ListFirst(ValueList(GetSales.LastName))#.</P>
+</CFOUTPUT>
+see: QuotedValueList, ArrayToList, ListLen, CFQUERY
+
+@func QuotedValueList
+category: Query functions
+summary: Returns all values of a query column as a list of quoted strings.
+desc:
+Like `ValueList`, but every value is enclosed in single quotes, ready to drop into a SQL IN clause.
+syntax:
+QuotedValueList(query.column [, delimiter ])
+params:
+query.column | A column reference written literally as query name, dot, column name.
+delimiter | String placed between the quoted values. The default is a comma.
+returns:
+The list as a string, for example `'Achebe','Alvarez'`.
+usage:
+Inside `CFQUERY`, KoldFusion doubles single quotes in most expressions to protect your SQL, but it leaves
+the results of the SQL-building functions alone: `QuotedValueList`, `ListQualify`, `PreserveSingleQuotes` and the
+`CreateODBC` family. So `IN (#QuotedValueList(q.LastName)#)` works as written (wrapping it in
+`PreserveSingleQuotes`, as the example does, is harmless).
+
+Apostrophes inside the values are not doubled, so a value like O'Brien breaks the generated SQL. Use
+it on columns such as codes and IDs where that cannot happen.
+example:
+<CFQUERY NAME="GetDepts" DATASOURCE="cfsnippets">
+SELECT Dept_Name FROM Departments
+WHERE Dept_Name IN ('Sales', 'Training')
+</CFQUERY>
+<CFQUERY NAME="GetPeople" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName, Department FROM Employees
+WHERE Department IN (#PreserveSingleQuotes(QuotedValueList(GetDepts.Dept_Name))#)
+ORDER BY Department, LastName
+</CFQUERY>
+<CFOUTPUT>
+<P>QuotedValueList: <TT>#QuotedValueList(GetDepts.Dept_Name)#</TT></P>
+</CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<CFOUTPUT QUERY="GetPeople">
+<TR><TD>#Department#</TD><TD>#FirstName# #LastName#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: ValueList, PreserveSingleQuotes, ListQualify, CFQUERY

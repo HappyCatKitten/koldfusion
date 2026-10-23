@@ -1,0 +1,22 @@
+# KoldFusion Demo Gallery status file, read by /demos/index.cfm.
+# One line per file:  file | status | note | run
+#   status: works, partial, cf5 (needs CF5+), cfmx (needs CFMX+), fails, include (not a page), shim (gallery companion)
+#   run:    optional page to open instead of the file ("-" = no Run link)
+# @title, @blurb and @order override what the gallery shows for the folder.
+@title KoldFusion Originals
+@blurb Brand-new scripts written for this gallery in period-correct CFML 4.5 - no UDFs, no CFMX syntax. Server-side graphics, session games, a recursive custom tag and the obligatory Y2K page.
+@order 1
+@new yes
+mandelbrot.cfm   | works   | Mandelbrot explorer: colour table or ASCII art, click to zoom |
+life.cfm         | works   | Conway's Game of Life, one generation per click (SESSION) |
+tictactoe.cfm    | works   | Tic-Tac-Toe against the server (SESSION) |
+magic8ball.cfm   | works   | Ask the Magic 8-Ball |
+guestbook.cfm    | works   | Sign my guestbook! (DSN demos) |
+counter.cfm      | works   | "This page has been visited N times" (DSN demos) |
+hanoi.cfm        | works   | Towers of Hanoi via a recursive custom tag |
+hanoi_move.cfm   | include | the recursive custom tag behind hanoi.cfm | -
+calendar.cfm     | works   | Month calendar with holidays |
+wddx.cfm         | works   | WDDX round trip and CFML2JS |
+serverheader.cfm | works   | CFHTTP: what's my server header? |
+y2k.cfm          | works   | Y2K countdown and compliance self-test |
+_footer.cfm      | include | shared footer | -

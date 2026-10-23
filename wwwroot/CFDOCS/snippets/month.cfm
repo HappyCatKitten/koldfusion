@@ -1,0 +1,8 @@
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Date</TH><TH>Month</TH><TH>Name</TH></TR>
+<CFLOOP INDEX="D" LIST="1/15/2000,Jul 4 1999,10/22/1999">
+<TR><TD>#D#</TD><TD>#Month(D)#</TD><TD>#MonthAsString(Month(D))#</TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>

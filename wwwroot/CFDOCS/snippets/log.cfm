@@ -1,0 +1,6 @@
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Log(number)</TH><TH>log base 2</TH></TR>
+<CFLOOP INDEX="n" LIST="1,2,2.71828182846,10,1024">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD>#Log(n)#</TD><TD ALIGN="RIGHT">#Round(Log(n) / Log(2) * 1000) / 1000#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>

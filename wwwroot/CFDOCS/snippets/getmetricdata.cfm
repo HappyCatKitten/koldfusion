@@ -1,0 +1,7 @@
+<CFSET Perf = GetMetricData("PERF_MONITOR")>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR BGCOLOR="#CCCCCC"><TH>Counter</TH><TH>Value</TH></TR>
+<CFLOOP COLLECTION="#Perf#" ITEM="key">
+<CFOUTPUT><TR><TD>#key#</TD><TD ALIGN="right">#Perf[key]#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>

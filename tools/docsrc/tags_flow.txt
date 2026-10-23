@@ -1,0 +1,886 @@
+# CFML Language Reference - variable manipulation, flow control and exception handling tags.
+# Format: see the docstring at the top of tools/mkdocs.py.
+# Helper files used by the examples: wwwroot/CFDOCS/snippets/sn_pagetitle.cfm (CFINCLUDE),
+# sn_repeat.cfm (CFEXIT), sn_errorpage.cfm (CFERROR).
+
+@tag CFSET
+category: Variable manipulation
+summary: Creates a variable or changes its value.
+desc:
+`CFSET` assigns the result of an expression to a variable, creating the variable if it does not
+exist yet. It is the workhorse of CFML: strings, numbers, dates, arrays, structures and query cells
+are all set this way.
+syntax:
+<CFSET variable_name = expression>
+usage:
+The right-hand side is a CFML expression, so you do not need pound signs: write
+`<CFSET Total = Price * Qty>`, not `<CFSET Total = #Price# * #Qty#>`. Pound signs are only needed
+inside quoted strings, as in `<CFSET Greeting = "Hello, #FirstName#">`.
+
+Without a scope prefix the variable goes into the local Variables scope. Prefix it to set something
+else: `Session.Cart`, `Application.Title`, `Client.LastVisit`, `Request.Started`. Dotted names create
+the structures on the way, so `<CFSET Order.Ship.Zip = "02139">` builds two nested structures.
+
+If you quote the name, it is evaluated first, which gives you dynamic variable names:
+`<CFSET "Row#i#" = "x">`. `SetVariable` does the same from a function call.
+
+A `CFSET` without an equals sign simply evaluates the expression and throws the result away, handy for
+functions you call for their side effects: `<CFSET ArrayAppend(Cart, "Modem")>`.
+example:
+<!--- Simple values, a dynamic name, a structure and an array --->
+<CFSET Product = "US Robotics 56K Modem">
+<CFSET Price = 129.95>
+<CFSET Qty = 3>
+<CFSET Total = Price * Qty>
+<CFSET Ordered = CreateDate(1999, 11, 30)>
+<CFLOOP INDEX="i" FROM="1" TO="3">
+  <CFSET "Box#i#" = "Carton " & i & " of 3">
+</CFLOOP>
+<CFSET Customer = StructNew()>
+<CFSET Customer.Name = "Carol Reardon">
+<CFSET Customer.Ship.City = "Boston">
+<CFSET Extras = ArrayNew(1)>
+<CFSET Extras[1] = "Phone cable">
+<CFSET ArrayAppend(Extras, "Mouse pad")>
+
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH ALIGN="LEFT">Variable</TH><TH ALIGN="LEFT">Value</TH></TR>
+<TR><TD>Product</TD><TD>#Product#</TD></TR>
+<TR><TD>Total (Price * Qty)</TD><TD>#DollarFormat(Total)#</TD></TR>
+<TR><TD>Ordered</TD><TD>#DateFormat(Ordered, "mmmm d, yyyy")#</TD></TR>
+<TR><TD>Box1 .. Box3</TD><TD>#Box1#; #Box2#; #Box3#</TD></TR>
+<TR><TD>Customer.Name</TD><TD>#Customer.Name#</TD></TR>
+<TR><TD>Customer.Ship.City</TD><TD>#Customer.Ship.City#</TD></TR>
+<TR><TD>Extras</TD><TD>#ArrayToList(Extras, ", ")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: CFPARAM, SetVariable, StructNew, ArrayNew, CFOUTPUT
+
+@tag CFPARAM
+category: Variable manipulation
+summary: Checks that a variable exists, optionally gives it a default value and checks its type.
+desc:
+`CFPARAM` makes sure a variable is defined before the page relies on it. If the variable is missing
+and you supply a DEFAULT, the default is set; without a DEFAULT, a missing variable stops the page
+with an error. With TYPE, the value is also checked for the right kind of data.
+syntax:
+<CFPARAM NAME="param_name"
+    DEFAULT="value"
+    TYPE="data_type">
+attrs:
+NAME | Required | Name of the variable to check, with a scope prefix if you like (`URL.Start`, `Form.Email`,
+  `Session.Cart`). Dotted names create the structures on the way.
+DEFAULT | Optional | Value to give the variable if it does not exist. Without it, a missing variable raises an
+  error, which is how you declare a parameter as required.
+TYPE | Optional, default "any" | Data type the value must have: `any`, `array`, `binary`, `boolean`, `date`,
+  `numeric`, `query`, `string`, `struct`, `UUID` (in the 35-character `CreateUUID` format) or `variableName`
+  (a legal CFML variable name). A value of the wrong type raises an error.
+usage:
+`CFPARAM` is the polite way to read URL and form parameters: put a few at the top of the page and the
+rest of the template can use `URL.Start` without wrapping every reference in `IsDefined`. It does
+nothing to a variable that already exists, apart from the TYPE check.
+
+Both errors are of type Application, so you can catch them with `CFTRY`/`CFCATCH` and show a friendlier
+message. A wrong type reports "Invalid parameter type."; a missing required parameter reports
+"Parameter validation error for tag CFPARAM.".
+example:
+<!--- Defaults for the form fields; the form posts back to this page --->
+<CFPARAM NAME="URL.Department" DEFAULT="Engineering">
+<CFPARAM NAME="URL.MinSalary" DEFAULT="50000">
+
+<FORM ACTION="cfparam.cfm" METHOD="GET">
+Department <INPUT TYPE="Text" NAME="Department" VALUE="<CFOUTPUT>#URL.Department#</CFOUTPUT>" SIZE=12>
+earning at least <INPUT TYPE="Text" NAME="MinSalary" VALUE="<CFOUTPUT>#URL.MinSalary#</CFOUTPUT>" SIZE=8>
+<INPUT TYPE="Submit" VALUE="Show">
+</FORM>
+
+<CFTRY>
+  <CFPARAM NAME="URL.MinSalary" TYPE="numeric">
+  <CFQUERY NAME="Staff" DATASOURCE="cfsnippets">
+  SELECT FirstName, LastName, Salary FROM Employees
+  WHERE Department = '#URL.Department#' AND Salary >= #URL.MinSalary#
+  ORDER BY Salary DESC
+  </CFQUERY>
+  <CFOUTPUT><P>#Staff.RecordCount# employee(s) found.</P></CFOUTPUT>
+  <UL>
+  <CFOUTPUT QUERY="Staff"><LI>#FirstName# #LastName#, #DollarFormat(Salary)#</CFOUTPUT>
+  </UL>
+<CFCATCH TYPE="Application">
+  <CFOUTPUT><P><B>#CFCATCH.Message#</B> #CFCATCH.Detail#</P></CFOUTPUT>
+</CFCATCH>
+</CFTRY>
+see: CFSET, IsDefined, CFTRY, CFQUERYPARAM
+
+@tag CFCOOKIE
+category: Variable manipulation
+summary: Sends a cookie to the browser, or deletes one.
+desc:
+`CFCOOKIE` adds a Set-Cookie header to the response, so the browser sends the value back as
+`Cookie.name` on later requests. Cookies can last for the browser session, a number of days, until a
+given date or "forever".
+syntax:
+<CFCOOKIE NAME="cookie_name"
+    VALUE="text"
+    EXPIRES="period"
+    SECURE="Yes/No"
+    PATH="url_path"
+    DOMAIN=".domain">
+attrs:
+NAME | Required | Name of the cookie. Browsers receive it in upper case.
+VALUE | Optional | Value to store. It is URL-encoded in the header and decoded again when it comes back.
+EXPIRES | Optional | When the cookie expires: a date (`12/31/1999`), a number of days (`30`), `NEVER` (30 years
+  from now) or `NOW` (deletes the cookie). Without EXPIRES the cookie lasts until the browser is closed.
+SECURE | Optional, default "No" | Yes asks the browser to send the cookie over SSL connections only.
+PATH | Optional, default "/" | URL path the cookie applies to.
+DOMAIN | Optional | Domain the cookie applies to, starting with a period, for example `.allair.com`.
+usage:
+The cookie also appears in the Cookie scope of the current request right away, so the page can use
+`Cookie.name` straight after setting it. A cookie deleted with `EXPIRES="NOW"` disappears from the scope.
+
+Browsers of the day are happy to store about 20 cookies per site at 4K each; keep the values short. For
+anything bigger, store an ID in the cookie and the data on the server (see `CFAPPLICATION` client and
+session management).
+example:
+<!--- A visit counter kept in a cookie --->
+<CFPARAM NAME="URL.Forget" DEFAULT="No">
+<CFPARAM NAME="Cookie.SnipVisits" DEFAULT="0">
+
+<CFIF URL.Forget>
+  <CFCOOKIE NAME="SnipVisits" EXPIRES="NOW">
+  <P>The cookie has been deleted. The browser will not send it again.</P>
+<CFELSE>
+  <CFCOOKIE NAME="SnipVisits" VALUE="#Cookie.SnipVisits + 1#" EXPIRES="30">
+  <CFOUTPUT>
+  <TABLE BORDER=1 CELLPADDING=4>
+  <TR><TD BGCOLOR="##FFFFCC">Visits counted by the cookie</TD><TD><B>#Cookie.SnipVisits#</B></TD></TR>
+  <TR><TD BGCOLOR="##FFFFCC">Cookie expires</TD><TD>#DateFormat(Now() + 30, "mmmm d, yyyy")#</TD></TR>
+  </TABLE>
+  </CFOUTPUT>
+</CFIF>
+<P><A HREF="cfcookie.cfm">Visit again</A> | <A HREF="cfcookie.cfm?Forget=Yes">Delete the cookie</A></P>
+see: CFAPPLICATION, CFHEADER, CFLOCATION, CFPARAM
+
+@tag CFIF
+title: CFIF/CFELSEIF/CFELSE
+also: CFELSEIF, CFELSE
+category: Flow control
+summary: Runs a block of code only when an expression is true, with optional alternatives.
+desc:
+`CFIF` evaluates an expression and processes the code up to the next `CFELSEIF`, `CFELSE` or
+`/CFIF` only if the expression is true. `CFELSEIF` tests another expression when everything above it
+was false, and `CFELSE` catches whatever is left.
+syntax:
+<CFIF expression>
+  HTML and CFML
+<CFELSEIF expression>
+  HTML and CFML
+<CFELSE>
+  HTML and CFML
+</CFIF>
+usage:
+The expression is written without pound signs. Comparisons use word operators, not symbols:
+
+| Operator | Also written | Meaning |
+| IS | EQ, EQUAL | equal (strings compare without regard to case) |
+| IS NOT | NEQ, NOT EQUAL | not equal |
+| GT | GREATER THAN | greater than |
+| LT | LESS THAN | less than |
+| GTE | GE, GREATER THAN OR EQUAL TO | greater than or equal |
+| LTE | LE, LESS THAN OR EQUAL TO | less than or equal |
+| CONTAINS | | the string contains the other one |
+| DOES NOT CONTAIN | | the opposite |
+
+Combine tests with AND, OR, NOT, XOR, EQV and IMP, and group them with parentheses. Any value that
+converts to a boolean works on its own: `<CFIF Staff.RecordCount>` is true when the query returned rows,
+and "Yes", "True" and non-zero numbers count as true.
+
+You can have as many `CFELSEIF` blocks as you like, but only one `CFELSE`, and it must come last. For
+long chains of tests against a single value, `CFSWITCH` is easier to read.
+example:
+<CFQUERY NAME="Staff" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName, Department, Salary, Contract
+FROM Employees WHERE Department IN ('Sales', 'Engineering')
+ORDER BY Salary DESC
+</CFQUERY>
+
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Name</TH><TH>Salary</TH><TH>Band</TH><TH>Notes</TH></TR>
+<CFOUTPUT QUERY="Staff">
+<TR>
+  <TD>#FirstName# #LastName#</TD>
+  <TD ALIGN="RIGHT">#DollarFormat(Salary)#</TD>
+  <CFIF Salary GTE 75000>
+    <TD BGCOLOR="##CCFFCC">Senior</TD>
+  <CFELSEIF Salary GTE 55000>
+    <TD BGCOLOR="##FFFFCC">Regular</TD>
+  <CFELSE>
+    <TD BGCOLOR="##FFE0E0">Junior</TD>
+  </CFIF>
+  <TD><CFIF Contract>Contractor</CFIF><CFIF Department IS "Sales" AND LastName CONTAINS "a"> Sales, with an "a"</CFIF>&nbsp;</TD>
+</TR>
+</CFOUTPUT>
+</TABLE>
+see: CFSWITCH, CFLOOP, IIf, IsDefined
+
+@tag CFLOOP
+category: Flow control
+summary: Repeats a block of code: a counted loop, a conditional loop, or a loop over a query, list or structure.
+desc:
+`CFLOOP` repeats the code between its start and end tags. The attributes you give it decide the kind
+of loop: INDEX/FROM/TO counts, CONDITION repeats while an expression is true, QUERY walks the rows of a
+query, LIST walks the elements of a list, and COLLECTION walks the keys of a structure.
+syntax:
+<!--- index loop --->
+<CFLOOP INDEX="index_name"
+    FROM="start"
+    TO="end"
+    STEP="increment">
+  HTML and CFML
+</CFLOOP>
+
+<!--- conditional loop --->
+<CFLOOP CONDITION="expression">
+  HTML and CFML
+</CFLOOP>
+
+<!--- query loop --->
+<CFLOOP QUERY="query_name"
+    STARTROW="row_num"
+    ENDROW="row_num">
+  HTML and CFML
+</CFLOOP>
+
+<!--- list loop --->
+<CFLOOP INDEX="index_name"
+    LIST="list_items"
+    DELIMITERS="item_delimiter">
+  HTML and CFML
+</CFLOOP>
+
+<!--- collection loop --->
+<CFLOOP COLLECTION="#structure#"
+    ITEM="key_name">
+  HTML and CFML
+</CFLOOP>
+attrs:
+INDEX | Required for index and list loops | Variable that receives the counter (index loop) or the current list
+  element (list loop).
+FROM | Required for index loops | First value of the counter.
+TO | Required for index loops | Last value of the counter. The loop ends when the counter passes it.
+STEP | Optional, default "1" | Amount added to the counter after each pass. Use a negative step to count down; 0 is
+  not allowed.
+CONDITION | Required for conditional loops | Expression tested before each pass; the loop runs while it is true.
+  Write it without pound signs so it is evaluated afresh every time.
+QUERY | Required for query loops | Name of the query to loop over.
+STARTROW | Optional, default "1" | First row of a query loop.
+ENDROW | Optional | Last row of a query loop. Defaults to the last row of the query.
+LIST | Required for list loops | The list to loop over, usually written with pound signs, for example `LIST="#Form.FieldNames#"`.
+DELIMITERS | Optional, default "," | Characters that separate list elements. Each character is a delimiter on its own,
+  and empty elements are skipped.
+COLLECTION | Required for collection loops | The structure to loop over, written with pound signs: `COLLECTION="#Prefs#"`.
+ITEM | Required for collection loops | Variable that receives the name of the current key.
+usage:
+Inside a query loop the columns of the current row can be used without the query name, and
+`query_name.CurrentRow` tells you where you are. Unlike `CFOUTPUT QUERY=`, a query loop can be nested
+inside `CFOUTPUT` and inside other query loops, and it has no GROUP attribute.
+
+A collection loop hands you the key names, not the values; read the value with `Prefs[key]` or
+`StructFind`. The keys arrive in no particular order. ColdFusion on Windows can also loop over COM
+collections; KoldFusion loops over structures only.
+
+Use `CFBREAK` to leave any kind of loop early. A conditional loop whose condition never turns false
+runs until the request timeout set in the Administrator stops it, so make sure something in the body
+changes the condition.
+example:
+<CFOUTPUT>
+<P><B>Index loop</B> (FROM 10 TO 1 STEP -3):
+<CFLOOP INDEX="i" FROM="10" TO="1" STEP="-3"> #i#</CFLOOP></P>
+
+<P><B>Conditional loop</B> (double it until it passes 1000):
+<CFSET n = 1>
+<CFLOOP CONDITION="n LT 1000"><CFSET n = n * 2> #n#</CFLOOP></P>
+
+<P><B>List loop</B> (delimiters ";" and "|"):
+<CFLOOP INDEX="Browser" LIST="Netscape 4.7;Internet Explorer 5|Opera 3.6;Lynx" DELIMITERS=";|">
+  [#Browser#]</CFLOOP></P>
+
+<P><B>Collection loop</B>:
+<CFSET Modem = StructNew()>
+<CFSET Modem.Speed = "56K">
+<CFSET Modem.Standard = "V.90">
+<CFSET Modem.Port = "COM2">
+<CFLOOP COLLECTION="#Modem#" ITEM="Key"> #Key#=#Modem[Key]#</CFLOOP></P>
+</CFOUTPUT>
+
+<P><B>Query loop</B> (rows 2 to 4 of Departments):</P>
+<CFQUERY NAME="Depts" DATASOURCE="cfsnippets">
+SELECT Dept_Name, Location FROM Departments ORDER BY Dept_ID
+</CFQUERY>
+<TABLE BORDER=1 CELLPADDING=3>
+<CFLOOP QUERY="Depts" STARTROW="2" ENDROW="4">
+  <CFOUTPUT><TR><TD>#Depts.CurrentRow#</TD><TD>#Dept_Name#</TD><TD>#Location#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: CFBREAK, CFOUTPUT, CFIF, ListToArray, StructKeyList
+
+@tag CFBREAK
+category: Flow control
+summary: Leaves the innermost CFLOOP immediately.
+desc:
+`CFBREAK` stops the loop it sits in; processing continues after the loop's `/CFLOOP` tag. It is
+usually placed inside a `CFIF` that tests for the condition you are looking for.
+syntax:
+<CFBREAK>
+usage:
+Only the innermost loop is left; an outer loop carries on with its next pass. To stop the whole page,
+use `CFABORT` instead. In CFSCRIPT the same job is done by the `break;` statement.
+example:
+<!--- Find the first employee, by seniority, who earns more than $70,000 --->
+<CFQUERY NAME="Staff" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName, StartDate, Salary FROM Employees ORDER BY StartDate
+</CFQUERY>
+
+<CFSET Found = "">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Row</TH><TH>Employee</TH><TH>Salary</TH></TR>
+<CFLOOP QUERY="Staff">
+  <CFOUTPUT><TR><TD>#CurrentRow#</TD><TD>#FirstName# #LastName#</TD><TD>#DollarFormat(Salary)#</TD></TR></CFOUTPUT>
+  <CFIF Salary GT 70000>
+    <CFSET Found = FirstName & " " & LastName>
+    <CFSET StoppedAt = CurrentRow>
+    <CFBREAK>
+  </CFIF>
+</CFLOOP>
+</TABLE>
+<CFOUTPUT>
+<P>Stopped after #StoppedAt# of #Staff.RecordCount# rows: the answer is <B>#Found#</B>.</P>
+</CFOUTPUT>
+see: CFLOOP, CFABORT, CFEXIT, CFSCRIPT
+
+@tag CFSWITCH
+title: CFSWITCH/CFCASE/CFDEFAULTCASE
+also: CFCASE, CFDEFAULTCASE
+category: Flow control
+summary: Chooses one of several blocks of code by comparing an expression with a list of values.
+desc:
+`CFSWITCH` evaluates its expression once and runs the first `CFCASE` whose VALUE matches. If no case
+matches, the `CFDEFAULTCASE` block runs, if there is one. It is a tidier, faster replacement for a long
+`CFIF`/`CFELSEIF` chain that keeps testing the same value.
+syntax:
+<CFSWITCH EXPRESSION="#expression#">
+  <CFCASE VALUE="value" DELIMITERS=",">
+    HTML and CFML
+  </CFCASE>
+  <CFCASE VALUE="value1,value2">
+    HTML and CFML
+  </CFCASE>
+  <CFDEFAULTCASE>
+    HTML and CFML
+  </CFDEFAULTCASE>
+</CFSWITCH>
+attrs:
+EXPRESSION | Required | (CFSWITCH) The value to test, written with pound signs: `EXPRESSION="#Form.Action#"`.
+VALUE | Required | (CFCASE) One value, or a list of values, to compare with the expression. The comparison
+  ignores case.
+DELIMITERS | Optional, default "," | (CFCASE) Characters that separate the values in VALUE, in case a value
+  itself contains a comma.
+usage:
+Each `CFCASE` needs an end tag, and only one case ever runs: there is no falling through from one
+case to the next. A value may appear in only one case. `CFDEFAULTCASE` may sit anywhere inside the
+`CFSWITCH`, though by tradition it goes last.
+
+Text between the cases (outside any `CFCASE`) is ignored. Inside CFSCRIPT, use the `switch`
+statement instead.
+example:
+<CFQUERY NAME="Depts" DATASOURCE="cfsnippets">
+SELECT Dept_Name, Location FROM Departments ORDER BY Dept_Name
+</CFQUERY>
+
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Department</TH><TH>Location</TH><TH>Typical lunch</TH></TR>
+<CFOUTPUT QUERY="Depts">
+<TR><TD>#Dept_Name#</TD><TD>#Location#</TD><TD>
+  <CFSWITCH EXPRESSION="#Dept_Name#">
+    <CFCASE VALUE="Sales,Marketing">Expense-account steak</CFCASE>
+    <CFCASE VALUE="engineering">Cold pizza at the keyboard</CFCASE>
+    <CFCASE VALUE="Accounting">A sandwich, itemized</CFCASE>
+    <CFDEFAULTCASE><I>Whatever is in the cafeteria</I></CFDEFAULTCASE>
+  </CFSWITCH>
+</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: CFIF, CFSCRIPT, CFLOOP
+
+@tag CFABORT
+category: Flow control
+summary: Stops processing the page at the tag, optionally with an error message.
+desc:
+`CFABORT` ends the request right where it stands. Everything generated so far is sent to the browser;
+nothing after the tag runs. With SHOWERROR it stops the page with an error instead.
+syntax:
+<CFABORT SHOWERROR="error message">
+attrs:
+SHOWERROR | Optional | Message to show. The page then ends with an Application error that carries this message,
+  just as if an error had occurred, and it can be caught with `CFTRY`/`CFCATCH`.
+usage:
+A plain `CFABORT` is not an error: `CFTRY` does not catch it, and error handlers set with `CFERROR`
+are not called. Note that `OnRequestEnd.cfm` is not run either, so anything it would add to the
+page is lost.
+
+Remember to close any open HTML tables before aborting: Netscape 4 shows nothing at all of a table that
+never ends. `CFABORT` is handy inside `Application.cfm` to stop unauthorized visitors after showing
+them a login form.
+example:
+<!--- Pay employees in order of seniority until the budget runs out --->
+<CFSET Budget = 500000>
+<CFSET Spent = 0>
+<CFQUERY NAME="Staff" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName, Salary FROM Employees ORDER BY StartDate
+</CFQUERY>
+
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Employee</TH><TH>Salary</TH><TH>Spent so far</TH></TR>
+<CFLOOP QUERY="Staff">
+  <CFIF Spent + Salary GT Budget>
+    </TABLE>
+    <CFOUTPUT><P><B>Budget of #DollarFormat(Budget)# exhausted at row #CurrentRow#.
+    #FirstName# #LastName# and the rest will have to wait.</B></P></CFOUTPUT>
+    <CFABORT>
+  </CFIF>
+  <CFSET Spent = Spent + Salary>
+  <CFOUTPUT><TR><TD>#FirstName# #LastName#</TD><TD>#DollarFormat(Salary)#</TD><TD>#DollarFormat(Spent)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<P>Everybody got paid. (You will not see this line: the budget is too small.)</P>
+see: CFEXIT, CFBREAK, CFLOCATION, CFTRY
+
+@tag CFEXIT
+category: Flow control
+summary: Leaves a custom tag early, or loops back through its end tag.
+desc:
+`CFEXIT` is the custom tag author's `CFABORT`: it stops the custom tag template and hands control back
+to the calling page. METHOD decides where the caller continues, and with METHOD="Loop" a paired custom
+tag can process its body again and again.
+syntax:
+<CFEXIT METHOD="method">
+attrs:
+METHOD | Optional, default "ExitTag" | `ExitTag`, `ExitTemplate` or `Loop`; see the table below.
+usage:
+What happens depends on the method and on `ThisTag.ExecutionMode`:
+
+| METHOD | In start mode | In end mode |
+| ExitTag | Skips the tag body and the end-mode pass; the caller continues after the end tag. | The caller continues after the end tag. |
+| ExitTemplate | Ends the start-mode pass; the body and the end-mode pass still run. | The caller continues after the end tag. |
+| Loop | Only meaningful in end mode. | Processes the tag body again, then runs the end-mode pass again. |
+
+Used in an ordinary page rather than a custom tag, `CFEXIT` behaves like `CFABORT`. Keep a counter
+in the `ThisTag` scope when you use METHOD="Loop", or the loop will run until the request times out.
+example:
+<!--- sn_repeat.cfm is a paired custom tag that repeats its body TIMES times.
+      It uses CFEXIT METHOD="ExitTag" to give up when TIMES is 0,
+      and CFEXIT METHOD="Loop" to run the body again. --->
+<P><B>Times="3":</B><BR>
+<CFMODULE TEMPLATE="sn_repeat.cfm" TIMES="3">
+  <IMG SRC="/CFIDE/administrator/images/check.gif" WIDTH=16 HEIGHT=16> Please wait, dialing...<BR>
+</CFMODULE></P>
+
+<P><B>Times="0":</B><BR>
+<CFMODULE TEMPLATE="sn_repeat.cfm" TIMES="0">
+  You should not see this line.<BR>
+</CFMODULE>
+(the body was skipped)</P>
+
+<P>Source of sn_repeat.cfm:</P>
+<CFFILE ACTION="READ" FILE="#ExpandPath('sn_repeat.cfm')#" VARIABLE="Src">
+<CFOUTPUT><PRE>#HTMLEditFormat(Src)#</PRE></CFOUTPUT>
+see: CFMODULE, CFABORT, CFBREAK, CFASSOCIATE
+
+@tag CFINCLUDE
+category: Flow control
+summary: Processes another CFML template as if its code were part of the current page.
+desc:
+`CFINCLUDE` reads another template and runs it right where the tag stands. The included template shares
+the Variables scope of the page that includes it, so it can read and set the page's variables. It is
+the easy way to share headers, footers and common code between pages.
+syntax:
+<CFINCLUDE TEMPLATE="template_name">
+attrs:
+TEMPLATE | Required | Path of the template to include. A relative path is taken from the directory of the current
+  template (`../footer.cfm` works). A path starting with `/` goes through the mappings on the Administrator's
+  Mappings page; the `/` mapping points to the web root.
+usage:
+Paired tags must start and end in the same file: you cannot open a `CFIF` or `CFOUTPUT` in one
+template and close it in the included one. If the template cannot be found, a MissingInclude error is
+raised; `CFCATCH.MissingFileName` names the file.
+
+Unlike a custom tag called with `CFMODULE`, an included template gets no Attributes scope and no
+private variables of its own. Choose `CFINCLUDE` for shared page fragments and a custom tag for
+reusable components.
+example:
+<!--- sn_pagetitle.cfm draws a title bar from Variables.PageTitle,
+      and sets Variables.TitleDrawn for the including page to use --->
+<CFSET PageTitle = "Quarterly Parks Report">
+<CFINCLUDE TEMPLATE="sn_pagetitle.cfm">
+
+<CFQUERY NAME="Parks" DATASOURCE="cfsnippets">
+SELECT ParkName, State FROM Parks WHERE Region = 'Southwest' ORDER BY ParkName
+</CFQUERY>
+<UL>
+<CFOUTPUT QUERY="Parks"><LI>#ParkName# (#State#)</CFOUTPUT>
+</UL>
+
+<CFSET PageTitle = "Appendix: No Parks Were Harmed">
+<CFINCLUDE TEMPLATE="sn_pagetitle.cfm">
+<CFOUTPUT><P>The include file has drawn #TitleDrawn# title bars on this page.</P></CFOUTPUT>
+see: CFMODULE, CFLOCATION, GetCurrentTemplatePath, GetBaseTemplatePath
+
+@tag CFLOCATION
+category: Flow control
+summary: Sends the browser to another URL and ends the current page.
+desc:
+`CFLOCATION` stops processing the page and answers the browser with an HTTP redirect (302 Object Moved)
+to the URL you give. The browser then requests that URL on its own, so the address bar shows the
+new page.
+syntax:
+<CFLOCATION URL="url"
+    ADDTOKEN="Yes/No">
+attrs:
+URL | Required | The page to go to: a relative URL (`thanks.cfm?Order=12`) or an absolute one (`http://www.allair.com/`).
+ADDTOKEN | Optional, default "Yes" | When client or session management is enabled with `CFAPPLICATION`, Yes appends
+  `CFID` and `CFTOKEN` to the URL so a browser without cookies keeps its session. Without client or session
+  management nothing is added.
+usage:
+Nothing else on the page is sent: content generated before the tag is thrown away, and
+`OnRequestEnd.cfm` does not run. Anything you want the next page to know must travel in the URL or in
+the Session or Client scope.
+
+The classic use is the post-and-redirect pattern: an action page inserts a form's data into the
+database, then sends the browser to a "thank you" page, so pressing Reload does not insert the row
+twice. Set ADDTOKEN="No" when redirecting to another site, which has no use for your session tokens.
+example:
+<!--- Clicking a link redirects back to this page with a "from" parameter --->
+<CFPARAM NAME="URL.Go" DEFAULT="">
+<CFPARAM NAME="URL.From" DEFAULT="">
+<CFIF URL.Go IS NOT "">
+  <CFLOCATION URL="cflocation.cfm?From=#URLEncodedFormat(URL.Go)#" ADDTOKEN="No">
+</CFIF>
+
+<CFIF URL.From IS NOT "">
+  <CFOUTPUT>
+  <P><IMG SRC="/CFIDE/administrator/images/check.gif" WIDTH=16 HEIGHT=16>
+  You arrived here through a <B>302 Object Moved</B> redirect.
+  The link you clicked was <B>#HTMLEditFormat(URL.From)#</B>.</P>
+  </CFOUTPUT>
+</CFIF>
+
+<P>Pick a destination. Each link calls this page with a "Go" parameter,
+and CFLOCATION then sends your browser on.</P>
+<UL>
+  <LI><A HREF="cflocation.cfm?Go=Departure+Lounge">Departure Lounge</A>
+  <LI><A HREF="cflocation.cfm?Go=Y2K+Bunker">Y2K Bunker</A>
+  <LI><A HREF="cflocation.cfm">Start over (no redirect)</A>
+</UL>
+see: CFHEADER, CFABORT, CFAPPLICATION, URLEncodedFormat
+
+@tag CFSCRIPT
+category: Flow control
+summary: Encloses a block of script code written in the JavaScript-like CFScript language.
+desc:
+`CFSCRIPT` lets you write CFML logic as compact statements instead of tags. Everything inside uses the
+same variables, scopes and functions as the rest of the page; it is simply a terser way to write
+`CFSET`, `CFIF` and `CFLOOP`.
+syntax:
+<CFSCRIPT>
+  statements
+</CFSCRIPT>
+usage:
+Each statement ends with a semicolon. CFScript knows these statements:
+
+| Statement | Example |
+| assignment | `x = 5;` |
+| function call | `WriteOutput("Hi");` |
+| if / else | `if (x GT 1) y = 2; else y = 3;` |
+| while | `while (i LT 10) { i = i + 1; }` |
+| do / while | `do { i = i + 1; } while (i LT 10);` |
+| for | `for (i = 1; i LTE 10; i = i + 1) { ... }` |
+| for / in | `for (key in MyStruct) { ... }` |
+| switch | `switch (x) { case 1: ...; break; default: ...; }` |
+| break, continue | leave a loop, or skip to its next pass |
+
+Comments are written `// to the end of the line` or `/* like this */`. Use `WriteOutput` to send
+text to the page; it works whether or not the block sits inside `CFOUTPUT`.
+
+Expressions use the normal CFML operators (EQ, LT, AND, `&` for joining strings...). As a
+convenience KoldFusion also accepts `==`, `!=`, `<`, `>`, `&&`, `||`, `++` and `+=` inside CFSCRIPT, but
+ColdFusion 4.5 does not, so stick to the CFML operators in code you want to share. CFScript in version
+4.5 has no user-defined functions and no try/catch: wrap the block in `CFTRY` when you need error
+handling. Tags cannot be used inside a script block.
+example:
+<CFQUERY NAME="Staff" DATASOURCE="cfsnippets">
+SELECT Department, Salary FROM Employees
+</CFQUERY>
+
+<CFSCRIPT>
+// total the payroll per department in a structure
+Payroll = StructNew();
+depts = "";
+for (row = 1; row LTE Staff.RecordCount; row = row + 1) {
+    dept = Staff.Department[row];
+    if (NOT StructKeyExists(Payroll, dept)) {
+        Payroll[dept] = 0;
+        depts = ListAppend(depts, dept);
+    }
+    Payroll[dept] = Payroll[dept] + Staff.Salary[row];
+}
+
+/* and print it as a table */
+WriteOutput("<TABLE BORDER=1 CELLPADDING=3><TR><TH>Department</TH><TH>Payroll</TH><TH>Size</TH></TR>");
+depts = ListSort(depts, "textnocase");
+for (i = 1; i LTE ListLen(depts); i = i + 1) {
+    dept = ListGetAt(depts, i);
+    switch (dept) {
+        case "Engineering": size = "Large"; break;
+        case "Administration": case "Training": size = "Small"; break;
+        default: size = "Medium";
+    }
+    WriteOutput("<TR><TD>" & dept & "</TD><TD ALIGN=RIGHT>" & DollarFormat(Payroll[dept]) & "</TD><TD>" & size & "</TD></TR>");
+}
+WriteOutput("</TABLE>");
+</CFSCRIPT>
+see: CFSET, CFLOOP, CFSWITCH, WriteOutput, CFTRY
+
+@tag CFTRY
+title: CFTRY/CFCATCH
+also: CFCATCH
+category: Exception handling
+summary: Catches errors raised inside a block of code and handles them with your own code.
+desc:
+`CFTRY` surrounds code that might fail. If an error (an "exception") is raised inside it, processing
+jumps to the first `CFCATCH` block whose TYPE matches the error, and the page carries on after
+`/CFTRY` instead of stopping with an error message. Inside the catch block, the `CFCATCH` structure
+describes what went wrong.
+syntax:
+<CFTRY>
+  code that may raise an error
+  <CFCATCH TYPE="exception_type">
+    code that handles the error
+  </CFCATCH>
+  <CFCATCH TYPE="Any">
+    code that handles any other error
+  </CFCATCH>
+</CFTRY>
+attrs:
+TYPE | Optional, default "Any" | (CFCATCH) The kind of error this block handles: `Application`, `Database`,
+  `Template`, `Security`, `Object`, `MissingInclude`, `Expression`, `Lock`, a custom type raised by `CFTHROW`,
+  or `Any` for everything.
+usage:
+The `CFCATCH` blocks must come at the end of the `CFTRY`, after the protected code. They are tried in
+order and only the first matching one runs, so put `TYPE="Any"` last. If none matches, the error goes on
+to an outer `CFTRY` or to the standard error page. Custom types match by their leading parts: a
+`CFCATCH TYPE="MyApp"` catches an error thrown with `TYPE="MyApp.Order.BadQty"`.
+
+Inside a catch block these variables are available:
+
+| Variable | Contents |
+| CFCATCH.Type | The type of the error, such as Database or a custom type |
+| CFCATCH.Message | The error message |
+| CFCATCH.Detail | A longer description |
+| CFCATCH.ErrorCode | The ERRORCODE of a `CFTHROW`; empty for most built-in errors |
+| CFCATCH.ExtendedInfo | The EXTENDEDINFO of a `CFTHROW`; for MissingInclude, the template name |
+| CFCATCH.NativeErrorCode | (Database errors) the driver's own error number |
+| CFCATCH.SQLState | (Database errors) the ODBC SQL state, such as S0002 for a missing table |
+| CFCATCH.MissingFileName | (MissingInclude errors) the template that was not found |
+| CFCATCH.LockName, CFCATCH.LockOperation | (Lock errors) the lock and what timed out |
+| CFCATCH.TagContext | An array of structures with the keys ID (the tag), Line, Column and Template, telling where the error happened. KoldFusion reports the innermost tag only |
+
+Output generated inside the `CFTRY` before the error stays on the page. `CFABORT` and `CFLOCATION` are
+not errors and pass straight through a `CFTRY`. To hand an error on after looking at it, use
+`CFRETHROW`.
+example:
+<!--- Four things that go wrong, each caught by a different CFCATCH --->
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Attempt</TH><TH>Caught by</TH><TH>CFCATCH.Type</TH><TH>CFCATCH.Message</TH><TH>TagContext[1]</TH></TR>
+<CFLOOP INDEX="Attempt" LIST="Bad SQL,Divide by zero,Missing file,Custom error">
+  <CFOUTPUT><TR><TD>#Attempt#</TD></CFOUTPUT>
+  <CFTRY>
+    <CFSWITCH EXPRESSION="#Attempt#">
+      <CFCASE VALUE="Bad SQL">
+        <CFQUERY NAME="Oops" DATASOURCE="cfsnippets">SELECT * FROM NoSuchTable</CFQUERY>
+      </CFCASE>
+      <CFCASE VALUE="Divide by zero"><CFSET Result = 1 / 0></CFCASE>
+      <CFCASE VALUE="Missing file"><CFINCLUDE TEMPLATE="sn_nowhere.cfm"></CFCASE>
+      <CFCASE VALUE="Custom error"><CFTHROW TYPE="Snippets.Demo" MESSAGE="Thrown on purpose"></CFCASE>
+    </CFSWITCH>
+  <CFCATCH TYPE="Database">
+    <CFOUTPUT><TD>Database</TD><TD>#CFCATCH.Type#</TD><TD>#CFCATCH.Message#</TD>
+    <TD>#CFCATCH.TagContext[1].ID#, line #CFCATCH.TagContext[1].Line#</TD></CFOUTPUT>
+  </CFCATCH>
+  <CFCATCH TYPE="Expression">
+    <CFOUTPUT><TD>Expression</TD><TD>#CFCATCH.Type#</TD><TD>#CFCATCH.Message#</TD>
+    <TD>#CFCATCH.TagContext[1].ID#, line #CFCATCH.TagContext[1].Line#</TD></CFOUTPUT>
+  </CFCATCH>
+  <CFCATCH TYPE="Any">
+    <CFOUTPUT><TD>Any</TD><TD>#CFCATCH.Type#</TD><TD>#CFCATCH.Message#</TD>
+    <TD>#CFCATCH.TagContext[1].ID#, line #CFCATCH.TagContext[1].Line#</TD></CFOUTPUT>
+  </CFCATCH>
+  </CFTRY>
+  </TR>
+</CFLOOP>
+</TABLE>
+<P>The page carried on after every error.</P>
+see: CFTHROW, CFRETHROW, CFERROR, CFABORT
+
+@tag CFTHROW
+category: Exception handling
+summary: Raises a custom error that can be caught with CFTRY/CFCATCH.
+desc:
+`CFTHROW` raises an exception of your own. Processing jumps to the nearest `CFCATCH` that handles its
+TYPE; if there is none, the page stops with the standard error message. Use it to report problems
+that KoldFusion itself would not notice, such as an order for minus three modems.
+syntax:
+<CFTHROW TYPE="exception_type"
+    MESSAGE="message"
+    DETAIL="detail_description"
+    ERRORCODE="error_code"
+    EXTENDEDINFO="additional_information">
+attrs:
+TYPE | Optional, default "Application" | The type of the error. Use your own name, preferably dotted like
+  `MyApp.Order.BadQuantity`, so that `CFCATCH TYPE="MyApp.Order"` or `TYPE="MyApp"` can catch whole families
+  of errors. The only built-in type you may throw is `Application`.
+MESSAGE | Optional | The error message, available as `CFCATCH.Message`.
+DETAIL | Optional | A longer description, available as `CFCATCH.Detail`.
+ERRORCODE | Optional | A code of your choosing, available as `CFCATCH.ErrorCode`.
+EXTENDEDINFO | Optional | Any additional information, available as `CFCATCH.ExtendedInfo`.
+usage:
+Without a MESSAGE, the message reads "Unhandled exception of type ..." with the type filled in.
+Throwing an error from deep inside a custom tag is a clean way to let the calling page decide what to
+do about it.
+example:
+<!--- Validate some orders; bad ones are thrown and caught by family --->
+<CFSET Orders = "Modem:3,Mouse pad:-2,Zip drive:0,Keyboard:abc,Monitor:1">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Product</TH><TH>Qty</TH><TH>Result</TH></TR>
+<CFLOOP INDEX="Order" LIST="#Orders#">
+  <CFSET Product = ListFirst(Order, ":")>
+  <CFSET Qty = ListLast(Order, ":")>
+  <CFOUTPUT><TR><TD>#Product#</TD><TD>#Qty#</TD></CFOUTPUT>
+  <CFTRY>
+    <CFIF NOT IsNumeric(Qty)>
+      <CFTHROW TYPE="Snippets.Order.NotANumber" MESSAGE="Quantity is not a number"
+               ERRORCODE="ORD-1" DETAIL="Use digits, please.">
+    <CFELSEIF Qty LT 1>
+      <CFTHROW TYPE="Snippets.Order.TooFew" MESSAGE="Quantity must be at least 1"
+               ERRORCODE="ORD-2" EXTENDEDINFO="Qty=#Qty#">
+    </CFIF>
+    <TD BGCOLOR="#CCFFCC">Accepted</TD>
+  <CFCATCH TYPE="Snippets.Order">
+    <CFOUTPUT><TD BGCOLOR="##FFE0E0">#CFCATCH.ErrorCode#: #CFCATCH.Message#
+    <FONT SIZE="1">(#CFCATCH.Type#)</FONT></TD></CFOUTPUT>
+  </CFCATCH>
+  </CFTRY>
+  </TR>
+</CFLOOP>
+</TABLE>
+see: CFTRY, CFRETHROW, CFERROR, CFABORT
+
+@tag CFRETHROW
+category: Exception handling
+new45: yes
+summary: Raises the current exception again from inside a CFCATCH block.
+desc:
+`CFRETHROW` hands the exception being handled on to the next outer `CFTRY` (or to the standard error
+page), exactly as it was raised, with the same type, message and other `CFCATCH` values. Use it when a
+catch block wants to look at an error, perhaps log it or clean up, but leave the real handling to
+someone else.
+syntax:
+<CFRETHROW>
+usage:
+`CFRETHROW` may only be used inside a `CFCATCH` block. A typical pattern is a catch block that handles
+the cases it knows about and rethrows the rest:
+
+    <CFCATCH TYPE="Any">
+      <CFIF CFCATCH.Type IS NOT "MyApp.NoSuchCustomer"><CFRETHROW></CFIF>
+      Sorry, we have no customer with that number.
+    </CFCATCH>
+example:
+<!--- The inner handler notes the error, then passes it to the outer one --->
+<CFSET Log = "">
+<CFTRY>
+  <CFTRY>
+    <CFQUERY NAME="Report" DATASOURCE="cfsnippets">
+    SELECT ParkName FROM ParksOf1999
+    </CFQUERY>
+  <CFCATCH TYPE="Database">
+    <CFSET Log = "Inner handler saw a Database error at " & TimeFormat(Now(), "h:mm:ss tt")>
+    <CFRETHROW>
+  </CFCATCH>
+  </CFTRY>
+  <P>This line is never reached.</P>
+<CFCATCH TYPE="Any">
+  <CFOUTPUT>
+  <TABLE BORDER=1 CELLPADDING=3>
+  <TR><TD BGCOLOR="##FFFFCC">Inner handler</TD><TD>#Log#</TD></TR>
+  <TR><TD BGCOLOR="##FFFFCC">Outer handler</TD><TD>Caught the same error again:<BR>
+      Type <B>#CFCATCH.Type#</B>, SQLState <B>#CFCATCH.SQLState#</B><BR>#CFCATCH.Message#</TD></TR>
+  </TABLE>
+  </CFOUTPUT>
+</CFCATCH>
+</CFTRY>
+see: CFTRY, CFTHROW, CFERROR
+
+@tag CFERROR
+category: Exception handling
+summary: Names a template to show instead of the standard error message when a page fails.
+desc:
+`CFERROR` sets up a custom error page for the rest of the request. When an error is not caught by
+`CFTRY`/`CFCATCH`, the visitor sees your template instead of KoldFusion's diagnostic message, and the
+template can use the `Error` variables to say what went wrong. It is normally placed in
+`Application.cfm` so it covers every page of an application.
+syntax:
+<CFERROR TYPE="Request/Exception/Validation/Monitor"
+    TEMPLATE="template_path"
+    MAILTO="email_address"
+    EXCEPTION="exception_type">
+attrs:
+TYPE | Optional, default "Request" | Which handler to set. `Request` and `Exception` are used for uncaught errors;
+  see the usage notes. `Validation` (form field validation errors) and `Monitor` are accepted for
+  compatibility; KoldFusion ignores them.
+TEMPLATE | Required | The error page, as a path relative to the current template.
+MAILTO | Optional | An e-mail address, made available to the error page as `Error.MailTo` so it can say whom to tell.
+EXCEPTION | Optional | Exception type the handler applies to. Accepted for compatibility; KoldFusion's Exception
+  handler handles every type.
+usage:
+A **Request** handler is a plain HTML page: KoldFusion replaces the `#Error.xxx#` references in it with
+their values and sends it as is, without processing any other CFML. That makes it safe to use even when
+things are badly broken. An **Exception** handler (new in 4.5) is a real CFML page that can query
+databases, send mail with `CFMAIL` and so on. When both are set, the Exception handler wins. If the
+handler itself fails, the standard error message is shown.
+
+The error page has these variables:
+
+| Variable | Contents |
+| Error.Message, Error.Detail, Error.Type | What went wrong |
+| Error.Diagnostics | The full diagnostic text of the standard error message |
+| Error.DateTime | When the error happened |
+| Error.Template, Error.QueryString | The page that failed and its URL parameters |
+| Error.RemoteAddress, Error.Browser, Error.HTTPReferer | Who was visiting, with what, from where |
+| Error.MailTo | The MAILTO address |
+
+Anything the failed page had already generated is discarded. `CFERROR` only lasts for the current
+request; a site-wide error template can also be set in the Administrator.
+example:
+<!--- sn_errorpage.cfm is an Exception handler: a full CFML page --->
+<CFERROR TYPE="Exception" TEMPLATE="sn_errorpage.cfm" MAILTO="webmaster@localhost">
+<CFPARAM NAME="URL.Crash" DEFAULT="No">
+
+<CFIF URL.Crash>
+  <!--- This page is about to fail; the error page takes over --->
+  <CFSET Modems = 0>
+  <CFSET BaudPerModem = 56000 / Modems>
+</CFIF>
+
+<P>All is well. This page has registered <B>sn_errorpage.cfm</B> as its error handler.</P>
+<P><A HREF="cferror.cfm?Crash=Yes">Make the page divide by zero</A> and see the custom error
+page instead of the standard error message.</P>
+see: CFTRY, CFTHROW, CFAPPLICATION, CFMAIL

@@ -1,0 +1,11 @@
+# KoldFusion Demo Gallery status file, read by /demos/index.cfm (results of running every file on KoldFusion).
+# One line per file:  file | status | note | run
+#   status: works, partial, cf5 (needs CF5+), cfmx (needs CFMX+), fails, include (not a page), shim (gallery companion)
+#   run:    optional page to open instead of the file ("-" = no Run link)
+@title cf-calendar (Tony Junkes)
+@blurb A month-grid calendar custom tag called through CFMODULE, with prev/next links and a demo event. Written in 2012-era style (self-closing tags), so it runs here as a mechanical port.
+@order 7
+index.cfm                       | works   | Calls the tag via CFMODULE; the tag uses CFMX "/>" closers, accepted by KoldFusion. Today is highlighted | 
+cf-calendar.cfm                 | include | The custom tag | index_cf45port.cfm
+index_cf45port.cfm              | works   | CF 4.5 port; today and the demo event are highlighted (jQuery was not saved, so ?eid= shows the fallback view) | 
+cf-calendar_cf45port.cfm | include | CF 4.5 port of the custom tag | -

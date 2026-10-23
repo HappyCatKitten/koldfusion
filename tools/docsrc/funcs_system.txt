@@ -1,0 +1,1075 @@
+# CFML Language Reference - dynamic evaluation, system, authentication and other functions.
+# Format: see the docstring at the top of tools/mkdocs.py.
+# Helper files used by the examples: wwwroot/CFDOCS/snippets/sn_sysorder.cfm, sn_sysitem.cfm
+# (custom tags for GetBaseTagData/GetBaseTagList) and sn_syswhere.cfm (include for the path functions).
+
+# ======================================================================= Dynamic evaluation
+
+@func DE
+category: Dynamic evaluation functions
+summary: Wraps a string in double quotes so that a later evaluation returns it unchanged.
+desc:
+Returns its argument surrounded by double quotes, with any double quotes inside it doubled. The
+result is a string expression: when `Evaluate` or `IIf` evaluates it, you get the original text
+back instead of an attempt to look it up as a variable name.
+syntax:
+DE(string)
+params:
+string | The string to protect from evaluation.
+returns:
+The string, enclosed in double quotes, with embedded double quotes escaped by doubling them.
+usage:
+`DE` stands for "delay evaluation". Its main customer is `IIf`, which evaluates whichever of its
+two string arguments it picks: `IIf(x GT 0, DE("positive"), DE("negative"))`. Without `DE`, the
+word positive would be treated as a variable name and you would get an error.
+
+`DE` does nothing useful on its own: it is only meaningful in front of `Evaluate`, `IIf` or
+`SetVariable`.
+example:
+<CFSET Quote = 'Andreessen said "Netscape everywhere"'>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Expression</TH><TH>Result</TH></TR>
+<TR><TD>DE("Hello")</TD><TD>#DE("Hello")#</TD></TR>
+<TR><TD>DE(Quote)</TD><TD>#HTMLEditFormat(DE(Quote))#</TD></TR>
+<TR><TD>Evaluate(DE(Quote))</TD><TD>#HTMLEditFormat(Evaluate(DE(Quote)))#</TD></TR>
+<TR><TD>IIf(Year(Now()) GT 1999, DE("Y2K survived"), DE("Party!"))</TD>
+    <TD>#IIf(Year(Now()) GT 1999, DE("Y2K survived"), DE("Party!"))#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: IIf, Evaluate, SetVariable
+
+@func Evaluate
+category: Dynamic evaluation functions
+summary: Evaluates one or more strings as CFML expressions and returns the last result.
+desc:
+Takes each argument as a string, parses it as a CFML expression and evaluates it, from left to
+right. The value of the last expression is returned. This lets you build variable names and
+expressions at run time.
+syntax:
+Evaluate(string_expression1 [, string_expression2 [, ... ] ])
+params:
+string_expression1 | A string containing a CFML expression, for example "Price * Qty" or "Form.Answer#i#".
+string_expression2... | More expressions. They are evaluated in order; only the last value is returned, so the earlier
+  ones are useful for their side effects.
+returns:
+The value of the last expression evaluated.
+usage:
+The classic use is reading a variable whose name you only know at run time, such as numbered form
+fields: `Evaluate("Form.Item#i#")`. Note that the pound signs are resolved first, so the string
+handed to `Evaluate` is `Form.Item1`, `Form.Item2`, and so on.
+
+If a string is not a valid expression, an Expression exception is thrown. Never pass raw user input
+to `Evaluate`: anything the visitor types would be run as CFML. To set a variable with a computed name,
+use `SetVariable`; to get a literal string through an evaluation, use `DE`.
+example:
+<!--- three "form fields" with numbered names --->
+<CFSET Item1 = "56K modem">
+<CFSET Item2 = "Netscape 4.7 CD">
+<CFSET Item3 = "Y2K patch">
+<UL>
+<CFLOOP INDEX="i" FROM="1" TO="3">
+  <CFOUTPUT><LI>Item#i# = #Evaluate("Item#i#")#</CFOUTPUT>
+</CFLOOP>
+</UL>
+<CFSET Formula = "Len(Item1) * 2 + 1">
+<CFOUTPUT>
+<P>Evaluate("#Formula#") = #Evaluate(Formula)#
+<P>Evaluate("Total = 10", "Total * 3") = #Evaluate("Total = 10", "Total * 3")#
+</CFOUTPUT>
+see: DE, IIf, SetVariable, IsDefined
+
+@func IIf
+category: Dynamic evaluation functions
+summary: Picks one of two string expressions based on a condition and evaluates it.
+desc:
+Evaluates a Boolean condition. If it is true, the string in the second argument is evaluated as
+an expression and its value returned; otherwise the third argument is evaluated. It is the inline
+shorthand for a small `CFIF`/`CFELSE` block.
+syntax:
+IIf(condition, string_expression1, string_expression2)
+params:
+condition | Any expression that yields a Boolean (YES/NO, TRUE/FALSE or a number).
+string_expression1 | A string holding the expression to evaluate when condition is true.
+string_expression2 | A string holding the expression to evaluate when condition is false.
+returns:
+The value of whichever expression was chosen.
+usage:
+The second and third arguments are strings that are evaluated, which surprises everybody once. To
+return literal text, wrap it in `DE`: `IIf(Qty GT 1, DE("items"), DE("item"))`. A bare string such as
+"items" would be looked up as a variable called items.
+
+Only the chosen string is evaluated, so `IIf(IsDefined("Form.Name"), "Form.Name", DE("anonymous"))` is
+safe even when Form.Name does not exist. Do not nest `IIf` calls inside each other; use `CFIF` for anything
+more involved. A popular use is alternating table row colors, as below.
+example:
+<CFQUERY NAME="Staff" DATASOURCE="cfsnippets" MAXROWS="6">
+SELECT FirstName, LastName, Contract FROM Employees ORDER BY LastName
+</CFQUERY>
+<TABLE CELLPADDING=3 CELLSPACING=0 BORDER=0>
+<TR BGCOLOR="#000066"><TH><FONT COLOR="white">Name</FONT></TH><TH><FONT COLOR="white">Status</FONT></TH></TR>
+<CFOUTPUT QUERY="Staff">
+<TR BGCOLOR="###IIf(CurrentRow MOD 2, DE("FFFFFF"), DE("FFFFCC"))#">
+  <TD>#FirstName# #LastName#</TD>
+  <TD>#IIf(Contract, DE("Contractor"), DE("Employee"))#</TD>
+</TR>
+</CFOUTPUT>
+</TABLE>
+see: DE, Evaluate, CFIF, YesNoFormat
+
+@func SetVariable
+category: Dynamic evaluation functions
+summary: Assigns a value to a variable whose name is given as a string.
+desc:
+Sets the variable named by the first argument to the value of the second and returns that value.
+Because the name is an ordinary string, you can compute it at run time, for example from a loop
+counter or a query column.
+syntax:
+SetVariable(name, value)
+params:
+name | A string containing the variable name, optionally with a scope or struct path, such as "Score_Ann",
+  "Session.Cart" or "Totals.Sales".
+value | The value to store. Any type is accepted.
+returns:
+The value that was assigned.
+usage:
+`SetVariable` is the write-side partner of `Evaluate`. Since 4.0 you can also write the same thing with a
+quoted name on the left of a `CFSET`, for example `<CFSET "Score_#Name#" = 10>`, but `SetVariable`
+works in any expression, including inside `CFSCRIPT`.
+
+The name must be a valid variable name once the pound signs have been resolved: letters, digits and
+underscores, starting with a letter.
+example:
+<CFQUERY NAME="Depts" DATASOURCE="cfsnippets">
+SELECT Department, Count(*) AS Heads FROM Employees GROUP BY Department
+</CFQUERY>
+<!--- create one variable per department: Heads_Sales, Heads_Marketing ... --->
+<CFLOOP QUERY="Depts">
+  <CFSET Dummy = SetVariable("Heads_" & Department, Heads)>
+</CFLOOP>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Variable</TH><TH>Value</TH></TR>
+<CFLOOP QUERY="Depts">
+<TR><TD>Heads_#Department#</TD><TD>#Evaluate("Heads_" & Department)#</TD></TR>
+</CFLOOP>
+</TABLE>
+</CFOUTPUT>
+see: Evaluate, DE, CFSET, IsDefined
+
+
+@func DirectoryExists
+category: System functions
+summary: Returns YES if a directory exists on the server.
+desc:
+Checks whether the given absolute path names an existing directory on the server's file system.
+syntax:
+DirectoryExists(absolute_path)
+params:
+absolute_path | The full path of the directory, for example the result of `ExpandPath` or `GetTempDirectory`.
+returns:
+YES if the directory exists, NO if it does not or if the path names a file.
+usage:
+Relative paths are not resolved against the current template; convert them with `ExpandPath` first.
+Use `FileExists` for files and `CFDIRECTORY` to list a directory's contents.
+example:
+<CFSET Here = GetDirectoryFromPath(GetCurrentTemplatePath())>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Path</TH><TH>DirectoryExists</TH></TR>
+<TR><TD>#Here#</TD><TD>#DirectoryExists(Here)#</TD></TR>
+<TR><TD>#GetTempDirectory()#</TD><TD>#DirectoryExists(GetTempDirectory())#</TD></TR>
+<TR><TD>#ExpandPath("NoSuchFolder")#</TD><TD>#DirectoryExists(ExpandPath("NoSuchFolder"))#</TD></TR>
+<TR><TD>#GetCurrentTemplatePath()# (a file)</TD><TD>#DirectoryExists(GetCurrentTemplatePath())#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: FileExists, ExpandPath, CFDIRECTORY, GetTempDirectory
+
+@func ExpandPath
+category: System functions
+summary: Turns a relative or URL-style path into an absolute file system path.
+desc:
+Converts a path relative to the directory of the base template, or a path starting with "/" that
+is relative to the web server's document root, into a full physical path on the server.
+syntax:
+ExpandPath(relative_path)
+params:
+relative_path | A relative path such as "data.txt" or "images/logo.gif", or a root-relative path such as
+  "/CFDOCS/index.htm".
+returns:
+The absolute path. The file or directory does not need to exist.
+usage:
+Relative paths are resolved against the directory of the base template (the page that was requested),
+not the included file or custom tag that calls `ExpandPath`. The result is ready for `FileExists`,
+`CFFILE` and `CFDIRECTORY`.
+
+Paths are not tidied up: "." and ".." segments are passed through as they are.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Argument</TH><TH>ExpandPath()</TH></TR>
+<TR><TD>"expandpath.cfm"</TD><TD>#ExpandPath("expandpath.cfm")#</TD></TR>
+<TR><TD>"images/logo.gif"</TD><TD>#ExpandPath("images/logo.gif")#</TD></TR>
+<TR><TD>"/CFDOCS/dochome.htm"</TD><TD>#ExpandPath("/CFDOCS/dochome.htm")#</TD></TR>
+</TABLE>
+<P>Does this page exist where ExpandPath says? #FileExists(ExpandPath("expandpath.cfm"))#
+</CFOUTPUT>
+see: GetBaseTemplatePath, GetDirectoryFromPath, FileExists, CFFILE
+
+@func FileExists
+category: System functions
+summary: Returns YES if a file exists on the server.
+desc:
+Checks whether the given absolute path names an existing file on the server.
+syntax:
+FileExists(absolute_path)
+params:
+absolute_path | The full path of the file. Use `ExpandPath` to build one from a relative path.
+returns:
+YES if the file exists, NO if it does not or if the path names a directory.
+usage:
+A good habit before `CFFILE` ACTION="Read" or "Delete", which throw an exception when the file is
+missing. To check for a directory, use `DirectoryExists`.
+example:
+<CFSET Files = "Application.cfm,fileexists.cfm,missing.cfm">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>File</TH><TH>FileExists(ExpandPath(file))</TH></TR>
+<CFLOOP LIST="#Files#" INDEX="f">
+<CFOUTPUT><TR><TD>#f#</TD><TD>#FileExists(ExpandPath(f))#</TD></TR></CFOUTPUT>
+</CFLOOP>
+<CFOUTPUT><TR><TD>#GetTempDirectory()# (a directory)</TD><TD>#FileExists(GetTempDirectory())#</TD></TR></CFOUTPUT>
+</TABLE>
+see: DirectoryExists, ExpandPath, CFFILE, GetTempFile
+
+@func GetBaseTagData
+category: System functions
+summary: Returns the data of an ancestor custom tag, from inside a nested custom tag.
+desc:
+Used inside a custom tag to reach the tag that encloses it. Returns a structure holding the
+ancestor's `Attributes` and `ThisTag` scopes, so a child tag can read its parent's settings and
+leave results for it.
+syntax:
+GetBaseTagData(tagname [, instancenumber ])
+params:
+tagname | Name of the ancestor tag, for example "CF_SHOPPINGCART" (the CF_ prefix is part of the name).
+instancenumber | Which matching ancestor to return when the same tag is nested several times. 1 (the
+  default) is the nearest one.
+returns:
+The ancestor tag's local Variables scope, which also contains its Attributes and ThisTag structures. It is
+shared, not copied: changes you make are seen by the ancestor.
+usage:
+If no ancestor with that name is active, an Expression exception "Cannot find base tag" is thrown;
+check with `GetBaseTagList` first if the tag may be used on its own.
+
+`CFASSOCIATE` is the other way for child tags to talk to their parent: it appends the child's
+attributes to an array in the parent's `ThisTag` scope.
+
+> Keeping shared data in `ThisTag`, as the example does, makes the intent obvious to the next developer.
+example:
+<!--- sn_sysorder.cfm sets ThisTag.ItemCount = 0 in its start mode.
+      Each sn_sysitem.cfm does:
+        <CFSET Order = GetBaseTagData("CF_SN_SYSORDER")>
+        <CFSET Order.ThisTag.ItemCount = Order.ThisTag.ItemCount + Attributes.Qty>
+      and shows Order.Attributes.Customer in its row. --->
+<CF_SN_SYSORDER CUSTOMER="Ada Lovelace">
+  <CF_SN_SYSITEM PRODUCT="56K modem" QTY="1">
+  <CF_SN_SYSITEM PRODUCT="Netscape 4.7 CD" QTY="2">
+  <CF_SN_SYSITEM PRODUCT="Y2K compliance sticker" QTY="5">
+</CF_SN_SYSORDER>
+see: GetBaseTagList, CFASSOCIATE, CFMODULE
+
+@func GetBaseTagList
+category: System functions
+summary: Returns a comma-delimited list of the custom tags that enclose the current one.
+desc:
+Returns the names of the active custom tags, innermost first. Called inside a custom tag, the first
+name is the current tag itself, followed by its ancestors.
+syntax:
+GetBaseTagList()
+returns:
+An upper-case list such as "CF_ITEM,CF_ORDER". Outside any custom tag the list is empty.
+usage:
+Custom tags appear as CF_ followed by their name; tags called through `CFMODULE` appear as CFMODULE.
+Built-in tags such as `CFOUTPUT` and `CFLOOP` are not listed in KoldFusion.
+
+A child tag can use `ListFindNoCase(GetBaseTagList(), "CF_ORDER")` to check that it was placed inside
+its parent before calling `GetBaseTagData`.
+example:
+<CFOUTPUT><P>In the page itself: "#GetBaseTagList()#"</P></CFOUTPUT>
+<!--- the last column of each row is GetBaseTagList() called inside sn_sysitem.cfm --->
+<CF_SN_SYSORDER CUSTOMER="Grace Hopper">
+  <CF_SN_SYSITEM PRODUCT="Bug (moth, slightly used)" QTY="1">
+  <CF_SN_SYSITEM PRODUCT="Nanosecond wire" QTY="12">
+</CF_SN_SYSORDER>
+see: GetBaseTagData, CFASSOCIATE, CFMODULE
+
+@func GetBaseTemplatePath
+category: System functions
+summary: Returns the full path of the page that was requested.
+desc:
+Returns the absolute file system path of the base template: the page named in the URL. Included
+files and custom tags get the same answer as the page that called them.
+syntax:
+GetBaseTemplatePath()
+returns:
+The absolute path of the base template.
+usage:
+Compare `GetCurrentTemplatePath`, which returns the path of the file that contains the call. Combine
+it with `GetDirectoryFromPath` to find files that live next to the requested page.
+
+`GetTemplatePath` is an older name for the same function.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Called from</TH><TH>GetCurrentTemplatePath()</TH><TH>GetBaseTemplatePath()</TH></TR>
+<CFOUTPUT>
+<TR><TD>getbasetemplatepath.cfm (this page)</TD>
+<TD>#GetFileFromPath(GetCurrentTemplatePath())#</TD>
+<TD>#GetFileFromPath(GetBaseTemplatePath())#</TD></TR>
+</CFOUTPUT>
+<CFINCLUDE TEMPLATE="sn_syswhere.cfm">
+</TABLE>
+<CFOUTPUT><P>Full path: #GetBaseTemplatePath()#</CFOUTPUT>
+see: GetCurrentTemplatePath, GetTemplatePath, GetDirectoryFromPath, ExpandPath
+
+@func GetClientVariablesList
+category: System functions
+summary: Returns a list of the client variables you can change for the current visitor.
+desc:
+Returns a comma-delimited list of the names of the client variables stored for this visitor in the
+current application. The read-only variables CFID, CFToken, URLToken, HitCount, TimeCreated and
+LastVisit are left out.
+syntax:
+GetClientVariablesList()
+returns:
+An upper-case list of variable names, or an empty string if there are none or client management is off.
+usage:
+Client management must be turned on with `CFAPPLICATION` CLIENTMANAGEMENT="Yes". Client variables can
+be stored in the registry (the default), in a data source or in a cookie (CLIENTSTORAGE="Cookie"); the
+storage location is chosen on the Variables page of the Administrator or in `CFAPPLICATION`.
+
+Client variables hold simple values only: strings, numbers, dates and Booleans. Use `DeleteClientVariable`
+to remove one.
+example:
+<CFAPPLICATION NAME="SnippetClientDemo" CLIENTMANAGEMENT="Yes" CLIENTSTORAGE="Cookie">
+<CFSET Client.Browser = "Netscape 4.7">
+<CFSET Client.Modem = "56K">
+<CFSET Client.Visits = Client.HitCount>
+<CFOUTPUT>
+<P>Your client ID is #Client.CFID#.
+<P>Variables you may change: <B>#GetClientVariablesList()#</B>
+<UL>
+<CFLOOP LIST="#GetClientVariablesList()#" INDEX="v">
+  <LI>Client.#v# = #Evaluate("Client." & v)#
+</CFLOOP>
+</UL>
+</CFOUTPUT>
+see: DeleteClientVariable, CFAPPLICATION, IsDefined
+
+@func DeleteClientVariable
+category: System functions
+summary: Deletes a client variable for the current visitor.
+desc:
+Removes the named client variable from the current visitor's client storage. Assigning an empty
+string is not the same thing: the variable would still exist.
+syntax:
+DeleteClientVariable("name")
+params:
+name | The name of the client variable, without the Client. prefix, in quotes.
+returns:
+YES if the variable existed and was deleted, NO otherwise.
+usage:
+Client management must be enabled with `CFAPPLICATION` CLIENTMANAGEMENT="Yes"; otherwise the function
+returns NO. Leave the read-only client variables (CFID, CFToken, HitCount and friends) alone; use
+`GetClientVariablesList` to see the ones that are yours to delete.
+example:
+<CFAPPLICATION NAME="SnippetClientDemo" CLIENTMANAGEMENT="Yes" CLIENTSTORAGE="Cookie">
+<CFSET Client.FavoriteColor = "Teal">
+<CFSET Client.ModemSpeed = "28.8">
+<CFOUTPUT>
+<P>Before: #GetClientVariablesList()#
+<P>DeleteClientVariable("ModemSpeed") returned #DeleteClientVariable("ModemSpeed")#
+(we upgraded to 56K).
+<P>DeleteClientVariable("Pager") returned #DeleteClientVariable("Pager")#
+<P>After: #GetClientVariablesList()#
+<P>IsDefined("Client.ModemSpeed"): #IsDefined("Client.ModemSpeed")#
+</CFOUTPUT>
+see: GetClientVariablesList, CFAPPLICATION, StructDelete
+
+@func GetCurrentTemplatePath
+category: System functions
+summary: Returns the full path of the template that contains the call.
+desc:
+Returns the absolute path of the file in which the function call appears. Inside an included file
+or a custom tag, that is the included file or the custom tag, not the requested page.
+syntax:
+GetCurrentTemplatePath()
+returns:
+The absolute path of the current template.
+usage:
+Handy for custom tags and included files that need to find their own support files, wherever the
+calling page lives: `GetDirectoryFromPath(GetCurrentTemplatePath())`. For the page named in the URL,
+use `GetBaseTemplatePath`.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Called from</TH><TH>GetCurrentTemplatePath()</TH><TH>GetBaseTemplatePath()</TH></TR>
+<CFOUTPUT>
+<TR><TD>getcurrenttemplatepath.cfm (this page)</TD>
+<TD>#GetFileFromPath(GetCurrentTemplatePath())#</TD>
+<TD>#GetFileFromPath(GetBaseTemplatePath())#</TD></TR>
+</CFOUTPUT>
+<CFINCLUDE TEMPLATE="sn_syswhere.cfm">
+</TABLE>
+<CFOUTPUT><P>This page lives in #GetDirectoryFromPath(GetCurrentTemplatePath())#</CFOUTPUT>
+see: GetBaseTemplatePath, GetDirectoryFromPath, GetFileFromPath, ExpandPath
+
+@func GetDirectoryFromPath
+category: System functions
+summary: Extracts the directory part of an absolute path.
+desc:
+Returns everything up to and including the last directory separator of a path, which is the
+directory in which the file lives.
+syntax:
+GetDirectoryFromPath(path)
+params:
+path | An absolute path, usually from `GetCurrentTemplatePath` or `ExpandPath`.
+returns:
+The directory, ending with a separator.
+usage:
+The file name part is returned by `GetFileFromPath`. Both "/" and Windows-style "\\" separators are
+recognized, so paths written for a Windows server (`C:\\CFUSION\\...`) work too.
+example:
+<CFSET Path = GetCurrentTemplatePath()>
+<CFSET Spool = GetDirectoryFromPath(Path) & "mail/spool/Mail1.cfmail">
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Path</TH><TH>GetDirectoryFromPath</TH><TH>GetFileFromPath</TH></TR>
+<TR><TD>#Path#</TD><TD>#GetDirectoryFromPath(Path)#</TD><TD>#GetFileFromPath(Path)#</TD></TR>
+<TR><TD>#Spool#</TD><TD>#GetDirectoryFromPath(Spool)#</TD><TD>#GetFileFromPath(Spool)#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: GetFileFromPath, GetCurrentTemplatePath, ExpandPath
+
+@func GetFileFromPath
+category: System functions
+summary: Extracts the file name from an absolute path.
+desc:
+Returns the part of a path after the last directory separator: the file name with its extension.
+syntax:
+GetFileFromPath(path)
+params:
+path | An absolute path.
+returns:
+The file name. If the path contains no separator, it is returned unchanged.
+usage:
+Both "/" and "\" are recognized as separators. The directory part is returned by `GetDirectoryFromPath`.
+To split off the extension, treat the name as a list delimited by periods: `ListLast(name, ".")`.
+example:
+<CFSET Paths = "#GetCurrentTemplatePath()#|C:\CFUSION\MAIL\SPOOL\Mail1.cfmail|/home/kf/readme.txt|plain.htm">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Path</TH><TH>GetFileFromPath</TH><TH>Extension</TH></TR>
+<CFLOOP LIST="#Paths#" DELIMITERS="|" INDEX="p">
+<CFOUTPUT><TR><TD>#p#</TD><TD>#GetFileFromPath(p)#</TD><TD>#ListLast(GetFileFromPath(p), ".")#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: GetDirectoryFromPath, GetCurrentTemplatePath, ListLast
+
+@func GetFunctionList
+category: System functions
+new45: yes
+summary: Returns a structure whose keys are the names of all built-in CFML functions.
+desc:
+Returns a structure with one key for each function the server supports. The values are empty
+strings; the keys are what you are after.
+syntax:
+GetFunctionList()
+returns:
+A structure keyed by function name.
+usage:
+Use `StructKeyList` or `StructKeyArray` to turn it into a list, or `StructKeyExists` to check whether
+a function is available before you call it (useful when code must run on several server versions).
+The Administrator-only KFUSION_ functions are not included.
+example:
+<CFSET Funcs = GetFunctionList()>
+<CFSET Names = ListSort(StructKeyList(Funcs), "textnocase")>
+<CFOUTPUT>
+<P>This server knows <B>#StructCount(Funcs)#</B> functions.
+<P>Has Hash()? #StructKeyExists(Funcs, "Hash")# &nbsp; Has CFDump()? #StructKeyExists(Funcs, "CFDump")#
+<P>The ones whose names start with "Get":
+</CFOUTPUT>
+<UL>
+<CFLOOP LIST="#Names#" INDEX="f">
+  <CFIF Left(f, 3) IS "Get"><CFOUTPUT><LI>#f#</CFOUTPUT></CFIF>
+</CFLOOP>
+</UL>
+see: StructKeyList, StructKeyExists, IsDefined
+
+@func GetMetricData
+category: System functions
+new45: yes
+summary: Returns server performance counters in a structure.
+desc:
+Returns a structure with the server's performance monitor counters: page hits, requests running,
+queued and timed out, and request and database timing figures.
+syntax:
+GetMetricData("PERF_MONITOR")
+params:
+mode | Must be "PERF_MONITOR". Any other value throws an exception.
+returns:
+A structure with the keys InstanceName, PageHits, ReqQueued, ReqRunning, ReqTimedOut, BytesIn, BytesOut,
+AvgQueueTime, AvgReqTime, AvgDBTime and DBHits.
+usage:
+On Windows NT the same figures appear in the Performance Monitor; this function lets a page build its
+own status display.
+
+> KoldFusion keeps the PageHits, ReqQueued, ReqRunning and ReqTimedOut counters. The byte counts,
+> timing averages and DBHits are always reported as 0.
+example:
+<CFSET Perf = GetMetricData("PERF_MONITOR")>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR BGCOLOR="#CCCCCC"><TH>Counter</TH><TH>Value</TH></TR>
+<CFLOOP COLLECTION="#Perf#" ITEM="key">
+<CFOUTPUT><TR><TD>#key#</TD><TD ALIGN="right">#Perf[key]#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: GetTickCount, IsDebugMode, StructKeyList
+
+@func GetProfileString
+category: System functions
+summary: Reads one entry from a Windows-style initialization (.ini) file.
+desc:
+Returns the value of an entry in a section of an initialization file, the "[Section]" and
+"Entry=Value" text files Windows programs use for their settings.
+syntax:
+GetProfileString(iniPath, section, entry)
+params:
+iniPath | Absolute path of the .ini file.
+section | The section name, without the square brackets.
+entry | The entry name, the part before the equals sign.
+returns:
+The value as a string, or an empty string if the file, section or entry does not exist.
+usage:
+Section and entry names are not case-sensitive. To write values, use `SetProfileString`.
+example:
+<!--- write a small .ini file in the temp directory, read it back, clean up --->
+<CFSET IniFile = GetTempDirectory() & "snippet_" & CreateUUID() & ".ini">
+<CFFILE ACTION="WRITE" FILE="#IniFile#" OUTPUT="[Dialer]
+Modem=US Robotics Sportster
+Speed=56000
+[Browser]
+Name=Netscape Navigator 4.7">
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Section</TH><TH>Entry</TH><TH>GetProfileString</TH></TR>
+<TR><TD>Dialer</TD><TD>Modem</TD><TD>#GetProfileString(IniFile, "Dialer", "Modem")#</TD></TR>
+<TR><TD>Dialer</TD><TD>Speed</TD><TD>#GetProfileString(IniFile, "Dialer", "Speed")#</TD></TR>
+<TR><TD>browser</TD><TD>name</TD><TD>#GetProfileString(IniFile, "browser", "name")#</TD></TR>
+<TR><TD>Browser</TD><TD>Plugins</TD><TD>"#GetProfileString(IniFile, "Browser", "Plugins")#"</TD></TR>
+</TABLE>
+</CFOUTPUT>
+<CFFILE ACTION="DELETE" FILE="#IniFile#">
+see: SetProfileString, GetTempDirectory, CFREGISTRY, CFFILE
+
+@func SetProfileString
+category: System functions
+summary: Writes one entry to a Windows-style initialization (.ini) file.
+desc:
+Sets an entry in a section of an initialization file. The entry is replaced if it exists and added
+otherwise; a missing section or file is created.
+syntax:
+SetProfileString(iniPath, section, entry, value)
+params:
+iniPath | Absolute path of the .ini file.
+section | The section name, without the square brackets.
+entry | The entry name.
+value | The value to write.
+returns:
+An empty string.
+usage:
+The rest of the file is preserved line by line. Read entries back with `GetProfileString`.
+example:
+<CFSET IniFile = GetTempDirectory() & "snippet_" & CreateUUID() & ".ini">
+<CFSET SetProfileString(IniFile, "Dialer", "Modem", "US Robotics Sportster")>
+<CFSET SetProfileString(IniFile, "Dialer", "Speed", "28800")>
+<CFSET SetProfileString(IniFile, "Browser", "Name", "Netscape Navigator 4.7")>
+<!--- upgrade day: replace an existing entry --->
+<CFSET SetProfileString(IniFile, "Dialer", "Speed", "56000")>
+<CFFILE ACTION="READ" FILE="#IniFile#" VARIABLE="Contents">
+<CFFILE ACTION="DELETE" FILE="#IniFile#">
+<P>The file now contains:</P>
+<CFOUTPUT><PRE>#HTMLEditFormat(Contents)#</PRE></CFOUTPUT>
+see: GetProfileString, GetTempDirectory, CFREGISTRY, CFFILE
+
+@func GetTempDirectory
+category: System functions
+summary: Returns the path of the server's directory for temporary files.
+desc:
+Returns the absolute path of a directory where templates may create scratch files. The path ends
+with a directory separator, so you can append a file name directly.
+syntax:
+GetTempDirectory()
+returns:
+The temporary directory, ending with a separator.
+usage:
+In KoldFusion this is the temp directory under the server's install directory (the "C:\CFUSION" of
+the Windows product). Be a good neighbor and delete the files you create there. To get a unique file
+name in it, use `GetTempFile`.
+example:
+<CFSET TempDir = GetTempDirectory()>
+<CFSET Scratch = TempDir & "snippet_" & CreateUUID() & ".txt">
+<CFFILE ACTION="WRITE" FILE="#Scratch#" OUTPUT="Written at #TimeFormat(Now(), 'HH:mm:ss')#">
+<CFFILE ACTION="READ" FILE="#Scratch#" VARIABLE="Back">
+<CFFILE ACTION="DELETE" FILE="#Scratch#">
+<CFOUTPUT>
+<P>Temporary directory: <TT>#TempDir#</TT> (exists: #DirectoryExists(TempDir)#)
+<P>We wrote, read back and deleted <TT>#GetFileFromPath(Scratch)#</TT>: "#Trim(Back)#"
+</CFOUTPUT>
+see: GetTempFile, DirectoryExists, CFFILE
+
+@func GetTempFile
+category: System functions
+summary: Creates an empty file with a unique name and returns its path.
+desc:
+Creates a new, empty file with a unique name in the given directory and returns its full path. The
+name is made from the first three characters of the prefix, some random characters and the
+extension .tmp.
+syntax:
+GetTempFile(directory, prefix)
+params:
+directory | The directory in which to create the file, usually `GetTempDirectory()`.
+prefix | A prefix for the file name; only the first three characters are used.
+returns:
+The absolute path of the new file.
+usage:
+The file really exists when the function returns, so two requests running at the same time can
+never get the same name. Delete the file with `CFFILE` ACTION="Delete" when you are done.
+example:
+<CFSET TmpFile = GetTempFile(GetTempDirectory(), "kfs")>
+<CFOUTPUT>
+<P>Created: <TT>#GetFileFromPath(TmpFile)#</TT>
+<P>Exists right away: #FileExists(TmpFile)#
+</CFOUTPUT>
+<CFFILE ACTION="APPEND" FILE="#TmpFile#" OUTPUT="Line one">
+<CFFILE ACTION="APPEND" FILE="#TmpFile#" OUTPUT="Line two">
+<CFFILE ACTION="READ" FILE="#TmpFile#" VARIABLE="Text">
+<CFFILE ACTION="DELETE" FILE="#TmpFile#">
+<CFOUTPUT>
+<P>Contents:<PRE>#Text#</PRE>
+<P>After CFFILE ACTION="DELETE": #FileExists(TmpFile)#
+</CFOUTPUT>
+see: GetTempDirectory, FileExists, CFFILE
+
+@func GetTemplatePath
+category: System functions
+summary: Older name for GetBaseTemplatePath.
+desc:
+Returns the absolute path of the base template, exactly like `GetBaseTemplatePath`. It is kept so
+that templates written for earlier versions keep working.
+syntax:
+GetTemplatePath()
+returns:
+The absolute path of the page that was requested.
+usage:
+This function is deprecated; use `GetBaseTemplatePath` in new code, or `GetCurrentTemplatePath` if you
+want the path of the file containing the call.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>GetTemplatePath()</TD><TD>#GetTemplatePath()#</TD></TR>
+<TR><TD>GetBaseTemplatePath()</TD><TD>#GetBaseTemplatePath()#</TD></TR>
+<TR><TD>Same?</TD><TD>#YesNoFormat(GetTemplatePath() IS GetBaseTemplatePath())#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: GetBaseTemplatePath, GetCurrentTemplatePath
+
+@func GetTickCount
+category: System functions
+summary: Returns a millisecond counter for timing code.
+desc:
+Returns the current value of a millisecond clock. The value itself means nothing; the difference
+between two calls tells you how long the code in between took.
+syntax:
+GetTickCount()
+returns:
+An integer number of milliseconds.
+usage:
+Take a reading before and after the code you want to time and subtract. For timing whole pages, turn
+on the execution time option on the Debugging page of the Administrator instead. `CFQUERY.ExecutionTime`
+already reports the time a query took.
+example:
+<CFSET Start = GetTickCount()>
+<CFSET Total = 0>
+<CFLOOP INDEX="i" FROM="1" TO="20000">
+  <CFSET Total = Total + i>
+</CFLOOP>
+<CFSET Elapsed = GetTickCount() - Start>
+<CFOUTPUT>
+<P>Adding up 1 to 20,000 gives #NumberFormat(Total)#.
+<P>That took #Elapsed# ms. On a Pentium II/300 in 1999 you could have gone for coffee.
+</CFOUTPUT>
+see: Now, GetMetricData, CreateTimeSpan
+
+@func CreateObject
+category: System functions
+new45: yes
+summary: Creates a COM, CORBA or Java object (not available in KoldFusion for UNIX).
+desc:
+The function form of `CFOBJECT`: creates an instance of a COM component, a CORBA object or a Java
+class and returns it, so that you can call its methods and read its properties.
+syntax:
+CreateObject("COM", class [, context [, servername ] ])
+CreateObject("CORBA", context, class [, locale ])
+CreateObject("JAVA", class)
+params:
+type | "COM", "CORBA" or "JAVA".
+class | COM: the ProgID of the component, such as "Word.Application". CORBA: the IOR file name or the naming
+  service name. Java: the full class name, such as "java.util.Vector".
+context | COM: "InProc", "Local" or "Remote". CORBA: "IOR" or "NameService".
+servername | COM with context "Remote": the server running the component.
+locale | CORBA: arguments for the ORB.
+returns:
+The object.
+usage:
+> KoldFusion for UNIX cannot create objects. COM is a Windows NT technology, no CORBA ORB is bundled and
+> no Java virtual machine is configured, so every call throws an exception of type Object. Wrap calls in
+> `CFTRY`/`CFCATCH` as shown, so a page written for the Windows server degrades gracefully.
+
+Use `JavaCast` to choose between overloaded Java methods.
+example:
+<CFSET Kinds = "COM|Word.Application,JAVA|java.util.Vector">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>CreateObject()</TH><TH>Result</TH></TR>
+<CFLOOP LIST="#Kinds#" INDEX="k">
+  <CFSET Result = "Created">
+  <CFTRY>
+    <CFSET Obj = CreateObject(ListFirst(k, "|"), ListLast(k, "|"))>
+  <CFCATCH TYPE="Object">
+    <CFSET Result = "<I>#CFCATCH.Message#</I>">
+  </CFCATCH>
+  </CFTRY>
+  <CFOUTPUT><TR><TD>"#ListFirst(k, "|")#", "#ListLast(k, "|")#"</TD><TD>#Result#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: CFOBJECT, JavaCast, CFTRY
+
+@func JavaCast
+category: System functions
+new45: yes
+summary: Marks a value with a Java type for calls to overloaded Java methods.
+desc:
+Converts a CFML value so that it is passed to a Java method as a particular Java type. You need it when
+a Java class has several methods with the same name that differ only in their argument types.
+syntax:
+JavaCast(type, variable)
+params:
+type | "boolean", "int", "long", "double" or "String".
+variable | The value to convert.
+returns:
+The value, tagged with the Java type.
+usage:
+CFML values have no fixed type, so the server cannot otherwise guess whether 42 should be an int or a
+double. Use `JavaCast` only in the argument list of a method call on an object from `CreateObject`:
+
+    <CFSET Vec = CreateObject("JAVA", "java.util.Vector")>
+    <CFSET Dummy = Vec.addElement(JavaCast("int", 42))>
+
+> KoldFusion for UNIX has no Java support (see `CreateObject`), so the converted value is simply returned:
+> "int" and "long" truncate to whole numbers, "double" and "float" make a number, "boolean" a YES/NO value
+> and "string" a string. Pages written for the Windows server still compile.
+example:
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Call</TH><TH>Result</TH></TR>
+<TR><TD>JavaCast("int", 42)</TD><TD>#JavaCast("int", 42)#</TD></TR>
+<TR><TD>JavaCast("double", "3.14")</TD><TD>#JavaCast("double", "3.14")#</TD></TR>
+<TR><TD>JavaCast("String", 1999)</TD><TD>#JavaCast("String", 1999)#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+<CFTRY>
+  <CFSET Vec = CreateObject("JAVA", "java.util.Vector")>
+<CFCATCH TYPE="Object">
+  <CFOUTPUT><P>Creating the Java object to pass them to: <I>#CFCATCH.Message#</I></CFOUTPUT>
+</CFCATCH>
+</CFTRY>
+see: CreateObject, CFOBJECT
+
+
+@func IsAuthenticated
+category: Authentication functions
+summary: Returns YES if the visitor has been authenticated by CFAUTHENTICATE.
+desc:
+Checks whether the current user has logged in with `CFAUTHENTICATE`, either in any security
+context or in the one you name.
+syntax:
+IsAuthenticated([ securitycontext ])
+params:
+securitycontext | Optional name of a security context defined on the Advanced Security pages of the
+  Administrator. If omitted, any context will do.
+returns:
+YES if the user is authenticated, NO otherwise.
+usage:
+A successful `CFAUTHENTICATE` sets a CFAUTHORIZATION_context cookie, so the login is remembered on
+later requests; the stored credentials are checked again each time. When Advanced Security is not set up
+(no security contexts exist, the way the server ships), nobody is ever authenticated and the function
+simply returns NO, so pages can test it safely.
+
+Put the check in Application.cfm to protect a whole application, then use `IsAuthorized` for finer
+control.
+example:
+<CFIF IsAuthenticated()>
+  <CFOUTPUT><P>Welcome back, #AuthenticatedUser()# (context #AuthenticatedContext()#).</CFOUTPUT>
+<CFELSE>
+  <P>You are not logged in. A real application would show its login form here
+  and call CFAUTHENTICATE when it is posted.</P>
+</CFIF>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>IsAuthenticated()</TD><TD>#IsAuthenticated()#</TD></TR>
+<TR><TD>IsAuthenticated("Intranet")</TD><TD>#IsAuthenticated("Intranet")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: CFAUTHENTICATE, IsAuthorized, AuthenticatedUser, AuthenticatedContext
+
+@func IsAuthorized
+category: Authentication functions
+summary: Returns YES if the authenticated user may perform an action on a resource.
+desc:
+Checks the security policies of the user's security context to see whether the authenticated user
+is allowed to use a resource, optionally for a particular action.
+syntax:
+IsAuthorized(resourcetype, resourcename [, action ])
+params:
+resourcetype | The kind of resource: Application, CFML, File, DataSource, Component, Collection, CustomTag
+  or UserObject.
+resourcename | The name of the resource as entered in the security rule. A rule ending in * matches any
+  name that starts with the text before it.
+action | The action to check, such as Read, Write or Delete for a File. If omitted, any action covered by a
+  rule counts.
+returns:
+YES if a policy grants the user the resource (and action), NO otherwise.
+usage:
+The user must first be authenticated with `CFAUTHENTICATE`; for anybody else the function returns NO.
+Rules and policies are defined per security context on the Advanced Security pages of the Administrator.
+Without Advanced Security configured, the answer is always NO, so keep a sensible fallback in your page.
+example:
+<CFSET Checks = "Application|Payroll|,File|/reports/salaries.txt|Read,DataSource|cfsnippets|Delete">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Type</TH><TH>Resource</TH><TH>Action</TH><TH>IsAuthorized</TH></TR>
+<CFLOOP LIST="#Checks#" INDEX="c">
+  <CFSET Type = ListGetAt(c, 1, "|")>
+  <CFSET Res = ListGetAt(c, 2, "|")>
+  <CFSET Act = "">
+  <CFIF ListLen(c, "|") GT 2><CFSET Act = ListGetAt(c, 3, "|")></CFIF>
+  <CFOUTPUT><TR><TD>#Type#</TD><TD>#Res#</TD><TD>#Act#&nbsp;</TD>
+  <TD>#IsAuthorized(Type, Res, Act)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFIF NOT IsAuthenticated()>
+  <P><I>Nobody is logged in, so every answer is NO.</I></P>
+</CFIF>
+see: IsAuthenticated, IsProtected, CFAUTHENTICATE, AuthenticatedUser
+
+@func IsProtected
+category: Authentication functions
+summary: Returns YES if a resource is covered by an Advanced Security rule.
+desc:
+Checks whether any security context has a rule that protects the given resource (and action). Unlike
+`IsAuthorized`, it does not depend on who is logged in.
+syntax:
+IsProtected(resourcetype, resourcename [, action ])
+params:
+resourcetype | The kind of resource: Application, CFML, File, DataSource, Component, Collection, CustomTag
+  or UserObject.
+resourcename | The name of the resource.
+action | Optional action, such as Read or Write.
+returns:
+YES if the resource is protected, NO otherwise.
+usage:
+Use it to decide whether a login is needed at all: if `IsProtected` returns NO, anybody may proceed; if YES,
+check `IsAuthorized`. When no security contexts are defined, every resource is unprotected and the
+function returns NO.
+example:
+<CFSET Resource = "Payroll">
+<CFOUTPUT>
+<P>IsProtected("Application", "#Resource#") = #IsProtected("Application", Resource)#
+<P>
+<CFIF NOT IsProtected("Application", Resource)>
+  The #Resource# application is open to everyone. Come on in.
+<CFELSEIF IsAuthorized("Application", Resource)>
+  Welcome, #AuthenticatedUser()#.
+<CFELSE>
+  Sorry, you need to log in to use #Resource#.
+</CFIF>
+</CFOUTPUT>
+see: IsAuthorized, IsAuthenticated, CFAUTHENTICATE
+
+@func AuthenticatedUser
+category: Authentication functions
+summary: Returns the name of the user authenticated by CFAUTHENTICATE.
+desc:
+Returns the user name of the person who logged in with `CFAUTHENTICATE` (or is being impersonated with
+`CFIMPERSONATE`) during the current request.
+syntax:
+AuthenticatedUser()
+returns:
+The user name, or an empty string if nobody is authenticated.
+usage:
+Call `IsAuthenticated` first: it also reads the CFAUTHORIZATION cookie left by an earlier request, after
+which `AuthenticatedUser` knows the name. With Advanced Security not set up the result is always empty.
+example:
+<CFSET LoggedIn = IsAuthenticated()>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>IsAuthenticated()</TD><TD>#LoggedIn#</TD></TR>
+<TR><TD>AuthenticatedUser()</TD><TD>"#AuthenticatedUser()#"</TD></TR>
+</TABLE>
+<P>Hello, #IIf(Len(AuthenticatedUser()), "AuthenticatedUser()", DE("guest"))#!
+</CFOUTPUT>
+see: AuthenticatedContext, IsAuthenticated, CFAUTHENTICATE, CFIMPERSONATE
+
+@func AuthenticatedContext
+category: Authentication functions
+summary: Returns the name of the security context the user authenticated in.
+desc:
+Returns the name of the security context used by `CFAUTHENTICATE` (or `CFIMPERSONATE`) for the current
+user.
+syntax:
+AuthenticatedContext()
+returns:
+The security context name, or an empty string if nobody is authenticated.
+usage:
+Useful when a server hosts several security contexts and shared code must know which one is in use.
+As with `AuthenticatedUser`, call `IsAuthenticated` first so that a login remembered in a cookie is picked
+up. Security contexts are created on the Advanced Security pages of the Administrator.
+example:
+<CFIF IsAuthenticated()>
+  <CFOUTPUT><P>#AuthenticatedUser()# logged in to the #AuthenticatedContext()# context.</CFOUTPUT>
+<CFELSE>
+  <CFOUTPUT><P>Not logged in; AuthenticatedContext() returns "#AuthenticatedContext()#".</CFOUTPUT>
+</CFIF>
+see: AuthenticatedUser, IsAuthenticated, CFAUTHENTICATE
+
+
+@func CreateUUID
+category: Other functions
+summary: Returns a new Universally Unique Identifier as a 35-character string.
+desc:
+Creates a Universally Unique Identifier (UUID): a value that is, for all practical purposes,
+different from every other UUID ever generated, on any machine.
+syntax:
+CreateUUID()
+returns:
+A string of 35 characters in the format XXXXXXXX-XXXX-XXXX-XXXXXXXXXXXXXXXX (8-4-4-16 hexadecimal digits).
+usage:
+UUIDs make good unique keys when several servers insert records, and good unguessable file names.
+Note the format: four groups of 8, 4, 4 and 16 digits, not the five groups used by Microsoft's GUIDs.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>No.</TH><TH>CreateUUID()</TH><TH>Len</TH></TR>
+<CFLOOP INDEX="i" FROM="1" TO="4">
+  <CFSET ID = CreateUUID()>
+  <CFOUTPUT><TR><TD>#i#</TD><TD><TT>#ID#</TT></TD><TD>#Len(ID)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Rand, Hash, GetTempFile
+
+@func PreserveSingleQuotes
+category: Other functions
+summary: Stops CFQUERY from escaping the single quotes in a variable.
+desc:
+Inside `CFQUERY`, single quotes in the values of CFML variables are doubled automatically so that
+a name like O'Brien cannot break the SQL. `PreserveSingleQuotes` switches that off for one variable,
+so you can insert prepared pieces of SQL that contain quoted strings.
+syntax:
+PreserveSingleQuotes(variable)
+params:
+variable | The variable whose single quotes must be passed through unchanged.
+returns:
+The value of the variable, unescaped.
+usage:
+Use it for SQL fragments your code assembled, such as a WHERE clause or an IN list built with
+`ListQualify`. Never use it on raw form or URL input: that would let visitors run their own SQL. The
+function only has an effect inside `CFQUERY`; elsewhere it returns its argument unchanged.
+example:
+<CFSET Wanted = ListQualify("Sales,Marketing", "'")>
+<CFSET Where = "Department IN (#Wanted#)">
+<CFQUERY NAME="Staff" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName, Department FROM Employees
+WHERE #PreserveSingleQuotes(Where)#
+ORDER BY Department, LastName
+</CFQUERY>
+<CFOUTPUT><P>WHERE #Where# finds #Staff.RecordCount# people:</CFOUTPUT>
+<UL>
+<CFOUTPUT QUERY="Staff">
+  <LI>#FirstName# #LastName# (#Department#)
+</CFOUTPUT>
+</UL>
+see: CFQUERY, CFQUERYPARAM, ListQualify, QuotedValueList
+
+@func WriteOutput
+category: Other functions
+summary: Writes text to the page from inside CFSCRIPT.
+desc:
+Appends a string to the page output. It is the `CFSCRIPT` counterpart of `CFOUTPUT`: script code has
+no other way to produce output.
+syntax:
+WriteOutput(string)
+params:
+string | The text to write. It is not evaluated again, so pound signs are written as they are.
+returns:
+YES. The useful work is the output.
+usage:
+Output written with `WriteOutput` is subject to the same rules as other page output; in particular,
+`CFSETTING` ENABLECFOUTPUTONLY="Yes" does not suppress it. Remember to call `HTMLEditFormat` on data that
+might contain angle brackets.
+example:
+<CFSCRIPT>
+  speeds = "14.4,28.8,33.6,56";
+  WriteOutput("<TABLE BORDER=1 CELLPADDING=3>");
+  WriteOutput("<TR><TH>Modem (Kbps)</TH><TH>1 MB download</TH></TR>");
+  for (i = 1; i LTE ListLen(speeds); i = i + 1) {
+    kbps = ListGetAt(speeds, i);
+    seconds = Round(8 * 1024 / kbps);
+    WriteOutput("<TR><TD>" & kbps & "</TD><TD>" & Int(seconds / 60) & " min " & (seconds MOD 60) & " s</TD></TR>");
+  }
+  WriteOutput("</TABLE>");
+</CFSCRIPT>
+see: CFSCRIPT, CFOUTPUT, HTMLEditFormat
+
+@func KFUSION_CHECKSYNTAX
+category: Other functions
+summary: KoldFusion extension: checks a piece of CFML for syntax errors without running it.
+desc:
+Parses a string of CFML exactly as the server would parse a template, but does not execute it.
+Returns a structure telling you whether the code is valid and, if not, what is wrong and where.
+syntax:
+KFUSION_CHECKSYNTAX(code [, name ])
+params:
+code | The CFML source to check.
+name | Optional template name used in the error message. Defaults to "(pasted code)".
+returns:
+A structure with the keys OK (YES or NO), Message, Detail, Line and Column. For valid code the Message
+is "No syntax errors were found." and Line and Column are 0.
+usage:
+This is a KoldFusion extension, not part of CFML 4.5; code that uses it will not run on other servers.
+It is the engine behind the CFML Syntax Checker at
+[/CFDOCS/cfmlsyntaxcheck/cfmlsyntaxcheck.cfm](/CFDOCS/cfmlsyntaxcheck/cfmlsyntaxcheck.cfm), the place to go
+when you would rather point and click.
+
+Unlike the other KFUSION_ functions, which are reserved for the Administrator and fail elsewhere,
+`KFUSION_CHECKSYNTAX` works in any template. It finds only errors the parser can see, such as a
+missing end tag or a malformed expression; misspelled variable names and runtime problems show up
+only when the page runs. The Message may contain HTML.
+example:
+<CFSET Samples = ArrayNew(1)>
+<CFSET Samples[1] = '<CFIF Speed GT 28800>Fast!</CFIF>'>
+<CFSET Samples[2] = '<CFIF Speed GT 28800>Fast!'>
+<CFSET Samples[3] = '<CFSET Total = (Price * 2>'>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Code</TH><TH>OK</TH><TH>Line:Col</TH><TH>Message</TH></TR>
+<CFLOOP INDEX="i" FROM="1" TO="#ArrayLen(Samples)#">
+  <CFSET Check = KFUSION_CHECKSYNTAX(Samples[i], "sample#i#.cfm")>
+  <CFOUTPUT><TR VALIGN="top"><TD><TT>#HTMLEditFormat(Samples[i])#</TT></TD><TD>#Check.OK#</TD>
+  <TD>#Check.Line#:#Check.Column#</TD><TD>#Check.Message#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Evaluate, CFTRY, IsDefined

@@ -1,0 +1,20 @@
+Source:  https://github.com/lhl/balanceTags  (raw.githubusercontent.com/lhl/balanceTags/master/<file>)
+Author:  Leonard Lin (lhl@randomfoo.net), 2001
+License: GPL (any version) - per repo README: "All code licensed under the GPL (any version)" (2010 relicence from GPLv2;
+         highlighter.cfm and balancerd.cfm headers still say "GPL v2.0").
+Description: HTML tag balancer / XSS-ish filter written "as an exercise to learn Cold Fusion 4.0" (README); a stack-based
+             tag parser later ported to PHP and ancestor of WordPress's balanceTags(). README warns: not secure for real XSS filtering.
+Files:
+  cfml_version_balancer.cfm - CUSTOM TAG version (<CF_balanceTags text=...>), pure tags: CFSETTING enablecfoutputonly, CFPARAM, CFLOOP condition,
+                              CFBREAK, CFSCRIPT one-liners; funcs REFind(...,TRUE) returning pos/len arrays, ArrayNew/ArrayLen/ArrayDeleteAt/ArrayIsEmpty,
+                              Mid, LCase. CF4.x compatible (REFind returnsubexpressions = CF4.0+). Sets caller var / outputs result.
+  callstag.cfm              - test page calling <CF_balanceTags> on a nasty test string inside a TEXTAREA.
+  balancer.cfm              - v1.51 (Nov 2001) as CFSCRIPT UDFs balanceTags/checkTag/cleanAttributes/filterText + test harness. Needs CF5 (UDFs).
+  balancerd.cfm             - v1.0 (Oct 2001) UDF variant (calls safetext()), 1000-iteration timing harness. CF5.
+  highlighter.cfm           - UDF highlighter(text,keyword): bolds keyword outside HTML tags; REFind/REReplaceNoCase. CF5.
+                              (Has a bug: mark() doesn't return; and the test passes undefined #popunder#.)
+  test.cfm                  - scratch test of REFind subexpressions + StructKeyList inside a UDF. CF5.
+Datasource: none.
+Parser edge cases worth noting (cfml_version_balancer.cfm): unquoted attribute values (to=#ArrayLen(tagstack)#), nested pound signs inside
+function args (#Mid(attributes.text, 1, #regex.pos[1]#-1)#), redundant #...# around whole CFSET RHS, <cfset attributes=""> clobbering the
+ATTRIBUTES scope name, and a latent typo bug (tagsstack[k]) in a rarely-hit branch. Ends with <cfoutput>#newtext#</cfoutput> (output, no caller var).

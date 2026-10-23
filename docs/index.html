@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KoldFusion 4.5 — the web application server for the new millennium</title>
+<meta name="description" content="KoldFusion: a from-scratch C re-creation of a 1999 CFML application server, with the full Administrator, Verity search, WDDX, CFMAIL, CFX tags and the authentically terrible encryption.">
+<meta name="keywords" content="CFML, ColdFusion 4.5 tribute, retro, 1999, application server, C, nostalgia, Y2K">
+<meta property="og:title" content="KoldFusion 4.5">
+<meta property="og:description" content="The web application server for the new millennium. Rebuilt from scratch in C, 27 years late.">
+<meta property="og:image" content="screens/admin.png">
+<link rel="icon" href="assets/globe.gif" type="image/gif">
+<style>
+  :root {
+    --navy: #000066; --royal: #003399; --sage: #99CC99; --teal: #006699; --grey: #C0C0C0;
+    --cream: #FFFBF0; --ink: #000000; --green: #469320; --link: #0000EE;
+  }
+  * { box-sizing: border-box; }
+  html { background: #000 url(assets/stars_bg.gif); }
+  body {
+    margin: 0; padding: 16px; color: var(--ink);
+    font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.45;
+    background: transparent;
+  }
+  a { color: var(--link); }
+  a:visited { color: #551A8B; }
+  img { image-rendering: pixelated; }
+  .shot img, .lightbox img { image-rendering: auto; }
+
+  /* ---------- boot screen ---------- */
+  #boot {
+    max-width: 860px; margin: 0 auto 18px; background: #000; color: #C0C0C0;
+    font: 14px/1.35 "Courier New", Courier, monospace; padding: 14px 16px; border: 2px solid #808080;
+    white-space: pre-wrap; min-height: 15.5em; position: relative;
+  }
+  #boot .ok { color: #55FF55; } #boot .hi { color: #FFFF55; } #boot .url { color: #55FFFF; }
+  #boot .cursor { display: inline-block; width: .6em; background: #C0C0C0; animation: blink 1s steps(1) infinite; }
+  #skip { position: absolute; right: 10px; bottom: 8px; font: 12px Arial; color: #808080; cursor: pointer; background: none; border: 0; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ---------- the welcome box (navy frame, white card, pinstripe gutter) ---------- */
+  .frame { max-width: 860px; margin: 0 auto; background: var(--navy); padding: 2px; }
+  .card { background: #fff; display: grid; grid-template-columns: 34px 1fr 46px; }
+  .gutter { background: var(--sage) url(assets/pinstripe.gif); }
+  .rail { background: var(--royal); color: #fff; font: bold 11px Arial; text-align: center; padding-top: 18px; writing-mode: vertical-rl; letter-spacing: 3px; }
+  .content { padding: 18px 22px 26px; min-width: 0; }
+  @media (max-width: 640px) {
+    body { padding: 8px; }
+    .card { grid-template-columns: 10px 1fr 10px; }
+    .rail { font-size: 0; }
+    .content { padding: 12px 12px 20px; }
+  }
+
+  .hero { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; }
+  .hero img.logo { width: 400px; max-width: 100%; height: auto; }
+  .tagline { font-size: 17px; margin: 6px 0 2px; }
+  .tagline b { color: var(--green); }
+  .sub { color: #555; font-size: 13px; }
+
+  .buttons { margin: 16px 0 6px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .btn {
+    display: inline-block; padding: 6px 14px; background: var(--grey); color: #000 !important; text-decoration: none;
+    font: bold 13px Arial; border: 2px outset #fff; border-right-color: #404040; border-bottom-color: #404040;
+  }
+  .btn:active { border-style: inset; }
+  .btn.primary { background: #FFFF99; }
+
+  .marquee { background: var(--navy); color: #FFFF66; font: bold 13px Arial; overflow: hidden; white-space: nowrap; margin: 16px 0; padding: 4px 0; }
+  .marquee span { display: inline-block; padding-left: 100%; animation: scroll 38s linear infinite; }
+  @keyframes scroll { to { transform: translateX(-100%); } }
+  @media (prefers-reduced-motion: reduce) { .marquee span, #boot .cursor { animation: none; padding-left: 0; } }
+
+  hr.rainbow { border: 0; height: 6px; background: url(assets/rainbow_hr.gif) center / 100% 6px no-repeat; margin: 22px 0; }
+
+  h2 { font-size: 20px; margin: 4px 0 10px; display: flex; align-items: center; gap: 8px; }
+  h2 img { width: 13px; height: 13px; }
+  p { margin: 8px 0; }
+
+  /* ---------- terminal ---------- */
+  .term { background: #000; color: #C0C0C0; font: 14px/1.5 "Courier New", Courier, monospace; padding: 12px 14px; border: 2px inset #808080; position: relative; overflow-x: auto; }
+  .term .p { color: #55FF55; }
+  .copy { position: absolute; top: 6px; right: 6px; font: 11px Arial; background: var(--grey); border: 2px outset #fff; cursor: pointer; padding: 2px 8px; }
+
+  /* ---------- Win98 windows around screenshots ---------- */
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  .win { background: var(--grey); border: 2px outset #fff; border-right-color: #404040; border-bottom-color: #404040; padding: 2px; cursor: zoom-in; }
+  .win:focus { outline: 2px dotted #000; outline-offset: 2px; }
+  .title { background: linear-gradient(90deg, #000080, #1084D0); color: #fff; font: bold 12px Arial; padding: 3px 4px; display: flex; justify-content: space-between; align-items: center; }
+  .title .x { display: flex; gap: 2px; }
+  .title .x i { width: 14px; height: 12px; background: var(--grey); border: 1px outset #fff; display: block; font: bold 9px/10px Arial; color: #000; font-style: normal; text-align: center; }
+  .shot { display: block; border: 2px inset #fff; background: #fff; }
+  .shot img { width: 100%; height: auto; display: block; }
+  .cap { font: 12px Arial; padding: 4px 2px 2px; }
+
+  .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+  .lightbox.open { display: flex; }
+  .lightbox .win { cursor: default; max-width: 1040px; width: 100%; max-height: 100%; overflow: auto; }
+  .lightbox .title .x i { cursor: pointer; }
+
+  /* ---------- Administrator-style feature panels ---------- */
+  .panels { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+  .panel { border: 1px solid #669966; }
+  .panel h3 { margin: 0; background: var(--royal); color: #fff; font: bold 14px Arial; padding: 4px 8px; text-transform: lowercase; }
+  .panel ul { margin: 0; padding: 8px 10px 10px 26px; background: var(--sage); font-size: 13px; }
+  .panel li { margin: 2px 0; }
+
+  table.facts { border-collapse: collapse; width: 100%; font-size: 13px; }
+  table.facts th { background: #669966; color: #fff; text-align: left; padding: 4px 8px; }
+  table.facts td { padding: 4px 8px; border-top: 1px solid #ddd; vertical-align: top; }
+  table.facts tr:nth-child(even) td { background: var(--cream); }
+
+  pre.cfml { background: #FFFFF0; border: 1px solid #ccc; padding: 10px 12px; font: 13px/1.45 "Courier New", Courier, monospace; overflow-x: auto; margin: 8px 0; }
+  .t { color: #800000; font-weight: bold; } .a { color: #000080; } .s { color: #0000CC; } .c { color: #808080; font-style: italic; } .h { color: #990099; }
+  .out { background: #fff; border: 2px inset #ddd; padding: 8px 12px; font-family: "Times New Roman", serif; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .cols { grid-template-columns: 1fr; } }
+
+  .counter { display: inline-flex; gap: 0; vertical-align: middle; border: 2px inset #808080; }
+  .counter img { width: 15px; height: 20px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; margin-top: 14px; }
+  .badges img { width: 88px; height: 31px; }
+  .center { text-align: center; }
+  .tiny { font-size: 11px; color: #666; }
+  .footer-note { max-width: 860px; margin: 10px auto 0; color: #D0D0D0; font-size: 11px; text-align: center; background: rgba(0,0,0,.75); padding: 6px 10px; }
+  .footer-note a { color: #FFFF66; }
+  blink, .blink { animation: blink 1s steps(1) infinite; }
+</style>
+</head>
+<body>
+
+<div id="boot" aria-label="Server boot log"><button id="skip" type="button">skip &raquo;</button><span id="bootText"></span><span class="cursor">&nbsp;</span></div>
+
+<div class="frame"><div class="card">
+<div class="gutter"></div>
+<div class="content">
+
+  <div class="hero">
+    <img class="logo" src="assets/welcome_logo.gif" width="400" height="105" alt="<allair> KoldFusion 4.5 web application server">
+    <div>
+      <img src="assets/construction.gif" width="140" height="50" alt="Under construction since 1999">
+    </div>
+  </div>
+  <p class="tagline">The web application server for the new millennium. <b>Rebuilt from scratch in C, 27 years late.</b></p>
+  <p class="sub">A loving, fully working tribute to the CFML application servers of 1999: the tags, the functions, the
+  frameset Administrator, the <i>Error Diagnostic Information</i> pages, and the password "encryption" you could break with a pencil.</p>
+
+  <div class="buttons">
+    <a class="btn primary" href="https://github.com/HappyCatKitten/koldfusion">&#128190; Download from GitHub</a>
+    <a class="btn" href="#quickstart">Quick Start</a>
+    <a class="btn" href="#screenshots">Screenshots</a>
+    <a class="btn" href="https://github.com/HappyCatKitten/koldfusion/blob/main/docs/RESEARCH.md">The Research</a>
+  </div>
+
+  <div class="marquee" aria-hidden="true"><span>
+    *** NEW! KoldFusion 4.5.1 SP2 released *** Y2K compliant! *** Now with Verity full-text search *** CFQUERYPARAM stops SQL injection (if you remember to use it) ***
+    Optimized for Netscape Navigator 4.7 at 800x600 *** WDDX: XML before XML was cool *** 314 runnable code snippets *** 60 vintage CFML scripts in the Demo Gallery ***
+  </span></div>
+
+  <h2><img src="assets/bullet_red.gif" alt="">What is this?</h2>
+  <p>KoldFusion is a web server and CFML engine in about 17,000 lines of dependency-free C. Point a browser at it and you get
+  the whole 1999 experience: <code>&lt;CFQUERY&gt;</code> against a built-in database, session and client variables,
+  <code>&lt;CFMAIL&gt;</code> spooling to real SMTP, scheduled tasks, Verity-style search, WDDX, CFX tags compiled from C,
+  custom tags with <code>ThisTag.GeneratedContent</code>, CFFORM's generated JavaScript&hellip; and every page of the
+  navy-and-sage Administrator.</p>
+  <p>It is not a modern CFML engine. It is the one you remember, bugs and all &mdash; variables are case-insensitive,
+  comparisons print <code>YES</code>, nested <code>IIf()</code> still bites, and there are no user-defined functions
+  (those arrived in the next version).</p>
+
+  <hr class="rainbow">
+
+  <h2 id="quickstart"><img src="assets/bullet_blue.gif" alt="">Quick Start</h2>
+  <div class="term" id="qs"><button class="copy" type="button" data-copy="git clone https://github.com/HappyCatKitten/koldfusion.git && cd koldfusion && make && ./bin/kfserver">copy</button><span class="p">$</span> git clone https://github.com/HappyCatKitten/koldfusion.git
+<span class="p">$</span> cd koldfusion &amp;&amp; make
+<span class="p">$</span> ./bin/kfserver
+
+  KoldFusion Application Server Enterprise 4.5.1 SP2
+  Copyright (c) 1995-1999 Allair Corporation. All rights reserved.
+  Listening on      : http://127.0.0.1:8500/
+  Administrator     : http://127.0.0.1:8500/CFIDE/administrator/index.cfm</div>
+  <p class="tiny">Needs only a C compiler, make and pthreads. Administrator password: <code>admin</code>. Please keep it on
+  127.0.0.1 &mdash; the security is authentically 1999.</p>
+
+  <hr class="rainbow">
+
+  <h2 id="screenshots"><img src="assets/bullet_red.gif" alt="">Screenshots <img src="assets/new.gif" width="44" height="22" alt="New!" style="width:44px;height:22px"></h2>
+  <p class="tiny">Every screenshot is the real server running in a modern browser. Click to enlarge.</p>
+  <div class="gallery" id="gallery">
+    <!-- filled by script from the list below; static fallback links for no-JS readers -->
+    <noscript><p><a href="screens/admin.png">Administrator</a> &middot; <a href="screens/welcome.png">Welcome page</a> &middot;
+    <a href="screens/error.png">Error page</a> &middot; <a href="screens/gallery.png">Demo Gallery</a></p></noscript>
+  </div>
+
+  <hr class="rainbow">
+
+  <h2><img src="assets/bullet_blue.gif" alt="">Everything in the Administrator works</h2>
+  <div class="panels">
+    <div class="panel"><h3>server</h3><ul>
+      <li>Request limit, timeouts, the <i>Restart at N unresponsive requests</i> watchdog</li>
+      <li>Template &amp; query caching, trusted cache</li>
+      <li>Basic Security: tag restrictions, unsecured tags directory</li>
+      <li>Advanced Security: user directories, contexts, rules, policies</li>
+      <li>Variables, Locking (full checking!), Mappings, Java, Version Info</li></ul></div>
+    <div class="panel"><h3>datasources</h3><ul>
+      <li>ODBC, Native Drivers and OLE DB pages</li>
+      <li>"CF Settings &gt;&gt;": restrict SQL operations, login timeout</li>
+      <li>Verify Data Source &amp; a table browser</li>
+      <li>All served by the built-in Flat-File Driver</li></ul></div>
+    <div class="panel"><h3>extensions</h3><ul>
+      <li>CFX tags: real shared libraries, <code>ProcessTagRequest()</code></li>
+      <li>Applets registry for <code>&lt;CFAPPLET&gt;</code></li></ul></div>
+    <div class="panel"><h3>logging</h3><ul>
+      <li><code>"Severity","ThreadID","Date","Time","Details"</code></li>
+      <li>Slow-page logging, syslog, mail logging</li>
+      <li>Log file viewer with download &amp; delete</li></ul></div>
+    <div class="panel"><h3>automated tasks</h3><ul>
+      <li>One-time, daily/weekly/monthly, every N minutes</li>
+      <li>RUN now, publish output to a static file</li></ul></div>
+    <div class="panel"><h3>miscellaneous</h3><ul>
+      <li>Mail: verify, spool, undeliverable folder, respool</li>
+      <li>Debugging output appended to every page</li>
+      <li>Verity collections: create, index, optimize, purge</li></ul></div>
+  </div>
+
+  <hr class="rainbow">
+
+  <h2><img src="assets/bullet_red.gif" alt="">Hello, 1999</h2>
+  <div class="cols">
+    <div>
+<pre class="cfml"><span class="c">&lt;!--- hello.cfm ---&gt;</span>
+<span class="t">&lt;CFQUERY</span> <span class="a">NAME=</span><span class="s">"emps"</span> <span class="a">DATASOURCE=</span><span class="s">"cfsnippets"</span><span class="t">&gt;</span>
+  SELECT FirstName, Department
+  FROM Employees ORDER BY Department
+<span class="t">&lt;/CFQUERY&gt;</span>
+<span class="t">&lt;CFOUTPUT</span> <span class="a">QUERY=</span><span class="s">"emps"</span> <span class="a">GROUP=</span><span class="s">"Department"</span><span class="t">&gt;</span>
+  &lt;H4&gt;<span class="h">#Department#</span>&lt;/H4&gt;
+  <span class="t">&lt;CFOUTPUT&gt;</span><span class="h">#FirstName#</span> <span class="t">&lt;/CFOUTPUT&gt;</span>
+<span class="t">&lt;/CFOUTPUT&gt;</span>
+<span class="t">&lt;CFOUTPUT&gt;</span>Is it 1999? <span class="h">#Year(Now()) IS 1999#</span><span class="t">&lt;/CFOUTPUT&gt;</span></pre>
+    </div>
+    <div>
+      <div class="out">
+        <h4 style="margin:4px 0">Accounting</h4>Oscar Rosa Ida
+        <h4 style="margin:8px 0 4px">Administration</h4>Quentin Hank Nadia
+        <h4 style="margin:8px 0 4px">Engineering</h4>Wendy Samir Lena Jack&hellip;
+        <p style="margin:10px 0 2px">Is it 1999? NO</p>
+      </div>
+      <p class="tiny">Grouped output, nested CFOUTPUT and a comparison that prints <b>NO</b>, exactly like 1999.</p>
+    </div>
+  </div>
+
+  <hr class="rainbow">
+
+  <h2><img src="assets/bullet_blue.gif" alt=""><img src="assets/lock.gif" alt="" style="width:16px;height:16px">Authentically insecure</h2>
+  <p><code>Encrypt()</code> is the original algorithm, re-implemented bit for bit and checked against the published test vector:</p>
+  <pre class="cfml"><span class="t">&lt;CFOUTPUT&gt;</span><span class="h">#Encrypt("text", "key")#</span><span class="t">&lt;/CFOUTPUT&gt;</span>   <span class="c">&lt;!--- $38YC!P   ---&gt;</span></pre>
+  <p>It is a three-register bit generator whose key schedule only ever reads characters <b>5 to 8</b> of your key. The
+  Administrator stores its own password with it, under a fixed key, in a REGEDIT4-format registry file. As the README
+  says: exactly as insecure as 1999 intended.</p>
+
+  <hr class="rainbow">
+
+  <h2><img src="assets/bullet_red.gif" alt="">By the numbers</h2>
+  <table class="facts">
+    <tr><th>Thing</th><th>Count</th></tr>
+    <tr><td>Lines of C (no dependencies)</td><td>~17,000</td></tr>
+    <tr><td>CFML tags / built-in functions</td><td>~80 / ~230</td></tr>
+    <tr><td>Language Reference pages, each with a runnable example</td><td>314</td></tr>
+    <tr><td>Vintage CFML scripts in the Demo Gallery (from Rosetta Code, GitHub&hellip;)</td><td>60 (51 run as-is)</td></tr>
+    <tr><td>Example applications (intranet, HR app, parks browser, widgets)</td><td>5</td></tr>
+    <tr><td>Animated GIFs drawn from scratch for this project</td><td>too many</td></tr>
+    <tr><td>Java applets required</td><td>0 &mdash; CFGRID, CFTREE and CFSLIDER render as HTML</td></tr>
+  </table>
+
+  <hr class="rainbow">
+
+  <div class="center">
+    <p>You are visitor number <span class="counter" id="counter" aria-label="visitor counter"></span> since November 1999!</p>
+    <p><img src="assets/email.gif" width="40" height="30" alt="" style="vertical-align:middle">
+      <a href="https://github.com/HappyCatKitten/koldfusion/issues">Sign my guestbook!</a> (it's GitHub Issues. Sorry.)
+      <img src="assets/mailbox.gif" width="32" height="32" alt="" style="vertical-align:middle"></p>
+    <p><a href="https://github.com/HappyCatKitten/koldfusion"><img src="assets/webring.gif" width="300" height="40" alt="KoldFusion WebRing: previous, random, next"></a></p>
+    <div class="badges">
+      <a href="https://github.com/HappyCatKitten/koldfusion"><img src="assets/powered_by_kf.gif" alt="Powered by KoldFusion"></a>
+      <img src="assets/allair_88x31.gif" alt="&lt;allair&gt;">
+      <img src="assets/netscape_now.gif" alt="Best viewed with Navigator 4.x">
+      <img src="assets/ie_parody.gif" alt="Best viewed with any browser">
+    </div>
+    <p class="tiny">This page is best viewed at 800x600 in 256 colors. <span class="blink">Last updated: Y2K + 26 years.</span></p>
+  </div>
+
+</div>
+<div class="rail">KOLDFUSION&nbsp;4.5</div>
+</div></div>
+
+<p class="footer-note">KoldFusion is a nostalgic tribute. It is not affiliated with, endorsed by, or made from any code or artwork of
+Allaire, Macromedia or Adobe; every name is changed on purpose and every pixel is drawn from scratch.
+Original code under the MIT licence; the Demo Gallery keeps each script's own licence. &middot;
+<a href="https://github.com/HappyCatKitten/koldfusion">Source on GitHub</a></p>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Screenshot">
+  <div class="win"><div class="title"><span id="lbTitle">Netscape</span><span class="x"><i>_</i><i>&#9633;</i><i id="lbClose" title="Close">x</i></span></div>
+  <span class="shot"><img id="lbImg" alt=""></span></div>
+</div>
+
+<script>
+(function () {
+  // ---- boot sequence ----
+  var lines = [
+    ['', 'KoldFusion Application Server Enterprise 4.5.1 SP2'],
+    ['', 'Copyright (c) 1995-1999 Allair Corporation. All rights reserved.'],
+    ['', ''],
+    ['', 'Reading registry .................... '], ['ok', '[  OK  ]\n'],
+    ['', 'Loading CFML engine (80 tags, 230 functions) '], ['ok', '[  OK  ]\n'],
+    ['', 'Opening data sources: cfsnippets cfexamples CompanyInfo '], ['ok', '[  OK  ]\n'],
+    ['', 'Starting Verity, mail spooler, scheduler ... '], ['ok', '[  OK  ]\n'],
+    ['', 'Checking Y2K compliance ............... '], ['hi', '[ PROBABLY ]\n'],
+    ['', 'Listening on  : '], ['url', 'http://127.0.0.1:8500/\n'],
+    ['', 'Administrator : '], ['url', 'http://127.0.0.1:8500/CFIDE/administrator/\n']
+  ];
+  var out = document.getElementById('bootText'), done = false;
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function render(all) {
+    out.innerHTML = '';
+    for (var i = 0; i < lines.length; i++) {
+      var s = document.createElement('span');
+      if (lines[i][0]) s.className = lines[i][0];
+      s.textContent = lines[i][1] + (lines[i][0] === '' && i < 3 ? '\n' : '');
+      out.appendChild(s);
+    }
+  }
+  if (reduced) { render(); }
+  else {
+    var li = 0, ci = 0, cur = null;
+    (function tick() {
+      if (done) return;
+      if (li >= lines.length) { done = true; return; }
+      if (!cur) { cur = document.createElement('span'); if (lines[li][0]) cur.className = lines[li][0]; out.appendChild(cur); }
+      var text = lines[li][1] + (lines[li][0] === '' && li < 3 ? '\n' : '');
+      var step = lines[li][0] ? text.length : 2;
+      cur.textContent = text.slice(0, ci += step);
+      if (ci >= text.length) { li++; ci = 0; cur = null; setTimeout(tick, lines[li - 1][0] ? 180 : 40); }
+      else setTimeout(tick, 18);
+    })();
+  }
+  document.getElementById('skip').onclick = function () { done = true; render(); };
+
+  // ---- screenshots ----
+  var shots = [
+    ['admin', 'KoldFusion Administrator - Server Settings', 'The Administrator: frameset, pinstripe gutter, navy and sage, every page working.'],
+    ['welcome', 'Welcome to KoldFusion Server 4.5', 'The post-install Welcome page.'],
+    ['error', 'Error Occurred While Processing Request', 'Error Diagnostic Information, reproduced from a captured 1999 original.'],
+    ['odbc', 'ODBC Data Sources Available to KoldFusion', 'Data sources, Verify All, CF Settings &gt;&gt;.'],
+    ['gallery', 'The Cool CFML Scripts Archive', 'The Demo Gallery: 60 openly-licensed vintage scripts, each tested.'],
+    ['docs', 'CFML Language Reference - CFQUERY', '314 reference pages, every one with a runnable Example button.'],
+    ['cool', 'Cool Stuff You Can Do With KoldFusion', 'Hit counters, guestbooks and fire GIFs, as the web intended.'],
+    ['hrapp', 'Human Resources Employee Manager', 'Example applications: HR app, GlobalCorp intranet, parks, widgets.'],
+    ['widgets', 'Applet Controls', 'CFGRID, CFTREE and CFSLIDER without the Java.'],
+    ['verity', 'Verity Collections', 'Create, index, repair, optimize and purge collections.'],
+    ['install', 'KoldFusion Installation Test', 'Congratulations! Six green checks.'],
+    ['login', 'KoldFusion Administrator Login', 'The login page, complete with swoosh.']
+  ];
+  var g = document.getElementById('gallery');
+  shots.forEach(function (s) {
+    var w = document.createElement('div');
+    w.className = 'win'; w.tabIndex = 0; w.setAttribute('role', 'button'); w.setAttribute('aria-label', 'Enlarge: ' + s[1]);
+    w.innerHTML = '<div class="title"><span>' + s[1] + '</span><span class="x"><i>_</i><i>&#9633;</i><i>x</i></span></div>' +
+      '<span class="shot"><img loading="lazy" src="screens/' + s[0] + '_t.png" alt="' + s[1] + '"></span><div class="cap">' + s[2] + '</div>';
+    function open() {
+      document.getElementById('lbImg').src = 'screens/' + s[0] + '.png';
+      document.getElementById('lbImg').alt = s[1];
+      document.getElementById('lbTitle').textContent = s[1] + ' - Netscape';
+      document.getElementById('lightbox').classList.add('open');
+    }
+    w.onclick = open;
+    w.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+    g.appendChild(w);
+  });
+  var lb = document.getElementById('lightbox');
+  function close() { lb.classList.remove('open'); }
+  document.getElementById('lbClose').onclick = close;
+  lb.onclick = function (e) { if (e.target === lb) close(); };
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+
+  // ---- hit counter: grows a little every day since the 4.5 release ----
+  var days = Math.floor((Date.now() - Date.UTC(1999, 10, 23)) / 86400000);
+  var n = String(1999 + days * 3).padStart(7, '0'), c = document.getElementById('counter');
+  for (var i = 0; i < n.length; i++) {
+    var im = document.createElement('img'); im.src = 'assets/digit_' + n[i] + '.gif'; im.alt = n[i]; c.appendChild(im);
+  }
+
+  // ---- copy button ----
+  document.querySelectorAll('.copy').forEach(function (b) {
+    b.onclick = function () {
+      if (navigator.clipboard) navigator.clipboard.writeText(b.getAttribute('data-copy'));
+      b.textContent = 'copied!'; setTimeout(function () { b.textContent = 'copy'; }, 1500);
+    };
+  });
+})();
+</script>
+</body>
+</html>

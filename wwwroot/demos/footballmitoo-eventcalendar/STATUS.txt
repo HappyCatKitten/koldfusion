@@ -1,0 +1,12 @@
+# KoldFusion Demo Gallery status file, read by /demos/index.cfm (results of running every file on KoldFusion).
+# One line per file:  file | status | note | run
+#   status: works, partial, cf5 (needs CF5+), cfmx (needs CFMX+), fails, include (not a page), shim (gallery companion)
+#   run:    optional page to open instead of the file ("-" = no Run link)
+@title FootballMitoo league diary
+@blurb The month "Diary" from the FootballMitoo league-management system: CFSCRIPT date maths, nested CFLOOPs, highlighted event days from table event in DSN demos.
+@order 4
+EventCalendar.cfm                | works   | Month view; days with events (from DSN demos) are links; today is outlined |
+InclEventLoop1.cfm               | include | One calendar cell, included 28-31 times per month | -
+queries/qry_MonthsEvents.cfm     | include | The month's events (SQL DAY()/MONTH()) | -
+Application.cfm                  | shim    | Supplies the session/request variables the host app normally sets (season, LeagueID, DSN, SecurityLevel, LeagueCode) | -
+EventCalendarShow.cfm            | shim    | Stand-in for the unpublished day view the calendar links to | EventCalendar.cfm

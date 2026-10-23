@@ -1,0 +1,876 @@
+# CFML Language Reference - Internet protocol, file/directory/system and data interchange tags.
+# Format: see the docstring at the top of tools/mkdocs.py.
+
+@tag CFMAIL
+category: Internet protocols
+summary: Sends an e-mail message, or one message per row or group of a query.
+desc:
+`CFMAIL` builds a message from its attributes and the text between its start and end tags, then hands it
+to the KoldFusion mail spooler for delivery by SMTP. The body works like `CFOUTPUT`: CFML expressions between
+pound signs are evaluated, and with a QUERY attribute the message is sent once for every row.
+syntax:
+<CFMAIL TO="recipient"
+    FROM="sender"
+    CC="copy_to"
+    BCC="blind_copy_to"
+    SUBJECT="msg_subject"
+    TYPE="HTML"
+    MAXROWS="max_msgs"
+    MIMEATTACH="path"
+    QUERY="query_name"
+    GROUP="query_column"
+    STARTROW="query_row"
+    SERVER="servername"
+    PORT="port_ID"
+    MAILERID="headerid"
+    TIMEOUT="seconds">
+  message text
+</CFMAIL>
+attrs:
+TO | Required | Recipient address. Several addresses can be separated by commas. With QUERY, usually a column
+  name such as `#Email#`.
+FROM | Required | Sender address.
+SUBJECT | Required | Subject line. May contain expressions.
+CC | Optional | Addresses that receive a copy.
+BCC | Optional | Addresses that receive a blind copy; they are not listed in the message headers.
+TYPE | Optional | HTML sends the body as text/html instead of plain text.
+QUERY | Optional | Name of a query. One message is sent per row (or per group, see GROUP), and the columns can be
+  used in every attribute and in the body.
+GROUP | Optional | Query column to group on. One message is sent per group; a nested `CFOUTPUT` in the body
+  loops over the rows of the group. The query should be sorted on this column.
+STARTROW | Optional, default "1" | First query row to send.
+MAXROWS | Optional | Maximum number of messages to send.
+MIMEATTACH | Optional | Full path of a file to attach.
+SERVER | Optional | SMTP server. Defaults to the server set on the Mail page of the KoldFusion Administrator.
+PORT | Optional | SMTP port. Defaults to the port set in the Administrator, normally 25.
+MAILERID | Optional, default "KoldFusion Application Server" | Value of the X-Mailer header.
+TIMEOUT | Optional | Seconds to wait for the SMTP server. Defaults to the Administrator setting (60).
+usage:
+`CFMAIL` never waits for the SMTP server. Each message is written to `mail/spool` under the KoldFusion
+install directory, and a background thread delivers the spool at the interval set in the Administrator.
+Messages that cannot be delivered are moved to `mail/undelivr` and noted in the mail log. An empty TO or FROM throws an Application exception straight away.
+
+Use `CFMAILPARAM` to add attachments and custom headers. Remember that `#` inside the body starts an
+expression: write `##` for a literal pound sign.
+example:
+<!--- One message per Training employee, all addressed to a harmless local mailbox --->
+<CFQUERY NAME="Trainers" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName, Email FROM Employees
+WHERE Department = 'Training' ORDER BY LastName
+</CFQUERY>
+
+<CFMAIL QUERY="Trainers"
+        TO="someone@localhost"
+        FROM="webmaster@localhost"
+        SUBJECT="Course schedule for #FirstName# #LastName#">
+Hello #FirstName#,
+
+The spring course schedule is now on the intranet.
+(In real life this message would go to #Email#.)
+
+-- The KoldFusion mail robot
+</CFMAIL>
+
+<CFOUTPUT><P>Spooled #Trainers.RecordCount# messages:</P></CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>To</TH><TH>Subject</TH></TR>
+<CFOUTPUT QUERY="Trainers">
+<TR><TD>someone@localhost</TD><TD>Course schedule for #FirstName# #LastName#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: CFMAILPARAM, CFPOP, CFOUTPUT, CFQUERY
+
+@tag CFMAILPARAM
+category: Internet protocols
+new45: yes
+summary: Attaches a file or adds a custom header to a message sent with CFMAIL.
+desc:
+`CFMAILPARAM` goes inside a `CFMAIL` tag. With FILE it attaches a file to the message; with NAME and VALUE it
+adds a header line of your own, such as Reply-To or X-Priority. Use as many as you need.
+syntax:
+<CFMAILPARAM FILE="file_name">
+  or
+<CFMAILPARAM NAME="header_name"
+    VALUE="header_value">
+attrs:
+FILE | Required if NAME is not used | Full path of a file to attach.
+NAME | Required if FILE is not used | Name of the header to add.
+VALUE | Optional | Value of the header.
+usage:
+Using the tag outside `CFMAIL` throws a Template exception. The attachment file is read when the spooler
+delivers the message, not when the page runs, so do not delete it in the same request.
+The `MIMEATTACH` attribute of `CFMAIL` still works for a single attachment.
+example:
+<CFMAIL TO="someone@localhost"
+        FROM="support@localhost"
+        SUBJECT="Your Y2K readiness report">
+<CFMAILPARAM NAME="Reply-To" VALUE="helpdesk@localhost">
+<CFMAILPARAM NAME="X-Priority" VALUE="1">
+<CFMAILPARAM NAME="Organization" VALUE="Allair Corporation">
+Good news: all 25 workstations passed the December 31, 1999 rollover test.
+</CFMAIL>
+
+<P>Message spooled with these extra headers:</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Header</TH><TH>Value</TH></TR>
+<TR><TD>Reply-To</TD><TD>helpdesk@localhost</TD></TR>
+<TR><TD>X-Priority</TD><TD>1 (urgent)</TD></TR>
+<TR><TD>Organization</TD><TD>Allair Corporation</TD></TR>
+</TABLE>
+see: CFMAIL, CFPOP, CFHTTPPARAM
+
+@tag CFPOP
+category: Internet protocols
+summary: Retrieves or deletes messages in a POP3 mailbox.
+desc:
+`CFPOP` logs in to a POP3 mail server and returns the messages in the mailbox as a query, either just the
+headers or the whole message. It can also delete messages from the server.
+syntax:
+<CFPOP SERVER="servername"
+    PORT="port_number"
+    USERNAME="username"
+    PASSWORD="password"
+    ACTION="action"
+    NAME="query_name"
+    MESSAGENUMBER="number"
+    ATTACHMENTPATH="path"
+    TIMEOUT="seconds"
+    MAXROWS="number"
+    STARTROW="number">
+attrs:
+SERVER | Required | Host name or IP address of the POP3 server.
+PORT | Optional, default "110" | POP3 port.
+USERNAME | Optional | Mailbox user name.
+PASSWORD | Optional | Mailbox password.
+ACTION | Optional, default "GetHeaderOnly" | GetHeaderOnly returns header fields only; GetAll returns headers
+  and body; Delete removes the messages listed in MESSAGENUMBER.
+NAME | Required for GetHeaderOnly and GetAll | Name of the query that receives the messages.
+MESSAGENUMBER | Optional | Comma-separated list of message numbers to retrieve or delete. Required for Delete.
+  When it is given, STARTROW and MAXROWS are ignored.
+ATTACHMENTPATH | Optional | Directory for saving attachments. Accepted for compatibility; KoldFusion ignores it.
+TIMEOUT | Optional, default "60" | Seconds to wait for the server.
+MAXROWS | Optional | Maximum number of messages to return.
+STARTROW | Optional, default "1" | First message number to return.
+usage:
+The query has the columns Date, From, MessageNumber, ReplyTo, Subject, CC, To and Header. With GetAll
+it also has Body, Attachments and AttachmentFiles. KoldFusion does not decode MIME attachments: the Body column
+holds the raw message text after the headers, and Attachments and AttachmentFiles are always empty.
+
+If the server cannot be reached or rejects the login, an Application exception is thrown. Wrap `CFPOP` in
+`CFTRY` so a mail server that is down for the night does not take your page with it.
+example:
+<!--- There is probably no POP3 server on this machine; CFTRY keeps the page polite --->
+<CFTRY>
+  <CFPOP SERVER="127.0.0.1" USERNAME="someone" PASSWORD="secret"
+         ACTION="GetHeaderOnly" NAME="Inbox" MAXROWS="10" TIMEOUT="10">
+  <CFOUTPUT><P>#Inbox.RecordCount# message(s) waiting.</P></CFOUTPUT>
+  <TABLE BORDER=1 CELLPADDING=3>
+  <TR><TH>##</TH><TH>From</TH><TH>Subject</TH><TH>Date</TH></TR>
+  <CFOUTPUT QUERY="Inbox">
+  <TR><TD>#MessageNumber#</TD><TD>#HTMLEditFormat(From)#</TD>
+      <TD>#HTMLEditFormat(Subject)#</TD><TD>#Date#</TD></TR>
+  </CFOUTPUT>
+  </TABLE>
+  <CFCATCH TYPE="Application">
+    <CFOUTPUT>
+    <P><B>No mail today.</B> #CFCATCH.Message#:<BR>
+    <I>#CFCATCH.Detail#</I></P>
+    </CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+see: CFMAIL, CFMAILPARAM, CFTRY, CFOUTPUT
+
+@tag CFHTTP
+category: Internet protocols
+summary: Fetches a page or file from a Web server with an HTTP GET or POST.
+desc:
+`CFHTTP` makes your template a Web browser. It requests a URL, and the response ends up in the `CFHTTP`
+structure: the page text, the MIME type, the status code and the headers. It can also save the response to a
+file or turn a comma-delimited text file into a query.
+syntax:
+<CFHTTP URL="hostname"
+    METHOD="GET/POST"
+    USERNAME="username"
+    PASSWORD="password"
+    NAME="queryname"
+    COLUMNS="column_names"
+    PATH="path"
+    FILE="filename"
+    DELIMITER="character"
+    TEXTQUALIFIER="character"
+    RESOLVEURL="Yes/No"
+    PROXYSERVER="hostname"
+    PROXYPORT="port_number"
+    PORT="port_number"
+    TIMEOUT="seconds"
+    THROWONERROR="Yes/No">
+  CFHTTPPARAM tags (for POST)
+</CFHTTP>
+attrs:
+URL | Required | Full URL to request, starting with http://.
+METHOD | Optional, default "GET" | GET or POST. Use POST to send `CFHTTPPARAM` form fields and files.
+USERNAME | Optional | User name for Basic authentication.
+PASSWORD | Optional | Password for Basic authentication.
+NAME | Optional | Turns the response into a query of this name. The response must be delimited text; the first
+  row supplies the column names unless COLUMNS is given.
+COLUMNS | Optional | Comma-separated column names for the NAME query.
+DELIMITER | Optional, default "," | Field delimiter for the NAME query.
+TEXTQUALIFIER | Optional, default double quote | Character that surrounds fields containing the delimiter.
+PATH | Optional | Directory in which to save the response.
+FILE | Optional | File name for PATH. Defaults to the last part of the URL.
+RESOLVEURL | Optional, default "No" | Yes rewrites relative HREF, SRC, ACTION and BACKGROUND links in an HTML
+  response into absolute URLs, so the page still works when you display it from your server.
+PROXYSERVER | Optional | Proxy server to go through.
+PROXYPORT | Optional, default "80" | Port of the proxy server.
+PORT | Optional, default "80" | Port of the Web server, if it is not in the URL.
+TIMEOUT | Optional, default "60" | Seconds to wait for the response.
+THROWONERROR | Optional, default "No" | Yes throws an Application exception when the server cannot be reached
+  or answers with a status of 400 or higher.
+usage:
+After the call these variables are available:
+
+| Variable | Contents |
+| CFHTTP.FileContent | The body of the response |
+| CFHTTP.MimeType | The MIME type, for example text/html |
+| CFHTTP.StatusCode | The status, for example "200 OK" |
+| CFHTTP.Header | All response headers as one string |
+| CFHTTP.ResponseHeader | A structure of headers, plus Status_Code, Explanation and HTTP_Version |
+
+Without THROWONERROR, a server that cannot be reached is not an error: FileContent is "Connection Failure"
+and StatusCode says the code is unavailable. Check for that, or use THROWONERROR="Yes" with `CFTRY`.
+
+> KoldFusion speaks plain HTTP only. https:// URLs are refused, since secure sockets are a matter for
+> the Netscape Enterprise Server in this day and age.
+example:
+<!--- Fetch the documentation home page from this very server --->
+<CFSET Target = "http://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/index.cfm">
+<CFTRY>
+  <CFHTTP URL="#Target#" METHOD="GET" TIMEOUT="10" THROWONERROR="Yes"></CFHTTP>
+  <CFSET Start = FindNoCase("<TITLE>", CFHTTP.FileContent)>
+  <CFSET Stop = FindNoCase("</TITLE>", CFHTTP.FileContent)>
+  <CFSET PageTitle = "(none)">
+  <CFIF Start GT 0 AND Stop GT Start>
+    <CFSET PageTitle = Mid(CFHTTP.FileContent, Start + 7, Stop - Start - 7)>
+  </CFIF>
+  <CFOUTPUT>
+  <TABLE BORDER=1 CELLPADDING=3>
+  <TR><TD>URL</TD><TD>#Target#</TD></TR>
+  <TR><TD>StatusCode</TD><TD>#CFHTTP.StatusCode#</TD></TR>
+  <TR><TD>MimeType</TD><TD>#CFHTTP.MimeType#</TD></TR>
+  <TR><TD>Length</TD><TD>#Len(CFHTTP.FileContent)# characters</TD></TR>
+  <TR><TD>Title</TD><TD>#HTMLEditFormat(PageTitle)#</TD></TR>
+  </TABLE>
+  </CFOUTPUT>
+  <CFCATCH TYPE="Application">
+    <CFOUTPUT>
+    <P><B>Could not fetch #Target#.</B><BR>#CFCATCH.Detail#</P>
+    <P>(Is the KoldFusion server listening? Busy signal on the modem?)</P>
+    </CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+see: CFHTTPPARAM, CFSCHEDULE, CFFTP, CFTRY
+
+@tag CFHTTPPARAM
+category: Internet protocols
+summary: Adds a URL parameter, form field, cookie, header or file to a CFHTTP request.
+desc:
+`CFHTTPPARAM` tags go between `<CFHTTP>` and `</CFHTTP>`. Each one adds a single piece of data to the
+request, so your template can fill in and submit another site's form.
+syntax:
+<CFHTTPPARAM TYPE="type"
+    NAME="name"
+    VALUE="transaction_name"
+    FILE="filename">
+attrs:
+TYPE | Required | URL (appended to the query string), FormField (sent in the body of a POST), Cookie (sent in a
+  Cookie header), CGI (sent as a request header of that name) or File (uploads a file in a POST).
+NAME | Required | Name of the parameter, field, cookie or header.
+VALUE | Optional | Value to send. Not used for TYPE="File".
+FILE | Required for TYPE="File" | Full path of the file to upload.
+usage:
+FormField and File parameters are only sent when the `CFHTTP` tag has METHOD="POST". A plain POST is encoded
+as application/x-www-form-urlencoded; as soon as one File parameter is present, the whole request switches to
+multipart/form-data, just as a browser does for a form with ENCTYPE="multipart/form-data".
+
+URL, FormField and Cookie values are URL-encoded for you. Using the tag outside `CFHTTP` throws a Template
+exception.
+example:
+<!--- This page posts a form to itself; the ?Echo=Yes request just echoes what it got --->
+<CFIF IsDefined("URL.Echo")>
+  <CFPARAM NAME="Form.Name" DEFAULT="(missing)">
+  <CFPARAM NAME="Cookie.Flavor" DEFAULT="(missing)">
+  <CFOUTPUT>Name=#HTMLEditFormat(Form.Name)#; Cookie=#HTMLEditFormat(Cookie.Flavor)#</CFOUTPUT>
+  <CFABORT>
+</CFIF>
+<CFSET Target = "http://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/snippets/cfhttpparam.cfm">
+<CFTRY>
+  <CFHTTP URL="#Target#" METHOD="POST" TIMEOUT="10" THROWONERROR="Yes">
+    <CFHTTPPARAM TYPE="URL" NAME="Echo" VALUE="Yes">
+    <CFHTTPPARAM TYPE="FormField" NAME="Name" VALUE="Ann & Andy">
+    <CFHTTPPARAM TYPE="Cookie" NAME="Flavor" VALUE="Oatmeal">
+    <CFHTTPPARAM TYPE="CGI" NAME="X-Requested-By" VALUE="KoldFusion">
+  </CFHTTP>
+  <CFOUTPUT>
+  <TABLE BORDER=1 CELLPADDING=3>
+  <TR><TD>Status</TD><TD>#CFHTTP.StatusCode#</TD></TR>
+  <TR><TD>The other side saw</TD><TD>#Trim(CFHTTP.FileContent)#</TD></TR>
+  </TABLE>
+  </CFOUTPUT>
+  <CFCATCH TYPE="Application">
+    <CFOUTPUT><P><B>The request did not get through:</B> #CFCATCH.Detail#</P></CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+see: CFHTTP, CFMAILPARAM, URLEncodedFormat
+
+@tag CFFTP
+category: Internet protocols
+summary: Opens an FTP connection and lists, transfers, renames and deletes files on the remote server.
+desc:
+`CFFTP` is an FTP client for your templates. Open a named connection once, use it for as many file and
+directory operations as you like, and close it when you are done. Every call reports how it went in the
+`CFFTP` structure.
+syntax:
+<CFFTP ACTION="action"
+    SERVER="server"
+    USERNAME="username"
+    PASSWORD="password"
+    PORT="port"
+    CONNECTION="name"
+    TIMEOUT="seconds"
+    STOPONERROR="Yes/No"
+    DIRECTORY="directory"
+    NAME="query_name"
+    LOCALFILE="local_path"
+    REMOTEFILE="remote_name"
+    ITEM="item"
+    EXISTING="old_name"
+    NEW="new_name"
+    FAILIFEXISTS="Yes/No"
+    TRANSFERMODE="Binary"
+    PASSIVE="Yes"
+    PROXYSERVER="proxyserver"
+    RETRYCOUNT="number"
+    AGENTNAME="name">
+attrs:
+ACTION | Required | Open, Close, ChangeDir, CreateDir, RemoveDir, ListDir, GetFile, PutFile, Remove, Rename,
+  GetCurrentDir, ExistsDir, ExistsFile or Exists.
+SERVER | Required for Open | FTP server name or address. Other actions may also give SERVER instead of
+  CONNECTION, in which case a temporary connection is opened and closed around the operation.
+USERNAME | Optional, default "anonymous" | Login name.
+PASSWORD | Optional | Login password.
+PORT | Optional, default "21" | FTP control port.
+CONNECTION | Optional | Name of the connection. Give it with Open and use the same name in later calls in the
+  same request.
+TIMEOUT | Optional, default "30" | Seconds to wait for each reply.
+STOPONERROR | Optional, default "Yes" | Yes throws an Application exception when an operation fails. No just
+  sets `CFFTP.Succeeded` to NO and carries on.
+DIRECTORY | Required for ChangeDir, CreateDir, RemoveDir, ListDir, ExistsDir | Remote directory.
+NAME | Required for ListDir | Query that receives the listing: Name, Path, URL, Length, LastModified,
+  Attributes, IsDirectory and Mode.
+LOCALFILE | Required for GetFile, PutFile | Full path of the file on this server.
+REMOTEFILE | Required for GetFile, PutFile, ExistsFile | Name of the file on the FTP server.
+ITEM | Required for Remove, Exists | Remote file to delete or test.
+EXISTING | Required for Rename | Current remote name.
+NEW | Required for Rename | New remote name.
+FAILIFEXISTS | Optional, default "Yes" | For GetFile: fail if LOCALFILE already exists.
+TRANSFERMODE | Optional | Accepted for compatibility; KoldFusion always transfers in binary (image) mode.
+PASSIVE | Optional | Accepted for compatibility; KoldFusion always uses passive mode.
+PROXYSERVER | Optional | Accepted for compatibility; KoldFusion ignores it.
+RETRYCOUNT | Optional | Accepted for compatibility; KoldFusion ignores it.
+AGENTNAME | Optional | Accepted for compatibility; KoldFusion ignores it.
+usage:
+After every call, `CFFTP.Succeeded` is YES or NO, `CFFTP.ErrorCode` and `CFFTP.ErrorText` hold the FTP
+reply when something failed, and `CFFTP.ReturnValue` holds the answer of GetCurrentDir, ExistsDir, ExistsFile
+and Exists.
+
+Connections live until the end of the request; any connection you forget to close is closed for you.
+example:
+<!--- Is there an FTP server on this machine? Ask politely with STOPONERROR="No" --->
+<CFFTP ACTION="Open" SERVER="127.0.0.1" USERNAME="anonymous" PASSWORD="someone@localhost"
+       CONNECTION="Demo" TIMEOUT="10" STOPONERROR="No">
+<CFIF CFFTP.Succeeded>
+  <CFFTP ACTION="ListDir" CONNECTION="Demo" DIRECTORY="/" NAME="Files" STOPONERROR="No">
+  <CFFTP ACTION="Close" CONNECTION="Demo" STOPONERROR="No">
+  <CFIF IsDefined("Files")>
+    <TABLE BORDER=1 CELLPADDING=3>
+    <TR><TH>Name</TH><TH>Size</TH><TH>Directory?</TH></TR>
+    <CFOUTPUT QUERY="Files">
+    <TR><TD>#Name#</TD><TD>#Length#</TD><TD>#IsDirectory#</TD></TR>
+    </CFOUTPUT>
+    </TABLE>
+  </CFIF>
+<CFELSE>
+  <CFOUTPUT>
+  <TABLE BORDER=1 CELLPADDING=3>
+  <TR><TD>CFFTP.Succeeded</TD><TD>#CFFTP.Succeeded#</TD></TR>
+  <TR><TD>CFFTP.ErrorCode</TD><TD>#CFFTP.ErrorCode#</TD></TR>
+  <TR><TD>CFFTP.ErrorText</TD><TD>#CFFTP.ErrorText#</TD></TR>
+  </TABLE>
+  </CFOUTPUT>
+</CFIF>
+see: CFHTTP, CFFILE, CFDIRECTORY, CFTRY
+
+@tag CFLDAP
+category: Internet protocols
+summary: Queries and updates an LDAP directory server.
+desc:
+In ColdFusion 4.5, `CFLDAP` searches an LDAP directory, such as a company phone book, and returns the
+entries as a query; it can also add, modify and delete entries. KoldFusion recognizes the tag, but the Netscape
+Directory SDK it needs is not part of this server, so every call throws an Application exception.
+syntax:
+<CFLDAP SERVER="server_name"
+    PORT="port_number"
+    USERNAME="name"
+    PASSWORD="password"
+    ACTION="action"
+    NAME="name"
+    TIMEOUT="seconds"
+    MAXROWS="number"
+    START="distinguished_name"
+    SCOPE="scope"
+    ATTRIBUTES="attribute, attribute"
+    FILTER="filter"
+    SORT="attribute[, attribute]..."
+    DN="distinguished_name"
+    STARTROW="row_number"
+    MODIFYTYPE="replace">
+attrs:
+SERVER | Required | Host name or address of the LDAP server. It appears in the error message.
+PORT | Optional, default "389" | Accepted for compatibility; KoldFusion ignores it.
+USERNAME | Optional | User for an authenticated bind. Accepted for compatibility; KoldFusion ignores it.
+PASSWORD | Optional | Accepted for compatibility; KoldFusion ignores it.
+ACTION | Optional, default "Query" | Query, Add, Modify, ModifyDN or Delete. Accepted for compatibility;
+  KoldFusion ignores it.
+NAME | Required for Query | Name of the result query. Accepted for compatibility; KoldFusion ignores it.
+TIMEOUT | Optional | Accepted for compatibility; KoldFusion ignores it.
+MAXROWS | Optional | Accepted for compatibility; KoldFusion ignores it.
+START | Required for Query | Distinguished name where the search starts. Accepted for compatibility;
+  KoldFusion ignores it.
+SCOPE | Optional, default "OneLevel" | OneLevel, Base or Subtree. Accepted for compatibility; KoldFusion ignores it.
+ATTRIBUTES | Required for Query, Add, Modify | Attributes to return or set. Accepted for compatibility;
+  KoldFusion ignores it.
+FILTER | Optional, default "objectclass=*" | Search filter. Accepted for compatibility; KoldFusion ignores it.
+SORT | Optional | Accepted for compatibility; KoldFusion ignores it.
+DN | Required for Add, Modify, ModifyDN, Delete | Accepted for compatibility; KoldFusion ignores it.
+STARTROW | Optional | Accepted for compatibility; KoldFusion ignores it.
+MODIFYTYPE | Optional | Add, Delete or Replace. Accepted for compatibility; KoldFusion ignores it.
+usage:
+The exception has TYPE="Application", the message "Error processing CFLDAP" and a detail that names the
+server. Pages that may also run on a Windows NT ColdFusion server can catch it and fall back on a database
+lookup, as the example does with the Employees table.
+example:
+<CFTRY>
+  <CFLDAP ACTION="Query" SERVER="ldap.allair.example" NAME="People"
+          START="o=Allair, c=US" SCOPE="Subtree"
+          FILTER="(ou=Engineering)" ATTRIBUTES="cn,mail,telephoneNumber">
+  <CFCATCH TYPE="Application">
+    <CFOUTPUT><P><B>#CFCATCH.Message#:</B> #CFCATCH.Detail#</P></CFOUTPUT>
+    <!--- Use the company database as the phone book instead --->
+    <CFQUERY NAME="People" DATASOURCE="cfsnippets" MAXROWS="5">
+    SELECT LastName AS cn, Email AS mail, Phone AS telephoneNumber
+    FROM Employees WHERE Department = 'Engineering' ORDER BY LastName
+    </CFQUERY>
+  </CFCATCH>
+</CFTRY>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>cn</TH><TH>mail</TH><TH>telephoneNumber</TH></TR>
+<CFOUTPUT QUERY="People">
+<TR><TD>#cn#</TD><TD>#mail#</TD><TD>#telephoneNumber#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: CFQUERY, CFTRY, CFAUTHENTICATE
+
+@tag CFFILE
+category: File, directory and system
+summary: Uploads, reads, writes, copies, moves, renames and deletes files on the server.
+desc:
+`CFFILE` does all the file work a template needs. The ACTION attribute picks the operation: UPLOAD saves a
+file sent from a browser form, READ and READBINARY load a file into a variable, WRITE and APPEND create or
+extend a text file, and COPY, MOVE, RENAME and DELETE do what their names say.
+syntax:
+<CFFILE ACTION="UPLOAD"
+    FILEFIELD="formfield"
+    DESTINATION="full_path_name"
+    NAMECONFLICT="behavior"
+    ACCEPT="mime_type/file_type"
+    MODE="permission"
+    ATTRIBUTES="file_attributes">
+
+<CFFILE ACTION="READ" FILE="full_path_name" VARIABLE="var_name">
+<CFFILE ACTION="READBINARY" FILE="full_path_name" VARIABLE="var_name">
+<CFFILE ACTION="WRITE" FILE="full_path_name" OUTPUT="content"
+    ADDNEWLINE="Yes/No" MODE="permission" ATTRIBUTES="file_attributes">
+<CFFILE ACTION="APPEND" FILE="full_path_name" OUTPUT="content"
+    ADDNEWLINE="Yes/No" MODE="permission" ATTRIBUTES="file_attributes">
+<CFFILE ACTION="COPY" SOURCE="full_path_name" DESTINATION="full_path_name">
+<CFFILE ACTION="MOVE" SOURCE="full_path_name" DESTINATION="full_path_name">
+<CFFILE ACTION="RENAME" SOURCE="full_path_name" DESTINATION="full_path_name">
+<CFFILE ACTION="DELETE" FILE="full_path_name">
+attrs:
+ACTION | Required | UPLOAD, READ, READBINARY, WRITE, APPEND, COPY, MOVE, RENAME or DELETE.
+FILEFIELD | Required for UPLOAD | Name of the form field (INPUT TYPE="File") that holds the file. Give the
+  name without pound signs.
+DESTINATION | Required for UPLOAD, COPY, MOVE, RENAME | Target directory or full file name. If it is a
+  directory, the original file name is kept.
+NAMECONFLICT | Optional, default "Error" | For UPLOAD, what to do when the file already exists: Error (throw an
+  exception), Skip (save nothing), Overwrite, or MakeUnique (add a number to the name, as in photo1.gif).
+ACCEPT | Optional | For UPLOAD, comma-separated MIME types to accept, such as "image/gif, image/jpeg" or
+  "image/*". Anything else is refused with an exception.
+FILE | Required for READ, READBINARY, WRITE, APPEND, DELETE | Full path of the file.
+VARIABLE | Required for READ, READBINARY | Variable that receives the contents: a string for READ, a binary
+  object for READBINARY (see `ToBase64` and `IsBinary`).
+OUTPUT | Required for WRITE, APPEND | The text to write. A binary object is written byte for byte.
+ADDNEWLINE | Optional, default "Yes" | For WRITE and APPEND, Yes adds a newline after OUTPUT.
+SOURCE | Required for COPY, MOVE, RENAME | Full path of the existing file.
+MODE | Optional | UNIX permissions as three octal digits, such as 644 or 755.
+ATTRIBUTES | Optional | Windows file attributes (ReadOnly, Hidden, Normal). Accepted for compatibility;
+  KoldFusion ignores it.
+usage:
+Always use full paths; `GetTempDirectory`, `ExpandPath` and `GetDirectoryFromPath(GetCurrentTemplatePath())`
+help you build them. Failures throw an Application exception with the message "Error processing CFFILE"
+and the reason in the detail.
+
+After an UPLOAD, the variables below describe what happened. They are in the `CFFILE` structure, and also in
+`File` for templates written for ColdFusion 3.x:
+
+| Variable | Contents |
+| CFFILE.ClientDirectory, ClientFile, ClientFileName, ClientFileExt | Where the file came from on the browser's machine |
+| CFFILE.ServerDirectory, ServerFile, ServerFileName, ServerFileExt | Where it was saved on the server |
+| CFFILE.AttemptedServerFile | The name it would have had without MakeUnique |
+| CFFILE.ContentType, ContentSubType | MIME type, such as image and gif |
+| CFFILE.FileSize, OldFileSize | Size of the upload, and of the file it replaced |
+| CFFILE.FileExisted, FileWasSaved, FileWasOverwritten, FileWasRenamed, FileWasAppended | YES or NO |
+| CFFILE.TimeCreated, TimeLastModified, DateLastAccessed | Date/time values |
+
+The upload form must use METHOD="POST" and ENCTYPE="multipart/form-data". Restricting the tag is possible on
+the Basic Security page of the Administrator.
+example:
+<CFSET Scratch = GetTempDirectory() & "cffile_demo.txt">
+<CFFILE ACTION="WRITE" FILE="#Scratch#" OUTPUT="Line 1: written #DateFormat(Now(), 'mmm d, yyyy')#">
+<CFFILE ACTION="APPEND" FILE="#Scratch#" OUTPUT="Line 2: appended">
+<CFFILE ACTION="READ" FILE="#Scratch#" VARIABLE="Contents">
+<CFFILE ACTION="DELETE" FILE="#Scratch#">
+<CFOUTPUT><P>WRITE, APPEND, READ and DELETE:</P><PRE>#HTMLEditFormat(Contents)#</PRE></CFOUTPUT>
+
+<CFIF IsDefined("Form.Upload") AND Len(Form.Upload)>
+  <CFFILE ACTION="UPLOAD" FILEFIELD="Upload" DESTINATION="#GetTempDirectory()#" NAMECONFLICT="MakeUnique">
+  <CFOUTPUT>
+  <TABLE BORDER=1 CELLPADDING=3>
+  <TR><TD>ClientFile</TD><TD>#HTMLEditFormat(CFFILE.ClientFile)#</TD></TR>
+  <TR><TD>ServerFile</TD><TD>#HTMLEditFormat(CFFILE.ServerFile)#</TD></TR>
+  <TR><TD>FileSize</TD><TD>#CFFILE.FileSize# bytes</TD></TR>
+  <TR><TD>ContentType</TD><TD>#CFFILE.ContentType#/#CFFILE.ContentSubType#</TD></TR>
+  <TR><TD>FileWasRenamed</TD><TD>#CFFILE.FileWasRenamed#</TD></TR>
+  </TABLE>
+  </CFOUTPUT>
+  <!--- This is only a demo: throw the upload away again --->
+  <CFFILE ACTION="DELETE" FILE="#CFFILE.ServerDirectory#/#CFFILE.ServerFile#">
+</CFIF>
+
+<FORM ACTION="cffile.cfm" METHOD="POST" ENCTYPE="multipart/form-data">
+Upload a small file: <INPUT TYPE="File" NAME="Upload">
+<INPUT TYPE="Submit" VALUE="Upload">
+</FORM>
+see: CFDIRECTORY, GetTempDirectory, ExpandPath, FileExists, CFCONTENT
+
+@tag CFDIRECTORY
+category: File, directory and system
+summary: Lists, creates, renames and deletes directories on the server.
+desc:
+`CFDIRECTORY` with ACTION="LIST" returns the contents of a directory as a query, one row per file or
+subdirectory. The other actions create, rename and delete directories.
+syntax:
+<CFDIRECTORY ACTION="directory_action"
+    DIRECTORY="full_path_name"
+    NAME="query_name"
+    FILTER="list_filter"
+    SORT="sort_specification"
+    MODE="permission"
+    NEWDIRECTORY="new_directory_name">
+attrs:
+ACTION | Optional, default "LIST" | LIST, CREATE, DELETE or RENAME.
+DIRECTORY | Required | Full path of the directory to work on.
+NAME | Required for LIST | Name of the query that receives the listing.
+FILTER | Optional | For LIST, a wildcard pattern such as `*.cfm` or `report??.txt`. Matching ignores case.
+SORT | Optional, default "Name ASC" | For LIST, comma-separated columns, each optionally followed by ASC or DESC,
+  for example "Type, Size DESC".
+MODE | Optional | For CREATE, UNIX permissions. Accepted for compatibility; KoldFusion creates directories with 755.
+NEWDIRECTORY | Required for RENAME | The new name. A plain name renames the directory where it is; a full path
+  moves it.
+usage:
+The LIST query has these columns:
+
+| Column | Contents |
+| Name | File or directory name |
+| Size | Size in bytes (0 for directories) |
+| Type | File or Dir |
+| DateLastModified | Date and time of the last change |
+| Attributes | R for read-only, H for hidden (UNIX dot files), otherwise empty |
+| Mode | UNIX permissions in octal, such as 644 |
+
+Without a FILTER the listing includes the `.` and `..` entries, just as on Windows NT; skip them with
+`<CFIF Type IS "File">` or a FILTER. DELETE only removes an empty directory. Errors throw an Application
+exception with the reason in the detail.
+example:
+<!--- Build a little directory in the temp area, list it, and clean up --->
+<CFSET Demo = GetTempDirectory() & "cfdirectory_demo">
+<CFIF NOT DirectoryExists(Demo)>
+  <CFDIRECTORY ACTION="CREATE" DIRECTORY="#Demo#">
+</CFIF>
+<CFFILE ACTION="WRITE" FILE="#Demo#/readme.txt" OUTPUT="Read me first.">
+<CFFILE ACTION="WRITE" FILE="#Demo#/index.cfm" OUTPUT="<CFOUTPUT>##Now()##</CFOUTPUT>">
+<CFFILE ACTION="WRITE" FILE="#Demo#/notes.txt" OUTPUT="Remember to test on Netscape 4.7 too.">
+
+<CFDIRECTORY ACTION="LIST" DIRECTORY="#Demo#" NAME="Listing" FILTER="*.*" SORT="Size DESC">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Name</TH><TH>Size</TH><TH>Type</TH><TH>Mode</TH></TR>
+<CFOUTPUT QUERY="Listing">
+<TR><TD>#Name#</TD><TD>#Size#</TD><TD>#Type#</TD><TD>#Mode#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+
+<CFLOOP QUERY="Listing">
+  <CFFILE ACTION="DELETE" FILE="#Demo#/#Listing.Name#">
+</CFLOOP>
+<CFDIRECTORY ACTION="DELETE" DIRECTORY="#Demo#">
+<CFOUTPUT><P>Directory removed again: #YesNoFormat(NOT DirectoryExists(Demo))#</P></CFOUTPUT>
+see: CFFILE, DirectoryExists, GetTempDirectory, ExpandPath
+
+@tag CFREGISTRY
+category: File, directory and system
+summary: Reads, writes and deletes keys and values in the system registry.
+desc:
+`CFREGISTRY` works with the registry, the tree of keys and values where Windows keeps its settings.
+KoldFusion for UNIX brings its own registry, stored in REGEDIT4 format in `registry/kf.registry` under the
+install directory; it holds the server settings and anything your applications put there.
+syntax:
+<CFREGISTRY ACTION="GetAll" BRANCH="branch" NAME="query_name" TYPE="data_type" SORT="criteria">
+<CFREGISTRY ACTION="Get" BRANCH="branch" ENTRY="key_or_value" VARIABLE="variable" TYPE="data_type">
+<CFREGISTRY ACTION="Set" BRANCH="branch" ENTRY="key_or_value" TYPE="value_type" VALUE="data">
+<CFREGISTRY ACTION="Delete" BRANCH="branch" ENTRY="key_or_value">
+attrs:
+ACTION | Required | GetAll (list the entries of a key), Get (read one value), Set (create or change a value or
+  subkey) or Delete (remove a value, or a whole key).
+BRANCH | Required | Full name of the key, such as `HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion`. HKLM is
+  accepted as short for HKEY_LOCAL_MACHINE.
+NAME | Required for GetAll | Query that receives the entries, with the columns Entry, Type and Value.
+ENTRY | Required for Get and Set; optional for Delete | The value (or, for Set with TYPE="Key", the subkey) to
+  work on. Delete without ENTRY deletes the key named by BRANCH.
+VARIABLE | Required for Get | Variable that receives the value. A missing value gives an empty string.
+TYPE | Optional, default "String" | For GetAll: String, DWord, Key or Any (which entries to list). For Set:
+  String, DWord or Key.
+VALUE | Optional | For Set, the data to store.
+SORT | Optional | For GetAll, columns to sort on, such as "Entry ASC".
+usage:
+For compatibility with templates written for ColdFusion on Windows NT, any branch that mentions
+`SOFTWARE\Allaire\ColdFusion` is quietly redirected to `SOFTWARE\Allair\KoldFusion`, so the old scripts that
+peek at the server's settings keep working.
+
+The registry is shared by the whole server, including the Administrator. Writing to the wrong key can
+break your data sources or settings; keep your own data under a key of its own. Restricting the tag is
+possible on the Basic Security page of the Administrator.
+example:
+<CFSET Branch = "HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\Snippets">
+<!--- Create a subkey with two values --->
+<CFREGISTRY ACTION="Set" BRANCH="#Branch#" ENTRY="Demo" TYPE="Key">
+<CFREGISTRY ACTION="Set" BRANCH="#Branch#\Demo" ENTRY="Greeting" TYPE="String" VALUE="Hello, registry">
+<CFREGISTRY ACTION="Set" BRANCH="#Branch#\Demo" ENTRY="Visits" TYPE="DWord" VALUE="1999">
+
+<CFREGISTRY ACTION="GetAll" BRANCH="#Branch#\Demo" NAME="Entries" TYPE="Any" SORT="Entry">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Entry</TH><TH>Type</TH><TH>Value</TH></TR>
+<CFOUTPUT QUERY="Entries">
+<TR><TD>#Entry#</TD><TD>#Type#</TD><TD>#Value#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+
+<CFREGISTRY ACTION="Get" BRANCH="#Branch#\Demo" ENTRY="Greeting" VARIABLE="Said">
+<CFOUTPUT><P>Get returned: #Said#</P></CFOUTPUT>
+
+<!--- Clean up: remove the whole Demo key --->
+<CFREGISTRY ACTION="Delete" BRANCH="#Branch#\Demo">
+<CFREGISTRY ACTION="GetAll" BRANCH="#Branch#" NAME="Left" TYPE="Key">
+<CFOUTPUT><P>Subkeys left under Snippets: #Left.RecordCount#</P></CFOUTPUT>
+see: CFFILE, GetProfileString, SetProfileString, CFAPPLICATION
+
+@tag CFEXECUTE
+category: File, directory and system
+new45: yes
+summary: Runs a program on the server and captures what it prints.
+desc:
+`CFEXECUTE` starts a program on the server machine, such as a shell utility or a batch report. Its output
+goes into the page at the point of the tag, or into a file.
+syntax:
+<CFEXECUTE NAME="application_name"
+    ARGUMENTS="command_line_arguments"
+    OUTPUTFILE="output_file_name"
+    TIMEOUT="timeout_in_seconds">
+</CFEXECUTE>
+attrs:
+NAME | Required | The program to run. A full path such as /bin/date is safest; a bare name is looked up in the
+  server's PATH.
+ARGUMENTS | Optional | Arguments for the program, separated by spaces.
+OUTPUTFILE | Optional | File that receives the output instead of the page.
+TIMEOUT | Optional, default "0" | Seconds to wait for the program. With 0, KoldFusion starts the program and
+  carries on at once without collecting any output.
+usage:
+The program runs directly, not through a shell: pipes, redirection and wildcards such as `*.txt` are passed
+along literally. Error output (stderr) is captured together with normal output. A program that cannot be
+found simply produces no output.
+
+If the program is still running when TIMEOUT expires, it is stopped and an Application exception
+("Timeout period expired for CFEXECUTE.") is thrown. Always give a TIMEOUT if you want to see the output.
+The end tag is required. Because this tag can run anything the server account may run, it can be
+restricted on the Basic Security page of the Administrator.
+example:
+<P>The server's clock says:
+<B><CFEXECUTE NAME="/bin/date" ARGUMENTS="+%m/%d/%Y" TIMEOUT="5"></CFEXECUTE></B></P>
+
+<!--- Capture output in a file, then read it back --->
+<CFSET OutFile = GetTempDirectory() & "cfexecute_demo.txt">
+<CFEXECUTE NAME="/bin/echo" ARGUMENTS="Greetings from the command line" OUTPUTFILE="#OutFile#" TIMEOUT="5">
+</CFEXECUTE>
+<CFFILE ACTION="READ" FILE="#OutFile#" VARIABLE="Captured">
+<CFFILE ACTION="DELETE" FILE="#OutFile#">
+<CFOUTPUT><P>From OUTPUTFILE: <TT>#HTMLEditFormat(Trim(Captured))#</TT></P></CFOUTPUT>
+
+<!--- A program that takes too long --->
+<CFTRY>
+  <CFEXECUTE NAME="/bin/sleep" ARGUMENTS="5" TIMEOUT="1"></CFEXECUTE>
+  <CFCATCH TYPE="Application">
+    <CFOUTPUT><P><B>#CFCATCH.Message#</B> #CFCATCH.Detail#</P></CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+see: CFFILE, CFSCHEDULE, CFTRY, GetTempDirectory
+
+@tag CFSCHEDULE
+category: File, directory and system
+summary: Creates, updates, deletes and runs tasks in the KoldFusion scheduler.
+desc:
+The KoldFusion scheduler requests URLs on a timetable, for example to rebuild a report every night or to
+publish a dynamic page as a static HTML file. `CFSCHEDULE` lets a template manage these tasks; they are the
+same tasks you see on the Scheduled Tasks page of the Administrator.
+syntax:
+<CFSCHEDULE ACTION="Update"
+    TASK="taskname"
+    OPERATION="HTTPRequest"
+    URL="URL"
+    STARTDATE="date"
+    STARTTIME="time"
+    INTERVAL="seconds"
+    ENDDATE="date"
+    ENDTIME="time"
+    REQUESTTIMEOUT="seconds"
+    USERNAME="username"
+    PASSWORD="password"
+    PROXYSERVER="hostname"
+    PUBLISH="Yes/No"
+    PATH="path_to_file"
+    FILE="filename"
+    RESOLVEURL="Yes/No">
+
+<CFSCHEDULE ACTION="Delete" TASK="taskname">
+<CFSCHEDULE ACTION="Run" TASK="taskname">
+attrs:
+ACTION | Required | Update creates the task or changes it; Delete removes it; Run starts it right away.
+TASK | Required | Name of the task.
+OPERATION | Required for Update | Must be HTTPRequest.
+URL | Required for Update | The page to request. A URL that starts with / is requested from this server.
+STARTDATE | Required for Update | Date of the first run.
+STARTTIME | Required for Update | Time of the first run.
+INTERVAL | Required for Update | Once, Daily, Weekly, Monthly, or a number of seconds between runs (at least 60).
+ENDDATE | Optional | Last date the task runs.
+ENDTIME | Optional | Time after which the task stops. With a number of seconds as INTERVAL, the task runs only
+  between STARTTIME and ENDTIME each day.
+REQUESTTIMEOUT | Optional, default "30" | Seconds to wait for the page.
+USERNAME | Optional | User name if the URL is protected.
+PASSWORD | Optional | Password if the URL is protected. Stored scrambled.
+PROXYSERVER | Optional | Proxy server for the request.
+PUBLISH | Optional, default "No" | Yes saves the page that comes back into PATH and FILE.
+PATH | Required if PUBLISH is Yes | Directory for the published file.
+FILE | Required if PUBLISH is Yes | Name of the published file.
+RESOLVEURL | Optional | Stored with the task. Accepted for compatibility; KoldFusion does not rewrite links in
+  published pages.
+usage:
+Tasks are kept in the registry under `HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion\Schedule`,
+one subkey per task. The scheduler looks for due tasks once a minute; Run starts the task in the background
+and returns immediately. Every run is written to `schedule.log`.
+
+Deleting or running a task that does not exist throws an Application exception.
+example:
+<!--- Create a task, look at what was stored, and delete it again --->
+<CFSET Tomorrow = DateFormat(DateAdd("d", 1, Now()), "mm/dd/yyyy")>
+<CFSCHEDULE ACTION="Update" TASK="SnippetDemoTask" OPERATION="HTTPRequest"
+            URL="/CFDOCS/index.cfm" STARTDATE="#Tomorrow#" STARTTIME="2:00 AM"
+            INTERVAL="Daily" REQUESTTIMEOUT="60" PUBLISH="No">
+
+<CFREGISTRY ACTION="GetAll" NAME="Stored" TYPE="String" SORT="Entry"
+  BRANCH="HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion\Schedule\SnippetDemoTask">
+<P>The scheduler now knows this task:</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Setting</TH><TH>Value</TH></TR>
+<CFOUTPUT QUERY="Stored">
+<CFIF Len(Value)><TR><TD>#Entry#</TD><TD>#Value#</TD></TR></CFIF>
+</CFOUTPUT>
+</TABLE>
+
+<CFSCHEDULE ACTION="Delete" TASK="SnippetDemoTask">
+<CFTRY>
+  <CFSCHEDULE ACTION="Delete" TASK="SnippetDemoTask">
+  <CFCATCH TYPE="Application">
+    <CFOUTPUT><P>Deleted. A second Delete says: <I>#CFCATCH.Detail#</I></P></CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+see: CFHTTP, CFEXECUTE, CFREGISTRY, CreateTimeSpan
+
+@tag CFWDDX
+category: Data interchange
+summary: Converts CFML data to and from WDDX packets, and to JavaScript.
+desc:
+WDDX (Web Distributed Data Exchange) is an XML format for passing data between programs, servers and
+browsers. `CFWDDX` serializes any CFML value (strings, numbers, dates, arrays, structures, queries) into a
+WDDX packet, turns a packet back into CFML, or writes JavaScript that rebuilds the data in the browser.
+syntax:
+<CFWDDX ACTION="action"
+    INPUT="inputdata"
+    OUTPUT="resultvariable"
+    TOPLEVELVARIABLE="toplevelvariablenameforjavascript"
+    USETIMEZONEINFO="Yes/No">
+attrs:
+ACTION | Required | CFML2WDDX (CFML to packet), WDDX2CFML (packet to CFML), CFML2JS (CFML to JavaScript) or
+  WDDX2JS (packet to JavaScript).
+INPUT | Required | The value to convert, usually written as an expression such as `#MyStruct#`.
+OUTPUT | Optional | Variable that receives the result. Without it, the result is written into the page.
+TOPLEVELVARIABLE | Required for CFML2JS and WDDX2JS | Name of the JavaScript variable to create.
+USETIMEZONEINFO | Optional, default "Yes" | Whether serialized dates carry the server's time-zone offset.
+usage:
+Packets are plain text, so you can store them in a database column, a client variable or a hidden form
+field, or send them to another server with `CFHTTP`. A malformed packet throws an Application exception
+("WDDX packet parse error"). `IsWDDX` tells you whether a string is a valid packet before you deserialize it.
+
+The JavaScript produced by CFML2JS and WDDX2JS creates `Object`, `Array` and `Date` values. Structure keys
+come out in lower case. Put it inside a `<SCRIPT>` block to give your client-side code the same data as
+the server.
+example:
+<CFSET Order = StructNew()>
+<CFSET Order.Customer = "Pat Kowal">
+<CFSET Order.Placed = CreateDateTime(1999, 12, 31, 23, 59, 0)>
+<CFSET Order.Items = ListToArray("Modem,Mouse pad,Y2K patch disk")>
+
+<CFWDDX ACTION="CFML2WDDX" INPUT="#Order#" OUTPUT="Packet">
+<CFWDDX ACTION="WDDX2CFML" INPUT="#Packet#" OUTPUT="Copy">
+<CFWDDX ACTION="CFML2JS" INPUT="#Order#" TOPLEVELVARIABLE="order" OUTPUT="Script">
+
+<CFOUTPUT>
+<P><B>The WDDX packet</B> (#Len(Packet)# characters, IsWDDX: #IsWDDX(Packet)#):</P>
+<PRE>#HTMLEditFormat(Replace(Packet, "><", ">#Chr(10)#<", "ALL"))#</PRE>
+<P><B>Back in CFML:</B></P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>Customer</TD><TD>#Copy.Customer#</TD></TR>
+<TR><TD>Placed</TD><TD>#DateFormat(Copy.Placed, "mmmm d, yyyy")# #TimeFormat(Copy.Placed, "h:mm tt")#</TD></TR>
+<TR><TD>Items</TD><TD>#ArrayToList(Copy.Items, ", ")#</TD></TR>
+</TABLE>
+<P><B>As JavaScript:</B></P>
+<PRE>#HTMLEditFormat(Script)#</PRE>
+</CFOUTPUT>
+see: IsWDDX, CFHTTP, StructNew, ArrayNew

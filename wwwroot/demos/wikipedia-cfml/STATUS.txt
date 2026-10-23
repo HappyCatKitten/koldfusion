@@ -1,0 +1,11 @@
+# KoldFusion Demo Gallery status file, read by /demos/index.cfm (results of running every file on KoldFusion).
+# One line per file:  file | status | note | run
+#   status: works, partial, cf5 (needs CF5+), cfmx (needs CFMX+), fails, include (not a page), shim (gallery companion)
+#   run:    optional page to open instead of the file ("-" = no Run link)
+@title Wikipedia's custom tag example
+@blurb The canonical <CF_ADDITION> example from the "ColdFusion Markup Language" article: a custom tag that writes its result into the CALLER scope.
+@order 10
+call_addition.cfm               | works   | Calls <cf_addition>, which sets CALLER.addition; the page itself prints nothing (see the runner) | run_addition.cfm
+addition.cfm                    | include | The custom tag (CFMX "/>" closers, accepted by KoldFusion) | run_addition.cfm
+addition45.cfm    | include | CF 4.5 port of addition.cfm, called as <CF_ADDITION45> | -
+run_addition.cfm  | shim    | Runner: calls the port and prints CALLER.addition, with a little form |

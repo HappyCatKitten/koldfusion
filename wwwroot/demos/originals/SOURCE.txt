@@ -1,0 +1,40 @@
+Source:  KoldFusion Demo Gallery originals - written for this gallery, not taken from any repository
+Author:  The KoldFusion project (Demo Gallery), 2026
+License: MIT (full text at the bottom of this file)
+Description: Original demo scripts written in pure CFML 4.5 (no user-defined functions, no CFMX syntax; CFSCRIPT only
+         where 4.5 allowed it) to show off what a 1999 application server could do: server-side graphics, session
+         state, a recursive custom tag, WDDX, CFHTTP, a database-backed guestbook and hit counter, and the obligatory
+         Y2K page.
+Files:
+  mandelbrot.cfm    - Mandelbrot set as a colour <TD> table or ASCII art; click to zoom. CFSCRIPT loops, ArrayNew(2).
+  life.cfm          - Conway's Game of Life; board in SESSION scope, one generation per click; click cells to flip.
+  tictactoe.cfm     - Tic-Tac-Toe against the server (win/block/centre/corner strategy); board and score in SESSION.
+  magic8ball.cfm    - Magic 8-Ball: RandRange over a list of the 20 classic answers; form post, JavaScript validation.
+  guestbook.cfm     - 1999-style guestbook; DSN demos table Guestbook; CFQUERYPARAM; hidden _required validation; paging.
+  counter.cfm       - "This page has been visited N times" with digit GIFs; DSN demos table Counters; named CFLOCK + CFTRANSACTION.
+  hanoi.cfm         - Towers of Hanoi solved by hanoi_move.cfm, a custom tag that calls itself through CFMODULE
+                      (recursion without UDFs); step-through or META REFRESH animation.
+  hanoi_move.cfm    - the recursive custom tag used by hanoi.cfm (not a page of its own).
+  calendar.cfm      - month calendar with week numbers, today marker, fixed and floating holidays, jump form.
+  wddx.cfm          - WDDX round trip: CFML2WDDX, WDDX2CFML, CFML2JS, IsWDDX, plus paste-your-own-packet.
+  serverheader.cfm  - CFHTTP fetches a page from this server over loopback and shows the Server: header and all others.
+  y2k.cfm           - Y2K countdown / days since Y2K, Y2K38 countdown and a date-function Y2K compliance self-test.
+  _footer.cfm       - shared footer included by every original.
+Datasource: demos (tables Guestbook, Counters - see kfroot/seed/demos.sql) for guestbook.cfm and counter.cfm; none for the rest.
+
+Licence text (MIT):
+  Copyright (c) 2026 the KoldFusion project
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of these scripts and associated
+  files (the "Software"), to deal in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+  persons to whom the Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all copies or substantial portions
+  of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+  THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.

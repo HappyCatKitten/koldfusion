@@ -1,0 +1,1282 @@
+# CFML Language Reference - string functions.
+# Format: see the docstring at the top of tools/mkdocs.py.
+
+@func Asc
+category: String functions
+summary: Returns the ASCII code of the first character of a string.
+desc:
+Returns the character code (0-255) of the first character of a string. The rest of the string is ignored.
+syntax:
+Asc(string)
+params:
+string | Any string. Only its first character is examined.
+returns:
+A number from 1 to 255, or 0 if the string is empty.
+usage:
+`Chr` does the opposite trip. `Asc` is handy for spotting stray control characters (a tab is 9, a carriage
+return 13, a line feed 10) in text that came from a form or a file.
+example:
+<CFSET Letters = "A,a,Z,0,~">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Character</TH><TH>Asc()</TH></TR>
+<CFLOOP LIST="#Letters#" INDEX="ch">
+<CFOUTPUT><TR><TD ALIGN="CENTER">#ch#</TD><TD ALIGN="RIGHT">#Asc(ch)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFOUTPUT><P>Asc("KoldFusion") looks only at the K: #Asc("KoldFusion")#</P></CFOUTPUT>
+see: Chr, Mid, Left
+
+@func Chr
+category: String functions
+summary: Returns the character for an ASCII code.
+desc:
+Returns a one-character string for a character code from 0 to 255.
+syntax:
+Chr(number)
+params:
+number | A character code from 0 to 255.
+returns:
+A string containing that one character. `Chr(0)` returns an empty string.
+usage:
+`Chr` is the usual way to put characters into a string that are awkward to type in a CFML expression:
+`Chr(13) & Chr(10)` is a carriage return/line feed pair (needed between e-mail headers), `Chr(9)` is a tab
+and `Chr(34)` a double quote. `Asc` converts the other way.
+example:
+<CFSET CRLF = Chr(13) & Chr(10)>
+<CFOUTPUT>
+<P>Codes 65 to 74 spell:
+<CFLOOP INDEX="i" FROM="65" TO="74">#Chr(i)#</CFLOOP></P>
+<P>A quote in a string: He said #Chr(34)#Hello#Chr(34)#</P>
+<P>Length of a CR/LF pair: #Len(CRLF)# characters</P>
+</CFOUTPUT>
+see: Asc, StripCR, RepeatString
+
+@func CJustify
+category: String functions
+summary: Centers a string in a field of a given width.
+desc:
+Pads a string with spaces on both sides so that it is centered in a field of the given length.
+syntax:
+CJustify(string, length)
+params:
+string | The string to center.
+length | Width of the field in characters.
+returns:
+The padded string. If the string is already as long as the field (or longer), it is returned unchanged.
+usage:
+When the padding cannot be split evenly, the extra space goes on the right. Browsers collapse runs of spaces,
+so show the result inside `PRE` tags (or a fixed-width `CFMAIL` message) to see the effect.
+`LJustify` and `RJustify` align to the left and right.
+example:
+<CFSET Items = "Y2K,KoldFusion,Netscape">
+<PRE>
+<CFLOOP LIST="#Items#" INDEX="item"><CFOUTPUT>[#CJustify(item, 14)#]
+</CFOUTPUT></CFLOOP></PRE>
+see: LJustify, RJustify, Trim, RepeatString
+
+@func Compare
+category: String functions
+summary: Compares two strings, case-sensitively.
+desc:
+Performs a case-sensitive comparison of two strings, character by character, and tells you which one sorts
+first.
+syntax:
+Compare(string1, string2)
+params:
+string1 | The first string.
+string2 | The second string.
+returns:
+-1 if string1 is less than string2, 0 if they are identical, 1 if string1 is greater than string2.
+usage:
+Characters are compared by their character codes, so all uppercase letters sort before all lowercase
+letters: "Zebra" comes before "apple". Use `CompareNoCase` to ignore case.
+
+The `EQ` operator in a `CFIF` is case-insensitive; `Compare(a, b) EQ 0` is how you test for an exact,
+case-sensitive match, for example when checking a password.
+example:
+<CFSET Pairs = "apple/apple,apple/Apple,apple/banana,Zebra/apple">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String 1</TH><TH>String 2</TH><TH>Compare</TH><TH>CompareNoCase</TH></TR>
+<CFLOOP LIST="#Pairs#" INDEX="p">
+<CFSET a = ListFirst(p, "/")><CFSET b = ListLast(p, "/")>
+<CFOUTPUT><TR><TD>#a#</TD><TD>#b#</TD>
+<TD ALIGN="CENTER">#Compare(a, b)#</TD><TD ALIGN="CENTER">#CompareNoCase(a, b)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: CompareNoCase, Find, ListSort
+
+@func CompareNoCase
+category: String functions
+summary: Compares two strings, ignoring case.
+desc:
+Compares two strings without regard to upper or lower case and tells you which one sorts first.
+syntax:
+CompareNoCase(string1, string2)
+params:
+string1 | The first string.
+string2 | The second string.
+returns:
+-1 if string1 is less than string2, 0 if they are equal ignoring case, 1 if string1 is greater than string2.
+usage:
+This is the comparison behind the `EQ`, `LT` and `GT` operators when they compare strings. Use `Compare`
+when case matters.
+example:
+<CFSET Names = "smith,Smith,SMITH,Smythe">
+<UL>
+<CFLOOP LIST="#Names#" INDEX="n">
+<CFOUTPUT><LI>CompareNoCase("Smith", "#n#") = #CompareNoCase("Smith", n)#</CFOUTPUT>
+</CFLOOP>
+</UL>
+see: Compare, FindNoCase, ListSort
+
+@func Find
+category: String functions
+summary: Finds the first occurrence of a substring, case-sensitively.
+desc:
+Searches a string for a substring and returns the position where it first appears. The search is
+case-sensitive.
+syntax:
+Find(substring, string [, start ])
+params:
+substring | The text to look for.
+string | The string to search.
+start | Optional. Position at which to start searching. Default 1.
+returns:
+The position (1 = first character) of the first occurrence, or 0 if the substring is not found or is empty.
+usage:
+The argument order trips up everyone at least once: the thing you are looking for comes first. Use
+`FindNoCase` for a case-insensitive search, `FindOneOf` to look for any one of several characters, and
+`REFind` to search with a regular expression.
+
+To find every occurrence, call `Find` in a loop, starting each search one character after the last hit.
+example:
+<CFSET Text = "To be or not to be, that is the question">
+<CFSET Pos = Find("be", Text)>
+<CFOUTPUT>
+<P><I>#Text#</I></P>
+<UL>
+<LI>Find("be", Text) = #Pos#
+<LI>Next "be" after that: #Find("be", Text, Pos + 1)#
+<LI>Find("To", Text) = #Find("To", Text)#, but Find("TO", Text) = #Find("TO", Text)#
+<LI>Find("Hamlet", Text) = #Find("Hamlet", Text)#
+</UL>
+</CFOUTPUT>
+see: FindNoCase, FindOneOf, REFind, Replace, ListFind
+
+@func FindNoCase
+category: String functions
+summary: Finds the first occurrence of a substring, ignoring case.
+desc:
+Searches a string for a substring without regard to case and returns the position where it first appears.
+syntax:
+FindNoCase(substring, string [, start ])
+params:
+substring | The text to look for.
+string | The string to search.
+start | Optional. Position at which to start searching. Default 1.
+returns:
+The position of the first occurrence, or 0 if the substring is not found.
+usage:
+Works exactly like `Find` except that "Y2K", "y2k" and "Y2k" are all the same to it. A quick way to
+test whether a word appears at all is `FindNoCase(word, text) GT 0`.
+example:
+<CFQUERY NAME="GetCourses" DATASOURCE="cfsnippets">
+SELECT CorName FROM CourseList ORDER BY CorName
+</CFQUERY>
+<P>Courses with "intro" anywhere in the name:</P>
+<UL>
+<CFOUTPUT QUERY="GetCourses">
+<CFIF FindNoCase("intro", CorName)><LI>#CorName# (at position #FindNoCase("intro", CorName)#)</CFIF>
+</CFOUTPUT>
+</UL>
+see: Find, REFindNoCase, ReplaceNoCase, ListFindNoCase
+
+@func FindOneOf
+category: String functions
+summary: Finds the first occurrence of any character from a set.
+desc:
+Returns the position of the first character in a string that also appears in a set of characters.
+The search is case-sensitive.
+syntax:
+FindOneOf(set, string [, start ])
+params:
+set | A string of characters to look for. Each character is searched for on its own.
+string | The string to search.
+start | Optional. Position at which to start searching. Default 1.
+returns:
+The position of the first character found, or 0 if none of the characters occur.
+usage:
+Useful for checking input for forbidden characters, for example `FindOneOf("<>""", Form.Name)`.
+To search for a whole substring use `Find`; for patterns use `REFind`.
+example:
+<CFSET Words = "rhythm,KoldFusion,crypt,spoon">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Word</TH><TH>First vowel at</TH></TR>
+<CFLOOP LIST="#Words#" INDEX="w">
+<CFOUTPUT><TR><TD>#w#</TD><TD ALIGN="CENTER">#FindOneOf("aeiouAEIOU", w)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Find, SpanExcluding, SpanIncluding, REFind
+
+@func GetToken
+category: String functions
+summary: Returns the nth token of a string, given a set of delimiters.
+desc:
+Splits a string into tokens at any of the delimiter characters and returns the token at the given position.
+syntax:
+GetToken(string, index [, delimiters ])
+params:
+string | The string to take apart.
+index | Which token to return, counting from 1.
+delimiters | Optional. A string of delimiter characters; each one separates tokens. Default: space, tab,
+  carriage return and line feed.
+returns:
+The token, or an empty string if there are fewer tokens than index.
+usage:
+Runs of delimiters count as a single break, so "one  two" (two spaces) still has two tokens. Unlike
+`ListGetAt`, an index past the end is not an error: you simply get an empty string, which makes
+`GetToken` convenient for parsing lines from a text file.
+example:
+<CFSET Line = "Sales    Boston   MA  02110">
+<CFSET Path = "C:\CFUSION\CustomTags\cf_hello.cfm">
+<CFOUTPUT>
+<UL>
+<LI>Token 2 of "#Line#": #GetToken(Line, 2)#
+<LI>Token 4: #GetToken(Line, 4)#
+<LI>Token 9: [#GetToken(Line, 9)#]
+<LI>Token 3 of the path, split at "\": #GetToken(Path, 3, "\")#
+</UL>
+</CFOUTPUT>
+see: ListGetAt, SpanExcluding, Mid, ListLen
+
+@func Insert
+category: String functions
+summary: Inserts a substring into a string after a given position.
+desc:
+Inserts a substring into a string after the specified character position.
+syntax:
+Insert(substring, string, position)
+params:
+substring | The text to insert.
+string | The string to insert it into.
+position | The number of characters to keep before the inserted text. 0 inserts at the front;
+  `Len(string)` appends at the end.
+returns:
+The new string.
+usage:
+A position less than 0 or greater than the length of the string causes an error. Note that the substring
+comes first, as with `Find`.
+example:
+<CFSET Phone = "6175551234">
+<CFSET Pretty = Insert(") ", Phone, 3)>
+<CFSET Pretty = Insert("-", Pretty, 8)>
+<CFSET Pretty = Insert("(", Pretty, 0)>
+<CFOUTPUT>
+<P>Raw: #Phone#<BR>
+Formatted: #Pretty#</P>
+<P>Appending: #Insert(".cfm", "index", 5)#</P>
+</CFOUTPUT>
+see: RemoveChars, Replace, Mid, Left
+
+@func LCase
+category: String functions
+summary: Converts a string to lowercase.
+desc:
+Returns a copy of the string with all uppercase letters converted to lowercase.
+syntax:
+LCase(string)
+params:
+string | The string to convert.
+returns:
+The string in lowercase.
+usage:
+Handy for normalizing e-mail addresses and file names before storing or comparing them. `UCase` goes the
+other way.
+example:
+<CFQUERY NAME="GetPeople" DATASOURCE="cfsnippets" MAXROWS="5">
+SELECT FirstName, LastName FROM Employees ORDER BY LastName
+</CFQUERY>
+<P>Suggested login names:</P>
+<UL>
+<CFOUTPUT QUERY="GetPeople">
+<LI>#FirstName# #LastName#: #LCase(Left(FirstName, 1) & LastName)#
+</CFOUTPUT>
+</UL>
+see: UCase, CompareNoCase, Trim
+
+@func Left
+category: String functions
+summary: Returns the leftmost characters of a string.
+desc:
+Returns the given number of characters from the beginning of a string.
+syntax:
+Left(string, count)
+params:
+string | The source string.
+count | How many characters to return. Must not be negative.
+returns:
+The first count characters. If count is larger than the string, the whole string is returned.
+usage:
+A common use is trimming long text for a summary line: `Left(Description, 40) & "..."`.
+`Right` takes characters from the end and `Mid` from the middle.
+example:
+<CFQUERY NAME="GetCourses" DATASOURCE="cfsnippets" MAXROWS="6">
+SELECT CorName, CorDesc FROM CourseList
+</CFQUERY>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Course</TH><TH>Description (first 30 characters)</TH></TR>
+<CFOUTPUT QUERY="GetCourses">
+<TR><TD>#CorName#</TD><TD>#Left(CorDesc, 30)#<CFIF Len(CorDesc) GT 30>...</CFIF></TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: Right, Mid, Len, Wrap
+
+@func Len
+category: String functions
+summary: Returns the length of a string or binary object.
+desc:
+Returns the number of characters in a string, or the number of bytes in a binary object.
+syntax:
+Len(string_or_binary)
+params:
+string_or_binary | A string, or a binary object such as one returned by `ToBinary` or `CFFILE` ACTION="ReadBinary".
+returns:
+The length as a number; 0 for an empty string.
+usage:
+`Len(Trim(Form.Name))` is the standard way to make sure a form field contains more than just spaces.
+In a `CFIF`, a non-zero length counts as true, so `<CFIF Len(Form.Name)>` works too.
+example:
+<CFPARAM NAME="URL.Word" DEFAULT="Supercalifragilistic">
+<CFOUTPUT>
+<P>"#URL.Word#" has #Len(URL.Word)# characters.</P>
+<P>With spaces around it: #Len("  padded  ")#; trimmed: #Len(Trim("  padded  "))#</P>
+<P>A binary object made from "KoldFusion" is #Len(ToBinary(ToBase64("KoldFusion")))# bytes long.</P>
+</CFOUTPUT>
+<FORM ACTION="len.cfm" METHOD="GET">
+Try a word: <INPUT TYPE="Text" NAME="Word"> <INPUT TYPE="Submit" VALUE="Count">
+</FORM>
+see: Left, Right, Mid, Trim, ToBinary
+
+@func LJustify
+category: String functions
+summary: Left-justifies a string in a field of a given width.
+desc:
+Pads a string with spaces on the right so that it fills a field of the given length.
+syntax:
+LJustify(string, length)
+params:
+string | The string to justify.
+length | Width of the field in characters.
+returns:
+The padded string. Strings already as long as the field are returned unchanged (never truncated).
+usage:
+Good for lining up columns in plain-text output, such as a `CFMAIL` report or text inside `PRE` tags.
+example:
+<CFQUERY NAME="GetDepts" DATASOURCE="cfsnippets">
+SELECT Dept_Name, Location FROM Departments
+</CFQUERY>
+<PRE>
+<CFOUTPUT QUERY="GetDepts">#LJustify(Dept_Name, 16)##Location#
+</CFOUTPUT></PRE>
+see: RJustify, CJustify, RepeatString
+
+@func LTrim
+category: String functions
+summary: Removes leading spaces from a string.
+desc:
+Removes spaces, tabs and line breaks from the beginning of a string.
+syntax:
+LTrim(string)
+params:
+string | The string to trim.
+returns:
+The string without leading whitespace. Trailing whitespace is kept.
+usage:
+`RTrim` trims the other end and `Trim` both.
+example:
+<CFSET Padded = "     Hello, world!     ">
+<CFOUTPUT>
+<PRE>
+Original: [#Padded#]
+LTrim:    [#LTrim(Padded)#]
+RTrim:    [#RTrim(Padded)#]
+Trim:     [#Trim(Padded)#]
+</PRE>
+</CFOUTPUT>
+see: RTrim, Trim, Len
+
+@func Mid
+category: String functions
+summary: Returns characters from the middle of a string.
+desc:
+Returns a set number of characters from a string, beginning at a given position.
+syntax:
+Mid(string, start, count)
+params:
+string | The source string.
+start | Position of the first character to return (1 = first character).
+count | How many characters to return.
+returns:
+The substring. If the string runs out before count characters, you get what is left; if start is past
+the end, an empty string.
+usage:
+A start position below 1 or a negative count causes an error. Combine `Mid` with `Find` to pull a piece
+out of a string whose position you do not know in advance.
+example:
+<CFSET Email = "fred.flintstone@bedrock.localhost">
+<CFSET At = Find("@", Email)>
+<CFOUTPUT>
+<P>Address: #Email#</P>
+<UL>
+<LI>User part: #Mid(Email, 1, At - 1)#
+<LI>Domain: #Mid(Email, At + 1, Len(Email) - At)#
+<LI>Mid(Email, 6, 10): #Mid(Email, 6, 10)#
+</UL>
+</CFOUTPUT>
+see: Left, Right, Find, RemoveChars, GetToken
+
+@func RemoveChars
+category: String functions
+summary: Removes characters from a string.
+desc:
+Removes a given number of characters from a string, starting at a given position.
+syntax:
+RemoveChars(string, start, count)
+params:
+string | The source string.
+start | Position of the first character to remove. Must be within the string.
+count | How many characters to remove. If more characters are asked for than remain, everything from
+  start to the end is removed.
+returns:
+The string with the characters removed.
+usage:
+A start position less than 1 or greater than the length of the string causes an error. `Insert` puts
+characters in; `Replace` swaps text by content rather than position.
+example:
+<CFSET Card = "4111-1111-1111-1111">
+<CFOUTPUT>
+<P>Original: #Card#</P>
+<P>Without the dashes, the hard way:
+#RemoveChars(RemoveChars(RemoveChars(Card, 15, 1), 10, 1), 5, 1)#</P>
+<P>Everything after the first group removed: #RemoveChars(Card, 5, 100)#</P>
+</CFOUTPUT>
+see: Insert, Replace, Mid, Left
+
+@func RepeatString
+category: String functions
+summary: Returns a string repeated a given number of times.
+desc:
+Builds a new string by repeating a string the given number of times.
+syntax:
+RepeatString(string, count)
+params:
+string | The string to repeat.
+count | How many copies you want. 0 returns an empty string.
+returns:
+The repeated string.
+usage:
+Handy for drawing text "bar charts", rules in plain-text e-mail, or indenting nested items.
+example:
+<CFQUERY NAME="GetDepts" DATASOURCE="cfsnippets">
+SELECT Department, COUNT(*) AS Staff FROM Employees GROUP BY Department ORDER BY Department
+</CFQUERY>
+<PRE>
+<CFOUTPUT QUERY="GetDepts">#LJustify(Department, 15)# #RepeatString("*", Staff)# #Staff#
+</CFOUTPUT><CFOUTPUT>#RepeatString("=", 40)#</CFOUTPUT>
+</PRE>
+see: LJustify, Len, Insert
+
+@func Replace
+category: String functions
+summary: Replaces occurrences of a substring, case-sensitively.
+desc:
+Replaces the first occurrence, or every occurrence, of a substring with another string. The search is
+case-sensitive.
+syntax:
+Replace(string, substring1, substring2 [, scope ])
+params:
+string | The string to work on.
+substring1 | The text to look for.
+substring2 | The text to put in its place. May be empty, which removes substring1.
+scope | Optional. "ONE" replaces only the first occurrence (the default); "ALL" replaces every occurrence.
+returns:
+The string with the replacements made.
+usage:
+Forgetting "ALL" is the classic bug: by default only the first match is replaced. Use `ReplaceNoCase` to
+ignore case, `ReplaceList` to make several different replacements in one call, and `REReplace` for
+pattern-based replacements.
+example:
+<CFSET Text = "The Web is the future. The Web is now.">
+<CFOUTPUT>
+<P>Original: #Text#</P>
+<P>ONE: #Replace(Text, "Web", "Internet")#</P>
+<P>ALL: #Replace(Text, "Web", "Internet", "ALL")#</P>
+<P>Case matters: #Replace(Text, "the", "a", "ALL")#</P>
+<P>Removing: #Replace("555-12-34", "-", "", "ALL")#</P>
+</CFOUTPUT>
+see: ReplaceNoCase, ReplaceList, REReplace, Find
+
+@func ReplaceList
+category: String functions
+summary: Replaces each item of one list with the matching item of another.
+desc:
+Takes two comma-delimited lists and replaces every occurrence of each item in the first list with the
+corresponding item in the second. The search is case-sensitive.
+syntax:
+ReplaceList(string, list1, list2)
+params:
+string | The string to work on.
+list1 | Comma-delimited list of strings to search for.
+list2 | Comma-delimited list of replacements. If it is shorter than list1, the extra items of list1 are
+  replaced with an empty string.
+returns:
+The string with all the replacements made.
+usage:
+The replacements are made one list item at a time, each over the whole string, so a later item can change
+text produced by an earlier one: `ReplaceList("abc", "a,b", "b,c")` returns "ccc", not "bcc". Order your
+lists accordingly.
+
+Because the lists are comma-delimited, you cannot search for a comma with `ReplaceList`; use `Replace`.
+example:
+<CFSET Shorthand = "Pls call me b4 lunch, thx, cu l8r">
+<CFSET Short = "Pls,b4,thx,cu,l8r">
+<CFSET Long = "Please,before,thanks,see you,later">
+<CFOUTPUT>
+<P><B>Before:</B> #Shorthand#</P>
+<P><B>After:</B> #ReplaceList(Shorthand, Short, Long)#</P>
+</CFOUTPUT>
+see: Replace, ReplaceNoCase, REReplace, ListChangeDelims
+
+@func ReplaceNoCase
+category: String functions
+summary: Replaces occurrences of a substring, ignoring case.
+desc:
+Replaces the first occurrence, or every occurrence, of a substring with another string, without regard
+to case.
+syntax:
+ReplaceNoCase(string, substring1, substring2 [, scope ])
+params:
+string | The string to work on.
+substring1 | The text to look for, in any mix of upper and lower case.
+substring2 | The replacement text (used exactly as given).
+scope | Optional. "ONE" (the default) or "ALL".
+returns:
+The string with the replacements made.
+usage:
+Handy for highlighting a search word in results, whatever case the visitor typed it in. Note that the
+replacement text is inserted as written, so the original capitalization of the matched text is lost; use
+`REReplaceNoCase` with a back reference if you need to keep it.
+example:
+<CFSET Text = "ColdFusion? coldfusion! COLDFUSION...">
+<CFOUTPUT>
+<P>Original: #Text#</P>
+<P>ONE: #ReplaceNoCase(Text, "coldfusion", "KoldFusion")#</P>
+<P>ALL: #ReplaceNoCase(Text, "coldfusion", "KoldFusion", "ALL")#</P>
+<P>Replace (case-sensitive) ALL: #Replace(Text, "coldfusion", "KoldFusion", "ALL")#</P>
+</CFOUTPUT>
+see: Replace, REReplaceNoCase, FindNoCase, ReplaceList
+
+@func REFind
+category: String functions
+summary: Searches a string with a regular expression, case-sensitively.
+desc:
+Searches a string for the first match of a regular expression and returns its position. Optionally it
+returns the position and length of the match and of each parenthesized subexpression.
+syntax:
+REFind(reg_expression, string [, start ] [, returnsubexpressions ])
+params:
+reg_expression | The regular expression to search for (see below).
+string | The string to search.
+start | Optional. Position at which to start searching. Default 1.
+returnsubexpressions | Optional. Boolean. If true, `REFind` returns a structure instead of a number.
+  Default false. To use it you must also pass start.
+returns:
+Without returnsubexpressions: the position of the first match, or 0.
+
+With returnsubexpressions set to true: a structure with two arrays, `pos` and `len`. Element 1 of each
+describes the whole match; elements 2, 3, ... describe the parenthesized subexpressions in order (up to
+nine). If there is no match, each array holds a single 0.
+usage:
+# The regular expression dialect
+
+KoldFusion implements POSIX extended regular expressions, like ColdFusion 4.5:
+
+| Syntax | Matches |
+| `.` | any single character |
+| `*` `+` `?` | zero or more, one or more, zero or one of the preceding item |
+| `{m}` `{m,}` `{m,n}` | exactly m, at least m, between m and n of the preceding item |
+| `[abc]` `[a-z]` `[^abc]` | one character from (or not from) a set or range |
+| `^` `$` | start and end of the string |
+| `( )` | groups items and marks a subexpression |
+| `\.` `\(` `\[` ... | the special character itself |
+
+A vertical bar separates alternatives: `cat|dog` matches either word.
+
+Inside brackets you can use the POSIX character classes `[:alpha:]`, `[:upper:]`, `[:lower:]`,
+`[:digit:]`, `[:alnum:]`, `[:xdigit:]`, `[:space:]`, `[:punct:]`, `[:print:]`, `[:graph:]` and
+`[:cntrl:]`, for example `[[:digit:]]+` or `[^[:space:]]`.
+
+> Perl shorthands such as `\d`, `\w` and `\s` are not part of the 4.5 dialect. KoldFusion quietly treats
+> them as `[0-9]`, `[A-Za-z0-9_]` and `[[:space:]]`, but for portable code use the POSIX classes.
+> Non-greedy quantifiers and look-ahead are not supported.
+
+An invalid expression throws an exception of type Expression. Remember that inside `CFOUTPUT` a `#` in a
+pattern must be written `##`.
+example:
+<CFSET Text = "Call 555-1234 or 555-9876 before Y2K">
+<CFSET Match = REFind("([0-9]{3})-([0-9]{4})", Text, 1, "True")>
+<CFOUTPUT>
+<P>#Text#</P>
+<UL>
+<LI>First digit at: #REFind("[[:digit:]]", Text)#
+<LI>Second number at: #REFind("[0-9]{3}-", Text, 10)#
+<LI>"y2k" (case-sensitive): #REFind("y2k", Text)#
+<LI>Whole match: #Mid(Text, Match.pos[1], Match.len[1])#
+<LI>Exchange: #Mid(Text, Match.pos[2], Match.len[2])#, line: #Mid(Text, Match.pos[3], Match.len[3])#
+</UL>
+</CFOUTPUT>
+see: REFindNoCase, REReplace, Find, Mid
+
+@func REFindNoCase
+category: String functions
+summary: Searches a string with a regular expression, ignoring case.
+desc:
+Works like `REFind`, but letters in the expression match both upper and lower case.
+syntax:
+REFindNoCase(reg_expression, string [, start ] [, returnsubexpressions ])
+params:
+reg_expression | The regular expression to search for. See `REFind` for the syntax.
+string | The string to search.
+start | Optional. Position at which to start searching. Default 1.
+returnsubexpressions | Optional. Boolean. If true, returns a structure with `pos` and `len` arrays, as
+  described under `REFind`. Default false.
+returns:
+The position of the first match (0 if none), or the `pos`/`len` structure.
+usage:
+Saves you from writing `[Kk][Oo][Ll][Dd]`. The POSIX classes `[:upper:]` and `[:lower:]` also match
+letters of either case in a case-insensitive search.
+example:
+<CFQUERY NAME="GetParks" DATASOURCE="cfsnippets">
+SELECT ParkName, State FROM Parks ORDER BY ParkName
+</CFQUERY>
+<P>Parks whose name contains "canyon" or "mesa", in any case:</P>
+<UL>
+<CFOUTPUT QUERY="GetParks">
+<CFIF REFindNoCase("canyon|mesa", ParkName)><LI>#ParkName#, #State#</CFIF>
+</CFOUTPUT>
+</UL>
+see: REFind, REReplaceNoCase, FindNoCase
+
+@func REReplace
+category: String functions
+summary: Replaces text matching a regular expression, case-sensitively.
+desc:
+Replaces the first match, or every match, of a regular expression with a replacement string.
+syntax:
+REReplace(string, reg_expression, substring [, scope ])
+params:
+string | The string to work on.
+reg_expression | The regular expression to search for. See `REFind` for the syntax.
+substring | The replacement text. `\1` to `\9` insert the text matched by the corresponding
+  parenthesized subexpression.
+scope | Optional. "ONE" replaces only the first match (the default); "ALL" replaces every match.
+returns:
+The string with the replacements made.
+usage:
+Back references make it easy to rearrange text: `REReplace(d, "([0-9]+)/([0-9]+)/([0-9]+)", "\3-\1-\2")`
+turns 12/31/1999 into 1999-12-31.
+
+As with `Replace`, the default scope is ONE. To strip all HTML tags from a string, use
+`REReplace(text, "<[^>]*>", "", "ALL")`.
+example:
+<CFSET Text = "Call 555-1234 or 555-9876, before 1/1/2000!">
+<CFOUTPUT>
+<P>Original: #Text#</P>
+<UL>
+<LI>Digits hidden: #REReplace(Text, "[[:digit:]]", "x", "ALL")#
+<LI>First number swapped: #REReplace(Text, "([0-9]{3})-([0-9]{4})", "\2-\1")#
+<LI>Date to ISO: #REReplace(Text, "([0-9]+)/([0-9]+)/([0-9]{4})", "\3-\1-\2")#
+<LI>Tags stripped: #REReplace("<B>Bold</B> and <I>italic</I>", "<[^>]*>", "", "ALL")#
+<LI>Spaces squeezed: #REReplace("too    many     spaces", "[[:space:]]+", " ", "ALL")#
+</UL>
+</CFOUTPUT>
+see: REReplaceNoCase, REFind, Replace, ReplaceList
+
+@func REReplaceNoCase
+category: String functions
+summary: Replaces text matching a regular expression, ignoring case.
+desc:
+Works like `REReplace`, but letters in the expression match both upper and lower case.
+syntax:
+REReplaceNoCase(string, reg_expression, substring [, scope ])
+params:
+string | The string to work on.
+reg_expression | The regular expression to search for. See `REFind` for the syntax.
+substring | The replacement text; `\1` to `\9` insert subexpression matches.
+scope | Optional. "ONE" (the default) or "ALL".
+returns:
+The string with the replacements made.
+usage:
+A back reference keeps the original capitalization of the matched text, which makes this the right
+tool for highlighting search words.
+example:
+<CFSET Text = "Netscape or netscape or NETSCAPE: all the same browser.">
+<CFSET Word = "netscape">
+<CFOUTPUT>
+<P>#REReplaceNoCase(Text, "(" & Word & ")", "<B>\1</B>", "ALL")#</P>
+<P>#REReplaceNoCase(Text, "NetScape", "Mosaic")#</P>
+</CFOUTPUT>
+see: REReplace, REFindNoCase, ReplaceNoCase
+
+@func Reverse
+category: String functions
+summary: Reverses the order of the characters in a string.
+desc:
+Returns the string with its characters in reverse order.
+syntax:
+Reverse(string)
+params:
+string | The string to reverse.
+returns:
+The reversed string.
+usage:
+To reverse a list rather than the characters of a string, loop over the list and use `ListPrepend`.
+example:
+<CFSET Words = "stressed,racecar,KoldFusion,1999">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String</TH><TH>Reverse</TH><TH>Palindrome?</TH></TR>
+<CFLOOP LIST="#Words#" INDEX="w">
+<CFOUTPUT><TR><TD>#w#</TD><TD>#Reverse(w)#</TD>
+<TD>#YesNoFormat(CompareNoCase(w, Reverse(w)) EQ 0)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Compare, ListPrepend, Mid
+
+@func Right
+category: String functions
+summary: Returns the rightmost characters of a string.
+desc:
+Returns the given number of characters from the end of a string.
+syntax:
+Right(string, count)
+params:
+string | The source string.
+count | How many characters to return. Must not be negative.
+returns:
+The last count characters. If count is larger than the string, the whole string is returned.
+usage:
+Classic uses: file extensions, the last four digits of an account number, and padding numbers with
+zeros (`Right("000" & n, 3)`).
+example:
+<CFSET Files = "report.cfm,logo.gif,readme.txt">
+<CFOUTPUT>
+<UL>
+<CFLOOP LIST="#Files#" INDEX="f">
+<LI>#f# has the extension #Right(f, 3)#
+</CFLOOP>
+<LI>Order number #Right("00000" & 42, 5)#
+</UL>
+</CFOUTPUT>
+see: Left, Mid, Len, ListLast
+
+@func RJustify
+category: String functions
+summary: Right-justifies a string in a field of a given width.
+desc:
+Pads a string with spaces on the left so that it ends at the right edge of a field of the given length.
+syntax:
+RJustify(string, length)
+params:
+string | The string to justify.
+length | Width of the field in characters.
+returns:
+The padded string. Strings already as long as the field are returned unchanged.
+usage:
+Right-justified numbers line up nicely in a plain-text report; combine with `NumberFormat` or
+`DollarFormat`.
+example:
+<CFQUERY NAME="GetPay" DATASOURCE="cfsnippets" MAXROWS="6">
+SELECT LastName, Salary FROM Employees ORDER BY LastName
+</CFQUERY>
+<PRE>
+<CFOUTPUT QUERY="GetPay">#LJustify(LastName, 14)##RJustify(DollarFormat(Salary), 12)#
+</CFOUTPUT></PRE>
+see: LJustify, CJustify, DollarFormat, NumberFormat
+
+@func RTrim
+category: String functions
+summary: Removes trailing spaces from a string.
+desc:
+Removes spaces, tabs and line breaks from the end of a string.
+syntax:
+RTrim(string)
+params:
+string | The string to trim.
+returns:
+The string without trailing whitespace. Leading whitespace is kept.
+usage:
+Fixed-width CHAR database columns come back padded with spaces; `RTrim` removes the padding without
+disturbing deliberate indentation at the front.
+example:
+<CFSET Padded = "Allair Corporation          ">
+<CFOUTPUT>
+<P>Before: [#Padded#] is #Len(Padded)# characters</P>
+<P>After RTrim: [#RTrim(Padded)#] is #Len(RTrim(Padded))# characters</P>
+</CFOUTPUT>
+see: LTrim, Trim, Len
+
+@func SpanExcluding
+category: String functions
+summary: Returns the characters at the start of a string up to the first character from a set.
+desc:
+Returns characters from the beginning of a string until it reaches any character in a given set.
+syntax:
+SpanExcluding(string, set)
+params:
+string | The string to examine.
+set | A string of characters. Each character on its own stops the span.
+returns:
+The leading characters that are not in the set; the whole string if none of them occurs.
+usage:
+A quick way to take the first word of a sentence (`SpanExcluding(Text, " ")`) or the part of an e-mail
+address before the `@`. `SpanIncluding` is its mirror image.
+example:
+<CFSET Text = "Hello, world. Goodbye, Y2K bug!">
+<CFOUTPUT>
+<UL>
+<LI>Up to the first comma: #SpanExcluding(Text, ",")#
+<LI>Up to the first punctuation: #SpanExcluding(Text, ",.!?")#
+<LI>User part of webmaster@localhost: #SpanExcluding("webmaster@localhost", "@")#
+</UL>
+</CFOUTPUT>
+see: SpanIncluding, FindOneOf, GetToken, ListFirst
+
+@func SpanIncluding
+category: String functions
+summary: Returns the characters at the start of a string that all belong to a set.
+desc:
+Returns characters from the beginning of a string as long as each one is in a given set.
+syntax:
+SpanIncluding(string, set)
+params:
+string | The string to examine.
+set | A string of allowed characters.
+returns:
+The leading characters that are in the set; an empty string if the first character is not.
+usage:
+Useful for pulling a number off the front of a string, or checking that input consists only of allowed
+characters: if `SpanIncluding(s, set)` is the same length as s, every character was allowed.
+example:
+<CFSET Digits = "0123456789">
+<CFSET Inputs = "1999 Party,42nd Street,No numbers here">
+<UL>
+<CFLOOP LIST="#Inputs#" INDEX="s">
+<CFOUTPUT><LI>"#s#" starts with [#SpanIncluding(s, Digits)#]</CFOUTPUT>
+</CFLOOP>
+</UL>
+see: SpanExcluding, Val, FindOneOf, REFind
+
+@func StripCR
+category: String functions
+summary: Removes carriage-return characters from a string.
+desc:
+Returns the string with every carriage-return character (`Chr(13)`) deleted. Line feeds are kept.
+syntax:
+StripCR(string)
+params:
+string | The string to clean up.
+returns:
+The string without carriage returns.
+usage:
+Text typed into a TEXTAREA by a Windows or Macintosh browser arrives with CR/LF line endings. Strip the
+CRs before saving it to a file read by Unix programs, or before comparing it with text from elsewhere.
+example:
+<CFSET Msg = "Line one" & Chr(13) & Chr(10) & "Line two" & Chr(13) & Chr(10)>
+<CFSET Clean = StripCR(Msg)>
+<CFOUTPUT>
+<P>Before: #Len(Msg)# characters</P>
+<P>After StripCR: #Len(Clean)# characters</P>
+<PRE>#Clean#</PRE>
+</CFOUTPUT>
+see: Chr, Trim, ParagraphFormat, Replace
+
+@func Trim
+category: String functions
+summary: Removes leading and trailing spaces from a string.
+desc:
+Removes spaces, tabs and line breaks from both ends of a string.
+syntax:
+Trim(string)
+params:
+string | The string to trim.
+returns:
+The trimmed string. Spaces inside the string are left alone.
+usage:
+Always trim form input before checking or storing it: a field holding a lone space is not empty to `Len`,
+but it is not much of a name either. `LTrim` and `RTrim` trim one end only.
+example:
+<CFPARAM NAME="URL.Name" DEFAULT="   Grace Hopper   ">
+<CFOUTPUT>
+<P>You typed [#URL.Name#] (#Len(URL.Name)# characters).</P>
+<P>Trimmed: [#Trim(URL.Name)#] (#Len(Trim(URL.Name))# characters).</P>
+<CFIF Len(Trim(URL.Name)) EQ 0><P><B>Please enter a name!</B></P></CFIF>
+</CFOUTPUT>
+<FORM ACTION="trim.cfm" METHOD="GET">
+Name: <INPUT TYPE="Text" NAME="Name"> <INPUT TYPE="Submit" VALUE="Trim it">
+</FORM>
+see: LTrim, RTrim, Len, StripCR
+
+@func UCase
+category: String functions
+summary: Converts a string to uppercase.
+desc:
+Returns a copy of the string with all lowercase letters converted to uppercase.
+syntax:
+UCase(string)
+params:
+string | The string to convert.
+returns:
+The string in uppercase.
+usage:
+Useful for codes such as state abbreviations, and for headings. `LCase` converts to lowercase.
+example:
+<CFQUERY NAME="GetDepts" DATASOURCE="cfsnippets">
+SELECT Dept_Name, Location FROM Departments
+</CFQUERY>
+<UL>
+<CFOUTPUT QUERY="GetDepts">
+<LI>#UCase(Dept_Name)# (#Location#)
+</CFOUTPUT>
+</UL>
+see: LCase, CompareNoCase, Left
+
+@func Val
+category: String functions
+summary: Converts the number at the beginning of a string to a number.
+desc:
+Returns the numeric value at the start of a string, ignoring anything that follows it.
+syntax:
+Val(string)
+params:
+string | A string that begins with a number, such as "42 apples" or "3.5 inches".
+returns:
+The number, or 0 if the string does not begin with a number.
+usage:
+Leading spaces are skipped. A minus sign, a decimal point and an exponent ("1.5E3") are understood.
+Because `Val` never fails, it is a forgiving way to turn form input into a number; use `IsNumeric` first if
+you need to know whether the input really was numeric.
+example:
+<CFSET Inputs = "42,3.5 inches,-12.75 degrees,1999 Party,Y2K,  7 spaces">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String</TH><TH>Val()</TH><TH>IsNumeric()</TH></TR>
+<CFLOOP LIST="#Inputs#" INDEX="s">
+<CFOUTPUT><TR><TD>"#s#"</TD><TD ALIGN="RIGHT">#Val(s)#</TD><TD>#IsNumeric(s)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: IsNumeric, SpanIncluding, NumberFormat, LSParseNumber
+
+@func Wrap
+category: String functions
+summary: Wraps text so no line is longer than a given width.
+desc:
+Breaks a string into lines at word boundaries so that no line is longer than the specified number of
+characters, inserting line-feed characters.
+syntax:
+Wrap(string, limit [, strip ])
+params:
+string | The text to wrap.
+limit | Maximum number of characters per line.
+strip | Optional. Boolean. Accepted for compatibility; KoldFusion ignores it and always keeps existing
+  line breaks.
+returns:
+The wrapped text, with lines separated by line feeds (`Chr(10)`).
+usage:
+Spaces at the break points are dropped. A single word longer than limit is placed on a line of its own
+rather than being cut. Wrapping matters most for plain-text `CFMAIL` messages, which some mail readers
+display in one very long line otherwise. Show the result in a browser inside `PRE` tags.
+example:
+<CFSET Text = "KoldFusion makes it easy to build dynamic Web applications that run equally well on a 56K modem and a T1 line.">
+<CFOUTPUT>
+<P>Wrapped at 30 characters:</P>
+<PRE>#Wrap(Text, 30)#</PRE>
+<P>Wrapped at 50 characters:</P>
+<PRE>#Wrap(Text, 50)#</PRE>
+</CFOUTPUT>
+see: ParagraphFormat, LJustify, Left, StripCR
+
+@func ToBase64
+category: String functions
+new45: yes
+summary: Encodes a string or binary object in Base64.
+desc:
+Returns the Base64 encoding of a string or a binary object. Base64 represents any data using only letters,
+digits, `+`, `/` and `=`, so it can travel safely in e-mail, cookies, form fields and database text columns.
+syntax:
+ToBase64(string_or_binary)
+params:
+string_or_binary | A string, or a binary object (for example the result of `CFFILE` ACTION="ReadBinary").
+returns:
+The Base64-encoded string.
+usage:
+Use `ToBinary` to decode Base64 back into a binary object and `ToString` to turn that into text. Base64
+is an encoding, not encryption: anybody can decode it. Encoded data is about a third larger than the
+original.
+example:
+<CFSET Plain = "Party like it's 1999!">
+<CFSET Encoded = ToBase64(Plain)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>Plain text</TD><TD>#Plain# (#Len(Plain)# characters)</TD></TR>
+<TR><TD>ToBase64</TD><TD><TT>#Encoded#</TT> (#Len(Encoded)# characters)</TD></TR>
+<TR><TD>Round trip</TD><TD>#ToString(ToBinary(Encoded))#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: ToBinary, ToString, IsBinary, Encrypt
+
+@func ToBinary
+category: String functions
+new45: yes
+summary: Decodes a Base64 string into a binary object.
+desc:
+Converts a Base64-encoded string into a binary object. Passed a binary object, it returns it unchanged.
+syntax:
+ToBinary(base64_or_binary)
+params:
+base64_or_binary | A Base64-encoded string, or a binary object.
+returns:
+A binary object.
+usage:
+Binary objects can be written to disk with `CFFILE` ACTION="Write", measured with `Len` and tested with
+`IsBinary`, but they cannot be output directly. To get text back, wrap the result in `ToString`.
+example:
+<CFSET Encoded = "S29sZEZ1c2lvbiA0LjU=">
+<CFSET Bin = ToBinary(Encoded)>
+<CFOUTPUT>
+<UL>
+<LI>Base64 input: #Encoded#
+<LI>IsBinary(result): #IsBinary(Bin)#
+<LI>Length in bytes: #Len(Bin)#
+<LI>As text: #ToString(Bin)#
+</UL>
+</CFOUTPUT>
+see: ToBase64, ToString, IsBinary, CFFILE
+
+@func ToString
+category: String functions
+new45: yes
+summary: Converts a value, including a binary object, to a string.
+desc:
+Converts a simple value or a binary object to a string. Numbers, booleans and dates come back in the same
+form in which they would be output.
+syntax:
+ToString(value)
+params:
+value | A string, number, boolean, date/time value or binary object.
+returns:
+The value as a string.
+usage:
+The main use is turning a binary object (from `ToBinary` or `CFFILE` ACTION="ReadBinary") back into text.
+Dates convert to an ODBC timestamp such as `{ts '1999-12-31 23:59:59'}`.
+example:
+<CFSET Bin = ToBinary(ToBase64("Hello from the binary side"))>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>ToString(binary)</TD><TD>#ToString(Bin)#</TD></TR>
+<TR><TD>ToString(42 * 2)</TD><TD>#ToString(42 * 2)#</TD></TR>
+<TR><TD>ToString(1 LT 2)</TD><TD>#ToString(1 LT 2)#</TD></TR>
+<TR><TD>ToString(CreateDateTime(1999,12,31,23,59,59))</TD><TD>#ToString(CreateDateTime(1999,12,31,23,59,59))#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: ToBinary, ToBase64, IsBinary, IsSimpleValue
+
+@func Hash
+category: String functions
+new45: yes
+summary: Returns a one-way MD5 hash of a string.
+desc:
+Converts a string into a 32-character hexadecimal MD5 hash. The same input always gives the same hash,
+but the original string cannot be recovered from it.
+syntax:
+Hash(string)
+params:
+string | The string to hash.
+returns:
+A string of 32 uppercase hexadecimal characters.
+usage:
+Store `Hash(Form.Password)` in your database instead of the password itself. To check a login, hash what
+the user typed and compare the two hashes. Even if someone walks off with your database on a Zip disk,
+the passwords stay secret.
+
+Hashes are case-sensitive in what they digest: "Secret" and "secret" give completely different results.
+example:
+<CFSET Words = "password,Password,KoldFusion">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String</TH><TH>Hash()</TH></TR>
+<CFLOOP LIST="#Words#" INDEX="w">
+<CFOUTPUT><TR><TD>#w#</TD><TD><TT>#Hash(w)#</TT></TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFIF Hash("password") EQ "5F4DCC3B5AA765D61D8327DEB882CF99"><P>Password accepted.</P></CFIF>
+see: Encrypt, Decrypt, ToBase64, CFAUTHENTICATE
+
+@func Encrypt
+category: String functions
+summary: Encrypts a string with a key.
+desc:
+Encrypts a string using a symmetric algorithm and a key, and returns the encrypted text. `Decrypt` with the
+same key restores the original.
+syntax:
+Encrypt(string, key)
+params:
+string | The text to encrypt.
+key | The key (password) used to encrypt it. You need the same key to decrypt.
+returns:
+The encrypted string, in uuencoded form.
+usage:
+The result can contain quotes, ampersands, angle brackets and line breaks. Run it through `URLEncodedFormat`
+before putting it in a URL, `HTMLEditFormat` before showing it in a page, or `ToBase64` before storing it in
+a cookie.
+
+The algorithm keeps casual eyes off a cookie or a hidden form field; it is not meant for state secrets. For
+passwords, store a `Hash` instead, which cannot be decrypted at all.
+example:
+<CFSET Key = "Y2Kready">
+<CFSET Secret = Encrypt("Meet me at the server room at midnight", Key)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>Encrypted</TD><TD><TT>#HTMLEditFormat(Secret)#</TT></TD></TR>
+<TR><TD>As Base64</TD><TD><TT>#ToBase64(Secret)#</TT></TD></TR>
+<TR><TD>Decrypted</TD><TD>#Decrypt(Secret, Key)#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: Decrypt, Hash, ToBase64, URLEncodedFormat
+
+@func Decrypt
+category: String functions
+summary: Decrypts a string that was encrypted with Encrypt.
+desc:
+Decrypts a string produced by `Encrypt`, using the same key.
+syntax:
+Decrypt(encrypted_string, key)
+params:
+encrypted_string | A string returned by `Encrypt`.
+key | The key that was used to encrypt it.
+returns:
+The original string.
+usage:
+`Decrypt` cannot tell whether the key is right: with the wrong key you get gibberish, not an error. If you
+stored the encrypted value as Base64, decode it first with `ToString(ToBinary(value))`.
+example:
+<CFSET Stored = ToBase64(Encrypt("Account 1999-A", "secret key"))>
+<CFSET Restored = ToString(ToBinary(Stored))>
+<CFOUTPUT>
+<P>Stored in the cookie: <TT>#Stored#</TT></P>
+<P>Right key: #Decrypt(Restored, "secret key")#</P>
+<P>Wrong key: #HTMLEditFormat(REReplace(Decrypt(Restored, "wrong key"), "[^[:print:]]", "?", "ALL"))#</P>
+</CFOUTPUT>
+see: Encrypt, Hash, ToBinary, ToString
+
+@func URLDecode
+category: String functions
+new45: yes
+summary: Decodes a URL-encoded string.
+desc:
+Converts a URL-encoded string back to plain text: each `%XX` escape becomes the character with that
+hexadecimal code, and each plus sign becomes a space.
+syntax:
+URLDecode(urlEncodedString)
+params:
+urlEncodedString | A string encoded with `URLEncodedFormat` or by a browser.
+returns:
+The decoded string.
+usage:
+KoldFusion already decodes URL and FORM variables for you, so you only need this function for strings you
+assemble yourself, such as a query string read from a log file or a `CFHTTP` result.
+example:
+<CFSET Encoded = "name=Tom%20%26%20Jerry&city=New+York&note=100%25+sure">
+<UL>
+<CFLOOP LIST="#Encoded#" DELIMITERS="&" INDEX="pair">
+<CFOUTPUT><LI>#ListFirst(pair, "=")# = #URLDecode(ListLast(pair, "="))#</CFOUTPUT>
+</CFLOOP>
+</UL>
+see: URLEncodedFormat, CFLOCATION, CFHTTP
+
+@func URLEncodedFormat
+category: String functions
+summary: Encodes a string for safe use in a URL.
+desc:
+Returns a URL-encoded copy of a string: every character other than a letter or a digit is replaced by a
+percent sign and its two-digit hexadecimal code. Spaces become `%20`.
+syntax:
+URLEncodedFormat(string)
+params:
+string | The string to encode.
+returns:
+The encoded string.
+usage:
+Always encode values you put into the query string of a link or a `CFLOCATION` URL. An unencoded `&`, `#`
+or space in a value will cut the parameter short. KoldFusion decodes URL variables automatically when the
+next page receives them. `URLDecode` reverses the encoding by hand.
+example:
+<CFPARAM NAME="URL.Search" DEFAULT="Tom & Jerry's 100% fun">
+<CFOUTPUT>
+<P>Received: #URL.Search#</P>
+<P>Encoded: <TT>#URLEncodedFormat(URL.Search)#</TT></P>
+<P><A HREF="urlencodedformat.cfm?Search=#URLEncodedFormat("Fish & Chips ##1")#">Try another value</A></P>
+</CFOUTPUT>
+see: URLDecode, HTMLEditFormat, CFLOCATION, JSStringFormat
+
+@func JSStringFormat
+category: String functions
+new45: yes
+summary: Escapes a string for use inside a JavaScript string literal.
+desc:
+Returns a copy of a string with quotes, backslashes, tabs and line breaks escaped, so it can be placed
+safely between quotes in JavaScript code.
+syntax:
+JSStringFormat(string)
+params:
+string | The string to escape.
+returns:
+The escaped string: `"` becomes `\"`, `'` becomes `\'`, `\` becomes `\\`, and carriage return, line
+feed and tab become `\r`, `\n` and `\t`.
+usage:
+Use it whenever CFML data ends up in client-side script, for example in an `alert()` or a
+`document.write()`. A single unescaped apostrophe in "O'Brien" is enough to give Netscape 4.7 a
+JavaScript error.
+example:
+<CFSET Quote = "He said ""It's 1999!"" and left.">
+<CFOUTPUT>
+<P>Escaped: <TT>#HTMLEditFormat(JSStringFormat(Quote))#</TT></P>
+<SCRIPT LANGUAGE="JavaScript">
+var msg = '#JSStringFormat(Quote)#';
+document.write('<P>Written by JavaScript: ' + msg + '</P>');
+</SCRIPT>
+</CFOUTPUT>
+see: HTMLEditFormat, URLEncodedFormat, XMLFormat
+
+@func XMLFormat
+category: String functions
+new45: yes
+summary: Escapes a string for use in XML text.
+desc:
+Returns a copy of a string with the characters that have a special meaning in XML replaced by entity
+references.
+syntax:
+XMLFormat(string)
+params:
+string | The string to escape.
+returns:
+The escaped string: `<` becomes `&lt;`, `>` becomes `&gt;`, `&` becomes `&amp;`, `"` becomes `&quot;`
+and `'` becomes `&apos;`.
+usage:
+Use `XMLFormat` when you build XML by hand, for example a channel file for a portal site. `CFWDDX` does
+its own escaping. For HTML pages use `HTMLEditFormat`, because older browsers do not know `&apos;`.
+example:
+<CFSET Title = "Tom & Jerry's <Greatest> Hits">
+<CFSET Xml = "<item><title>" & XMLFormat(Title) & "</title></item>">
+<CFOUTPUT>
+<P>Original: #HTMLEditFormat(Title)#</P>
+<P>XML: <TT>#HTMLEditFormat(Xml)#</TT></P>
+</CFOUTPUT>
+see: HTMLEditFormat, CFWDDX, JSStringFormat, URLEncodedFormat

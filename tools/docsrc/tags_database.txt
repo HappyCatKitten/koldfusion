@@ -1,0 +1,491 @@
+# CFML Language Reference - database manipulation tags.
+# Format: see the docstring at the top of tools/mkdocs.py.
+
+@tag CFQUERY
+category: Database manipulation
+summary: Passes SQL statements to a data source and returns the result set as a query.
+desc:
+`CFQUERY` sends the SQL between its start and end tags to a data source. A SELECT statement
+returns a query object you can loop over with `CFOUTPUT` or `CFLOOP`; INSERT, UPDATE, DELETE and
+CREATE TABLE statements simply run. CFML expressions inside the tag body are evaluated before the
+SQL is sent, so you can build statements from form fields and variables.
+syntax:
+<CFQUERY NAME="query_name"
+    DATASOURCE="ds_name"
+    DBTYPE="ODBC"
+    MAXROWS="number"
+    CACHEDWITHIN="timespan"
+    CACHEDAFTER="date">
+  SQL statements
+</CFQUERY>
+attrs:
+NAME | Optional | Name of the query variable that receives the result set. Must begin with a letter and contain only
+  letters, digits and underscores. Required if you want to read the results.
+DATASOURCE | Required | Name of a data source registered in the KoldFusion Administrator, for example `cfsnippets`.
+DBTYPE | Optional, default "ODBC" | Driver type: ODBC, OLEDB, Oracle73, Oracle80, Sybase11, Informix73 or DB2. All of them reach
+  the same built-in engine in KoldFusion. DBTYPE="query" (query of queries) arrived in a later version and is rejected.
+MAXROWS | Optional | Maximum number of rows to keep in the result set.
+CACHEDWITHIN | Optional | A time span created with `CreateTimeSpan`. If an identical query (same name, data source and SQL)
+  ran within that span, the cached result is returned without contacting the database.
+CACHEDAFTER | Optional | A date. A cached result is reused if it was created after this date.
+usage:
+After the query runs, each result set exposes the variables `query_name.RecordCount`,
+`query_name.ColumnList` and `query_name.CurrentRow`. The variable `CFQUERY.ExecutionTime` holds the
+number of milliseconds the last query took.
+
+Text values in WHERE clauses need single quotes; single quotes inside CFML variables are doubled
+automatically. Use `CFQUERYPARAM` to bind typed values safely.
+
+The maximum number of cached queries is set on the Caching page of the Administrator.
+example:
+<!--- List the engineers, newest first --->
+<CFQUERY NAME="GetEngineers" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName, StartDate
+FROM Employees
+WHERE Department = 'Engineering'
+ORDER BY StartDate DESC
+</CFQUERY>
+
+<H3>Engineering department</H3>
+<CFOUTPUT>
+<P>The query returned #GetEngineers.RecordCount# rows
+in #CFQUERY.ExecutionTime# ms. Columns: #GetEngineers.ColumnList#</P>
+</CFOUTPUT>
+<UL>
+<CFOUTPUT QUERY="GetEngineers">
+  <LI>#FirstName# #LastName#, since #DateFormat(StartDate, "mmmm d, yyyy")#
+</CFOUTPUT>
+</UL>
+see: CFQUERYPARAM, CFOUTPUT, CFTRANSACTION, CFINSERT, CFUPDATE, CreateTimeSpan
+
+@tag CFQUERYPARAM
+category: Database manipulation
+new45: yes
+summary: Binds a typed, validated value into the SQL of a CFQUERY.
+desc:
+`CFQUERYPARAM` goes inside a `CFQUERY` wherever a value would appear in the SQL. It checks the value
+against the SQL type you name and only then hands it to the driver, so a stray quote or a sneaky
+"; DELETE FROM Employees" never becomes part of the statement.
+syntax:
+<CFQUERYPARAM VALUE="parameter_value"
+    CFSQLTYPE="parameter_type"
+    MAXLENGTH="maximum_length"
+    SCALE="decimal_places"
+    NULL="Yes/No">
+attrs:
+VALUE | Required | The value to bind. Usually an expression such as `#Form.Emp_ID#`.
+CFSQLTYPE | Optional, default "CF_SQL_CHAR" | The SQL type of the value: CF_SQL_BIGINT, CF_SQL_BIT, CF_SQL_CHAR,
+  CF_SQL_DATE, CF_SQL_DECIMAL, CF_SQL_DOUBLE, CF_SQL_FLOAT, CF_SQL_IDSTAMP, CF_SQL_INTEGER, CF_SQL_LONGVARCHAR,
+  CF_SQL_MONEY, CF_SQL_MONEY4, CF_SQL_NUMERIC, CF_SQL_REAL, CF_SQL_SMALLINT, CF_SQL_TIME, CF_SQL_TIMESTAMP,
+  CF_SQL_TINYINT or CF_SQL_VARCHAR.
+MAXLENGTH | Optional | Maximum length of a string value. A longer value throws a Database exception instead of
+  being truncated.
+SCALE | Optional | Number of decimal places for CF_SQL_DECIMAL and CF_SQL_NUMERIC. Accepted for compatibility;
+  KoldFusion ignores it.
+NULL | Optional, default "No" | Yes sends SQL NULL and ignores VALUE.
+LIST | Optional, default "No" | KoldFusion extension: Yes treats VALUE as a list and binds every element, for use
+  inside an IN ( ) clause. Each element is validated separately.
+SEPARATOR | Optional, default "," | KoldFusion extension: the list delimiter used when LIST="Yes".
+usage:
+Values are checked before anything reaches the data source:
+
+- Integer types (CF_SQL_INTEGER, CF_SQL_SMALLINT, CF_SQL_TINYINT, CF_SQL_BIGINT) accept whole numbers only.
+- The other numeric types (DECIMAL, NUMERIC, FLOAT, DOUBLE, REAL, MONEY) accept any number.
+- CF_SQL_BIT accepts Yes/No, True/False or a number and sends 1 or 0.
+- CF_SQL_DATE, CF_SQL_TIME and CF_SQL_TIMESTAMP accept anything `IsDate` likes and send an ODBC date literal.
+- Everything else is treated as text; single quotes are doubled for you.
+
+A value that fails the check throws an exception of type Database ("Invalid data ... for CFSQLTYPE ..."),
+which you can catch with `CFTRY`/`CFCATCH`. Using the tag outside a `CFQUERY` is a Template error.
+example:
+<!--- Try ?Dept=Marketing&MinID=7 or ?MinID=abc --->
+<CFPARAM NAME="URL.Dept" DEFAULT="Engineering">
+<CFPARAM NAME="URL.MinID" DEFAULT="10">
+<CFTRY>
+  <CFQUERY NAME="GetStaff" DATASOURCE="cfsnippets">
+  SELECT Emp_ID, FirstName, LastName
+  FROM Employees
+  WHERE Department = <CFQUERYPARAM VALUE="#URL.Dept#" CFSQLTYPE="CF_SQL_VARCHAR" MAXLENGTH="35">
+    AND Emp_ID >= <CFQUERYPARAM VALUE="#URL.MinID#" CFSQLTYPE="CF_SQL_INTEGER">
+  ORDER BY Emp_ID
+  </CFQUERY>
+  <CFOUTPUT><H3>#HTMLEditFormat(URL.Dept)#, employee ID #HTMLEditFormat(URL.MinID)# and up</H3></CFOUTPUT>
+  <TABLE BORDER=1 CELLPADDING=3>
+  <TR><TH>ID</TH><TH>Name</TH></TR>
+  <CFOUTPUT QUERY="GetStaff">
+  <TR><TD>#Emp_ID#</TD><TD>#FirstName# #LastName#</TD></TR>
+  </CFOUTPUT>
+  </TABLE>
+  <CFCATCH TYPE="Database">
+    <CFOUTPUT><P><B>Rejected:</B> #CFCATCH.Message#</P></CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+
+<!--- A hostile value never reaches the database --->
+<CFTRY>
+  <CFQUERY NAME="Sneaky" DATASOURCE="cfsnippets">
+  SELECT * FROM Employees
+  WHERE Emp_ID = <CFQUERYPARAM VALUE="3; DELETE FROM Employees" CFSQLTYPE="CF_SQL_INTEGER">
+  </CFQUERY>
+  <CFCATCH TYPE="Database">
+    <CFOUTPUT><P><B>Also rejected:</B> #CFCATCH.Message#</P></CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+see: CFQUERY, CFPROCPARAM, CFTRY, IsNumeric
+
+@tag CFTRANSACTION
+category: Database manipulation
+summary: Groups several CFQUERY operations into a single database transaction.
+desc:
+Put `CFQUERY` tags between `<CFTRANSACTION>` and `</CFTRANSACTION>` when they belong together, such as
+debiting one account and crediting another. On a transactional driver the group is committed when the end
+tag is reached, or rolled back if an error occurs inside it.
+syntax:
+<CFTRANSACTION ACTION="BEGIN"
+    ISOLATION="lock_level">
+  CFQUERY tags
+</CFTRANSACTION>
+attrs:
+ACTION | Optional, default "BEGIN" | BEGIN, COMMIT or ROLLBACK. COMMIT and ROLLBACK are used in a nested
+  CFTRANSACTION to end the current transaction early (ROLLBACK undoes everything written so far).
+ISOLATION | Optional | ODBC lock level: READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ or SERIALIZABLE.
+  Accepted for compatibility; KoldFusion ignores it.
+usage:
+> The built-in flat-file driver has no transaction log, so KoldFusion snapshots the tables of each data
+> source the first time a statement writes to it inside the transaction. If an error escapes the
+> `CFTRANSACTION` block, or a nested `<CFTRANSACTION ACTION="ROLLBACK">` runs, the snapshot is restored;
+> otherwise the changes are kept when the end tag is reached. Other requests can see uncommitted changes
+> (there is no isolation), so keep transactions short.
+
+All queries inside one transaction must use the same data source. To keep two users from interleaving
+updates to shared variables (not tables), use `CFLOCK`.
+example:
+<!--- Add a comment, look at it, take it back out again --->
+<CFQUERY NAME="Before" DATASOURCE="cfsnippets">
+SELECT COUNT(*) AS Total FROM Comments
+</CFQUERY>
+
+<CFTRANSACTION>
+  <CFQUERY DATASOURCE="cfsnippets">
+  INSERT INTO Comments (Email, FromUser, Subject, CommtType, MessText, Processed)
+  VALUES ('ann@localhost', 'Ann Example', 'Transaction test', 'Question', 'Testing 1, 2, 3', 0)
+  </CFQUERY>
+  <CFQUERY NAME="During" DATASOURCE="cfsnippets">
+  SELECT COUNT(*) AS Total, MAX(CommentID) AS LastID FROM Comments
+  </CFQUERY>
+  <CFQUERY DATASOURCE="cfsnippets">
+  DELETE FROM Comments WHERE CommentID = #During.LastID#
+  </CFQUERY>
+</CFTRANSACTION>
+
+<CFQUERY NAME="After" DATASOURCE="cfsnippets">
+SELECT COUNT(*) AS Total FROM Comments
+</CFQUERY>
+
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Moment</TH><TH>Rows in Comments</TH></TR>
+<TR><TD>Before the transaction</TD><TD>#Before.Total#</TD></TR>
+<TR><TD>After the INSERT (new ID #During.LastID#)</TD><TD>#During.Total#</TD></TR>
+<TR><TD>After the DELETE</TD><TD>#After.Total#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: CFQUERY, CFLOCK, CFTRY, CFUPDATE
+
+@tag CFINSERT
+category: Database manipulation
+summary: Inserts the fields of a submitted form as a new row of a table, without writing any SQL.
+desc:
+`CFINSERT` is the lazy programmer's INSERT statement. It looks at the columns of the table, finds the form
+fields with the same names, and adds one row built from their values.
+syntax:
+<CFINSERT DATASOURCE="ds_name"
+    TABLENAME="table_name"
+    TABLEOWNER="owner"
+    TABLEQUALIFIER="qualifier"
+    USERNAME="username"
+    PASSWORD="password"
+    FORMFIELDS="field_names">
+attrs:
+DATASOURCE | Required | Data source that holds the table.
+TABLENAME | Required | Table to insert into.
+FORMFIELDS | Optional, default all fields | Comma-separated list of form fields to insert. Without it, every
+  name in `Form.FieldNames` that matches a column is used.
+TABLEOWNER | Optional | Owner of the table on servers that support owners. Accepted for compatibility;
+  KoldFusion ignores it.
+TABLEQUALIFIER | Optional | Database or schema qualifier. Accepted for compatibility; KoldFusion ignores it.
+USERNAME | Optional | Overrides the user name stored with the data source. Accepted for compatibility;
+  KoldFusion ignores it.
+PASSWORD | Optional | Overrides the password stored with the data source. Accepted for compatibility;
+  KoldFusion ignores it.
+usage:
+Field names are matched to column names without regard to case. Fields with no matching column (such as the
+Submit button) are skipped, and so are COUNTER (autonumber) columns, which the database fills in. An empty
+field bound for a numeric column is stored as NULL. If not a single field matches a column, a Database
+exception is thrown.
+
+To find the key of the row you just added, run `SELECT MAX(id_column)` (or `SELECT @@IDENTITY`) in a
+`CFQUERY` straight afterwards. For full control over the SQL, use `CFQUERY` with `CFQUERYPARAM`.
+example:
+<CFIF IsDefined("Form.FromUser")>
+  <CFINSERT DATASOURCE="cfsnippets" TABLENAME="Comments"
+            FORMFIELDS="FromUser,Email,Subject,CommtType,MessText">
+  <CFQUERY NAME="Newest" DATASOURCE="cfsnippets">
+  SELECT MAX(CommentID) AS LastID FROM Comments
+  </CFQUERY>
+  <CFQUERY NAME="Added" DATASOURCE="cfsnippets">
+  SELECT * FROM Comments WHERE CommentID = #Newest.LastID#
+  </CFQUERY>
+  <CFOUTPUT QUERY="Added">
+  <P>Thank you! Comment ###CommentID# was stored:</P>
+  <TABLE BORDER=1 CELLPADDING=3>
+  <TR><TD>From</TD><TD>#HTMLEditFormat(FromUser)# (#HTMLEditFormat(Email)#)</TD></TR>
+  <TR><TD>Subject</TD><TD>#HTMLEditFormat(Subject)# [#CommtType#]</TD></TR>
+  <TR><TD>Message</TD><TD>#HTMLEditFormat(MessText)#</TD></TR>
+  </TABLE>
+  </CFOUTPUT>
+  <!--- Tidy up, so the next visitor finds the table as it was --->
+  <CFQUERY DATASOURCE="cfsnippets">
+  DELETE FROM Comments WHERE CommentID = #Newest.LastID#
+  </CFQUERY>
+  <P>(The row has been removed again.) <A HREF="cfinsert.cfm">Try again</A></P>
+<CFELSE>
+  <FORM ACTION="cfinsert.cfm" METHOD="POST">
+  Name: <INPUT TYPE="Text" NAME="FromUser" VALUE="Pat Kowal"><BR>
+  Email: <INPUT TYPE="Text" NAME="Email" VALUE="pat@localhost"><BR>
+  Subject: <INPUT TYPE="Text" NAME="Subject" VALUE="Nice site"><BR>
+  Type: <SELECT NAME="CommtType"><OPTION>Praise<OPTION>Question<OPTION>Bug Report</SELECT><BR>
+  <TEXTAREA NAME="MessText" ROWS=3 COLS=40>Loads fast even on my 56K modem.</TEXTAREA><BR>
+  <INPUT TYPE="Submit" VALUE="Insert comment">
+  </FORM>
+</CFIF>
+see: CFUPDATE, CFQUERY, CFQUERYPARAM, CFFORM
+
+@tag CFUPDATE
+category: Database manipulation
+summary: Updates an existing table row from the fields of a submitted form, without writing any SQL.
+desc:
+`CFUPDATE` is the companion of `CFINSERT`. The form must contain a field named after the table's primary
+key; that field picks the row, and the other fields whose names match columns supply the new values.
+syntax:
+<CFUPDATE DATASOURCE="ds_name"
+    TABLENAME="table_name"
+    TABLEOWNER="owner"
+    TABLEQUALIFIER="qualifier"
+    USERNAME="username"
+    PASSWORD="password"
+    FORMFIELDS="field_names">
+attrs:
+DATASOURCE | Required | Data source that holds the table.
+TABLENAME | Required | Table to update.
+FORMFIELDS | Optional, default all fields | Comma-separated list of form fields to use. Include the primary key
+  field. Without it, every name in `Form.FieldNames` that matches a column is used.
+TABLEOWNER | Optional | Accepted for compatibility; KoldFusion ignores it.
+TABLEQUALIFIER | Optional | Accepted for compatibility; KoldFusion ignores it.
+USERNAME | Optional | Accepted for compatibility; KoldFusion ignores it.
+PASSWORD | Optional | Accepted for compatibility; KoldFusion ignores it.
+usage:
+The KoldFusion flat-file driver keeps no catalog of keys, so the **first column** of the table is taken to be
+the primary key (CommentID for Comments, Emp_ID for Employees). If the form has no field with that name, a
+Database exception is thrown. Columns that are not in the form keep their old values; if no other field
+matches a column, nothing happens at all.
+
+A common pattern is an edit form that carries the key in a hidden field:
+`<INPUT TYPE="Hidden" NAME="Emp_ID" VALUE="#Emp_ID#">`.
+example:
+<!--- Edits comment 3, then puts it back the way it was --->
+<CFQUERY NAME="Original" DATASOURCE="cfsnippets">
+SELECT CommentID, Subject FROM Comments WHERE CommentID = 3
+</CFQUERY>
+<CFIF IsDefined("Form.CommentID")>
+  <CFUPDATE DATASOURCE="cfsnippets" TABLENAME="Comments" FORMFIELDS="CommentID,Subject">
+  <CFQUERY NAME="Changed" DATASOURCE="cfsnippets">
+  SELECT Subject FROM Comments WHERE CommentID = 3
+  </CFQUERY>
+  <CFOUTPUT>
+  <TABLE BORDER=1 CELLPADDING=3>
+  <TR><TD>Subject before</TD><TD>#HTMLEditFormat(Original.Subject)#</TD></TR>
+  <TR><TD>Subject after CFUPDATE</TD><TD>#HTMLEditFormat(Changed.Subject)#</TD></TR>
+  </TABLE>
+  </CFOUTPUT>
+  <!--- Restore the original subject for the next visitor --->
+  <CFQUERY DATASOURCE="cfsnippets">
+  UPDATE Comments
+  SET Subject = <CFQUERYPARAM VALUE="#Original.Subject#" CFSQLTYPE="CF_SQL_VARCHAR">
+  WHERE CommentID = 3
+  </CFQUERY>
+  <P>(The original subject has been restored.) <A HREF="cfupdate.cfm">Try again</A></P>
+<CFELSE>
+  <CFOUTPUT>
+  <FORM ACTION="cfupdate.cfm" METHOD="POST">
+  <INPUT TYPE="Hidden" NAME="CommentID" VALUE="#Original.CommentID#">
+  Subject of comment #Original.CommentID#:
+  <INPUT TYPE="Text" NAME="Subject" SIZE=30 VALUE="#HTMLEditFormat(Original.Subject)# - is my PC Y2K OK?">
+  <INPUT TYPE="Submit" VALUE="Update">
+  </FORM>
+  </CFOUTPUT>
+</CFIF>
+see: CFINSERT, CFQUERY, CFQUERYPARAM, CFFORM
+
+@tag CFSTOREDPROC
+category: Database manipulation
+summary: Calls a stored procedure in a database server.
+desc:
+`CFSTOREDPROC` runs a procedure stored in the database itself. Nested `CFPROCPARAM` tags pass its
+parameters and `CFPROCRESULT` tags name the result sets it returns. In KoldFusion the tag is recognized, but
+the built-in flat-file driver has no stored procedures, so every call ends in a Database exception.
+syntax:
+<CFSTOREDPROC PROCEDURE="procedure_name"
+    DATASOURCE="ds_name"
+    USERNAME="username"
+    PASSWORD="password"
+    DBSERVER="dbms"
+    DBNAME="database_name"
+    BLOCKFACTOR="blocksize"
+    PROVIDER="COMProvider"
+    PROVIDERDSN="datasource"
+    DEBUG="Yes/No"
+    RETURNCODE="Yes/No">
+  CFPROCPARAM and CFPROCRESULT tags
+</CFSTOREDPROC>
+attrs:
+PROCEDURE | Required | Name of the stored procedure.
+DATASOURCE | Required | Data source to call it in. An unknown data source is reported first.
+USERNAME | Optional | Accepted for compatibility; KoldFusion ignores it.
+PASSWORD | Optional | Accepted for compatibility; KoldFusion ignores it.
+DBSERVER | Optional | Native-driver server name. Accepted for compatibility; KoldFusion ignores it.
+DBNAME | Optional | Native-driver database name. Accepted for compatibility; KoldFusion ignores it.
+BLOCKFACTOR | Optional | Rows fetched at a time (1 to 100). Accepted for compatibility; KoldFusion ignores it.
+PROVIDER | Optional | OLE DB provider. Accepted for compatibility; KoldFusion ignores it.
+PROVIDERDSN | Optional | OLE DB data source. Accepted for compatibility; KoldFusion ignores it.
+DEBUG | Optional | Accepted for compatibility; KoldFusion ignores it.
+RETURNCODE | Optional, default "No" | On a native driver, Yes stores the procedure's status code in
+  `CFSTOREDPROC.StatusCode`. Accepted for compatibility; KoldFusion ignores it.
+usage:
+The exception has TYPE="Database", `CFCATCH.SQLState` S1000 and a message explaining that the driver does
+not support stored procedures. Pages written for an Oracle or Sybase server can catch it and fall back on
+plain `CFQUERY` statements, as the example does.
+
+On a server with a native driver, `CFSTOREDPROC.ExecutionTime` holds the call's duration in milliseconds.
+example:
+<CFTRY>
+  <CFSTOREDPROC PROCEDURE="sp_GetDeptStaff" DATASOURCE="cfsnippets">
+    <CFPROCPARAM TYPE="In" CFSQLTYPE="CF_SQL_VARCHAR" VALUE="Training" DBVARNAME="@dept">
+    <CFPROCRESULT NAME="Staff">
+  </CFSTOREDPROC>
+  <CFCATCH TYPE="Database">
+    <CFOUTPUT>
+    <P><B>The procedure call failed</B> (SQLState #CFCATCH.SQLState#):<BR>
+    <I>#CFCATCH.Message#</I></P>
+    </CFOUTPUT>
+    <!--- Fall back on a plain query that does the same job --->
+    <CFQUERY NAME="Staff" DATASOURCE="cfsnippets">
+    SELECT FirstName, LastName FROM Employees
+    WHERE Department = 'Training' ORDER BY LastName
+    </CFQUERY>
+  </CFCATCH>
+</CFTRY>
+<P>Training department, from the fallback query:</P>
+<UL>
+<CFOUTPUT QUERY="Staff"><LI>#FirstName# #LastName#
+</CFOUTPUT>
+</UL>
+see: CFPROCPARAM, CFPROCRESULT, CFQUERY, CFTRY
+
+@tag CFPROCPARAM
+category: Database manipulation
+summary: Passes one parameter to a stored procedure called with CFSTOREDPROC.
+desc:
+Each `CFPROCPARAM` inside a `CFSTOREDPROC` supplies one parameter, in the order the procedure declares
+them. Input parameters carry a value; output parameters name a CFML variable that receives the result.
+syntax:
+<CFPROCPARAM TYPE="In/Out/InOut"
+    VARIABLE="variable_name"
+    DBVARNAME="db_variable_name"
+    VALUE="parameter_value"
+    CFSQLTYPE="parameter_datatype"
+    MAXLENGTH="length"
+    SCALE="decimal_places"
+    NULL="Yes/No">
+attrs:
+TYPE | Optional, default "In" | In passes a value, Out receives one, InOut does both.
+VARIABLE | Required for Out and InOut | CFML variable that receives the output value.
+DBVARNAME | Optional | Name of the parameter in the procedure, such as `@dept`, for drivers that bind by name.
+VALUE | Required for In and InOut | The value to pass.
+CFSQLTYPE | Required | One of the CF_SQL_ types listed under `CFQUERYPARAM`.
+MAXLENGTH | Optional | Maximum length of the value.
+SCALE | Optional | Decimal places of a numeric value.
+NULL | Optional, default "No" | Yes passes SQL NULL.
+usage:
+Because KoldFusion's flat-file driver cannot run stored procedures, `CFPROCPARAM` is parsed but does
+nothing on its own; the enclosing `CFSTOREDPROC` throws a Database exception before any parameter is used,
+so an Out variable is never set. Give such variables a default with `CFPARAM`, as the example does.
+example:
+<CFPARAM NAME="HeadCount" DEFAULT="(not returned)">
+<CFTRY>
+  <CFSTOREDPROC PROCEDURE="sp_CountStaff" DATASOURCE="cfsnippets">
+    <CFPROCPARAM TYPE="In" CFSQLTYPE="CF_SQL_VARCHAR" DBVARNAME="@dept" VALUE="Engineering">
+    <CFPROCPARAM TYPE="Out" CFSQLTYPE="CF_SQL_INTEGER" DBVARNAME="@total" VARIABLE="HeadCount">
+  </CFSTOREDPROC>
+  <CFCATCH TYPE="Database">
+    <CFOUTPUT><P>Caught a #CFCATCH.Type# exception: #CFCATCH.Message#</P></CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+<CFQUERY NAME="Counted" DATASOURCE="cfsnippets">
+SELECT COUNT(*) AS Total FROM Employees WHERE Department = 'Engineering'
+</CFQUERY>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TD>Out parameter HeadCount</TD><TD>#HeadCount#</TD></TR>
+<TR><TD>Same answer from CFQUERY</TD><TD>#Counted.Total#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: CFSTOREDPROC, CFPROCRESULT, CFQUERYPARAM, CFPARAM
+
+@tag CFPROCRESULT
+category: Database manipulation
+summary: Names a result set returned by a stored procedure called with CFSTOREDPROC.
+desc:
+A stored procedure can return several result sets. Each `CFPROCRESULT` inside a `CFSTOREDPROC` turns one
+of them into an ordinary query variable that you can use with `CFOUTPUT`, `CFLOOP` and the query functions.
+syntax:
+<CFPROCRESULT NAME="query_name"
+    RESULTSET="1-n"
+    MAXROWS="maxrows">
+attrs:
+NAME | Required | Name of the query that receives the result set.
+RESULTSET | Optional, default "1" | Which result set to take, counting from 1.
+MAXROWS | Optional | Maximum number of rows to keep.
+usage:
+As with `CFPROCPARAM`, KoldFusion parses the tag but never fills the query, because the enclosing
+`CFSTOREDPROC` always throws a Database exception on the flat-file driver. Test with `IsDefined` or
+`IsQuery` before using the result, or build it another way in your `CFCATCH` block.
+example:
+<CFTRY>
+  <CFSTOREDPROC PROCEDURE="sp_DeptReport" DATASOURCE="cfsnippets">
+    <CFPROCRESULT NAME="Depts" RESULTSET="1">
+    <CFPROCRESULT NAME="Courses" RESULTSET="2" MAXROWS="5">
+  </CFSTOREDPROC>
+  <CFCATCH TYPE="Database">
+    <P>No stored procedures on this driver. Running the two queries by hand instead.</P>
+    <CFQUERY NAME="Depts" DATASOURCE="cfsnippets">
+    SELECT Dept_Name, Location FROM Departments ORDER BY Dept_Name
+    </CFQUERY>
+    <CFQUERY NAME="Courses" DATASOURCE="cfsnippets" MAXROWS="5">
+    SELECT CorName, CorLevel FROM CourseList ORDER BY CorName
+    </CFQUERY>
+  </CFCATCH>
+</CFTRY>
+<CFOUTPUT>
+<P>IsQuery(Depts): #IsQuery(Depts)#, IsQuery(Courses): #IsQuery(Courses)#</P>
+</CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Department</TH><TH>Location</TH></TR>
+<CFOUTPUT QUERY="Depts"><TR><TD>#Dept_Name#</TD><TD>#Location#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+<UL>
+<CFOUTPUT QUERY="Courses"><LI>#CorName# (#CorLevel#)
+</CFOUTPUT>
+</UL>
+see: CFSTOREDPROC, CFPROCPARAM, CFQUERY, IsQuery

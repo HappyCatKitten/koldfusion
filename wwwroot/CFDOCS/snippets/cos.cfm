@@ -1,0 +1,6 @@
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Degrees</TH><TH>Cos</TH></TR>
+<CFLOOP INDEX="deg" LIST="0,30,45,60,90,180">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#deg#</TD><TD>#NumberFormat(Cos(deg * Pi() / 180), "9.9999")#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>

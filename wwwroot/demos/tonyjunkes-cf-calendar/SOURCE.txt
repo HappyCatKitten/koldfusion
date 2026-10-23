@@ -1,0 +1,10 @@
+Source:  https://github.com/tonyjunkes/cf-calendar (cf-calendar.cfm, index.cfm, css/cf-calendar.css)
+Author:  Tony Junkes (c. 2012-2015)
+License: MIT (LICENSE.txt)
+Description: Month-grid calendar custom tag (called via <cfmodule template="cf-calendar.cfm" callingPage="index.cfm">) with prev/next
+             month links, today highlight and a hard-coded demo "event" shown in a jQuery UI dialog.
+CF features: CFSETTING enablecfoutputonly, CFMODULE, ATTRIBUTES scope, CFTRY/CFCATCH, CFLOOP from/to, CFIF, CFOUTPUT with ## escaping in JS;
+             funcs DateFormat (incl. DateFormat(i,"DDDD") trick on small ints), DateAdd, DaysInMonth, Now, StructKeyExists, IsNumeric. MOD.
+             index.cfm expects jQuery/jQuery-UI files (not saved - only cf-calendar.css saved).
+Datasource: none.
+CF4.5 compatible: essentially yes (StructKeyExists, CFTRY exist in 4.x); markup is HTML5/jQuery-era.

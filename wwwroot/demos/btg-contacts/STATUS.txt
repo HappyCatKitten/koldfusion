@@ -1,0 +1,28 @@
+# KoldFusion Demo Gallery status file, read by /demos/index.cfm (results of running every file on KoldFusion).
+# One line per file:  file | status | note | run
+#   status: works, partial, cf5 (needs CF5+), cfmx (needs CFMX+), fails, include (not a page), shim (gallery companion)
+#   run:    optional page to open instead of the file ("-" = no Run link)
+@title Bridge The Gap contacts (Cheri Jones)
+@blurb A genuinely old-school CRUD app: frameset, font tags, CFFORM validation, CFINSERT/CFUPDATE, plaintext passwords and unparameterised SQL (authentic - do not deploy!). DSN btg. Demo logins: admin / bridge (state admin), dist5 / coffee and dist12 / pancake (district admins).
+@order 3
+index.cfm       | works   | Start here: frameset with a scrolling status-bar message; log in as admin / bridge |
+splash.cfm      | works   | The login form (CFFORM + required CFINPUTs). translatit.cfm pulls in Google Translate's script from the Internet |
+loginpost.cfm   | works   | Admin menu + contact list after login (needs the posted login) | -
+findcontact.cfm | include | Contact list included by loginpost.cfm | -
+add1.cfm        | works   | Add-a-contact form (reached from the admin menu) | -
+add2.cfm        | works   | CFINSERT into contacts, then shows the form again | -
+update1.cfm     | partial | Lists contacts; its Edit buttons and sort buttons post to update2.cfm / update1a-f.cfm, which are not in the repo | -
+delete1.cfm     | partial | Delete list works; the sort buttons post to delete1a-g.cfm, which are not in the repo | -
+delete2.cfm     | works   | DELETE by contactid, then the list again | -
+getcontact1.cfm | partial | Search form with CFSELECTs from queries; sort buttons post to getcontact1a-g.cfm (not in the repo) | -
+getcontact2.cfm | works   | Search results built from optional WHERE clauses | -
+admin3.cfm      | works   | Add a district admin (state admin only) | -
+admin3a.cfm     | works   | CFINSERT into login | -
+admin4.cfm      | works   | Pick a district admin to update | -
+admin4a.cfm     | works   | Edit form for one login | -
+admin4b.cfm     | works   | CFUPDATE login | -
+admin5.cfm      | works   | Pick a district admin to delete | -
+admin5a.cfm     | works   | DELETE from login | -
+translatit.cfm  | include | Page header: XHTML doctype + Google Translate widget | -
+application.cfm | include | CFAPPLICATION with client + session management; sets attributes.dsn = "btg" | -
+login.cfm       | shim    | Stand-in for the missing login.cfm the "Back to Login" links point at: redirects to splash.cfm |

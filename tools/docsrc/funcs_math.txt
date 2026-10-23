@@ -1,0 +1,1377 @@
+# CFML Language Reference - mathematical and decision functions.
+# Format: see the docstring at the top of tools/mkdocs.py.
+
+# ---------------------------------------------------------------- Mathematical functions
+
+@func Abs
+category: Mathematical functions
+summary: Returns the absolute value of a number.
+desc:
+Returns the absolute value of a number, that is, the number without its sign. Positive numbers
+and zero come back unchanged; negative numbers come back positive.
+syntax:
+Abs(number)
+params:
+number | Any number, or a string that can be converted to one.
+returns:
+A number greater than or equal to zero.
+usage:
+Handy for differences where only the size matters, such as "how far off budget are we" or the
+number of days between two dates in either order. Use `Sgn` if you need the sign instead.
+example:
+<CFSET Values = "42,-42,0,-3.75,1999">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Abs(number)</TH></TR>
+<CFLOOP INDEX="n" LIST="#Values#">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD ALIGN="RIGHT">#Abs(n)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Sgn, Int, Fix, Round
+
+@func ACos
+category: Mathematical functions
+summary: Returns the arccosine of a number, in radians.
+desc:
+Returns the angle, in radians, whose cosine is the given number. The result lies between 0 and
+pi (3.14159...).
+syntax:
+ACos(number)
+params:
+number | The cosine of the angle: a number between -1 and 1 inclusive.
+returns:
+The angle in radians, from 0 to `Pi()`.
+usage:
+A value outside the range -1 to 1 raises an Expression error ("Parameter validation error for
+function ACOS"). To convert the result to degrees, multiply by 180 and divide by `Pi`.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>ACos (radians)</TH><TH>degrees</TH></TR>
+<CFLOOP INDEX="n" LIST="1,0.5,0,-0.5,-1">
+<CFSET r = ACos(n)>
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD>#NumberFormat(r, "9.9999")#</TD>
+<TD ALIGN="RIGHT">#Round(r * 180 / Pi())#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Cos, ASin, Atn, Pi
+
+@func ASin
+category: Mathematical functions
+summary: Returns the arcsine of a number, in radians.
+desc:
+Returns the angle, in radians, whose sine is the given number. The result lies between -pi/2 and
+pi/2.
+syntax:
+ASin(number)
+params:
+number | The sine of the angle: a number between -1 and 1 inclusive.
+returns:
+The angle in radians, from `-Pi()/2` to `Pi()/2`.
+usage:
+A value outside the range -1 to 1 raises an Expression error. Multiply the result by
+`180 / Pi()` to get degrees.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>ASin (radians)</TH><TH>degrees</TH></TR>
+<CFLOOP INDEX="n" LIST="-1,-0.5,0,0.5,1">
+<CFSET r = ASin(n)>
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD>#NumberFormat(r, "9.9999")#</TD>
+<TD ALIGN="RIGHT">#Round(r * 180 / Pi())#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Sin, ACos, Atn, Pi
+
+@func Atn
+category: Mathematical functions
+summary: Returns the arctangent of a number, in radians.
+desc:
+Returns the angle, in radians, whose tangent is the given number. The result lies between -pi/2
+and pi/2. Any number is accepted.
+syntax:
+Atn(number)
+params:
+number | The tangent of the angle; any number.
+returns:
+The angle in radians, strictly between `-Pi()/2` and `Pi()/2`.
+usage:
+A classic trick: `4 * Atn(1)` is pi, which is how programmers got pi before there was a `Pi`
+function. KoldFusion has no two-argument arctangent; divide y by x yourself and mind the quadrant.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Atn (radians)</TH><TH>degrees</TH></TR>
+<CFLOOP INDEX="n" LIST="-1000,-1,0,1,1000">
+<CFSET r = Atn(n)>
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD>#NumberFormat(r, "9.9999")#</TD>
+<TD ALIGN="RIGHT">#NumberFormat(r * 180 / Pi(), "99.99")#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFOUTPUT><P>4 * Atn(1) = #4 * Atn(1)#</CFOUTPUT>
+see: Tan, ASin, ACos, Pi
+
+@func BitAnd
+category: Mathematical functions
+summary: Performs a bitwise logical AND of two integers.
+desc:
+Returns the bitwise AND of two integers: each bit of the result is 1 only if the same bit is 1
+in both arguments. Fractional parts are discarded before the operation.
+syntax:
+BitAnd(number1, number2)
+params:
+number1 | An integer.
+number2 | An integer.
+returns:
+An integer.
+usage:
+The usual job of `BitAnd` is testing flags packed into one number: `BitAnd(Flags, 4) NEQ 0` is
+true when bit 2 is set. To read several adjacent bits at once, `BitMaskRead` is more readable.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>a</TH><TH>b</TH><TH>a (binary)</TH><TH>b (binary)</TH><TH>BitAnd(a, b)</TH></TR>
+<CFLOOP INDEX="pair" LIST="12:10,255:15,6:9,1999:2000">
+<CFSET a = ListFirst(pair, ":")><CFSET b = ListLast(pair, ":")>
+<CFOUTPUT><TR><TD>#a#</TD><TD>#b#</TD><TD><TT>#FormatBaseN(a, 2)#</TT></TD>
+<TD><TT>#FormatBaseN(b, 2)#</TT></TD><TD><B>#BitAnd(a, b)#</B> (<TT>#FormatBaseN(BitAnd(a, b), 2)#</TT>)</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: BitOr, BitXor, BitNot, BitMaskRead
+
+@func BitMaskClear
+category: Mathematical functions
+summary: Clears a run of bits in an integer.
+desc:
+Returns the number with `length` bits, starting at bit `start` (bit 0 is the lowest), set to zero.
+All other bits are left alone.
+syntax:
+BitMaskClear(number, start, length)
+params:
+number | A 32-bit integer.
+start | Position of the lowest bit to clear, 0 to 31.
+length | Number of bits to clear, 1 to 31.
+returns:
+An integer.
+usage:
+`BitMaskClear(n, s, l)` is shorthand for `BitAnd(n, BitNot(BitSHLN(2^l - 1, s)))`. The result is
+a signed 32-bit integer, so clearing bits of a negative number may still give a negative number.
+example:
+<CFSET n = 255>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Call</TH><TH>Result</TH><TH>Binary</TH></TR>
+<CFLOOP INDEX="args" LIST="0:4,4:4,2:3,7:1">
+<CFSET s = ListFirst(args, ":")><CFSET l = ListLast(args, ":")>
+<CFSET r = BitMaskClear(n, s, l)>
+<CFOUTPUT><TR><TD><TT>BitMaskClear(#n#, #s#, #l#)</TT></TD><TD ALIGN="RIGHT">#r#</TD>
+<TD><TT>#Right("00000000" & FormatBaseN(r, 2), 8)#</TT></TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: BitMaskSet, BitMaskRead, BitAnd, BitNot
+
+@func BitMaskRead
+category: Mathematical functions
+summary: Reads a run of bits from an integer.
+desc:
+Extracts `length` bits from the number, starting at bit `start` (bit 0 is the lowest), and returns
+them as an integer shifted down to bit 0.
+syntax:
+BitMaskRead(number, start, length)
+params:
+number | A 32-bit integer.
+start | Position of the lowest bit to read, 0 to 31.
+length | Number of bits to read, 1 to 31.
+returns:
+A non-negative integer between 0 and 2^length - 1.
+usage:
+Useful for unpacking several small values stored in one integer column, a favorite space-saving
+trick from the days when a 1 GB disk was big. `BitMaskSet` packs them in again.
+example:
+<!--- Pack a date into one integer: day in bits 0-4, month in bits 5-8, year offset in bits 9-15 --->
+<CFSET Packed = 31 + 12 * 32 + 99 * 512>
+<CFOUTPUT>
+<P>Packed value: #Packed# (binary <TT>#FormatBaseN(Packed, 2)#</TT>)
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Field</TH><TH>Call</TH><TH>Value</TH></TR>
+<TR><TD>Day</TD><TD><TT>BitMaskRead(Packed, 0, 5)</TT></TD><TD>#BitMaskRead(Packed, 0, 5)#</TD></TR>
+<TR><TD>Month</TD><TD><TT>BitMaskRead(Packed, 5, 4)</TT></TD><TD>#BitMaskRead(Packed, 5, 4)#</TD></TR>
+<TR><TD>Year - 1900</TD><TD><TT>BitMaskRead(Packed, 9, 7)</TT></TD><TD>#BitMaskRead(Packed, 9, 7)#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: BitMaskSet, BitMaskClear, BitAnd, BitSHRN
+
+@func BitMaskSet
+category: Mathematical functions
+summary: Writes a value into a run of bits of an integer.
+desc:
+Returns the number with `length` bits, starting at bit `start`, replaced by the low bits of `mask`.
+Bits outside that run are left alone.
+syntax:
+BitMaskSet(number, mask, start, length)
+params:
+number | A 32-bit integer to modify.
+mask | The value to store. Only its lowest `length` bits are used.
+start | Position of the lowest bit to write, 0 to 31.
+length | Number of bits to write, 1 to 31.
+returns:
+An integer (signed 32-bit).
+usage:
+Think of it as `BitMaskClear` followed by a `BitOr` of the mask shifted into place. If the mask
+is too large for the field, the extra high bits are silently dropped.
+example:
+<CFSET Packed = 0>
+<CFSET Packed = BitMaskSet(Packed, 31, 0, 5)>   <!--- day   --->
+<CFSET Packed = BitMaskSet(Packed, 12, 5, 4)>   <!--- month --->
+<CFSET Packed = BitMaskSet(Packed, 99, 9, 7)>   <!--- year - 1900 --->
+<CFOUTPUT>
+<P>Packed date: #Packed# (binary <TT>#FormatBaseN(Packed, 2)#</TT>)
+<P>Unpacked: #BitMaskRead(Packed, 5, 4)#/#BitMaskRead(Packed, 0, 5)#/#1900 + BitMaskRead(Packed, 9, 7)#
+<P>Too big for the field: <TT>BitMaskSet(0, 255, 4, 3)</TT> = #BitMaskSet(0, 255, 4, 3)#
+(only 3 bits, <TT>111</TT>, were stored)
+</CFOUTPUT>
+see: BitMaskRead, BitMaskClear, BitOr, BitSHLN
+
+@func BitNot
+category: Mathematical functions
+summary: Performs a bitwise logical NOT (one's complement) of an integer.
+desc:
+Returns the one's complement of a 32-bit integer: every 0 bit becomes 1 and every 1 bit becomes 0.
+syntax:
+BitNot(number)
+params:
+number | A 32-bit integer.
+returns:
+A signed 32-bit integer. For any n, `BitNot(n)` equals `-n - 1`.
+usage:
+Because the result is signed, `BitNot(0)` is -1 (all 32 bits set). Combine with `BitAnd` to turn
+flags off: `BitAnd(Flags, BitNot(4))` clears bit 2.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>BitNot(number)</TH><TH>BitAnd(255, BitNot(number))</TH></TR>
+<CFLOOP INDEX="n" LIST="0,1,12,255,-1">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD ALIGN="RIGHT">#BitNot(n)#</TD>
+<TD ALIGN="RIGHT">#BitAnd(255, BitNot(n))#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: BitAnd, BitOr, BitXor, BitMaskClear
+
+@func BitOr
+category: Mathematical functions
+summary: Performs a bitwise logical OR of two integers.
+desc:
+Returns the bitwise OR of two integers: each bit of the result is 1 if the same bit is 1 in
+either argument (or both).
+syntax:
+BitOr(number1, number2)
+params:
+number1 | An integer.
+number2 | An integer.
+returns:
+An integer.
+usage:
+Use `BitOr` to switch flags on: `Flags = BitOr(Flags, 8)` sets bit 3 and leaves the rest as they
+were. Setting a flag that is already on does no harm.
+example:
+<CFSET Read = 1><CFSET Write = 2><CFSET Delete = 4>
+<CFSET Rights = 0>
+<CFSET Rights = BitOr(Rights, Read)>
+<CFSET Rights = BitOr(Rights, Write)>
+<CFSET Rights = BitOr(Rights, Write)>  <!--- twice is harmless --->
+<CFOUTPUT>
+<P>Rights = #Rights# (binary <TT>#FormatBaseN(Rights, 2)#</TT>)
+<UL>
+<LI>Read: #YesNoFormat(BitAnd(Rights, Read))#
+<LI>Write: #YesNoFormat(BitAnd(Rights, Write))#
+<LI>Delete: #YesNoFormat(BitAnd(Rights, Delete))#
+</UL>
+<P>BitOr(12, 10) = #BitOr(12, 10)#
+</CFOUTPUT>
+see: BitAnd, BitXor, BitNot, BitMaskSet
+
+@func BitSHLN
+category: Mathematical functions
+summary: Shifts the bits of an integer to the left.
+desc:
+Shifts a 32-bit integer `count` bits to the left. Zeros come in from the right and bits shifted
+past bit 31 are lost.
+syntax:
+BitSHLN(number, count)
+params:
+number | A 32-bit integer.
+count | Number of positions to shift, 0 to 31.
+returns:
+A signed 32-bit integer.
+usage:
+Shifting left by n multiplies by 2^n as long as nothing falls off the top. Shifting a 1 into bit
+31 gives a negative number (-2147483648), because the result is signed.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>count</TH><TH>BitSHLN(number, count)</TH></TR>
+<CFLOOP INDEX="args" LIST="1:0,1:4,3:8,255:8,1:31">
+<CFSET n = ListFirst(args, ":")><CFSET c = ListLast(args, ":")>
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD ALIGN="RIGHT">#c#</TD>
+<TD ALIGN="RIGHT">#BitSHLN(n, c)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: BitSHRN, BitMaskSet, BitAnd
+
+@func BitSHRN
+category: Mathematical functions
+summary: Shifts the bits of an integer to the right.
+desc:
+Shifts a 32-bit integer `count` bits to the right. Bits shifted past bit 0 are lost and zeros
+come in from the left (an unsigned, or logical, shift).
+syntax:
+BitSHRN(number, count)
+params:
+number | A 32-bit integer.
+count | Number of positions to shift, 0 to 31.
+returns:
+A non-negative integer.
+usage:
+For positive numbers, shifting right by n is the same as `Int(number / 2^n)`. Because zeros come
+in from the left, a negative number becomes a large positive one: `BitSHRN(-1, 28)` is 15.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>count</TH><TH>BitSHRN(number, count)</TH></TR>
+<CFLOOP INDEX="args" LIST="256:4,255:4,65535:8,1999:1,-1:28">
+<CFSET n = ListFirst(args, ":")><CFSET c = ListLast(args, ":")>
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD ALIGN="RIGHT">#c#</TD>
+<TD ALIGN="RIGHT">#BitSHRN(n, c)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: BitSHLN, BitMaskRead, BitAnd
+
+@func BitXor
+category: Mathematical functions
+summary: Performs a bitwise logical exclusive OR of two integers.
+desc:
+Returns the bitwise exclusive OR of two integers: each bit of the result is 1 if the same bit is
+1 in exactly one of the arguments.
+syntax:
+BitXor(number1, number2)
+params:
+number1 | An integer.
+number2 | An integer.
+returns:
+An integer.
+usage:
+XOR toggles bits: `BitXor(Flags, 4)` flips bit 2 on if it was off, and off if it was on. Applying
+the same XOR twice gives back the original number, which made it the "encryption" of choice for
+many a shareware program.
+example:
+<CFSET Secret = 1999><CFSET Key = 1234>
+<CFSET Scrambled = BitXor(Secret, Key)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Value</TH><TH>Decimal</TH><TH>Binary</TH></TR>
+<TR><TD>Secret</TD><TD ALIGN="RIGHT">#Secret#</TD><TD><TT>#FormatBaseN(Secret, 2)#</TT></TD></TR>
+<TR><TD>Key</TD><TD ALIGN="RIGHT">#Key#</TD><TD><TT>#FormatBaseN(Key, 2)#</TT></TD></TR>
+<TR><TD>BitXor(Secret, Key)</TD><TD ALIGN="RIGHT">#Scrambled#</TD><TD><TT>#FormatBaseN(Scrambled, 2)#</TT></TD></TR>
+<TR><TD>BitXor(that, Key)</TD><TD ALIGN="RIGHT">#BitXor(Scrambled, Key)#</TD><TD><TT>#FormatBaseN(BitXor(Scrambled, Key), 2)#</TT></TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: BitAnd, BitOr, BitNot
+
+@func Ceiling
+category: Mathematical functions
+summary: Returns the smallest integer greater than or equal to a number.
+desc:
+Rounds a number up to the next whole number. Integers come back unchanged.
+syntax:
+Ceiling(number)
+params:
+number | Any number.
+returns:
+An integer.
+usage:
+"Up" means toward positive infinity, so `Ceiling(-3.7)` is -3. Its counterpart, which rounds down,
+is `Int`. A common use is counting pages: `Ceiling(RecordCount / 10)` pages of 10 rows.
+example:
+<CFQUERY NAME="GetParks" DATASOURCE="cfsnippets">
+SELECT ParkName FROM Parks
+</CFQUERY>
+<CFOUTPUT>
+<P>#GetParks.RecordCount# parks at 10 per page need #Ceiling(GetParks.RecordCount / 10)# pages.
+</CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Ceiling</TH><TH>Int</TH></TR>
+<CFLOOP INDEX="n" LIST="3.2,3.7,3,-3.2,-3.7">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD ALIGN="RIGHT">#Ceiling(n)#</TD><TD ALIGN="RIGHT">#Int(n)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Int, Fix, Round
+
+@func Cos
+category: Mathematical functions
+summary: Returns the cosine of an angle given in radians.
+desc:
+Returns the cosine of an angle. The angle must be in radians; to convert degrees, multiply by
+`Pi()` and divide by 180.
+syntax:
+Cos(number)
+params:
+number | An angle in radians.
+returns:
+A number between -1 and 1.
+usage:
+Floating-point arithmetic is not exact: `Cos(Pi()/2)` gives a tiny number such as 6.12E-017
+rather than a clean zero. Format results with `NumberFormat` or `Round` before showing them.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Degrees</TH><TH>Cos</TH></TR>
+<CFLOOP INDEX="deg" LIST="0,30,45,60,90,180">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#deg#</TD><TD>#NumberFormat(Cos(deg * Pi() / 180), "9.9999")#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Sin, Tan, ACos, Pi
+
+@func DecrementValue
+category: Mathematical functions
+summary: Returns the integer part of a number, decreased by one.
+desc:
+Drops the fractional part of a number and subtracts one.
+syntax:
+DecrementValue(number)
+params:
+number | Any number.
+returns:
+An integer.
+usage:
+`DecrementValue(17.5)` is 16, not 16.5. If you want to keep the fraction, just write `n - 1`.
+`IncrementValue` goes the other way.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>DecrementValue(number)</TH><TH>number - 1</TH></TR>
+<CFLOOP INDEX="n" LIST="10,17.5,1,0.25">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD ALIGN="RIGHT">#DecrementValue(n)#</TD><TD ALIGN="RIGHT">#n - 1#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<P>Countdown:
+<CFSET n = 5>
+<CFLOOP CONDITION="n GT 0"><CFOUTPUT>#n#... </CFOUTPUT><CFSET n = DecrementValue(n)></CFLOOP>
+Happy New Year!
+see: IncrementValue, Int, Fix
+
+@func Exp
+category: Mathematical functions
+summary: Returns e raised to a power.
+desc:
+Returns the constant e (2.71828182846, the base of natural logarithms) raised to the given power.
+syntax:
+Exp(number)
+params:
+number | The exponent.
+returns:
+A positive number.
+usage:
+`Exp` is the inverse of `Log`: `Log(Exp(x))` is x. For other bases use the `^` operator, for
+example `2^10`. Compound interest calculated continuously is `Principal * Exp(Rate * Years)`.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Exp(number)</TH></TR>
+<CFLOOP INDEX="n" LIST="0,1,2,-1,10">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD>#Exp(n)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFOUTPUT>
+<P>$1,000 at 5% compounded continuously for 10 years:
+#DollarFormat(1000 * Exp(0.05 * 10))#
+</CFOUTPUT>
+see: Log, Log10, Sqr
+
+@func Fix
+category: Mathematical functions
+summary: Removes the fractional part of a number, rounding toward zero.
+desc:
+Returns the integer part of a number by simply cutting off everything after the decimal point.
+syntax:
+Fix(number)
+params:
+number | Any number.
+returns:
+An integer.
+usage:
+For positive numbers `Fix` and `Int` agree. For negative numbers they differ: `Fix(-3.7)` is -3
+(toward zero) while `Int(-3.7)` is -4 (down).
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Fix</TH><TH>Int</TH><TH>Round</TH><TH>Ceiling</TH></TR>
+<CFLOOP INDEX="n" LIST="3.7,3.2,-3.2,-3.7">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD ALIGN="RIGHT"><B>#Fix(n)#</B></TD><TD ALIGN="RIGHT">#Int(n)#</TD>
+<TD ALIGN="RIGHT">#Round(n)#</TD><TD ALIGN="RIGHT">#Ceiling(n)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Int, Round, Ceiling
+
+@func FormatBaseN
+category: Mathematical functions
+summary: Converts a number to a string in a given base (radix).
+desc:
+Converts a number to its representation in base 2 through 36. Digits beyond 9 are written as
+lowercase letters (a = 10, b = 11, ... z = 35).
+syntax:
+FormatBaseN(number, radix)
+params:
+number | The number to convert. Any fractional part is discarded.
+radix | The base, from 2 to 36.
+returns:
+A string. Negative numbers get a leading minus sign.
+usage:
+A radix outside 2-36 raises an Expression error. Use `InputBaseN` to convert back to decimal.
+Base 16 is useful for HTML colors: `Right("0" & FormatBaseN(n, 16), 2)` gives two hex digits.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Base 2</TH><TH>Base 8</TH><TH>Base 16</TH><TH>Base 36</TH></TR>
+<CFLOOP INDEX="n" LIST="10,255,1999,-42">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD><TT>#FormatBaseN(n, 2)#</TT></TD><TD><TT>#FormatBaseN(n, 8)#</TT></TD>
+<TD><TT>#FormatBaseN(n, 16)#</TT></TD><TD><TT>#FormatBaseN(n, 36)#</TT></TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<P>A web-safe palette row:
+<CFLOOP INDEX="g" FROM="0" TO="255" STEP="51">
+<CFSET hex = Right("0" & FormatBaseN(g, 16), 2)>
+<CFOUTPUT><FONT COLOR="##00#hex#00"><B>##00#hex#00</B></FONT> </CFOUTPUT>
+</CFLOOP>
+see: InputBaseN, NumberFormat, BitAnd
+
+@func IncrementValue
+category: Mathematical functions
+summary: Returns the integer part of a number, increased by one.
+desc:
+Drops the fractional part of a number and adds one.
+syntax:
+IncrementValue(number)
+params:
+number | Any number.
+returns:
+An integer.
+usage:
+`IncrementValue(17.5)` is 18, not 18.5. It is commonly used for counters, though `n + 1` does the
+same job for whole numbers. `DecrementValue` goes the other way.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>IncrementValue(number)</TH><TH>number + 1</TH></TR>
+<CFLOOP INDEX="n" LIST="10,17.5,0,1998.9">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD ALIGN="RIGHT">#IncrementValue(n)#</TD><TD ALIGN="RIGHT">#n + 1#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFSET Visitors = 0>
+<CFLOOP INDEX="i" FROM="1" TO="3"><CFSET Visitors = IncrementValue(Visitors)></CFLOOP>
+<CFOUTPUT><P>You are visitor number #Visitors#!</CFOUTPUT>
+see: DecrementValue, Int, Fix
+
+@func InputBaseN
+category: Mathematical functions
+summary: Converts a string in a given base (radix) to a decimal integer.
+desc:
+Reads a string as a number written in base 2 through 36 and returns its decimal value. Letters
+may be upper or lower case.
+syntax:
+InputBaseN(string, radix)
+params:
+string | The digits of the number, optionally with a leading minus sign, for example "FF" or "1010".
+radix | The base the string is written in, from 2 to 36.
+returns:
+An integer.
+usage:
+A string containing a digit that is not valid in the radix (such as "12G" in base 16), or an empty
+string, raises an Expression error. Wrap user input in `CFTRY` or check it first.
+`FormatBaseN` converts the other way.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>string</TH><TH>radix</TH><TH>InputBaseN</TH></TR>
+<CFLOOP INDEX="args" LIST="1010:2,777:8,FF:16,cafe:16,ZZ:36">
+<CFSET s = ListFirst(args, ":")><CFSET r = ListLast(args, ":")>
+<CFOUTPUT><TR><TD><TT>#s#</TT></TD><TD ALIGN="RIGHT">#r#</TD><TD ALIGN="RIGHT">#InputBaseN(s, r)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFTRY>
+  <CFSET x = InputBaseN("12G", 16)>
+  <CFCATCH TYPE="Expression">
+    <CFOUTPUT><P><I>"12G" is not hexadecimal:</I> #CFCATCH.Message#</CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+see: FormatBaseN, Val, IsNumeric
+
+@func Int
+category: Mathematical functions
+summary: Returns the largest integer less than or equal to a number.
+desc:
+Rounds a number down to the nearest whole number.
+syntax:
+Int(number)
+params:
+number | Any number, or a string that can be converted to one.
+returns:
+An integer.
+usage:
+"Down" means toward negative infinity: `Int(3.7)` is 3 but `Int(-3.7)` is -4. Use `Fix` to round
+toward zero, `Ceiling` to round up, and `Round` for the nearest integer.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Int(number)</TH></TR>
+<CFLOOP INDEX="n" LIST="3.7,3.2,3,-3.2,-3.7">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD ALIGN="RIGHT">#Int(n)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFSET Minutes = 197>
+<CFOUTPUT><P>#Minutes# minutes is #Int(Minutes / 60)# hours and #Minutes MOD 60# minutes.</CFOUTPUT>
+see: Fix, Ceiling, Round, Val
+
+@func Log
+category: Mathematical functions
+summary: Returns the natural logarithm of a number.
+desc:
+Returns the natural logarithm (base e) of a positive number.
+syntax:
+Log(number)
+params:
+number | A number greater than zero.
+returns:
+A number.
+usage:
+Zero or a negative number raises an Expression error. `Log` is the inverse of `Exp`. For a
+logarithm in any base b, use `Log(x) / Log(b)`; base 10 has its own function, `Log10`.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Log(number)</TH><TH>log base 2</TH></TR>
+<CFLOOP INDEX="n" LIST="1,2,2.71828182846,10,1024">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD>#Log(n)#</TD><TD ALIGN="RIGHT">#Round(Log(n) / Log(2) * 1000) / 1000#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Log10, Exp, Sqr
+
+@func Log10
+category: Mathematical functions
+summary: Returns the base-10 logarithm of a number.
+desc:
+Returns the common (base 10) logarithm of a positive number.
+syntax:
+Log10(number)
+params:
+number | A number greater than zero.
+returns:
+A number.
+usage:
+Zero or a negative number raises an Expression error. `Int(Log10(n)) + 1` is the number of digits
+in a positive whole number n. For natural logarithms use `Log`.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Log10(number)</TH><TH>Digits</TH></TR>
+<CFLOOP INDEX="n" LIST="1,10,56000,1000000,2">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD>#Log10(n)#</TD><TD ALIGN="RIGHT">#Int(Log10(n)) + 1#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Log, Exp
+
+@func Max
+category: Mathematical functions
+summary: Returns the larger of two numbers.
+desc:
+Compares two numbers and returns the greater one.
+syntax:
+Max(number1, number2)
+params:
+number1 | A number.
+number2 | A number.
+returns:
+The larger of the two numbers.
+usage:
+`Max` takes exactly two arguments. For the largest value in an array use `ArrayMax`; for a column
+of a query, let SQL do it with `SELECT MAX(column)`. `Max` and `Min` together clamp a value into a
+range: `Min(Max(n, 1), 10)` keeps n between 1 and 10.
+example:
+<CFPARAM NAME="URL.Page" DEFAULT="-3">
+<CFSET SafePage = Min(Max(URL.Page, 1), 10)>
+<CFOUTPUT>
+<P>Max(3, 7) = #Max(3, 7)#<BR>
+Max(-1, -1.5) = #Max(-1, -1.5)#<BR>
+Requested page #URL.Page#, clamped to 1-10: page #SafePage#
+</CFOUTPUT>
+see: Min, ArrayMax, Abs
+
+@func Min
+category: Mathematical functions
+summary: Returns the smaller of two numbers.
+desc:
+Compares two numbers and returns the lesser one.
+syntax:
+Min(number1, number2)
+params:
+number1 | A number.
+number2 | A number.
+returns:
+The smaller of the two numbers.
+usage:
+`Min` takes exactly two arguments; nest calls for more, or put the values in an array and use
+`ArrayMin`. A typical use is capping a value, such as the last row shown on a page of results.
+example:
+<CFQUERY NAME="GetEmps" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName FROM Employees
+</CFQUERY>
+<CFSET StartRow = 21>
+<CFSET EndRow = Min(StartRow + 9, GetEmps.RecordCount)>
+<CFOUTPUT>
+<P>Min(3, 7) = #Min(3, 7)#, Min(-1, -1.5) = #Min(-1, -1.5)#
+<P>Showing employees #StartRow# to #EndRow# of #GetEmps.RecordCount#:
+</CFOUTPUT>
+<UL>
+<CFOUTPUT QUERY="GetEmps" STARTROW="#StartRow#" MAXROWS="10"><LI>#FirstName# #LastName#</CFOUTPUT>
+</UL>
+see: Max, ArrayMin, Abs
+
+@func Pi
+category: Mathematical functions
+summary: Returns the constant pi.
+desc:
+Returns the number pi, 3.14159265358979, accurate to about 15 digits (12 are displayed).
+syntax:
+Pi()
+returns:
+The number pi.
+usage:
+The trigonometric functions (`Sin`, `Cos`, `Tan` and friends) work in radians. Multiply degrees by
+`Pi() / 180` to get radians, and radians by `180 / Pi()` to get degrees.
+example:
+<CFSET Radius = 5>
+<CFOUTPUT>
+<P>Pi() = #Pi()#
+<P>A circle with radius #Radius#:
+<UL>
+<LI>circumference #NumberFormat(2 * Pi() * Radius, "9.99")#
+<LI>area #NumberFormat(Pi() * Radius ^ 2, "9.99")#
+</UL>
+<P>180 degrees = #Pi()# radians; 1 radian = #NumberFormat(180 / Pi(), "9.9999")# degrees
+</CFOUTPUT>
+see: Sin, Cos, Tan, Atn
+
+@func Rand
+category: Mathematical functions
+summary: Returns a random number between 0 and 1.
+desc:
+Returns a pseudo-random decimal number greater than or equal to 0 and less than 1.
+syntax:
+Rand()
+returns:
+A number from 0 up to (but not including) 1.
+usage:
+The generator is seeded automatically the first time it is used, so each request gets a different
+sequence. Call `Randomize` with a fixed seed if you need a repeatable sequence. For a random whole
+number in a range, `RandRange` is simpler than `Int(Rand() * n) + 1`.
+example:
+<P>Five random numbers (reload for new ones):
+<UL>
+<CFLOOP INDEX="i" FROM="1" TO="5">
+<CFOUTPUT><LI>#Rand()#</CFOUTPUT>
+</CFLOOP>
+</UL>
+<CFSET Coin = IIf(Rand() LT 0.5, DE("Heads"), DE("Tails"))>
+<CFOUTPUT><P>Coin toss: <B>#Coin#</B></CFOUTPUT>
+see: Randomize, RandRange
+
+@func Randomize
+category: Mathematical functions
+summary: Seeds the random number generator.
+desc:
+Seeds the random number generator used by `Rand` and `RandRange` with an integer, so that the
+numbers that follow form a predictable sequence. Also returns the first random number of that
+sequence.
+syntax:
+Randomize(number)
+params:
+number | An integer seed. Any fractional part is discarded.
+returns:
+A random number between 0 and 1, the same one for the same seed.
+usage:
+You do not need `Randomize` to get random numbers; the generator seeds itself. Use it when you
+want the same "random" results every time, for example for a repeatable test or a "puzzle of the
+day" seeded with the date. The seed lasts for the rest of the request.
+example:
+<CFSET Seed = Year(Now()) * 1000 + DayOfYear(Now())>
+<CFSET First = Randomize(Seed)>
+<CFSET Pick1 = RandRange(1, 49)>
+<CFSET Again = Randomize(Seed)>
+<CFSET Pick2 = RandRange(1, 49)>
+<CFOUTPUT>
+<P>Seeded with #Seed#: first number #First#, then lucky number #Pick1#.
+<P>Seeded again with #Seed#: first number #Again#, then lucky number #Pick2#.
+<P>Same both times? #YesNoFormat(First EQ Again AND Pick1 EQ Pick2)#. Come back tomorrow for a new lucky number.
+</CFOUTPUT>
+see: Rand, RandRange
+
+@func RandRange
+category: Mathematical functions
+summary: Returns a random integer in a range.
+desc:
+Returns a pseudo-random whole number between two integers, including both end points.
+syntax:
+RandRange(number1, number2)
+params:
+number1 | One end of the range (an integer).
+number2 | The other end of the range (an integer).
+returns:
+An integer from number1 to number2 inclusive.
+usage:
+The arguments may be given in either order. Use `Randomize` first if you need a repeatable
+sequence. Handy for rotating banner ads, tip-of-the-day boxes and dice games.
+example:
+<CFSET Tips = "Bookmark this page!,Upgrade to Netscape 4.7.,Y2K is just around the corner.,Use CFQUERYPARAM.">
+<CFOUTPUT>
+<P>You rolled: #RandRange(1, 6)# and #RandRange(1, 6)#
+<P>Tip of the day: <I>#ListGetAt(Tips, RandRange(1, ListLen(Tips)))#</I>
+</CFOUTPUT>
+<!--- Roll 600 dice and count the results --->
+<CFSET Counts = ArrayNew(1)>
+<CFSET ArraySet(Counts, 1, 6, 0)>
+<CFLOOP INDEX="i" FROM="1" TO="600"><CFSET r = RandRange(1, 6)><CFSET Counts[r] = Counts[r] + 1></CFLOOP>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Face</TH><TH>Count (of 600)</TH></TR>
+<CFLOOP INDEX="f" FROM="1" TO="6">
+<CFOUTPUT><TR><TD ALIGN="CENTER">#f#</TD><TD ALIGN="RIGHT">#Counts[f]#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Rand, Randomize
+
+@func Round
+category: Mathematical functions
+summary: Rounds a number to the nearest integer.
+desc:
+Rounds a number to the closest whole number. A number exactly halfway between two integers is
+rounded up.
+syntax:
+Round(number)
+params:
+number | Any number.
+returns:
+An integer.
+usage:
+"Up" means toward positive infinity, so `Round(2.5)` is 3 and `Round(-2.5)` is -2. To round to
+two decimal places, use `Round(n * 100) / 100`, or format the number for display with
+`NumberFormat` or `DecimalFormat`.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Round(number)</TH></TR>
+<CFLOOP INDEX="n" LIST="3.49,3.5,3.51,-2.5,-2.51">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD ALIGN="RIGHT">#Round(n)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFSET Price = 19.98765>
+<CFOUTPUT><P>#Price# to two places: #Round(Price * 100) / 100#</CFOUTPUT>
+see: Int, Fix, Ceiling, NumberFormat
+
+@func Sgn
+category: Mathematical functions
+summary: Returns the sign of a number: -1, 0 or 1.
+desc:
+Returns 1 if the number is positive, -1 if it is negative and 0 if it is zero.
+syntax:
+Sgn(number)
+params:
+number | Any number.
+returns:
+-1, 0 or 1.
+usage:
+Together with `Abs` you can take a number apart and put it back together: `n` equals
+`Sgn(n) * Abs(n)`.
+example:
+<CFSET Balances = "250.00,0,-75.50">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Balance</TH><TH>Sgn</TH><TH>Status</TH></TR>
+<CFLOOP INDEX="b" LIST="#Balances#">
+<CFSET Status = ListGetAt("Overdrawn,Even,In credit", Sgn(b) + 2)>
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#DollarFormat(b)#</TD><TD ALIGN="RIGHT">#Sgn(b)#</TD><TD>#Status#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Abs, Int, Fix
+
+@func Sin
+category: Mathematical functions
+summary: Returns the sine of an angle given in radians.
+desc:
+Returns the sine of an angle. The angle must be in radians; to convert degrees, multiply by
+`Pi()` and divide by 180.
+syntax:
+Sin(number)
+params:
+number | An angle in radians.
+returns:
+A number between -1 and 1.
+usage:
+Floating-point arithmetic is not exact: `Sin(Pi())` gives about 1.2E-016 instead of 0. Use
+`NumberFormat` or `Round` when showing results.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Degrees</TH><TH>Sin</TH><TH>Cos</TH><TH>Tan</TH></TR>
+<CFLOOP INDEX="deg" LIST="0,30,45,60,120,180,300">
+<CFSET r = deg * Pi() / 180>
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#deg#</TD><TD>#NumberFormat(Sin(r), "9.9999")#</TD>
+<TD>#NumberFormat(Cos(r), "9.9999")#</TD><TD>#NumberFormat(Tan(r), "9.9999")#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Cos, Tan, ASin, Pi
+
+@func Sqr
+category: Mathematical functions
+summary: Returns the square root of a number.
+desc:
+Returns the positive square root of a number. The name comes from BASIC; it is a square root, not a
+square.
+syntax:
+Sqr(number)
+params:
+number | A number greater than or equal to zero.
+returns:
+A non-negative number.
+usage:
+A negative argument raises an Expression error. To square a number, use `n ^ 2`; for other roots,
+raise to a fractional power: `n ^ (1/3)` is the cube root.
+example:
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>number</TH><TH>Sqr(number)</TH></TR>
+<CFLOOP INDEX="n" LIST="0,1,2,16,56000">
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#n#</TD><TD>#Sqr(n)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFSET a = 3><CFSET b = 4>
+<CFOUTPUT><P>Hypotenuse of a #a#-#b# right triangle: #Sqr(a^2 + b^2)#</CFOUTPUT>
+<CFTRY>
+  <CFSET x = Sqr(-1)>
+  <CFCATCH TYPE="Expression"><P><I>Sqr(-1) is imaginary, and so is the result: an Expression error.</I></CFCATCH>
+</CFTRY>
+see: Exp, Log, Abs
+
+@func Tan
+category: Mathematical functions
+summary: Returns the tangent of an angle given in radians.
+desc:
+Returns the tangent of an angle. The angle must be in radians; to convert degrees, multiply by
+`Pi()` and divide by 180.
+syntax:
+Tan(number)
+params:
+number | An angle in radians.
+returns:
+A number.
+usage:
+The tangent of 90 degrees is undefined; because pi cannot be stored exactly, `Tan(Pi()/2)` returns
+an enormous number (about 1.6E+016) instead of an error. `Atn` is the inverse.
+example:
+<CFSET Distance = 100>
+<P>How tall is a tree that you see at a given angle from 100 feet away?
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Angle (degrees)</TH><TH>Tan</TH><TH>Height (feet)</TH></TR>
+<CFLOOP INDEX="deg" LIST="10,30,45,60">
+<CFSET t = Tan(deg * Pi() / 180)>
+<CFOUTPUT><TR><TD ALIGN="RIGHT">#deg#</TD><TD>#NumberFormat(t, "9.9999")#</TD>
+<TD ALIGN="RIGHT">#NumberFormat(Distance * t, "9.9")#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Sin, Cos, Atn, Pi
+
+# ---------------------------------------------------------------- Decision functions
+
+@func IsArray
+category: Decision functions
+summary: Determines whether a value is an array, optionally of a given dimension.
+desc:
+Returns YES if the value is an array. If you also give a dimension, returns YES only if the array
+has exactly that many dimensions.
+syntax:
+IsArray(value [, number ])
+params:
+value | Any value, usually a variable.
+number | Optional. A dimension, 1, 2 or 3. The array must have that number of dimensions.
+returns:
+YES or NO.
+usage:
+Arrays are created with `ArrayNew`. Use `IsArray` before array functions when a value may come
+from elsewhere (a custom tag attribute or a WDDX packet, say), to avoid a run-time error.
+example:
+<CFSET Cart = ArrayNew(1)>
+<CFSET Grid = ArrayNew(2)>
+<CFSET Customer = StructNew()>
+<CFSET Name = "Floyd">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Variable</TH><TH>IsArray</TH><TH>IsArray(v, 1)</TH><TH>IsArray(v, 2)</TH></TR>
+<CFLOOP INDEX="v" LIST="Cart,Grid,Customer,Name">
+<CFSET val = Evaluate(v)>
+<CFOUTPUT><TR><TD>#v#</TD><TD>#IsArray(val)#</TD><TD>#IsArray(val, 1)#</TD><TD>#IsArray(val, 2)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: ArrayNew, IsStruct, IsQuery, IsSimpleValue
+
+@func IsBinary
+category: Decision functions
+new45: yes
+summary: Determines whether a value is binary data.
+desc:
+Returns YES if the value is a binary object, such as the result of `ToBinary` or a file read with
+`CFFILE ACTION="ReadBinary"`.
+syntax:
+IsBinary(value)
+params:
+value | Any value.
+returns:
+YES or NO.
+usage:
+A Base64 string is not binary: it is ordinary text until you convert it with `ToBinary`. Binary
+values cannot be output directly; convert them with `ToBase64` or `ToString` first.
+example:
+<CFSET Text = "KoldFusion">
+<CFSET Encoded = ToBase64(Text)>
+<CFSET Bin = ToBinary(Encoded)>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Value</TH><TH>IsBinary</TH></TR>
+<CFOUTPUT>
+<TR><TD>"#Text#"</TD><TD>#IsBinary(Text)#</TD></TR>
+<TR><TD>ToBase64: "#Encoded#"</TD><TD>#IsBinary(Encoded)#</TD></TR>
+<TR><TD>ToBinary(that)</TD><TD>#IsBinary(Bin)#</TD></TR>
+<TR><TD>ToString(that): "#ToString(Bin)#"</TD><TD>#IsBinary(ToString(Bin))#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: ToBinary, ToBase64, ToString, IsSimpleValue
+
+@func IsBoolean
+category: Decision functions
+summary: Determines whether a value can be converted to a Boolean.
+desc:
+Returns YES if the value can be used as a Boolean: the strings "Yes", "No", "True" and "False" (in
+any case), or any number.
+syntax:
+IsBoolean(value)
+params:
+value | Any value.
+returns:
+YES or NO.
+usage:
+Every number counts as a Boolean: 0 is false and anything else is true. So `IsBoolean("12")` is
+YES, while `IsBoolean("maybe")` is NO. Handy for validating "Yes/No" URL parameters before using
+them in a `CFIF`.
+example:
+<CFPARAM NAME="URL.ShowAll" DEFAULT="Yes">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>value</TH><TH>IsBoolean</TH></TR>
+<CFLOOP INDEX="v" LIST="Yes,no,TRUE,false,0,12,-1.5,maybe,Y2K">
+<CFOUTPUT><TR><TD>#v#</TD><TD>#IsBoolean(v)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFIF IsBoolean(URL.ShowAll) AND URL.ShowAll>
+  <P>URL.ShowAll is a valid Boolean and it is true.
+<CFELSE>
+  <P>URL.ShowAll is false or not a Boolean.
+</CFIF>
+see: IsNumeric, YesNoFormat, IIf
+
+@func IsDate
+category: Decision functions
+summary: Determines whether a string can be converted to a date/time value.
+desc:
+Returns YES if the value is a date/time object or a string that KoldFusion can read as a date,
+such as "12/31/1999" or "January 1, 2000".
+syntax:
+IsDate(string)
+params:
+string | Any value, usually a string.
+returns:
+YES or NO.
+usage:
+Impossible dates such as "February 30, 2000" return NO. Plain numbers, including strings like
+"2000", return NO even though they could be read as a date serial number; use `IsNumericDate` for
+those. Use `ParseDateTime` or `CreateODBCDate` to turn a valid string into a date.
+`LSIsDate` checks locale-specific formats.
+example:
+<CFSET Tests = "12/31/1999|January 1, 2000|2000-02-29|February 30, 2000|2000|next Tuesday">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>string</TH><TH>IsDate</TH></TR>
+<CFLOOP INDEX="s" LIST="#Tests#" DELIMITERS="|">
+<CFOUTPUT><TR><TD>#s#</TD><TD>#IsDate(s)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+<CFOUTPUT><TR><TD>Now()</TD><TD>#IsDate(Now())#</TD></TR></CFOUTPUT>
+</TABLE>
+see: IsNumericDate, ParseDateTime, LSIsDate, CreateDate
+
+@func IsDebugMode
+category: Decision functions
+summary: Determines whether debugging output is turned on for the current page.
+desc:
+Returns YES if debugging information will be appended to the current page, that is, if at least
+one of the debugging options (variables, processing time or query information) is enabled on the
+Debugging page of the Administrator and the page has not switched it off.
+syntax:
+IsDebugMode()
+returns:
+YES or NO.
+usage:
+`<CFSETTING SHOWDEBUGOUTPUT="No">` switches debugging off for the rest of the request, after which
+`IsDebugMode` returns NO. Use it to show extra diagnostics only while you are developing, without
+having to remember to remove them before going live.
+example:
+<CFOUTPUT>
+<P>Debug mode right now: <B>#IsDebugMode()#</B>
+</CFOUTPUT>
+<CFIF IsDebugMode()>
+  <P><FONT COLOR="Red">Developer note: this page was built at <CFOUTPUT>#TimeFormat(Now(), "HH:mm:ss")#</CFOUTPUT>.</FONT>
+</CFIF>
+<CFSETTING SHOWDEBUGOUTPUT="No">
+<CFOUTPUT>
+<P>After CFSETTING SHOWDEBUGOUTPUT="No": <B>#IsDebugMode()#</B>
+</CFOUTPUT>
+see: CFSETTING, IsDefined, GetTickCount
+
+@func IsDefined
+category: Decision functions
+summary: Determines whether a variable with the given name exists.
+desc:
+Takes the name of a variable as a string and returns YES if it exists. The name may include a
+scope prefix (`Form.Email`, `Session.CartID`) and dotted structure keys (`Customer.Address`).
+syntax:
+IsDefined("variable_name")
+params:
+variable_name | A string holding the variable name, in quotes. Do not wrap it in pound signs
+  unless you want the value of another variable to be used as the name.
+returns:
+YES or NO.
+usage:
+`IsDefined` is the 4.x replacement for `ParameterExists`. Without a scope prefix it searches the
+scopes in the usual order (query columns inside a `CFOUTPUT` or `CFLOOP` over a query, then
+Variables, CGI, URL, Form, Cookie, Client). Use a prefix whenever
+you can: it is faster and avoids surprises.
+
+Do not use `IsDefined` on array elements such as "Cart[3]"; KoldFusion happens to allow it, but
+portable code compares the index with `ArrayLen` instead. To give a variable a default
+value when it does not exist, `CFPARAM` is shorter than an `IsDefined` test.
+testargs: Color=Blue
+example:
+<CFSET Customer = StructNew()>
+<CFSET Customer.Name = "Pat">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Expression</TH><TH>Result</TH></TR>
+<CFLOOP INDEX="v" LIST="Customer,Customer.Name,Customer.Email,Variables.Customer,URL.Color,Color,Form.Color">
+<CFOUTPUT><TR><TD><TT>IsDefined("#v#")</TT></TD><TD>#IsDefined(v)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFIF IsDefined("URL.Color")>
+  <CFOUTPUT><P>Your favorite color is #URL.Color#.</CFOUTPUT>
+<CFELSE>
+  <P>Try adding <TT>?Color=Blue</TT> to the URL.
+</CFIF>
+see: ParameterExists, CFPARAM, StructKeyExists, Evaluate
+
+@func IsNumeric
+category: Decision functions
+summary: Determines whether a string can be converted to a number.
+desc:
+Returns YES if the value is a number or a string that can be read as one, such as "42", "-3.5",
+".5" or "1E3".
+syntax:
+IsNumeric(string)
+params:
+string | Any value, usually a string.
+returns:
+YES or NO.
+usage:
+Currency symbols and thousands separators are not allowed: "$12" and "1,000" are not numeric.
+Leading and trailing spaces are ignored. An empty string is not numeric. Check form input with
+`IsNumeric` before doing arithmetic with it; `Val` converts a string to a number, returning 0 if
+it cannot. `LSIsNumeric` accepts locale-specific formats.
+example:
+<CFSET Tests = ListToArray("42|-3.5|.5|1E3| 12 |$12|1,000|Y2K", "|")>
+<CFSET ArrayAppend(Tests, "")>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>string</TH><TH>IsNumeric</TH><TH>Val</TH></TR>
+<CFLOOP INDEX="i" FROM="1" TO="#ArrayLen(Tests)#">
+<CFSET s = Tests[i]>
+<CFOUTPUT><TR><TD><TT>"#s#"</TT></TD><TD>#IsNumeric(s)#</TD><TD>#Val(s)#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: Val, IsBoolean, LSIsNumeric, IsNumericDate
+
+@func IsNumericDate
+category: Decision functions
+summary: Determines whether a value is a number that can be used as a date/time value.
+desc:
+Returns YES if the value is a real number, or a date/time object, that KoldFusion can treat as a
+date. Internally a date is a number of days since December 30, 1899, with the time of day as the
+fraction.
+syntax:
+IsNumericDate(number)
+params:
+number | Any value.
+returns:
+YES or NO.
+usage:
+Date strings such as "12/31/1999" return NO here; `IsDate` is the function for strings. Date/time
+objects returned by `Now` or `CreateDate` return YES because they are stored as numbers. Date
+arithmetic works on these numbers directly: `Now() + 1` is this time tomorrow.
+example:
+<CFSET Millennium = CreateDate(2000, 1, 1)>
+<CFSET Eve = Millennium - 1>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Value</TH><TH>IsNumericDate</TH><TH>IsDate</TH></TR>
+<CFOUTPUT>
+<TR><TD>Millennium = CreateDate(2000, 1, 1)</TD><TD>#IsNumericDate(Millennium)#</TD><TD>#IsDate(Millennium)#</TD></TR>
+<TR><TD>Eve = Millennium - 1 = #Eve#</TD><TD>#IsNumericDate(Eve)#</TD><TD>#IsDate(Eve)#</TD></TR>
+<TR><TD>"12/31/1999"</TD><TD>#IsNumericDate("12/31/1999")#</TD><TD>#IsDate("12/31/1999")#</TD></TR>
+<TR><TD>"Y2K"</TD><TD>#IsNumericDate("Y2K")#</TD><TD>#IsDate("Y2K")#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+<CFOUTPUT><P>Day #Eve# is #DateFormat(Eve, "dddd, mmmm d, yyyy")#. Party like it's day #Eve#!</CFOUTPUT>
+see: IsDate, CreateDate, ParseDateTime, Now
+
+@func IsQuery
+category: Decision functions
+summary: Determines whether a value is a query.
+desc:
+Returns YES if the value is a query object, whether it came from `CFQUERY`, another tag that
+returns a query (such as `CFDIRECTORY` or `CFPOP`), or `QueryNew`.
+syntax:
+IsQuery(value)
+params:
+value | Any value.
+returns:
+YES or NO.
+usage:
+Custom tags often use `IsQuery` to check that an attribute passed in really is a query before
+looping over it.
+example:
+<CFQUERY NAME="GetDepts" DATASOURCE="cfsnippets">
+SELECT Dept_Name FROM Departments
+</CFQUERY>
+<CFSET Made = QueryNew("Name, Price")>
+<CFSET List = ValueList(GetDepts.Dept_Name)>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Variable</TH><TH>IsQuery</TH></TR>
+<CFOUTPUT>
+<TR><TD>GetDepts (CFQUERY)</TD><TD>#IsQuery(GetDepts)#</TD></TR>
+<TR><TD>Made (QueryNew)</TD><TD>#IsQuery(Made)#</TD></TR>
+<TR><TD>List: #List#</TD><TD>#IsQuery(List)#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: QueryNew, CFQUERY, IsStruct, IsArray
+
+@func IsSimpleValue
+category: Decision functions
+summary: Determines whether a value is a simple value (string, number, Boolean or date).
+desc:
+Returns YES for simple values: strings, numbers, Booleans and date/time values. Returns NO for
+complex values: arrays, structures, queries, binary data and objects.
+syntax:
+IsSimpleValue(value)
+params:
+value | Any value.
+returns:
+YES or NO.
+usage:
+Only simple values can be output with `#...#`, used in string functions or stored in Client
+variables and cookies. When you write generic code (a custom tag, a debugging include), test with
+`IsSimpleValue` first and use `IsArray`, `IsStruct` or `IsQuery` to handle the rest.
+example:
+<CFSET Things = StructNew()>
+<CFSET Things.AString = "Hello">
+<CFSET Things.ANumber = 56000>
+<CFSET Things.ADate = Now()>
+<CFSET Things.AnArray = ArrayNew(1)>
+<CFSET Things.AStruct = StructNew()>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Key</TH><TH>IsSimpleValue</TH><TH>Value</TH></TR>
+<CFLOOP COLLECTION="#Things#" ITEM="k">
+<CFOUTPUT><TR><TD>#k#</TD><TD>#IsSimpleValue(Things[k])#</TD>
+<TD><CFIF IsSimpleValue(Things[k])>#Things[k]#<CFELSE><I>(complex value)</I></CFIF></TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: IsArray, IsStruct, IsQuery, IsBinary
+
+@func IsStruct
+category: Decision functions
+summary: Determines whether a value is a structure.
+desc:
+Returns YES if the value is a structure created with `StructNew`.
+syntax:
+IsStruct(value)
+params:
+value | Any value.
+returns:
+YES or NO.
+usage:
+Check with `IsStruct` before calling structure functions on values whose type you cannot be sure
+of, for instance data that arrived in a WDDX packet.
+example:
+<CFSET Employee = StructNew()>
+<CFSET Employee.Name = "Ada">
+<CFSET Employee.Dept = "Engineering">
+<CFSET Roster = ArrayNew(1)>
+<CFSET Roster[1] = Employee>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Expression</TH><TH>IsStruct</TH></TR>
+<CFOUTPUT>
+<TR><TD>Employee</TD><TD>#IsStruct(Employee)#</TD></TR>
+<TR><TD>Employee.Name</TD><TD>#IsStruct(Employee.Name)#</TD></TR>
+<TR><TD>Roster</TD><TD>#IsStruct(Roster)#</TD></TR>
+<TR><TD>Roster[1]</TD><TD>#IsStruct(Roster[1])#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: StructNew, IsArray, IsQuery, StructKeyExists
+
+@func IsWDDX
+category: Decision functions
+summary: Determines whether a string is a WDDX packet.
+desc:
+Returns YES if the value is a string containing a WDDX packet, such as one produced by
+`CFWDDX ACTION="CFML2WDDX"`.
+syntax:
+IsWDDX(value)
+params:
+value | Any value, usually a string received from another server or a form field.
+returns:
+YES or NO.
+usage:
+Check packets received from outside (with `CFHTTP`, a form field or a database column) before
+deserializing them with `CFWDDX ACTION="WDDX2CFML"`, which throws an error on bad input.
+KoldFusion parses the whole packet, so `IsWDDX` returns NO for anything `CFWDDX ACTION="WDDX2CFML"`
+would reject.
+example:
+<CFSET Order = StructNew()>
+<CFSET Order.Item = "56K modem">
+<CFSET Order.Qty = 2>
+<CFWDDX ACTION="CFML2WDDX" INPUT="#Order#" OUTPUT="Packet">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Value</TH><TH>IsWDDX</TH></TR>
+<CFOUTPUT>
+<TR><TD><TT>#HTMLEditFormat(Packet)#</TT></TD><TD>#IsWDDX(Packet)#</TD></TR>
+<TR><TD><TT>Hello, world</TT></TD><TD>#IsWDDX("Hello, world")#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+<CFIF IsWDDX(Packet)>
+  <CFWDDX ACTION="WDDX2CFML" INPUT="#Packet#" OUTPUT="Back">
+  <CFOUTPUT><P>Unpacked: #Back.Qty# x #Back.Item#</CFOUTPUT>
+</CFIF>
+see: CFWDDX, IsSimpleValue, IsStruct
+
+@func ParameterExists
+category: Decision functions
+summary: Determines whether a variable exists (obsolete; use IsDefined).
+desc:
+Returns YES if the named variable exists. Unlike `IsDefined`, the variable name is written as is,
+without quotes.
+syntax:
+ParameterExists(variable_name)
+params:
+variable_name | The variable name, not in quotes, optionally with a scope prefix, for example
+  `Form.Email`.
+returns:
+YES or NO.
+usage:
+`ParameterExists` dates from the early days of the product and is kept so that old templates keep
+working. New code should use `IsDefined`, which takes the name as a string and so can test names
+built at run time. Because the argument is not evaluated, do not put quotes or pound signs around it.
+testargs: Color=Blue
+example:
+<CFSET Greeting = "Hello">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Old style</TH><TH>Result</TH><TH>New style</TH><TH>Result</TH></TR>
+<CFOUTPUT>
+<TR><TD><TT>ParameterExists(Greeting)</TT></TD><TD>#ParameterExists(Greeting)#</TD>
+<TD><TT>IsDefined("Greeting")</TT></TD><TD>#IsDefined("Greeting")#</TD></TR>
+<TR><TD><TT>ParameterExists(URL.Color)</TT></TD><TD>#ParameterExists(URL.Color)#</TD>
+<TD><TT>IsDefined("URL.Color")</TT></TD><TD>#IsDefined("URL.Color")#</TD></TR>
+<TR><TD><TT>ParameterExists(Form.Color)</TT></TD><TD>#ParameterExists(Form.Color)#</TD>
+<TD><TT>IsDefined("Form.Color")</TT></TD><TD>#IsDefined("Form.Color")#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: IsDefined, CFPARAM, StructKeyExists

@@ -1,0 +1,1132 @@
+# Developing Web Applications with KoldFusion - a short hands-on tutorial.
+# Format: see the docstring at the top of tools/mkdocs.py.
+# Examples land in wwwroot/CFDOCS/devguide/examples/. They run for anyone who can reach the
+# server, so every one of them is read-only or cleans up after itself, and mail goes to @localhost.
+# The sign-in application of chapter 6 lives in examples/ch6app/ and is maintained by hand
+# (an Application.cfm in examples/ itself would apply to every example).
+
+@book devguide | Developing Web Applications with KoldFusion
+
+@page index | Developing Web Applications with KoldFusion
+
+Welcome! This book is a quick, practical tour of the KoldFusion Markup Language (CFML). In an evening or two you
+will go from a one-line "hello" page to a small database application with forms, sessions, error handling and
+reusable components. Every chapter is short, and every example is live: click **Run this example** and the page
+runs on your own KoldFusion server, right next to the code that produced it.
+
+# Who this book is for
+
+You should be comfortable writing HTML by hand (or at least unafraid of the "View Source" menu in Netscape
+Navigator) and know a little SQL: what a SELECT statement does and what a WHERE clause is for. You do not need
+to know C, Perl or Java. If you have ever built a static site and wished it could talk to a database, you are
+exactly who we had in mind.
+
+For the full details of every tag and function, keep the [CFML Language Reference](/CFDOCS/langref/index.htm)
+open in another window. Server setup, data sources and security are covered in the Administrator's book.
+
+# How the book is organized
+
+Chapter 1 introduces templates and the `CFOUTPUT` tag. Chapter 2 covers variables, expressions and the complex
+data types. Chapters 3 to 5 are about databases: reading data, collecting it with forms and writing it back.
+Chapter 6 ties pages together into an application with sessions. Chapter 7 deals with errors, and chapter 8
+shows how to package code for reuse and how to send e-mail.
+
+# Conventions
+
+| Convention | Meaning |
+| `CFQUERY` | Tag and function names. Click one to open its Language Reference page. |
+| UPPERCASE tags | Examples use uppercase tag and attribute names, the house style of the day. CFML itself does not care. |
+| ch3_list.cfm | Example file names. All examples live in /CFDOCS/devguide/examples/. |
+| Run this example | Opens the example in a separate browser window named "kfrun". |
+| View source | Shows the example's source exactly as it is stored on the server. |
+
+> The examples are written to be harmless: they only read data, or they put back whatever they change before
+> the page finishes. E-mail examples send only to addresses at localhost.
+
+# The cfsnippets data source
+
+All examples use the **cfsnippets** data source, which is installed and registered with the server. It is a
+small database of a fictional company and the odds and ends of its web site:
+
+| Table | Columns | What is in it |
+| Employees | Emp_ID, FirstName, LastName, Email, Phone, Department, StartDate, Salary, Contract | 25 staff members in six departments |
+| Departments | Dept_ID, Dept_Name, Location | Sales, Marketing, Engineering, Accounting, Administration, Training |
+| CourseList | Course_ID, Dept_ID, CorNumber, CorName, CorLevel, CorDesc, LastUpdate | A college course catalog (BIOL, CS, MATH, ...) |
+| Parks | ParkName, ParkType, Region, State, City | 42 national parks, monuments and historic sites |
+| Products | ProductID, Name, Description, Price, Category, InStock | A computer store: modems, Zip disks, software |
+| GuestBook | ID, Name, Email, Comments, Posted | Entries from the company guest book |
+| Comments | CommentID, Email, FromUser, Subject, CommtType, MessText, Posted, Processed | Visitor feedback |
+| Messages | MsgID, ParentID, Subject, Author, Body, Posted | A small threaded discussion forum |
+
+You can browse the tables with the Administrator's data source tools, or simply run the examples in chapter 3.
+
+@page welcome | Welcome to CFML
+
+A KoldFusion page is called a **template**. It is an ordinary HTML file with a `.cfm` extension and a few extra
+tags mixed in. When a browser asks for the page, the web server hands it to KoldFusion, which runs the CFML tags
+and sends plain HTML back. The browser never sees your CFML, only its results, so the pages work in any browser,
+from Navigator 4.7 to Lynx.
+
+CFML tags look like HTML tags whose names start with CF: `CFSET`, `CFOUTPUT`, `CFIF`, `CFQUERY` and so on. You
+write them in the same editor you use for HTML, save the file anywhere below the web root (wwwroot) and browse to
+it. There is nothing to compile.
+
+# Your first template
+
+The `CFOUTPUT` tag tells KoldFusion to look for **expressions** in the text it encloses. An expression is
+anything between a pair of pound signs, such as `#Now()#`. KoldFusion replaces it with its value; everything else
+passes through unchanged.
+
+<<run ch1_hello.cfm>>
+<!--- ch1_hello.cfm: a first KoldFusion template.
+      Comments with three dashes are removed by the server
+      and never reach the browser. --->
+<HTML>
+<HEAD><TITLE>Hello from KoldFusion</TITLE></HEAD>
+<BODY BGCOLOR="#FFFFFF">
+<FONT FACE="Arial, Helvetica" SIZE="2">
+
+<H2>Hello, world!</H2>
+
+<CFOUTPUT>
+<P>Today is #DateFormat(Now(), "dddd, mmmm d, yyyy")#
+and the server clock says #TimeFormat(Now(), "h:mm tt")#.</P>
+
+<P>Only #DateDiff("d", Now(), CreateDate(2000, 1, 1))# days left
+until the year 2000. (If that number is negative, congratulations:
+you made it.)</P>
+
+<!-- An HTML comment with two dashes is sent to the browser. -->
+<P>Inside CFOUTPUT a literal pound sign is written twice: ##1 on the charts.</P>
+</CFOUTPUT>
+
+<P>Outside CFOUTPUT, #Now()# is just text.</P>
+</FONT>
+</BODY>
+</HTML>
+<<end>>
+
+Notice the last line: without `CFOUTPUT` around it, the expression is not evaluated. And because `#` has a
+special meaning inside `CFOUTPUT`, you must double it when you want a real pound sign, for example in a color
+attribute such as `BGCOLOR="##FFFFCC"`.
+
+# Comments
+
+CFML comments use three dashes: `<!--- ... --->`. KoldFusion strips them out before the page is sent, so they
+are the right place for notes about your code. Ordinary HTML comments (two dashes) are passed through to the
+browser, where anyone can read them with View Source.
+
+# Variables
+
+The `CFSET` tag creates a variable or changes its value. Variable names start with a letter and may contain
+letters, digits and underscores. Names are not case sensitive: `FirstName`, `firstname` and `FIRSTNAME` are the
+same variable. Values are not typed in advance; a variable holds whatever you put in it, whether a string, a
+number, a date or a Boolean (YES/NO) value.
+
+<<run ch1_variables.cfm>>
+<!--- ch1_variables.cfm: setting and showing variables --->
+<CFSET Product = "56K V.90 Fax/Modem">
+<CFSET Price = 129.99>
+<CFSET Quantity = 3>
+<CFSET Total = Price * Quantity>
+<CFSET OrderDate = Now()>
+<CFSET IsRush = Quantity GT 2>
+
+<CFOUTPUT>
+<TABLE BORDER="1" CELLPADDING="4" CELLSPACING="0">
+<TR BGCOLOR="##CCCCFF"><TH>Item</TH><TH>Qty</TH><TH>Total</TH><TH>Rush?</TH></TR>
+<TR>
+  <TD>#Product#</TD>
+  <TD ALIGN="RIGHT">#Quantity#</TD>
+  <TD ALIGN="RIGHT">#DollarFormat(Total)#</TD>
+  <TD>#YesNoFormat(IsRush)#</TD>
+</TR>
+</TABLE>
+<P>Ordered on #DateFormat(OrderDate, "mm/dd/yyyy")#. Raw values:
+Total = #Total#, IsRush = #IsRush#.</P>
+</CFOUTPUT>
+<<end>>
+
+Formatting functions such as `DollarFormat`, `DateFormat` and `YesNoFormat` turn raw values into something fit
+for people. Notice that the Boolean result of `Quantity GT 2` prints as YES; numbers print without trailing zeros.
+
+> Use pound signs only where KoldFusion would otherwise see plain text: inside `CFOUTPUT`, or inside a quoted
+> attribute value. In `<CFSET Total = Price * Quantity>` no pound signs are needed, and adding them
+> (`#Price#`) only makes the code harder to read.
+
+@page expressions | Variables, Expressions and Functions
+
+Chapter 1 used variables in the default **Variables** scope, the scratch area of the current page. KoldFusion
+keeps other variables in other scopes, and you prefix a variable with the scope name when you want to be
+specific (and you should, for anything that comes from outside the page).
+
+# Variable scopes
+
+| Scope | Where the values come from | Lives for |
+| Variables | `CFSET` in the page (the default scope) | One request |
+| URL | Parameters on the query string: page.cfm?id=7 | One request |
+| Form | Fields of a form posted to the page | One request |
+| CGI | The web server: CGI.SCRIPT_NAME, CGI.REMOTE_ADDR, CGI.HTTP_USER_AGENT | One request |
+| Cookie | Cookies sent by the browser (set them with `CFCOOKIE`) | Until they expire |
+| Request | Values shared by the page and everything it includes or calls | One request |
+| Session | One visitor of an application (see chapter 6) | Until the session times out |
+| Application | All visitors of an application | Until the server restarts or it times out |
+| Client | One visitor, stored in the registry or a database | Weeks or months |
+| Server | Every page on the server, e.g. Server.ColdFusion.ProductVersion | Until the server restarts |
+
+If you leave out the scope, KoldFusion searches several scopes in turn (Variables, CGI, URL, Form, Cookie,
+Client). That is convenient but slow, and it can surprise you when a URL parameter has the same name as one of
+your variables. Get into the habit of writing `URL.id` and `Form.Email`.
+
+# Operators
+
+Because `<` and `>` would confuse an HTML editor, CFML uses words for comparisons:
+
+| Operator | Meaning | Example (true) |
+| IS, EQ, EQUAL | equal (strings compare without regard to case) | "abc" IS "ABC" |
+| IS NOT, NEQ | not equal | 3 NEQ 4 |
+| GT, GTE | greater than, greater than or equal | 10 GT 9 |
+| LT, LTE | less than, less than or equal | 9 LTE 9 |
+| CONTAINS, DOES NOT CONTAIN | substring test | "KoldFusion" CONTAINS "Fusion" |
+| AND, OR, NOT | Boolean logic | 1 LT 2 AND NOT 2 LT 1 |
+| + - * / ^ | arithmetic, ^ is power | 2 ^ 10 is 1024 |
+| \ and MOD | integer division and remainder | 7 \ 2 is 3, 7 MOD 2 is 1 |
+| & | string concatenation | "Kold" & "Fusion" |
+
+# Making decisions
+
+`CFIF`, `CFELSEIF` and `CFELSE` choose between blocks of code; `CFSWITCH` and `CFCASE` pick one of several
+values. For a quick inline choice there is the `IIf` function. It evaluates the string it picks as an
+expression, so wrap literal text in `DE` ("delay evaluation"), as in `IIf(Total GT 100, DE("free"), DE("$5.00"))`.
+
+<<run ch2_expressions.cfm>>
+<!--- ch2_expressions.cfm: operators, functions and decisions --->
+<CFSET FirstName = "Ellen">
+<CFSET LastName = "O'Malley">
+<CFSET FullName = FirstName & " " & LastName>
+<CFSET Salary = 61000>
+<CFSET Raise = Salary * 0.04>
+
+<CFOUTPUT>
+<P><B>#UCase(FullName)#</B> has #Len(FullName)# characters
+and her initials are #Left(FirstName, 1)##Left(LastName, 1)#.</P>
+
+<P>A 4% raise is #DollarFormat(Raise)#, bringing her to
+#DollarFormat(Salary + Raise)# a year.</P>
+
+<P>Does "#LastName#" contain an apostrophe?
+#YesNoFormat(LastName CONTAINS "'")#</P>
+
+<CFIF Salary GTE 60000 AND Salary LT 80000>
+  <P>Pay band: senior.</P>
+<CFELSEIF Salary GTE 80000>
+  <P>Pay band: principal.</P>
+<CFELSE>
+  <P>Pay band: associate.</P>
+</CFIF>
+
+<CFSWITCH EXPRESSION="#DayOfWeek(Now())#">
+  <CFCASE VALUE="1,7"><P>It is the weekend. Why are you coding?</P></CFCASE>
+  <CFCASE VALUE="6"><P>It is Friday. Do not deploy today.</P></CFCASE>
+  <CFDEFAULTCASE><P>It is a working day.</P></CFDEFAULTCASE>
+</CFSWITCH>
+
+<P>Shipping: #IIf(Salary GT 50000, DE("free"), DE("$5.00"))#</P>
+
+<P>You are viewing #CGI.SCRIPT_NAME# from #CGI.REMOTE_ADDR#.</P>
+</CFOUTPUT>
+<<end>>
+
+# Lists, arrays and structures
+
+Beyond simple values, CFML has three ways to hold a collection of values:
+
+- A **list** is just a string with delimiters, like "Sales,Marketing,Training". The list functions
+  (`ListLen`, `ListGetAt`, `ListFind`, `ListAppend` ...) work on any string, with a comma as the default delimiter.
+- An **array** is a numbered collection created with `ArrayNew`. The first element is number 1, not 0.
+- A **structure** is a set of named values created with `StructNew`. Use `Person.Name` or `Person["Name"]`
+  to reach a key; the bracket form also works with a key held in a variable.
+
+`CFLOOP` walks through all three: `LIST` for lists, `FROM`/`TO` with an index for arrays, and `COLLECTION` for
+structures.
+
+<<run ch2_collections.cfm>>
+<!--- ch2_collections.cfm: lists, arrays and structures --->
+<CFSET Depts = "Sales,Marketing,Engineering">
+<CFSET Depts = ListAppend(Depts, "Training")>
+
+<CFOUTPUT>
+<P>The list "#Depts#" has #ListLen(Depts)# elements.
+The second is #ListGetAt(Depts, 2)#, and Engineering is
+number #ListFind(Depts, "Engineering")#.</P>
+</CFOUTPUT>
+
+<!--- An array of modem speeds --->
+<CFSET Speeds = ArrayNew(1)>
+<CFSET Speeds[1] = 14.4>
+<CFSET Speeds[2] = 28.8>
+<CFSET ArrayAppend(Speeds, 33.6)>
+<CFSET ArrayAppend(Speeds, 56)>
+
+<P>Modem speeds through the years:</P>
+<UL>
+<CFLOOP INDEX="i" FROM="1" TO="#ArrayLen(Speeds)#">
+  <CFOUTPUT><LI>#Speeds[i]#K</CFOUTPUT>
+</CFLOOP>
+</UL>
+<CFOUTPUT><P>Average: #NumberFormat(ArrayAvg(Speeds), "99.9")#K</P></CFOUTPUT>
+
+<!--- A structure describing one employee --->
+<CFSET Emp = StructNew()>
+<CFSET Emp.Name = "Jack Lindqvist">
+<CFSET Emp.Department = "Engineering">
+<CFSET Emp["Phone"] = "617-555-0121">
+
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="0">
+<CFLOOP COLLECTION="#Emp#" ITEM="Key">
+  <CFOUTPUT><TR><TD><B>#Key#</B></TD><TD>#Emp[Key]#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFOUTPUT>
+<P>The structure has #StructCount(Emp)# keys.
+Is there a Fax key? #YesNoFormat(StructKeyExists(Emp, "Fax"))#</P>
+</CFOUTPUT>
+<<end>>
+
+> Variable names are case-insensitive everywhere, including loop indexes. A `CFLOOP` with `INDEX="e"` would
+> quietly replace a structure called `E`. Choose distinct, descriptive names.
+
+@page queries | Retrieving and Displaying Data
+
+This is where KoldFusion earns its keep. The `CFQUERY` tag sends SQL to a data source and stores the result as a
+**query** variable. `CFOUTPUT` with a `QUERY` attribute then repeats its contents once for every row, and inside
+it you refer to columns simply by name.
+
+# A simple listing
+
+<<run ch3_list.cfm>>
+<!--- ch3_list.cfm: list the employees of one department --->
+<CFQUERY NAME="GetStaff" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName, Phone, StartDate
+FROM Employees
+WHERE Department = 'Engineering'
+ORDER BY LastName
+</CFQUERY>
+
+<H3>Engineering Department</H3>
+<CFOUTPUT><P>#GetStaff.RecordCount# people found.</P></CFOUTPUT>
+
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="0">
+<TR BGCOLOR="#003399">
+  <TH><FONT COLOR="#FFFFFF">#</FONT></TH>
+  <TH><FONT COLOR="#FFFFFF">Name</FONT></TH>
+  <TH><FONT COLOR="#FFFFFF">Phone</FONT></TH>
+  <TH><FONT COLOR="#FFFFFF">Started</FONT></TH>
+</TR>
+<CFOUTPUT QUERY="GetStaff">
+<TR BGCOLOR="###IIf(CurrentRow MOD 2, DE('FFFFFF'), DE('EEEEEE'))#">
+  <TD>#CurrentRow#</TD>
+  <TD>#LastName#, #FirstName#</TD>
+  <TD>#Phone#</TD>
+  <TD>#DateFormat(StartDate, "mmm d, yyyy")#</TD>
+</TR>
+</CFOUTPUT>
+</TABLE>
+<<end>>
+
+Every query carries a few extra variables: `RecordCount` (the number of rows), `CurrentRow` (the row being
+output) and `ColumnList`. Outside the output loop, name the query: `GetStaff.RecordCount`. The header row is
+outside any `CFOUTPUT`, so its color values keep their single pound signs; the `TR` inside the loop uses
+`IIf` to alternate the row colors.
+
+# Grouping output
+
+When the rows are sorted by a column, the `GROUP` attribute of `CFOUTPUT` prints a heading each time that column
+changes. The nested `CFOUTPUT` runs once for every row in the group. Make sure the `ORDER BY` clause sorts by the
+grouping column first, or the groups will come out in pieces.
+
+<<run ch3_group.cfm>>
+<!--- ch3_group.cfm: national parks, grouped by region --->
+<CFQUERY NAME="GetParks" DATASOURCE="cfsnippets">
+SELECT Region, ParkName, ParkType, City, State
+FROM Parks
+ORDER BY Region, ParkName
+</CFQUERY>
+
+<CFOUTPUT><H3>#GetParks.RecordCount# parks in the system</H3></CFOUTPUT>
+
+<CFOUTPUT QUERY="GetParks" GROUP="Region">
+  <P><B>#Region#</B></P>
+  <UL>
+  <CFOUTPUT>
+    <LI>#ParkName# <FONT SIZE="1">(#ParkType#, #City#, #State#)</FONT>
+  </CFOUTPUT>
+  </UL>
+</CFOUTPUT>
+<<end>>
+
+# Drill-down pages
+
+A classic pattern is the list that links to a detail view. Each link carries the row's key on the URL, and the
+same template (or a second one) reads it back from the URL scope. Two rules keep this safe:
+
+1. Never trust a URL parameter. Give it a default with `CFPARAM`, and check that it has the type you expect.
+2. Pass it to the database with `CFQUERYPARAM`, which sends it as a typed value instead of pasting it into
+   the SQL text.
+
+<<run ch3_drill.cfm>>
+<!--- ch3_drill.cfm: employee list with a drill-down detail view --->
+<CFPARAM NAME="URL.EmpID" DEFAULT="0">
+<CFIF NOT IsNumeric(URL.EmpID)>
+  <CFSET URL.EmpID = 0>
+</CFIF>
+
+<CFIF URL.EmpID GT 0>
+  <!--- Detail view: one employee, joined to the department table --->
+  <CFQUERY NAME="GetEmp" DATASOURCE="cfsnippets">
+  SELECT e.FirstName, e.LastName, e.Email, e.Phone, e.Department,
+         e.StartDate, d.Location
+  FROM Employees e, Departments d
+  WHERE e.Department = d.Dept_Name
+    AND e.Emp_ID = <CFQUERYPARAM VALUE="#URL.EmpID#" CFSQLTYPE="CF_SQL_INTEGER">
+  </CFQUERY>
+  <CFIF GetEmp.RecordCount IS 0>
+    <P>Sorry, there is no employee with that ID.</P>
+  <CFELSE>
+    <CFOUTPUT QUERY="GetEmp">
+    <H3>#FirstName# #LastName#</H3>
+    <P>#Department# department, #Location#<BR>
+    Phone: #Phone#<BR>
+    E-mail: <A HREF="mailto:#Email#">#Email#</A><BR>
+    With the company since #DateFormat(StartDate, "mmmm yyyy")#.</P>
+    </CFOUTPUT>
+  </CFIF>
+  <P><A HREF="ch3_drill.cfm">Back to the list</A></P>
+<CFELSE>
+  <!--- List view --->
+  <CFQUERY NAME="GetAll" DATASOURCE="cfsnippets">
+  SELECT Emp_ID, FirstName, LastName, Department
+  FROM Employees
+  ORDER BY LastName, FirstName
+  </CFQUERY>
+  <H3>Staff Directory</H3>
+  <P>Click a name for details.</P>
+  <CFOUTPUT QUERY="GetAll">
+    <A HREF="ch3_drill.cfm?EmpID=#Emp_ID#">#LastName#, #FirstName#</A>
+    <FONT SIZE="1">#Department#</FONT><BR>
+  </CFOUTPUT>
+</CFIF>
+<<end>>
+
+> Want only part of a long result? `CFOUTPUT` takes `STARTROW` and `MAXROWS` attributes, which make "next 10"
+> style paging easy. `CFQUERY` also has a `MAXROWS` attribute that stops reading after so many rows.
+
+@page forms | Forms and Form Validation
+
+HTML forms are how users talk back. When a form is submitted, each field arrives in the **Form** scope of the
+template named in the form's `ACTION` attribute. KoldFusion also creates `Form.FieldNames`, a list of all the
+fields that were posted.
+
+A handy technique is the **self-posting form**: the form's `ACTION` names the template it lives in. The page
+checks whether a form was just posted and either processes it or shows the empty form. All the examples in this
+chapter work that way.
+
+# A self-posting form
+
+<<run ch4_form.cfm>>
+<!--- ch4_form.cfm: a form that posts to itself --->
+<CFPARAM NAME="Form.FullName" DEFAULT="">
+<CFPARAM NAME="Form.Modem" DEFAULT="">
+<CFPARAM NAME="Form.Browser" DEFAULT="">
+
+<CFIF IsDefined("Form.FieldNames")>
+  <!--- The form was posted: show what came in --->
+  <CFOUTPUT>
+  <P>Thanks, <B>#HTMLEditFormat(Form.FullName)#</B>!</P>
+  <P>You surf at #HTMLEditFormat(Form.Modem)#
+  <CFIF Form.Browser IS NOT "">with #HTMLEditFormat(Form.Browser)#</CFIF>.
+  The fields posted were: #Form.FieldNames#</P>
+  </CFOUTPUT>
+  <P><A HREF="ch4_form.cfm">Fill it in again</A></P>
+<CFELSE>
+  <H3>Visitor survey</H3>
+  <FORM ACTION="ch4_form.cfm" METHOD="POST">
+  <!--- Server-side validation: KoldFusion checks these before the page runs --->
+  <INPUT TYPE="hidden" NAME="FullName_required" VALUE="Please tell us your name.">
+  <INPUT TYPE="hidden" NAME="Modem_required" VALUE="Please choose a connection speed.">
+  <TABLE>
+  <TR><TD>Your name:</TD>
+      <TD><INPUT TYPE="text" NAME="FullName" SIZE="30" MAXLENGTH="50"></TD></TR>
+  <TR><TD>Connection:</TD>
+      <TD><INPUT TYPE="radio" NAME="Modem" VALUE="28.8K">28.8K
+          <INPUT TYPE="radio" NAME="Modem" VALUE="56K">56K
+          <INPUT TYPE="radio" NAME="Modem" VALUE="ISDN">ISDN
+          <INPUT TYPE="radio" NAME="Modem" VALUE="a T1 at work">T1</TD></TR>
+  <TR><TD>Browser:</TD>
+      <TD><SELECT NAME="Browser">
+          <OPTION VALUE="">(rather not say)
+          <OPTION>Netscape Navigator 4.7
+          <OPTION>Internet Explorer 5
+          <OPTION>Lynx
+          </SELECT></TD></TR>
+  </TABLE>
+  <INPUT TYPE="submit" VALUE="Send">
+  </FORM>
+</CFIF>
+<<end>>
+
+Three details are worth a closer look:
+
+- `CFPARAM` gives each field a default value. Radio buttons and check boxes that nobody clicked are not
+  posted at all, so without a default the page would stop with an "Error resolving parameter" message.
+- The hidden fields whose names end in `_required` are instructions to the server, not data. If the matching
+  field is missing or empty, KoldFusion shows the message in `VALUE` and does not run the page. Similar suffixes
+  check types: `_integer`, `_float`, `_range` (VALUE="MIN=1 MAX=10") and `_date`.
+- Everything a user types is shown through `HTMLEditFormat`, so a name like `<BLINK>Bob</BLINK>` is displayed
+  rather than obeyed.
+
+# Searching the database from a form
+
+Forms and queries go together naturally. This search page builds its WHERE clause from whatever the user filled
+in. `CFQUERYPARAM` passes the search text as a value, so a stray apostrophe (Ellen O'Malley!) cannot break the SQL.
+
+<<run ch4_search.cfm>>
+<!--- ch4_search.cfm: search the employee table --->
+<CFPARAM NAME="Form.LastName" DEFAULT="">
+<CFPARAM NAME="Form.Department" DEFAULT="">
+
+<CFQUERY NAME="GetDepts" DATASOURCE="cfsnippets">
+SELECT Dept_Name FROM Departments ORDER BY Dept_Name
+</CFQUERY>
+
+<FORM ACTION="ch4_search.cfm" METHOD="POST">
+<CFOUTPUT>
+Last name starts with:
+<INPUT TYPE="text" NAME="LastName" SIZE="15" VALUE="#HTMLEditFormat(Form.LastName)#">
+in
+</CFOUTPUT>
+<SELECT NAME="Department">
+  <OPTION VALUE="">any department
+  <CFOUTPUT QUERY="GetDepts">
+  <OPTION VALUE="#Dept_Name#" <CFIF Dept_Name IS Form.Department>SELECTED</CFIF>>#Dept_Name#
+  </CFOUTPUT>
+</SELECT>
+<INPUT TYPE="submit" VALUE="Search">
+</FORM>
+
+<CFQUERY NAME="Found" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName, Department, Phone
+FROM Employees
+WHERE 1 = 1
+<CFIF Trim(Form.LastName) IS NOT "">
+  AND LastName LIKE <CFQUERYPARAM VALUE="#Trim(Form.LastName)#%" CFSQLTYPE="CF_SQL_VARCHAR">
+</CFIF>
+<CFIF Form.Department IS NOT "">
+  AND Department = <CFQUERYPARAM VALUE="#Form.Department#" CFSQLTYPE="CF_SQL_VARCHAR">
+</CFIF>
+ORDER BY LastName
+</CFQUERY>
+
+<CFOUTPUT><P><B>#Found.RecordCount#</B> match(es).</P></CFOUTPUT>
+<CFOUTPUT QUERY="Found">
+  #LastName#, #FirstName# (#Department#) #Phone#<BR>
+</CFOUTPUT>
+<<end>>
+
+The `WHERE 1 = 1` line is an old trick: it lets every optional condition start with AND, whether or not an
+earlier one was used.
+
+# Client-side validation with CFFORM
+
+`CFFORM` and `CFINPUT` generate the JavaScript that checks fields in the browser before the form is sent, which
+saves a round trip over a slow modem. Add `REQUIRED="Yes"` to make a field mandatory, `VALIDATE` to check its
+type (integer, float, date, telephone, zipcode, creditcard ...), `RANGE` for numbers, and `MESSAGE` for the text
+of the alert box. `CFSELECT` builds a drop-down list straight from a query.
+
+<<run ch4_cfform.cfm>>
+<!--- ch4_cfform.cfm: browser-side validation with CFFORM --->
+<CFQUERY NAME="GetDepts" DATASOURCE="cfsnippets">
+SELECT Dept_Name FROM Departments ORDER BY Dept_Name
+</CFQUERY>
+
+<CFIF IsDefined("Form.FieldNames")>
+  <CFOUTPUT>
+  <P>Request received: #HTMLEditFormat(Form.Qty)# training seat(s) in
+  #HTMLEditFormat(Form.Department)#, starting #HTMLEditFormat(Form.StartDate)#.
+  Confirmation goes to #HTMLEditFormat(Form.Email)#.</P>
+  </CFOUTPUT>
+  <P><A HREF="ch4_cfform.cfm">Another request</A></P>
+<CFELSE>
+  <H3>Training seat request</H3>
+  <CFFORM ACTION="ch4_cfform.cfm" METHOD="POST" NAME="SeatForm">
+  <TABLE>
+  <TR><TD>E-mail:</TD>
+      <TD><CFINPUT TYPE="text" NAME="Email" SIZE="30" REQUIRED="Yes"
+           MESSAGE="Please enter your e-mail address."></TD></TR>
+  <TR><TD>Seats (1-12):</TD>
+      <TD><CFINPUT TYPE="text" NAME="Qty" SIZE="3" VALIDATE="integer" RANGE="1,12"
+           REQUIRED="Yes" MESSAGE="Seats must be a whole number from 1 to 12."></TD></TR>
+  <TR><TD>Start date:</TD>
+      <TD><CFINPUT TYPE="text" NAME="StartDate" SIZE="10" VALIDATE="date"
+           REQUIRED="Yes" MESSAGE="Please enter the start date as mm/dd/yyyy."></TD></TR>
+  <TR><TD>Department:</TD>
+      <TD><CFSELECT NAME="Department" QUERY="GetDepts" VALUE="Dept_Name"
+           DISPLAY="Dept_Name" SELECTED="Training"></CFSELECT></TD></TR>
+  </TABLE>
+  <INPUT TYPE="submit" VALUE="Request seats">
+  </CFFORM>
+</CFIF>
+<<end>>
+
+> Browser-side checks are a convenience for honest users, not a security measure: anyone can save the page and
+> remove the JavaScript. Check important values again on the server, with `CFPARAM TYPE="..."`, `IsNumeric`,
+> `IsDate` or the hidden validation fields.
+
+@page updating | Updating the Database
+
+Reading data is half the story. KoldFusion offers two ways to write it: the shortcut tags `CFINSERT` and
+`CFUPDATE`, which turn a posted form straight into an INSERT or UPDATE statement, and plain SQL in a `CFQUERY`,
+which gives you full control.
+
+> Every example in this chapter puts the database back the way it found it: whatever it adds, it deletes again
+> before the page ends. Your own applications will of course keep their changes.
+
+# CFINSERT: from form to table in one tag
+
+`CFINSERT` takes the fields of the Form scope whose names match columns of the table and inserts them as a new
+row. Use `FORMFIELDS` to list exactly which fields to use; otherwise every matching field is included.
+
+<<run ch5_guestbook.cfm>>
+<!--- ch5_guestbook.cfm: sign the guest book with CFINSERT.
+      To keep the demo tidy, the new entry is removed again
+      after it has been displayed. --->
+<CFIF IsDefined("Form.Name") AND Trim(Form.Name) IS NOT "">
+  <CFSET Form.Name = Left(Trim(Form.Name), 50)>
+  <CFTRANSACTION>
+    <CFINSERT DATASOURCE="cfsnippets" TABLENAME="GuestBook"
+              FORMFIELDS="Name,Email,Comments">
+    <CFQUERY NAME="GetNew" DATASOURCE="cfsnippets">
+    SELECT MAX(ID) AS NewID FROM GuestBook
+    </CFQUERY>
+  </CFTRANSACTION>
+  <CFSET Highlight = GetNew.NewID>
+<CFELSE>
+  <CFSET Highlight = 0>
+</CFIF>
+
+<CFQUERY NAME="GetEntries" DATASOURCE="cfsnippets" MAXROWS="5">
+SELECT ID, Name, Comments, Posted FROM GuestBook ORDER BY ID DESC
+</CFQUERY>
+
+<H3>Our guest book</H3>
+<CFOUTPUT QUERY="GetEntries">
+  <P<CFIF ID IS Highlight> STYLE="background: ##FFFFCC"</CFIF>>
+  <B>#HTMLEditFormat(Name)#</B> wrote on #DateFormat(Posted, "mmm d, yyyy")#:<BR>
+  #HTMLEditFormat(Comments)#</P>
+</CFOUTPUT>
+
+<CFIF Highlight GT 0>
+  <!--- Tidy up: remove the entry we just added --->
+  <CFQUERY DATASOURCE="cfsnippets">
+  DELETE FROM GuestBook
+  WHERE ID = <CFQUERYPARAM VALUE="#Highlight#" CFSQLTYPE="CF_SQL_INTEGER">
+  </CFQUERY>
+  <P><I>(This is a demo, so your entry has been erased again.)</I></P>
+</CFIF>
+
+<HR>
+<FORM ACTION="ch5_guestbook.cfm" METHOD="POST">
+<INPUT TYPE="hidden" NAME="Name_required" VALUE="Please enter your name.">
+Name: <INPUT TYPE="text" NAME="Name" SIZE="25" MAXLENGTH="50">
+E-mail: <INPUT TYPE="text" NAME="Email" SIZE="25" MAXLENGTH="60"><BR>
+Comments:<BR>
+<TEXTAREA NAME="Comments" ROWS="4" COLS="50" WRAP="virtual"></TEXTAREA><BR>
+<INPUT TYPE="submit" VALUE="Sign the guest book">
+</FORM>
+<<end>>
+
+The Posted column is not on the form; the table fills it in with the current date and time. Reading
+`MAX(ID)` inside the same `CFTRANSACTION` as the insert is the traditional way to learn the key of the new row.
+
+`CFUPDATE` is the mirror image: the form must include the table's primary key field, which selects the row, and
+the other fields supply the new values. An edit form for the guest book would post to a page like this:
+
+    <!--- Form.ID holds the primary key; Name and Comments the new values --->
+    <CFUPDATE DATASOURCE="cfsnippets" TABLENAME="GuestBook"
+              FORMFIELDS="ID,Name,Comments">
+    <CFLOCATION URL="guestbook.cfm" ADDTOKEN="No">
+
+# Writing SQL yourself
+
+For anything beyond a straight form-to-row copy, write the INSERT, UPDATE and DELETE statements yourself in a
+`CFQUERY`. Use `CFQUERYPARAM` for every value that comes from outside the template. It quotes strings for you,
+refuses values of the wrong type, and makes it impossible for a cleverly crafted form field to add SQL of its own.
+
+`CFTRANSACTION` groups several statements into one unit of work: with a transactional database, either all of
+them happen or none do, and nobody else sees the half-finished state.
+
+<<run ch5_sql.cfm>>
+<!--- ch5_sql.cfm: INSERT, UPDATE and DELETE with CFQUERYPARAM.
+      The demo product is deleted again at the end. --->
+<CFSET NewName = "Millennium Bug Spray (demo)">
+<CFSET NewPrice = 19.99>
+
+<CFTRANSACTION>
+  <CFQUERY DATASOURCE="cfsnippets">
+  INSERT INTO Products (Name, Description, Price, Category, InStock)
+  VALUES (
+    <CFQUERYPARAM VALUE="#NewName#" CFSQLTYPE="CF_SQL_VARCHAR">,
+    <CFQUERYPARAM VALUE="Keeps two-digit years out of your code." CFSQLTYPE="CF_SQL_VARCHAR">,
+    <CFQUERYPARAM VALUE="#NewPrice#" CFSQLTYPE="CF_SQL_MONEY">,
+    'Software',
+    <CFQUERYPARAM VALUE="10" CFSQLTYPE="CF_SQL_INTEGER">)
+  </CFQUERY>
+  <CFQUERY NAME="GetNew" DATASOURCE="cfsnippets">
+  SELECT MAX(ProductID) AS NewID FROM Products
+  </CFQUERY>
+</CFTRANSACTION>
+<CFSET NewID = GetNew.NewID>
+
+<!--- Half price for the new millennium! --->
+<CFQUERY DATASOURCE="cfsnippets">
+UPDATE Products
+SET Price = Price / 2, InStock = InStock - 1
+WHERE ProductID = <CFQUERYPARAM VALUE="#NewID#" CFSQLTYPE="CF_SQL_INTEGER">
+</CFQUERY>
+
+<CFQUERY NAME="GetSoftware" DATASOURCE="cfsnippets">
+SELECT ProductID, Name, Price, InStock
+FROM Products
+WHERE Category = 'Software'
+ORDER BY Price DESC
+</CFQUERY>
+
+<H3>Software catalog</H3>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="0">
+<TR><TH>Product</TH><TH>Price</TH><TH>In stock</TH></TR>
+<CFOUTPUT QUERY="GetSoftware">
+<TR<CFIF ProductID IS NewID> BGCOLOR="##FFFFCC"</CFIF>>
+  <TD>#Name#</TD>
+  <TD ALIGN="RIGHT">#DollarFormat(Price)#</TD>
+  <TD ALIGN="RIGHT">#InStock#</TD>
+</TR>
+</CFOUTPUT>
+</TABLE>
+
+<!--- Tidy up --->
+<CFQUERY DATASOURCE="cfsnippets">
+DELETE FROM Products
+WHERE ProductID = <CFQUERYPARAM VALUE="#NewID#" CFSQLTYPE="CF_SQL_INTEGER">
+</CFQUERY>
+<CFOUTPUT><P>The demo product (ID #NewID#) has been deleted again.</P></CFOUTPUT>
+<<end>>
+
+> The built-in flat-file driver behind cfsnippets has no transaction log, so KoldFusion snapshots the tables
+> touched inside the transaction and restores them if an error escapes the block or `<CFTRANSACTION
+> ACTION="ROLLBACK">` runs. With a server database such as SQL Server or Oracle the database itself does this.
+
+@page applications | Building an Application
+
+So far every template has stood alone. A real site is a set of pages that share settings, a look and some memory
+of who the visitor is. KoldFusion provides all three.
+
+# Application.cfm
+
+Before it runs any template, KoldFusion looks for a file named `Application.cfm` in the template's directory,
+then in each parent directory up to the web root, and runs the first one it finds. Whatever that file sets up
+(data source names, the `CFAPPLICATION` tag, security checks) is in place for every page. Its partner,
+`OnRequestEnd.cfm`, runs after each page, from the same directory.
+
+The `CFAPPLICATION` tag names the application and switches on its memory: **Application** variables shared by all
+visitors and **Session** variables that belong to one visitor. KoldFusion recognizes the visitor by two cookies,
+CFID and CFTOKEN, which it sets automatically.
+
+# Session and application variables
+
+<<run ch6_counter.cfm>>
+<!--- ch6_counter.cfm: session and application variables.
+      In a real application the CFAPPLICATION tag would live in Application.cfm. --->
+<CFAPPLICATION NAME="DevGuideCounter"
+    SESSIONMANAGEMENT="Yes"
+    SESSIONTIMEOUT="#CreateTimeSpan(0, 0, 20, 0)#"
+    APPLICATIONTIMEOUT="#CreateTimeSpan(1, 0, 0, 0)#">
+
+<!--- Shared data must be locked while it is changed --->
+<CFLOCK SCOPE="Application" TYPE="Exclusive" TIMEOUT="10">
+  <CFPARAM NAME="Application.TotalHits" DEFAULT="0">
+  <CFSET Application.TotalHits = Application.TotalHits + 1>
+  <CFSET MyTotal = Application.TotalHits>
+</CFLOCK>
+
+<CFLOCK SCOPE="Session" TYPE="Exclusive" TIMEOUT="10">
+  <CFPARAM NAME="Session.Hits" DEFAULT="0">
+  <CFPARAM NAME="Session.FirstVisit" DEFAULT="#Now()#">
+  <CFSET Session.Hits = Session.Hits + 1>
+  <CFSET MyHits = Session.Hits>
+  <CFSET MyFirst = Session.FirstVisit>
+</CFLOCK>
+
+<CFINCLUDE TEMPLATE="ch6_header.cfm">
+<CFOUTPUT>
+<P>You have viewed this page <B>#MyHits#</B> time(s) since
+#TimeFormat(MyFirst, "h:mm:ss tt")#.</P>
+<P>All visitors together: <B>#MyTotal#</B> view(s) since the
+application started.</P>
+</CFOUTPUT>
+<P><A HREF="ch6_counter.cfm">Reload</A> the page to count up. Open it in a different
+browser and you get a new session, but the shared total keeps growing.</P>
+<CFINCLUDE TEMPLATE="ch6_footer.cfm">
+<<end>>
+
+Session and application variables live in the server's memory, and several requests can run at the same time,
+so wrap every read and write of them in `CFLOCK`. Use `TYPE="Exclusive"` when you change something and
+`TYPE="ReadOnly"` when you only look. Copying the values you need into local variables inside the lock, as the
+example does, keeps the locks short.
+
+# Sharing a look with CFINCLUDE
+
+The counter page pulls in a header and a footer with `CFINCLUDE`. An included template runs as if its code had
+been pasted in at that spot, and it sees all the variables of the including page. Change the header once and every
+page that includes it changes too.
+
+<<run ch6_header.cfm>>
+<!--- ch6_header.cfm: shared page header. Set Request.PageTitle before including it. --->
+<CFPARAM NAME="Request.PageTitle" DEFAULT="Developing with KoldFusion">
+<HTML>
+<HEAD><TITLE><CFOUTPUT>#Request.PageTitle#</CFOUTPUT></TITLE></HEAD>
+<BODY BGCOLOR="#FFFFFF">
+<TABLE WIDTH="100%" BORDER="0" CELLPADDING="4" CELLSPACING="0">
+<TR><TD BGCOLOR="#003399"><FONT FACE="Arial, Helvetica" COLOR="#FFFFFF" SIZE="4">
+<B><CFOUTPUT>#Request.PageTitle#</CFOUTPUT></B></FONT></TD></TR>
+</TABLE>
+<FONT FACE="Arial, Helvetica" SIZE="2">
+<<end>>
+
+<<run ch6_footer.cfm>>
+<!--- ch6_footer.cfm: shared page footer --->
+</FONT>
+<HR NOSHADE SIZE="1">
+<FONT FACE="Arial, Helvetica" SIZE="1">
+<CFOUTPUT>Page generated #DateFormat(Now(), "mm/dd/yyyy")# at #TimeFormat(Now(), "HH:mm:ss")#
+by KoldFusion #Replace(Server.ColdFusion.ProductVersion, ", ", ".", "ALL")#.</CFOUTPUT>
+</FONT>
+</BODY>
+</HTML>
+<<end>>
+
+# A complete example: signing in
+
+The folder examples/ch6app/ holds a tiny application that puts the pieces together. Its `Application.cfm` turns
+on session management and sends anyone who has not signed in to the sign-in page with `CFLOCATION`. There are no
+passwords here; you simply pick a nickname. [Try the sign-in application](examples/ch6app/index.cfm).
+
+    <!--- ch6app/Application.cfm: runs before every page in ch6app/ --->
+    <CFAPPLICATION NAME="DevGuideSignIn" SESSIONMANAGEMENT="Yes"
+        SESSIONTIMEOUT="#CreateTimeSpan(0, 0, 20, 0)#">
+    <CFSET Request.DSN = "cfsnippets">
+    <CFSET Request.PageTitle = "Staff Directory">
+
+    <!--- Copy the user's nickname out of the session (if any) --->
+    <CFSET Request.UserName = "">
+    <CFLOCK SCOPE="Session" TYPE="ReadOnly" TIMEOUT="10">
+      <CFIF IsDefined("Session.UserName")>
+        <CFSET Request.UserName = Session.UserName>
+      </CFIF>
+    </CFLOCK>
+
+    <!--- Everybody must sign in first, except on the sign-in page itself --->
+    <CFIF Request.UserName IS "" AND ListLast(CGI.SCRIPT_NAME, "/") IS NOT "login.cfm">
+      <CFLOCATION URL="login.cfm" ADDTOKEN="No">
+    </CFIF>
+
+The sign-in page posts to itself. Once it has stored the nickname in the Session scope, it sends the browser on
+to the home page with `CFLOCATION`, which ends the current request immediately:
+
+    <!--- ch6app/login.cfm --->
+    <CFIF IsDefined("Form.UserName") AND Trim(Form.UserName) IS NOT "">
+      <CFLOCK SCOPE="Session" TYPE="Exclusive" TIMEOUT="10">
+        <CFSET Session.UserName = HTMLEditFormat(Left(Trim(Form.UserName), 20))>
+      </CFLOCK>
+      <CFLOCATION URL="index.cfm" ADDTOKEN="No">
+    </CFIF>
+
+    <CFSET Request.PageTitle = "Please sign in">
+    <CFINCLUDE TEMPLATE="../ch6_header.cfm">
+    <FORM ACTION="login.cfm" METHOD="POST">
+    Pick a nickname: <INPUT TYPE="text" NAME="UserName" SIZE="20" MAXLENGTH="20">
+    <INPUT TYPE="submit" VALUE="Sign in">
+    </FORM>
+    <CFINCLUDE TEMPLATE="../ch6_footer.cfm">
+
+The home page, index.cfm, greets the user by name and lists the departments; logout.cfm removes the nickname
+with `StructDelete(Session, "UserName")` and sends the browser back to the sign-in page.
+
+> Because `CFLOCATION` ends the request at once, `OnRequestEnd.cfm` does not run for that page. If the browser
+> refuses cookies, use `ADDTOKEN="Yes"` so that CFID and CFTOKEN travel on the URL instead.
+
+@page errors | Handling Errors
+
+Things go wrong: a data source is down, a URL parameter is nonsense, the disk is full. By default KoldFusion
+stops and shows its "Error Diagnostic Information" page, which is helpful to you and alarming to your visitors.
+CFML gives you two ways to do better: catch errors where they happen with `CFTRY`, or replace the error page for
+the whole application with `CFERROR`.
+
+# CFTRY and CFCATCH
+
+Put the risky code inside `CFTRY`. If an error occurs, KoldFusion jumps to the first `CFCATCH` block whose `TYPE`
+matches. Inside it, the `CFCATCH` variable describes what happened: `CFCATCH.Type`, `CFCATCH.Message`,
+`CFCATCH.Detail`, and for database errors `CFCATCH.SQLState` and `CFCATCH.NativeErrorCode`.
+
+| CFCATCH TYPE | Catches |
+| Database | Errors reported by the data source |
+| Expression | Undefined variables, bad arithmetic, wrong types |
+| MissingInclude | A `CFINCLUDE` or `CFMODULE` template that does not exist |
+| Lock | A `CFLOCK` that timed out |
+| Application | Errors you throw with `CFTHROW` without a type |
+| Any | Everything (put it last) |
+| your.own.type | Errors thrown with `CFTHROW TYPE="your.own.type"`. A CATCH for "your.own" also matches. |
+
+<<run ch7_trycatch.cfm>>
+<!--- ch7_trycatch.cfm: catching errors --->
+
+<!--- 1. A database error: the table name is misspelled --->
+<CFTRY>
+  <CFQUERY NAME="GetEmps" DATASOURCE="cfsnippets">
+  SELECT LastName FROM Employes
+  </CFQUERY>
+  <P>This line is never reached.</P>
+<CFCATCH TYPE="Database">
+  <CFOUTPUT>
+  <P><B>The staff list is unavailable right now.</B><BR>
+  <FONT SIZE="1">(For the developer: #CFCATCH.Message#, SQLState #CFCATCH.SQLState#)</FONT></P>
+  </CFOUTPUT>
+</CFCATCH>
+</CFTRY>
+
+<!--- 2. An expression error: dividing by zero --->
+<CFSET Visitors = 0>
+<CFTRY>
+  <CFSET Ratio = 100 / Visitors>
+  <CFCATCH TYPE="Expression">
+    <CFSET Ratio = 0>
+    <CFOUTPUT><P>Could not compute the ratio (#CFCATCH.Message#); using 0.</P></CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+
+<!--- 3. Your own errors, thrown with CFTHROW --->
+<CFQUERY NAME="GetSoftware" DATASOURCE="cfsnippets">
+SELECT Name, InStock FROM Products WHERE Category = 'Software' ORDER BY Name
+</CFQUERY>
+<P>Ordering one of each software title:</P>
+<UL>
+<CFLOOP QUERY="GetSoftware">
+  <CFTRY>
+    <CFIF InStock LTE 0>
+      <CFTHROW TYPE="Store.OutOfStock" MESSAGE="#Name# is sold out"
+               DETAIL="Restocking is expected after January 1, 2000.">
+    </CFIF>
+    <CFOUTPUT><LI>#Name#: ordered.</CFOUTPUT>
+  <CFCATCH TYPE="Store">
+    <CFOUTPUT><LI><FONT COLOR="##CC0000">#CFCATCH.Message#.</FONT> #CFCATCH.Detail#</CFOUTPUT>
+  </CFCATCH>
+  </CFTRY>
+</CFLOOP>
+</UL>
+<<end>>
+
+# Passing an error on: CFRETHROW
+
+Sometimes a `CFCATCH` block can only do part of the job, such as noting that something failed, and the error
+should still reach an outer handler. `CFRETHROW` throws the current error again, unchanged.
+
+<<run ch7_rethrow.cfm>>
+<!--- ch7_rethrow.cfm: handle what you can, pass on the rest --->
+<CFSET Attempts = "Store.OutOfStock,Store.PriceChanged">
+
+<CFLOOP LIST="#Attempts#" INDEX="ErrType">
+  <CFTRY>
+    <CFTRY>
+      <CFTHROW TYPE="#ErrType#" MESSAGE="Simulated #ErrType# error">
+    <CFCATCH TYPE="Store">
+      <CFIF CFCATCH.Type IS "Store.OutOfStock">
+        <CFOUTPUT><P>Inner handler: offered a back-order for "#CFCATCH.Message#".</P></CFOUTPUT>
+      <CFELSE>
+        <CFOUTPUT><P>Inner handler: cannot deal with #CFCATCH.Type#, passing it on.</P></CFOUTPUT>
+        <CFRETHROW>
+      </CFIF>
+    </CFCATCH>
+    </CFTRY>
+  <CFCATCH TYPE="Any">
+    <CFOUTPUT><P>Outer handler: caught #CFCATCH.Type# ("#CFCATCH.Message#").</P></CFOUTPUT>
+  </CFCATCH>
+  </CFTRY>
+</CFLOOP>
+<<end>>
+
+# A friendlier error page: CFERROR
+
+`CFERROR` names a template to show instead of the standard error page. It normally goes in `Application.cfm`,
+so it covers every page of the application. With `TYPE="Request"` the error template may not run CFML tags, but
+it can show the error variables `#Error.Diagnostics#`, `#Error.DateTime#`, `#Error.Template#`,
+`#Error.QueryString#`, `#Error.HTTPReferer#` and `#Error.MailTo#`. With `TYPE="Exception"` the template is a
+normal CFML page and can do more, such as log the problem or send mail.
+
+<<run ch7_errorpage.cfm>>
+<!--- ch7_errorpage.cfm: install an error template, then (optionally) fail --->
+<CFERROR TYPE="Request" TEMPLATE="ch7_error.cfm" MAILTO="webmaster@localhost">
+<CFPARAM NAME="URL.Break" DEFAULT="No">
+
+<P>This page has a custom error template installed.</P>
+<CFIF URL.Break IS "Yes">
+  <!--- Refer to a variable that does not exist --->
+  <CFOUTPUT>#NoSuchVariable#</CFOUTPUT>
+<CFELSE>
+  <P><A HREF="ch7_errorpage.cfm?Break=Yes">Cause an error</A> to see it.</P>
+</CFIF>
+<<end>>
+
+<<run ch7_error.cfm>>
+<!-- ch7_error.cfm: the error template used by ch7_errorpage.cfm.
+     CFML tags are not run in a request error template, so even this
+     comment is plain HTML. Opened on its own, the page simply shows
+     the placeholders. -->
+<HTML>
+<HEAD><TITLE>We are sorry</TITLE></HEAD>
+<BODY BGCOLOR="#FFFFFF">
+<FONT FACE="Arial, Helvetica" SIZE="2">
+<H2>Oops. Our server tripped over its own power cord.</H2>
+<P>Something went wrong while building this page. It is not your fault.
+Please try again in a few minutes, or write to
+<A HREF="mailto:#Error.MailTo#">#Error.MailTo#</A>.</P>
+<P><FONT SIZE="1">Time of the error: #Error.DateTime#<BR>
+Page: #Error.Template#</FONT></P>
+<!-- For the developer:
+#Error.Diagnostics#
+-->
+</FONT>
+</BODY>
+</HTML>
+<<end>>
+
+> Hiding the diagnostics inside an HTML comment, as above, keeps them out of sight but not out of reach: anyone
+> can use View Source. On a public site, leave them out and look in the server logs instead.
+
+@page reusing | Reusing Code and Sending Mail
+
+As an application grows, the same snippets turn up again and again: a formatted address, a navigation bar, a
+price calculation. `CFINCLUDE` (chapter 6) shares code that works with the page's own variables. **Custom tags**
+go one step further: they are self-contained, take attributes, and keep their variables to themselves.
+
+# Custom tags
+
+A custom tag is an ordinary template. Save it as ch8_greeting.cfm in the same directory as the calling page, or
+anywhere under the CustomTags directory of the server, and call it as `<CF_CH8_GREETING>`. Inside the tag,
+the attributes arrive in the **Attributes** scope, and the **Caller** scope reaches the variables of the calling
+page, which is how a tag hands back results.
+
+<<run ch8_greeting.cfm>>
+<!--- ch8_greeting.cfm: a custom tag.
+      Call it as <CF_CH8_GREETING NAME="..." COLOR="...">.
+      Opened on its own, it simply uses its default values. --->
+<CFPARAM NAME="Attributes.Name" DEFAULT="World">
+<CFPARAM NAME="Attributes.Color" DEFAULT="003399">
+
+<CFOUTPUT>
+<P><FONT FACE="Arial, Helvetica" SIZE="4" COLOR="###Attributes.Color#">
+<B>Hello, #HTMLEditFormat(Attributes.Name)#!</B></FONT></P>
+</CFOUTPUT>
+
+<!--- Hand a value back to the calling page --->
+<CFSET Caller.GreetingTime = TimeFormat(Now(), "h:mm tt")>
+<<end>>
+
+<<run ch8_customtag.cfm>>
+<!--- ch8_customtag.cfm: calling a custom tag --->
+<CF_CH8_GREETING NAME="Frostbite Falls" COLOR="CC0000">
+
+<CFOUTPUT><P>The tag says it greeted us at #GreetingTime#.</P></CFOUTPUT>
+
+<!--- The same tag, called with CFMODULE and a path --->
+<CFMODULE TEMPLATE="ch8_greeting.cfm" NAME="CFMODULE caller">
+
+<!--- Variables set inside the tag stay inside the tag --->
+<CFOUTPUT>
+<P>Does this page see the tag's Attributes scope? #YesNoFormat(IsDefined("Attributes.Color"))#</P>
+</CFOUTPUT>
+<<end>>
+
+`CFMODULE` calls the same kind of template by path (`TEMPLATE="..."`) or by dotted name (`NAME="..."`), which is
+useful when two tags have the same name in different directories. Within a tag, `ThisTag.ExecutionMode` tells
+you whether you are running for the start tag or the end tag of a pair such as `<CF_BOX> ... </CF_BOX>`, and
+`ThisTag.GeneratedContent` holds the text in between.
+
+# CFX tags
+
+When CFML is not enough (raw speed, operating system calls, a C library you already own), you can write a tag in
+C or C++ against the CFX API. CFX tags are registered on the CFX Tags page of the Administrator and called like
+any other tag, with a CFX_ prefix. KoldFusion ships with three sample CFX tags: `CFX_HELLO`, `CFX_DICE` and
+`CFX_SYSINFO`.
+
+<<run ch8_cfx.cfm>>
+<!--- ch8_cfx.cfm: calling CFX tags written in C --->
+<P><CFX_HELLO NAME="KoldFusion developer"></P>
+
+<!--- Ask the tag to put its result in a variable instead of the page --->
+<CFX_HELLO NAME="variable" VARIABLE="Greeting">
+<CFOUTPUT><P>CFX_HELLO returned: <I>#Greeting#</I></P></CFOUTPUT>
+
+<P>Rolling three dice: <CFX_DICE ROLLS="3" SIDES="6" VARIABLE="DiceTotal"></P>
+<CFOUTPUT><P>The total is #DiceTotal#.
+<CFIF DiceTotal GTE 15>Lucky!<CFELSE>Better luck next time.</CFIF></P></CFOUTPUT>
+<<end>>
+
+# Sending e-mail with CFMAIL
+
+`CFMAIL` sends a message through the SMTP server configured on the Mail page of the Administrator. The body of
+the tag is the message, and it works like `CFOUTPUT`: expressions in pound signs are evaluated. Messages are
+written to the spool directory and delivered in the background, so the page does not wait for the mail server.
+With a `QUERY` attribute, `CFMAIL` sends one message per row, which is how a 1999 newsletter got out the door.
+
+<<run ch8_mail.cfm>>
+<!--- ch8_mail.cfm: a feedback form that e-mails the webmaster.
+      Mail goes only to the local machine. --->
+<CFIF IsDefined("Form.Message") AND Trim(Form.Message) IS NOT "">
+  <CFPARAM NAME="Form.Topic" DEFAULT="General">
+  <CFMAIL TO="webmaster@localhost"
+          FROM="devguide@localhost"
+          SUBJECT="Feedback: #Form.Topic#">
+A visitor sent feedback from #CGI.REMOTE_ADDR# on #DateFormat(Now(), "mm/dd/yyyy")#.
+
+Topic: #Form.Topic#
+
+#Form.Message#
+</CFMAIL>
+  <P>Thank you! Your message is on its way to the webmaster
+  (well, to the webmaster account on this machine).</P>
+  <P><A HREF="ch8_mail.cfm">Send another</A></P>
+<CFELSE>
+  <H3>Send us your feedback</H3>
+  <FORM ACTION="ch8_mail.cfm" METHOD="POST">
+  Topic:
+  <SELECT NAME="Topic">
+    <OPTION>General
+    <OPTION>Praise
+    <OPTION>Bug Report
+    <OPTION>Y2K Question
+  </SELECT><BR>
+  <TEXTAREA NAME="Message" ROWS="5" COLS="50" WRAP="virtual"></TEXTAREA><BR>
+  <INPUT TYPE="submit" VALUE="Send feedback">
+  </FORM>
+</CFIF>
+<<end>>
+
+> If a message cannot be delivered it is moved to the undelivr directory under the KoldFusion install
+> directory, and the reason is written to the mail log. Check the Mail Logging page of the Administrator when
+> messages seem to vanish.
+
+# Where to go from here
+
+You now know the core of CFML: templates and expressions, queries and forms, applications, errors and reusable
+tags. The [CFML Language Reference](/CFDOCS/langref/index.htm) describes every tag and function in detail, and the
+example applications under /CFDOCS/exampleapp/ show complete sites built from the same pieces. Happy coding, and
+see you on the other side of the year 2000!

@@ -1,0 +1,21 @@
+/* KoldFusion 4.5 documentation style sheet (CSS1, Navigator 4 / IE 4 safe) */
+BODY { background-color: #FFFFF0; color: #000000; margin-left: 30px; margin-right: 20px; }
+BODY, P, TD, TH, LI, DD, DT, BLOCKQUOTE, FORM, INPUT, SELECT, TEXTAREA { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; }
+H1, H2, H3, H4, H5 { font-family: Verdana, Arial, Helvetica, sans-serif; font-weight: bold; margin-left: -15px; }
+H1 { font-size: 20px; color: #000066; }
+H2 { font-size: 17px; color: #000066; }
+H3 { font-size: 14px; color: #003399; }
+H4 { font-size: 12px; color: #003399; margin-bottom: 2px; }
+PRE, CODE, TT { font-family: "Courier New", Courier, monospace; color: #800000; }
+PRE { font-size: 12px; }
+PRE.example { background-color: #FFFFFF; border: 1px solid #CCCCCC; padding: 6px; }
+PRE.qr { margin-top: 0px; margin-left: 20px; }
+P.qr { margin-bottom: 0px; }
+DT { margin-top: 6px; }
+A:link { color: #0000CC; }
+A:visited { color: #663399; }
+A:hover { color: #CC0000; }
+P.note { background-color: #FFFFCC; border: 1px solid #CCCC99; padding: 4px; }
+.booktitle { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #666666; }
+.copyright { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #666666; }
+TABLE.doctable TD, TABLE.doctable TH { font-size: 11px; }

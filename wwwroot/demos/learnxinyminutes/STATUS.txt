@@ -1,0 +1,8 @@
+# KoldFusion Demo Gallery status file, read by /demos/index.cfm (results of running every file on KoldFusion).
+# One line per file:  file | status | note | run
+#   status: works, partial, cf5 (needs CF5+), cfmx (needs CFMX+), fails, include (not a page), shim (gallery companion)
+#   run:    optional page to open instead of the file ("-" = no Run link)
+@title Learn ColdFusion in Y minutes
+@blurb The learnxinyminutes.com tutorial page. Written for modern CFML, so it is a good test of how KoldFusion rejects post-4.5 syntax: the very first self-closing <cfset /> stops the compile.
+@order 8
+learncoldfusion.cfm | cfmx | Needs CF8+: "/>" closers, array literals [], CFLOOP ARRAY=, the % operator; CFDUMP is CF5+ |

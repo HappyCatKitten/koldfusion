@@ -1,0 +1,9 @@
+# KoldFusion Demo Gallery status file, read by /demos/index.cfm (results of running every file on KoldFusion).
+# One line per file:  file | status | note | run
+#   status: works, partial, cf5 (needs CF5+), cfmx (needs CFMX+), fails, include (not a page), shim (gallery companion)
+#   run:    optional page to open instead of the file ("-" = no Run link)
+@title CF_PAGETHRU (CFWebstore)
+@blurb The classic "<< < 1 2 3 > >>" record-paging custom tag from the CFWebstore e-commerce package (1998-2013).
+@order 6
+pagethru.cfm     | works | Custom tag; the runner pages through a 98-row query of 1990s web landmarks | run_pagethru.cfm
+run_pagethru.cfm | shim  | Runner: builds a query with QueryNew, calls <CF_PAGETHRU>, text or image buttons |

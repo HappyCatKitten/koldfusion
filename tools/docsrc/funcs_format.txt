@@ -1,0 +1,717 @@
+# CFML Language Reference - display and formatting functions, international functions.
+# Format: see the docstring at the top of tools/mkdocs.py.
+
+@func DateFormat
+category: Display and formatting functions
+summary: Formats the date part of a date/time value using a mask.
+desc:
+Returns the date part of a date/time value as a string, formatted according to a mask. If you
+leave out the mask, `dd-mmm-yy` is used.
+syntax:
+DateFormat(date [, mask ])
+params:
+date | A date/time value or a string that can be converted to one, for example `Now()` or "12/31/1999".
+mask | Characters that describe the format:
+  `d` day without leading zero, `dd` with leading zero, `ddd` abbreviated weekday, `dddd` full weekday;
+  `m`, `mm`, `mmm` (Jan), `mmmm` (January); `y` and `yy` two-digit year, `yyyy` four-digit year;
+  `gg` the era ("AD"). Other characters are copied to the result. You can also pass one of the named
+  formats `short` (12/31/99), `medium` (Dec 31, 1999), `long` (December 31, 1999) or `full`
+  (Friday, December 31, 1999).
+returns:
+The formatted date as a string.
+usage:
+Two-digit year masks are perfectly legal, but this is a Y2K-ready product: please use `yyyy`.
+To format the time part, use `TimeFormat`. `LSDateFormat` formats dates for the current locale.
+example:
+<CFSET Party = CreateDateTime(1999, 12, 31, 23, 59, 59)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Mask</TH><TH>Result</TH></TR>
+<TR><TD>(none)</TD><TD>#DateFormat(Party)#</TD></TR>
+<TR><TD>mm/dd/yyyy</TD><TD>#DateFormat(Party, "mm/dd/yyyy")#</TD></TR>
+<TR><TD>dddd, mmmm d, yyyy</TD><TD>#DateFormat(Party, "dddd, mmmm d, yyyy")#</TD></TR>
+<TR><TD>d-mmm-yy</TD><TD>#DateFormat(Party, "d-mmm-yy")#</TD></TR>
+<TR><TD>Today</TD><TD>#DateFormat(Now(), "mmm d, yyyy")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: TimeFormat, LSDateFormat, CreateDate, Now
+
+@func DecimalFormat
+category: Display and formatting functions
+summary: Formats a number with two decimal places and thousands separators.
+desc:
+Returns a number as a string with exactly two decimal places and commas between each group of
+three digits. It is a quick shorthand for `NumberFormat(number, ",.00")`.
+syntax:
+DecimalFormat(number)
+params:
+number | The number to format. Values with more than two decimal places are rounded.
+returns:
+A string such as "1,234,567.89".
+usage:
+Negative numbers get a leading minus sign. For money, `DollarFormat` adds a dollar sign and puts
+negative amounts in parentheses; for any other layout, use `NumberFormat` with your own mask.
+example:
+<CFSET Values = "1234567.891,42,-3,0.005,999.999">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Number</TH><TH>DecimalFormat</TH></TR>
+<CFLOOP INDEX="N" LIST="#Values#">
+<CFOUTPUT>
+<TR><TD>#N#</TD><TD ALIGN="right">#DecimalFormat(N)#</TD></TR>
+</CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: NumberFormat, DollarFormat, LSNumberFormat, Round
+
+@func DollarFormat
+category: Display and formatting functions
+summary: Formats a number as a U.S. dollar amount.
+desc:
+Returns a number as a dollar string: a dollar sign, thousands separators and two decimal places.
+Negative amounts are wrapped in parentheses, the way accountants like them.
+syntax:
+DollarFormat(number)
+params:
+number | The amount to format. An empty string is treated as zero.
+returns:
+A string such as "$1,234.50" or "($1,234.50)".
+usage:
+The result is always in U.S. dollars, whatever the current locale. To format money the way the
+current locale expects, use `LSCurrencyFormat`; for euro amounts, `LSEuroCurrencyFormat`.
+example:
+<CFQUERY NAME="GetPay" DATASOURCE="cfsnippets" MAXROWS="5">
+SELECT FirstName, LastName, Salary FROM Employees ORDER BY LastName
+</CFQUERY>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Employee</TH><TH>Salary</TH><TH>Above (below) $50,000</TH></TR>
+<CFOUTPUT QUERY="GetPay">
+<TR><TD>#FirstName# #LastName#</TD>
+    <TD ALIGN="right">#DollarFormat(Salary)#</TD>
+    <TD ALIGN="right">#DollarFormat(Salary - 50000)#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: LSCurrencyFormat, DecimalFormat, NumberFormat, LSParseCurrency
+
+@func HTMLCodeFormat
+category: Display and formatting functions
+summary: Escapes HTML special characters and wraps the result in PRE tags.
+desc:
+Returns a string with the characters `<`, `>`, `&` and `"` replaced by their HTML entities, carriage
+returns removed, and the whole thing wrapped in `<PRE>` and `</PRE>`. Use it to show source code or
+other preformatted text exactly as typed.
+syntax:
+HTMLCodeFormat(string [, version ])
+params:
+string | The text to escape.
+version | Optional. The HTML version to target: "-1", "2.0" or "3.2". Accepted for compatibility;
+  KoldFusion always uses the same set of entities.
+returns:
+The escaped string, surrounded by `<PRE>` tags.
+usage:
+Line breaks and spaces are kept because of the PRE block, which makes this the natural choice for
+displaying a file read with `CFFILE`. If you do not want the PRE tags, use `HTMLEditFormat`.
+example:
+<CFSET Source = "<TABLE BORDER=1>" & Chr(13) & Chr(10)
+    & "  <TR><TD>Hello & welcome</TD></TR>" & Chr(13) & Chr(10)
+    & "</TABLE>">
+<P>The HTML source:</P>
+<CFOUTPUT>#HTMLCodeFormat(Source)#</CFOUTPUT>
+<P>The same HTML, rendered:</P>
+<CFOUTPUT>#Source#</CFOUTPUT>
+see: HTMLEditFormat, ParagraphFormat, XMLFormat, JSStringFormat
+
+@func HTMLEditFormat
+category: Display and formatting functions
+summary: Escapes HTML special characters so text displays literally.
+desc:
+Returns a string with the characters `<`, `>`, `&` and `"` replaced by `&lt;`, `&gt;`, `&amp;` and
+`&quot;`, and carriage returns removed. Text processed this way shows up in the browser exactly as
+typed instead of being interpreted as markup.
+syntax:
+HTMLEditFormat(string [, version ])
+params:
+string | The text to escape.
+version | Optional. The HTML version to target: "-1", "2.0" or "3.2". Accepted for compatibility;
+  KoldFusion always uses the same set of entities.
+returns:
+The escaped string.
+usage:
+Always run user-supplied text through this function before you display it, and before you put it
+in the VALUE attribute of a form field: a stray double quote would otherwise end the attribute early,
+and a stray `<SCRIPT>` would run in your visitors' browsers.
+
+`HTMLCodeFormat` does the same thing and adds PRE tags around the result.
+example:
+<CFPARAM NAME="URL.Comment" DEFAULT="I <B>love</B> this site & its ""cool"" tags!">
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Raw output</TH><TD>#URL.Comment#</TD></TR>
+<TR><TH>HTMLEditFormat</TH><TD>#HTMLEditFormat(URL.Comment)#</TD></TR>
+</TABLE>
+<FORM ACTION="htmleditformat.cfm" METHOD="get">
+<INPUT TYPE="text" NAME="Comment" SIZE="50" VALUE="#HTMLEditFormat(URL.Comment)#">
+<INPUT TYPE="submit" VALUE="Try it">
+</FORM>
+</CFOUTPUT>
+see: HTMLCodeFormat, URLEncodedFormat, XMLFormat, ParagraphFormat
+
+@func NumberFormat
+category: Display and formatting functions
+summary: Formats a number using a mask.
+desc:
+Returns a number as a string, formatted according to a mask. Without a mask, the number is rounded
+to an integer and thousands separators are added.
+syntax:
+NumberFormat(number [, mask ])
+params:
+number | The number to format. An empty string is treated as zero.
+mask | Characters that describe the format:
+  `9` or `_` digit placeholder (pads with spaces when the mask is wider than the number);
+  `0` digit placeholder before the decimal point that pads with zeros;
+  `.` decimal point (the number of placeholders after it sets the decimal places, with rounding);
+  `,` thousands separators; `L` left-justify or `C` center within the width of the mask
+  (right-justified is the default); `-` a space before positive numbers and a minus sign before
+  negative ones; `+` a plus or minus sign; `(` and `)` parentheses around negative numbers;
+  `$` a dollar sign in front of the number.
+returns:
+The formatted number as a string.
+usage:
+The mask never truncates: if the number has more digits than the mask has placeholders, all of them
+are shown. The padding spaces only line up in a monospaced font, so display padded results inside
+`<PRE>` or `<TT>`.
+
+The `^` character (separate formatting left and right of the decimal point) is accepted, but
+KoldFusion ignores it. `DecimalFormat` and `DollarFormat` are shortcuts for the two most common
+masks; `LSNumberFormat` formats numbers for the current locale.
+example:
+<CFSET N = 1234.567>
+<CFOUTPUT>
+<PRE>
+Mask           Result
+(none)         [#NumberFormat(N)#]
+9,999.99       [#NumberFormat(N, "9,999.99")#]
+99999.9        [#NumberFormat(N, "99999.9")#]
+L99999.9       [#NumberFormat(N, "L99999.9")#]
+000000         [#NumberFormat(42, "000000")#]
+$999,999.99    [#NumberFormat(N, "$999,999.99")#]
+(9,999.99)     [#NumberFormat(-N, "(9,999.99)")#]
++9999          [#NumberFormat(42, "+9999")#]
+-9999          [#NumberFormat(-42, "-9999")#]
+</PRE>
+</CFOUTPUT>
+see: DecimalFormat, DollarFormat, LSNumberFormat, Round
+
+@func ParagraphFormat
+category: Display and formatting functions
+summary: Turns blank lines in plain text into HTML paragraph breaks.
+desc:
+Returns plain text, such as the contents of a TEXTAREA, ready to drop into an HTML page: each blank
+line (two line breaks in a row) becomes a `<P>` tag, and every single line break becomes a space.
+syntax:
+ParagraphFormat(string)
+params:
+string | The text to format. Carriage return/line feed pairs and bare line feeds are both recognized.
+returns:
+The text with paragraph tags in place of blank lines.
+usage:
+ParagraphFormat does not escape HTML characters. For text typed in by visitors, combine it with
+`HTMLEditFormat`: `ParagraphFormat(HTMLEditFormat(Form.Comments))`.
+example:
+<CFSET NL = Chr(13) & Chr(10)>
+<CFSET Memo = "Our web server will be down this weekend" & NL
+    & "while we install the Y2K patches." & NL & NL
+    & "Please save your work early and often." & NL & NL
+    & "-- The IS department">
+<TABLE BORDER=1 CELLPADDING=5 WIDTH="400">
+<TR><TH>Without ParagraphFormat</TH></TR>
+<TR><TD><CFOUTPUT>#Memo#</CFOUTPUT></TD></TR>
+<TR><TH>With ParagraphFormat</TH></TR>
+<TR><TD><CFOUTPUT>#ParagraphFormat(Memo)#</CFOUTPUT></TD></TR>
+</TABLE>
+see: HTMLEditFormat, HTMLCodeFormat, Wrap, StripCR
+
+@func TimeFormat
+category: Display and formatting functions
+summary: Formats the time part of a date/time value using a mask.
+desc:
+Returns the time part of a date/time value as a string, formatted according to a mask. If you leave
+out the mask, `hh:mm tt` is used.
+syntax:
+TimeFormat(time [, mask ])
+params:
+time | A date/time value or a string that can be converted to one, for example `Now()` or "4:30 PM".
+mask | Characters that describe the format:
+  `h` hours on a 12-hour clock without leading zero, `hh` with leading zero; `H` and `HH` the same on
+  a 24-hour clock; `m` and `mm` minutes; `s` and `ss` seconds; `t` A or P, `tt` AM or PM.
+  Other characters are copied to the result. You can also pass one of the named formats `short`
+  (4:05 PM), `medium` or `long` (both 4:05:09 PM).
+returns:
+The formatted time as a string.
+usage:
+In a TimeFormat mask, `m` always means minutes; in a `DateFormat` mask it means the month. Remember
+which function you are in! `LSTimeFormat` formats times for the current locale.
+example:
+<CFSET T = CreateDateTime(1999, 12, 31, 23, 59, 9)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Mask</TH><TH>Result</TH></TR>
+<TR><TD>(none)</TD><TD>#TimeFormat(T)#</TD></TR>
+<TR><TD>HH:mm:ss</TD><TD>#TimeFormat(T, "HH:mm:ss")#</TD></TR>
+<TR><TD>h:mm tt</TD><TD>#TimeFormat(T, "h:mm tt")#</TD></TR>
+<TR><TD>h:mm t</TD><TD>#TimeFormat(T, "h:mm t")#</TD></TR>
+<TR><TD>medium</TD><TD>#TimeFormat(T, "medium")#</TD></TR>
+<TR><TD>Right now</TD><TD>#TimeFormat(Now(), "hh:mm:ss tt")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: DateFormat, LSTimeFormat, CreateTime, Now
+
+@func YesNoFormat
+category: Display and formatting functions
+summary: Displays a boolean value as Yes or No.
+desc:
+Returns "Yes" for any value that counts as true and "No" for anything false. Numbers other than zero
+are true; so are the strings "Yes" and "True".
+syntax:
+YesNoFormat(value)
+params:
+value | A number, a boolean, or a string such as "yes", "no", "true" or "false". An empty string
+  gives "No".
+returns:
+The string "Yes" or "No".
+usage:
+Handy for BIT columns and the results of decision functions, which otherwise print as 1/0 or YES/NO.
+A string that is not a boolean value, for example "maybe", causes an error.
+example:
+<CFQUERY NAME="GetStaff" DATASOURCE="cfsnippets" MAXROWS="6">
+SELECT FirstName, LastName, Contract FROM Employees ORDER BY LastName
+</CFQUERY>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Employee</TH><TH>Contract (raw)</TH><TH>Contractor?</TH></TR>
+<CFOUTPUT QUERY="GetStaff">
+<TR><TD>#FirstName# #LastName#</TD><TD>#Contract#</TD><TD>#YesNoFormat(Contract)#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+<CFOUTPUT><P>Is 2000 a leap year? #YesNoFormat(IsLeapYear(2000))#</P></CFOUTPUT>
+see: IsBoolean, IIf, DE
+
+@func GetLocale
+category: International functions
+summary: Returns the name of the current locale.
+desc:
+Returns the name of the locale that the LS functions use for the current request. Unless a page has
+called `SetLocale`, this is "English (US)".
+syntax:
+GetLocale()
+returns:
+A locale name such as "English (US)".
+usage:
+Allair KoldFusion for UNIX ships with the English (US) locale tables only; see `SetLocale` for the
+details.
+example:
+<CFOUTPUT>
+<P>The current locale is <B>#GetLocale()#</B>.</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Function</TH><TH>Result</TH></TR>
+<TR><TD>LSDateFormat(Now(), "long")</TD><TD>#LSDateFormat(Now(), "long")#</TD></TR>
+<TR><TD>LSTimeFormat(Now())</TD><TD>#LSTimeFormat(Now())#</TD></TR>
+<TR><TD>LSCurrencyFormat(1999.99)</TD><TD>#LSCurrencyFormat(1999.99)#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: SetLocale, LSDateFormat, LSCurrencyFormat, LSNumberFormat
+
+@func SetLocale
+category: International functions
+summary: Sets the locale used by the LS functions and returns the previous one.
+desc:
+Changes the locale name for the rest of the request and returns the name of the locale that was in
+effect before the call, so you can put it back afterwards.
+syntax:
+SetLocale(new_locale)
+params:
+new_locale | The name of a locale. The KoldFusion 4.5 names are: Dutch (Belgian), Dutch (Standard),
+  English (Australian), English (Canadian), English (New Zealand), English (UK), English (US),
+  French (Belgian), French (Canadian), French (Standard), French (Swiss), German (Austrian),
+  German (Standard), German (Swiss), Italian (Standard), Italian (Swiss), Norwegian (Bokmal),
+  Norwegian (Nynorsk), Portuguese (Brazilian), Portuguese (Standard), Spanish (Mexican),
+  Spanish (Modern), Spanish (Standard) and Swedish.
+returns:
+The name of the previous locale.
+usage:
+> KoldFusion for UNIX ships with the English (US) locale tables only. `SetLocale` accepts any of the
+names listed in `Server.ColdFusion.SupportedLocales` (an unknown name throws an error), and
+`GetLocale` returns it, but all LS functions keep formatting and parsing dates, numbers and money
+the U.S. way. The locale lasts for the rest of the request.
+
+Because the locale belongs to the server thread that runs your page, always restore the old value
+when you are done, as the example does.
+example:
+<CFSET OldLocale = SetLocale("German (Standard)")>
+<CFSET NewLocale = GetLocale()>
+<CFSET Dummy = SetLocale(OldLocale)>
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Step</TH><TH>Locale</TH></TR>
+<TR><TD>Before SetLocale</TD><TD>#OldLocale#</TD></TR>
+<TR><TD>After SetLocale("German (Standard)")</TD><TD>#NewLocale#</TD></TR>
+<TR><TD>After restoring the old locale</TD><TD>#GetLocale()#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: GetLocale, LSDateFormat, LSCurrencyFormat, LSParseDateTime
+
+@func LSCurrencyFormat
+category: International functions
+summary: Formats a number as money for the current locale.
+desc:
+Returns a currency amount formatted with the conventions of the current locale: currency symbol,
+thousands separators and two decimal places.
+syntax:
+LSCurrencyFormat(number [, type ])
+params:
+number | The amount to format.
+type | Optional. `local` (the default) uses the local currency symbol, for example "$1,234.50";
+  `international` uses the three-letter currency code, for example "USD1,234.50"; `none` leaves the
+  symbol out, for example "1,234.50".
+returns:
+The formatted amount as a string. Negative amounts are shown in parentheses in the `local` format and
+with a minus sign in the other two.
+usage:
+In the English (US) locale (the only one KoldFusion for UNIX formats with, see `SetLocale`), the
+local format is the same as `DollarFormat`. Use `LSParseCurrency` to turn the result back into a number
+and `LSEuroCurrencyFormat` for euro amounts.
+example:
+<CFSET Amounts = "1234.5,-99.95,1000000">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Amount</TH><TH>local</TH><TH>international</TH><TH>none</TH></TR>
+<CFLOOP INDEX="A" LIST="#Amounts#">
+<CFOUTPUT>
+<TR><TD>#A#</TD>
+    <TD ALIGN="right">#LSCurrencyFormat(A)#</TD>
+    <TD ALIGN="right">#LSCurrencyFormat(A, "international")#</TD>
+    <TD ALIGN="right">#LSCurrencyFormat(A, "none")#</TD></TR>
+</CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: DollarFormat, LSEuroCurrencyFormat, LSParseCurrency, LSIsCurrency, SetLocale
+
+@func LSDateFormat
+category: International functions
+summary: Formats the date part of a date/time value for the current locale.
+desc:
+Returns the date part of a date/time value as a string, using the conventions of the current locale.
+The mask characters are the same as for `DateFormat`.
+syntax:
+LSDateFormat(date [, mask ])
+params:
+date | A date/time value or a string that can be converted to one.
+mask | Optional. A `DateFormat` mask such as "mmmm d, yyyy", or one of the named formats `short`,
+  `medium`, `long` and `full`. The default is `dd-mmm-yy`.
+returns:
+The formatted date as a string.
+usage:
+The named formats are the portable way to write international pages: they ask the locale for its
+own preferred layout. KoldFusion for UNIX formats with the English (US) conventions only (see
+`SetLocale`), so LSDateFormat gives the same result as `DateFormat`.
+example:
+<CFSET D = CreateDate(2000, 1, 1)>
+<CFOUTPUT>
+<P>Locale: #GetLocale()#</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Mask</TH><TH>Result</TH></TR>
+<TR><TD>(none)</TD><TD>#LSDateFormat(D)#</TD></TR>
+<TR><TD>short</TD><TD>#LSDateFormat(D, "short")#</TD></TR>
+<TR><TD>medium</TD><TD>#LSDateFormat(D, "medium")#</TD></TR>
+<TR><TD>long</TD><TD>#LSDateFormat(D, "long")#</TD></TR>
+<TR><TD>full</TD><TD>#LSDateFormat(D, "full")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: DateFormat, LSTimeFormat, LSParseDateTime, SetLocale
+
+@func LSEuroCurrencyFormat
+category: International functions
+summary: Formats a number as an amount in euros.
+desc:
+Returns a currency amount in euros, with thousands separators and two decimal places, preceded by
+the currency code "EUR". The euro was born on January 1, 1999; coins and notes are promised for 2002.
+syntax:
+LSEuroCurrencyFormat(currency [, type ])
+params:
+currency | The amount to format.
+type | Optional. `local`, `international` or `none`, as for `LSCurrencyFormat`. Accepted for
+  compatibility; KoldFusion always writes the "EUR" code in front of the amount.
+returns:
+The formatted amount as a string, for example "EUR1,234.50". Negative amounts get a minus sign after
+the code: "EUR-1,234.50".
+usage:
+Most fonts of the day have no euro sign yet, which is one reason the code is used. To read the amount
+back, see `LSParseEuroCurrency`.
+example:
+<CFSET Rate = 1.95583>
+<CFSET Marks = "100,250,1999">
+<P>Converting German marks at the fixed rate:</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>DEM</TH><TH>Euro</TH></TR>
+<CFLOOP INDEX="M" LIST="#Marks#">
+<CFOUTPUT>
+<TR><TD ALIGN="right">#DecimalFormat(M)#</TD><TD ALIGN="right">#LSEuroCurrencyFormat(M / Rate)#</TD></TR>
+</CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: LSCurrencyFormat, LSParseEuroCurrency, DollarFormat, SetLocale
+
+@func LSIsCurrency
+category: International functions
+summary: Tests whether a string is a currency amount in the current locale.
+desc:
+Returns True if the string can be read as a currency amount: a number, optionally with the currency
+symbol, thousands separators and parentheses for negative amounts.
+syntax:
+LSIsCurrency(string)
+params:
+string | The string to test, for example "$1,234.50" or "($19.99)".
+returns:
+True (YES) or False (NO).
+usage:
+Use it to validate form input before you hand it to `LSParseCurrency`, which throws an error for
+strings it cannot read. KoldFusion recognizes the English (US) conventions only (see `SetLocale`).
+example:
+<CFSET Tests = "$1,234.50|($19.99)|1999|12 dollars|$|abc">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String</TH><TH>LSIsCurrency</TH></TR>
+<CFLOOP INDEX="S" LIST="#Tests#" DELIMITERS="|">
+<CFOUTPUT>
+<TR><TD>#S#</TD><TD>#LSIsCurrency(S)#</TD></TR>
+</CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: LSParseCurrency, LSCurrencyFormat, LSIsNumeric, IsNumeric
+
+@func LSIsDate
+category: International functions
+summary: Tests whether a string is a date/time value in the current locale.
+desc:
+Returns True if the string can be converted to a date/time value using the date conventions of the
+current locale.
+syntax:
+LSIsDate(string)
+params:
+string | The string to test.
+returns:
+True (YES) or False (NO). Plain numbers are not considered dates.
+usage:
+Check user input with LSIsDate before passing it to `LSParseDateTime`. In KoldFusion, which formats
+and parses in English (US) only (see `SetLocale`), LSIsDate works exactly like `IsDate`: "12/31/1999"
+and "Dec 31, 1999" are dates, but the European "31.12.1999" is not.
+example:
+<CFSET Tests = "12/31/1999|Dec 31, 1999|December 31, 1999 11:59 PM|31.12.1999|2/30/2000|1999|soon">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String</TH><TH>LSIsDate</TH></TR>
+<CFLOOP INDEX="S" LIST="#Tests#" DELIMITERS="|">
+<CFOUTPUT>
+<TR><TD>#S#</TD><TD>#LSIsDate(S)#</TD></TR>
+</CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: LSParseDateTime, IsDate, LSDateFormat, SetLocale
+
+@func LSIsNumeric
+category: International functions
+summary: Tests whether a string is a number in the current locale.
+desc:
+Returns True if the string can be converted to a number using the conventions of the current locale.
+syntax:
+LSIsNumeric(string)
+params:
+string | The string to test.
+returns:
+True (YES) or False (NO).
+usage:
+KoldFusion formats and parses in English (US) only (see `SetLocale`), and LSIsNumeric works exactly
+like `IsNumeric`. Thousands separators are not accepted: "1234.5" is a number, "1,234.5" is not. To
+accept money with symbols and separators, use `LSIsCurrency`.
+example:
+<CFSET Tests = "1999|-3.14|1.5E3|1,234.5|$5|twelve">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String</TH><TH>LSIsNumeric</TH></TR>
+<CFLOOP INDEX="S" LIST="#Tests#" DELIMITERS="|">
+<CFOUTPUT>
+<TR><TD>#S#</TD><TD>#LSIsNumeric(S)#</TD></TR>
+</CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: LSParseNumber, IsNumeric, LSIsCurrency, Val
+
+@func LSNumberFormat
+category: International functions
+summary: Formats a number using a mask, for the current locale.
+desc:
+Returns a number as a string, formatted according to a mask, using the decimal point and thousands
+separator of the current locale. The mask characters are the same as for `NumberFormat`.
+syntax:
+LSNumberFormat(number [, mask ])
+params:
+number | The number to format.
+mask | Optional. A `NumberFormat` mask such as "9,999.99". Without a mask the number is rounded to an
+  integer and thousands separators are added.
+returns:
+The formatted number as a string.
+usage:
+KoldFusion formats in English (US) only (see `SetLocale`), so LSNumberFormat gives the same result as
+`NumberFormat`: a period for the decimal point and commas between thousands.
+example:
+<CFSET N = 1234567.891>
+<CFOUTPUT>
+<P>Locale: #GetLocale()#</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Mask</TH><TH>Result</TH></TR>
+<TR><TD>(none)</TD><TD>#LSNumberFormat(N)#</TD></TR>
+<TR><TD>9,999,999.99</TD><TD>#LSNumberFormat(N, "9,999,999.99")#</TD></TR>
+<TR><TD>9999999.9</TD><TD>#LSNumberFormat(N, "9999999.9")#</TD></TR>
+<TR><TD>(9,999,999)</TD><TD>#LSNumberFormat(-N, "(9,999,999)")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: NumberFormat, LSParseNumber, LSCurrencyFormat, DecimalFormat
+
+@func LSParseCurrency
+category: International functions
+summary: Converts a currency string in the current locale to a number.
+desc:
+Reads a currency amount written in the conventions of the current locale and returns it as a number.
+Currency symbols, thousands separators and spaces are skipped; parentheses make the amount negative.
+syntax:
+LSParseCurrency(string)
+params:
+string | The amount to convert, for example "$1,234.50" or "($19.99)".
+returns:
+The amount as a number.
+usage:
+If the string is not a currency amount, the function throws an error; test it with `LSIsCurrency`
+first. KoldFusion understands the English (US) conventions only (see `SetLocale`).
+example:
+<CFSET Prices = "$1,234.50|($19.99)|  $ 5|2000">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String</TH><TH>LSParseCurrency</TH><TH>Plus 10%</TH></TR>
+<CFLOOP INDEX="P" LIST="#Prices#" DELIMITERS="|">
+<CFOUTPUT>
+<TR><TD>#P#</TD><TD>#LSParseCurrency(P)#</TD><TD>#DollarFormat(LSParseCurrency(P) * 1.1)#</TD></TR>
+</CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: LSIsCurrency, LSCurrencyFormat, LSParseEuroCurrency, LSParseNumber
+
+@func LSParseDateTime
+category: International functions
+summary: Converts a date/time string in the current locale to a date/time value.
+desc:
+Reads a date and time written in the conventions of the current locale and returns a date/time value
+you can do arithmetic with or format with `DateFormat` and `TimeFormat`.
+syntax:
+LSParseDateTime(date_string)
+params:
+date_string | A date, time, or date and time, for example "12/31/1999 11:59 PM" or "January 1, 2000".
+returns:
+A date/time value.
+usage:
+If the string is not a valid date, the function throws an error; test it with `LSIsDate` first.
+KoldFusion understands the English (US) conventions only (see `SetLocale`), so the result is the same
+as with `ParseDateTime`.
+example:
+<CFSET Tests = "12/31/1999 11:59 PM|January 1, 2000|Feb 29, 2000 8:00 AM">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String</TH><TH>Date/time value</TH><TH>Day of week</TH></TR>
+<CFLOOP INDEX="S" LIST="#Tests#" DELIMITERS="|">
+<CFSET D = LSParseDateTime(S)>
+<CFOUTPUT>
+<TR><TD>#S#</TD><TD>#D#</TD><TD>#DayOfWeekAsString(DayOfWeek(D))#</TD></TR>
+</CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: LSIsDate, ParseDateTime, LSDateFormat, CreateDateTime
+
+@func LSParseEuroCurrency
+category: International functions
+summary: Converts a euro currency string to a number.
+desc:
+Reads a euro amount written in the conventions of the current locale and returns it as a number.
+Thousands separators and spaces are skipped; parentheses make the amount negative.
+syntax:
+LSParseEuroCurrency(string)
+params:
+string | The amount to convert, for example "1,234.50".
+returns:
+The amount as a number.
+usage:
+If the string is not a currency amount, the function throws an error. KoldFusion understands the
+English (US) conventions only (see `SetLocale`) and does not recognize the "EUR" code that
+`LSEuroCurrencyFormat` puts in front of an amount; remove it first, for example with `Replace`.
+example:
+<CFSET Amounts = "1,234.50|(99.95)|2002">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String</TH><TH>LSParseEuroCurrency</TH><TH>Formatted</TH></TR>
+<CFLOOP INDEX="A" LIST="#Amounts#" DELIMITERS="|">
+<CFOUTPUT>
+<TR><TD>#A#</TD><TD>#LSParseEuroCurrency(A)#</TD><TD>#LSEuroCurrencyFormat(LSParseEuroCurrency(A))#</TD></TR>
+</CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: LSEuroCurrencyFormat, LSParseCurrency, LSIsCurrency
+
+@func LSParseNumber
+category: International functions
+summary: Converts a numeric string in the current locale to a number.
+desc:
+Reads a number written in the conventions of the current locale and returns it as a number.
+Leading and trailing spaces are ignored.
+syntax:
+LSParseNumber(string)
+params:
+string | The string to convert, for example "1234.5".
+returns:
+The number.
+usage:
+If the string is not a number, the function throws an error; test it with `LSIsNumeric` first.
+KoldFusion formats every locale with the English (US) conventions (see `SetLocale`); thousands
+separators such as "1,234.5" are accepted. Unlike `Val`, which quietly returns 0 for text it cannot
+read, LSParseNumber insists on a real number.
+example:
+<CFSET Tests = "1234.5| 42 |-0.001|1,999,999">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>String</TH><TH>Number</TH><TH>Times two</TH></TR>
+<CFLOOP INDEX="S" LIST="#Tests#" DELIMITERS="|">
+<CFSET N = LSParseNumber(Replace(S, ",", "", "ALL"))>
+<CFOUTPUT>
+<TR><TD>[#S#]</TD><TD>#N#</TD><TD>#N * 2#</TD></TR>
+</CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: LSIsNumeric, LSNumberFormat, Val, LSParseCurrency
+
+@func LSTimeFormat
+category: International functions
+summary: Formats the time part of a date/time value for the current locale.
+desc:
+Returns the time part of a date/time value as a string, using the conventions of the current locale.
+The mask characters are the same as for `TimeFormat`.
+syntax:
+LSTimeFormat(time [, mask ])
+params:
+time | A date/time value or a string that can be converted to one.
+mask | Optional. A `TimeFormat` mask such as "HH:mm:ss", or one of the named formats `short`,
+  `medium` and `long`. The default is `hh:mm tt`.
+returns:
+The formatted time as a string.
+usage:
+KoldFusion formats in English (US) only (see `SetLocale`), so LSTimeFormat gives the same result as
+`TimeFormat`.
+example:
+<CFSET T = CreateTime(16, 5, 30)>
+<CFOUTPUT>
+<P>Locale: #GetLocale()#</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Mask</TH><TH>Result</TH></TR>
+<TR><TD>(none)</TD><TD>#LSTimeFormat(T)#</TD></TR>
+<TR><TD>short</TD><TD>#LSTimeFormat(T, "short")#</TD></TR>
+<TR><TD>medium</TD><TD>#LSTimeFormat(T, "medium")#</TD></TR>
+<TR><TD>HH:mm</TD><TD>#LSTimeFormat(T, "HH:mm")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: TimeFormat, LSDateFormat, LSParseDateTime, SetLocale

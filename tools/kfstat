@@ -1,0 +1,13 @@
+#!/bin/sh
+# kfstat - command line performance monitor, like ColdFusion's cfstat
+#   kfstat [-p port] [interval-seconds]
+PORT=8500
+if [ "$1" = "-p" ]; then PORT=$2; shift 2; fi
+INTERVAL=${1:-0}
+printf "%8s %6s %6s %6s %8s %8s %6s %6s %6s %6s\n" "Pg Hits" "Queued" "Running" "TimedOut" "BytesIn" "BytesOut" "DBHits" "AvgQ" "AvgReq" "AvgDB"
+while :; do
+    LINE=$(curl -s "http://127.0.0.1:$PORT/CFIDE/kfstat.cfm")
+    case "$LINE" in [0-9]*) printf "%8s %6s %6s %6s %8s %8s %6s %6s %6s %6s\n" $LINE ;; *) echo "$LINE"; exit 1 ;; esac
+    [ "$INTERVAL" -gt 0 ] || exit 0
+    sleep "$INTERVAL"
+done

@@ -1,0 +1,10 @@
+Source:  https://github.com/adambard/learnxinyminutes-docs/blob/master/coldfusion.md  (site: https://learnxinyminutes.com/coldfusion/)
+         Saved: the first ```cfm code block (the tag-based tutorial page), verbatim. The second block (CFCOMPONENT/CFFUNCTION) was NOT saved.
+Author:  Wayne Boka, Kevin Morris (listed contributors)
+License: CC BY-SA 3.0 Unported (repo LICENSE.txt / README)
+Description: Self-contained tutorial page: variables, arrays, operators, comparison, CFIF/CFELSEIF, CFLOOP, CFSWITCH, and an HTML
+             "type conversion" table (adapted from the CF docs).
+CF features: CFSET CFOUTPUT CFDUMP CFIF/CFELSEIF/CFELSE CFLOOP(from/to, array=) CFSWITCH/CFCASE(delimiters)/CFDEFAULTCASE; ArrayNew; MOD.
+CF4.5 compatible: PARTIAL. Needs CF8+ for: array literals [] and ["a","b"], CFLOOP array=, % operator, ==/!=/>/< operators inside #...#;
+             CFDUMP is CF5+. Everything else is classic. Good "does my engine reject modern syntax gracefully" test.
+Datasource: none.

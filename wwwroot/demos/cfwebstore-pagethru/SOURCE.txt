@@ -1,0 +1,10 @@
+Source:  https://github.com/NucomWebHosting/CFWebstore/blob/master/customtags/pagethru.cfm
+Author:  Nucom Web Hosting, LLC / CFWebstore project (file header "CFWebstore, version 6.50"; CFWebstore dates from 1998)
+License: GPL-3.0 (documentation/license.txt in the repo: "Copyright 1998-2013 Nucom Web Hosting ... GNU General Public License v3")
+Description: CF_PAGETHRU - classic "Next/Prev + page numbers" record-paging custom tag. Returns PT_StartRow, PT_EndRow,
+             PT_PageThru (HTML nav string), PT_ErrorCode, PT_ErrorMsg to the caller; supports page groups, image or text buttons.
+CF features: custom tag (ThisTag.ExecutionMode, CFEXIT method=EXITTAG, CALLER scope), CFPARAM attributes.*, CFSET, CFIF, CFLOOP;
+             funcs ArrayNew IsNumeric Val IIf IncrementValue CompareNoCase UCase. MOD operator.
+             Default for attributes.imagepath references Request.ImagePath (pass imagepath="NONE" or set Request.ImagePath).
+Datasource: none (you pass TOTALRECORDS from your own query).
+CF4.5 compatible: yes.

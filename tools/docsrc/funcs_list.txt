@@ -1,0 +1,640 @@
+# CFML Language Reference - list functions.
+# Format: see the docstring at the top of tools/mkdocs.py.
+#
+# Common facts (true for all list functions in KoldFusion): a list is a string; the default delimiter is
+# the comma; the delimiters argument is a set of single characters, any of which separates elements;
+# empty elements (two delimiters in a row) are skipped; when a function inserts a delimiter it uses the
+# first character of the delimiters argument.
+
+@func ListAppend
+category: List functions
+summary: Adds an element to the end of a list.
+desc:
+Returns a copy of a list with a new element added at the end. The original list variable is not
+changed, so assign the result back if you want to keep it.
+syntax:
+ListAppend(list, value [, delimiters ])
+params:
+list | The list to add to. It may be empty.
+value | The element to add.
+delimiters | Optional. The delimiter characters of the list; the default is a comma. The first
+  character is the one placed between the old list and the new element.
+returns:
+The new list.
+usage:
+If the list is empty, the result is just the new element, with no leading delimiter, which makes
+ListAppend perfect for building a list inside a loop. To add an element at the front, use
+`ListPrepend`; to put one somewhere in the middle, `ListInsertAt`.
+example:
+<CFQUERY NAME="GetDepts" DATASOURCE="cfsnippets">
+SELECT Dept_Name FROM Departments
+</CFQUERY>
+<CFSET DeptList = "">
+<CFLOOP QUERY="GetDepts">
+  <CFSET DeptList = ListAppend(DeptList, Dept_Name)>
+</CFLOOP>
+<CFOUTPUT>
+<P>Departments: <B>#DeptList#</B></P>
+<P>With a semicolon: <B>#ListAppend("red;green", "blue", ";")#</B></P>
+<P>Appended to an empty list: <B>#ListAppend("", "lonely")#</B></P>
+</CFOUTPUT>
+see: ListPrepend, ListInsertAt, ListSetAt, ArrayAppend
+
+@func ListChangeDelims
+category: List functions
+summary: Changes the delimiters of a list.
+desc:
+Returns a list with every delimiter between elements replaced by a new delimiter. The new delimiter
+can be any string, even several characters long or empty.
+syntax:
+ListChangeDelims(list, new_delimiter [, delimiters ])
+params:
+list | The list to convert.
+new_delimiter | The string to put between the elements.
+delimiters | Optional. The delimiter characters the list uses now; the default is a comma.
+returns:
+The list with its new delimiters.
+usage:
+Empty elements are dropped along the way, so ListChangeDelims is also a handy way to clean up a list
+like "a,,b,". To turn a list into an HTML list or table row, use an HTML tag as the new delimiter,
+as the example does.
+example:
+<CFSET Browsers = "Netscape 4.7,Internet Explorer 5,,Mosaic,Lynx">
+<CFOUTPUT>
+<P>Original: #Browsers#</P>
+<P>Slashes: #ListChangeDelims(Browsers, " / ")#</P>
+<P>As a bulleted list:</P>
+<UL><LI>#ListChangeDelims(Browsers, "<LI>")#</UL>
+<P>As a table row:</P>
+<TABLE BORDER=1 CELLPADDING=3><TR><TD>#ListChangeDelims(Browsers, "</TD><TD>")#</TD></TR></TABLE>
+</CFOUTPUT>
+see: ListToArray, ArrayToList, Replace, ListQualify
+
+@func ListContains
+category: List functions
+summary: Finds the first list element that contains a substring (case-sensitive).
+desc:
+Returns the position of the first element of a list that contains the given text anywhere inside it.
+The search is case-sensitive. If no element contains the text, the result is 0.
+syntax:
+ListContains(list, substring [, delimiters ])
+params:
+list | The list to search.
+substring | The text to look for inside each element.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+The index of the first matching element, or 0.
+usage:
+ListContains matches part of an element: "bar" is found in "crowbar". To match whole elements only,
+use `ListFind`. `ListContainsNoCase` ignores case.
+example:
+<CFSET Tools = "hammer,crowbar,Screwdriver,wrench">
+<CFOUTPUT>
+<P>List: #Tools#</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Expression</TH><TH>Result</TH></TR>
+<TR><TD>ListContains(Tools, "bar")</TD><TD>#ListContains(Tools, "bar")#</TD></TR>
+<TR><TD>ListContains(Tools, "screw")</TD><TD>#ListContains(Tools, "screw")#</TD></TR>
+<TR><TD>ListContains(Tools, "Screw")</TD><TD>#ListContains(Tools, "Screw")#</TD></TR>
+<TR><TD>ListFind(Tools, "bar")</TD><TD>#ListFind(Tools, "bar")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: ListContainsNoCase, ListFind, Find, ListValueCount
+
+@func ListContainsNoCase
+category: List functions
+summary: Finds the first list element that contains a substring, ignoring case.
+desc:
+Returns the position of the first element of a list that contains the given text anywhere inside it,
+without regard to upper or lower case. If no element contains the text, the result is 0.
+syntax:
+ListContainsNoCase(list, substring [, delimiters ])
+params:
+list | The list to search.
+substring | The text to look for inside each element.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+The index of the first matching element, or 0.
+usage:
+Use `ListContains` for a case-sensitive search and `ListFindNoCase` to match whole elements only.
+example:
+<CFQUERY NAME="GetParks" DATASOURCE="cfsnippets">
+SELECT ParkName FROM Parks WHERE Region = 'Pacific West'
+</CFQUERY>
+<CFSET ParkList = ValueList(GetParks.ParkName)>
+<CFPARAM NAME="URL.Word" DEFAULT="SEASHORE">
+<CFSET Pos = ListContainsNoCase(ParkList, URL.Word)>
+<CFOUTPUT>
+<P>Parks in the Pacific West region: #ListLen(ParkList)#</P>
+<CFIF Pos>
+  <P>The first park whose name contains "#URL.Word#" is number #Pos#:
+  <B>#ListGetAt(ParkList, Pos)#</B></P>
+<CFELSE>
+  <P>No Pacific West park name contains "#URL.Word#".</P>
+</CFIF>
+<FORM ACTION="listcontainsnocase.cfm" METHOD="get">
+Search for: <INPUT TYPE="text" NAME="Word" VALUE="#HTMLEditFormat(URL.Word)#">
+<INPUT TYPE="submit" VALUE="Search">
+</FORM>
+</CFOUTPUT>
+see: ListContains, ListFindNoCase, FindNoCase, ValueList
+
+@func ListDeleteAt
+category: List functions
+summary: Removes the element at a given position from a list.
+desc:
+Returns a copy of a list with the element at the given position removed, together with one of the
+delimiters next to it.
+syntax:
+ListDeleteAt(list, position [, delimiters ])
+params:
+list | The list to change.
+position | The index of the element to remove, from 1 to `ListLen(list)`.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+The new list.
+usage:
+A position less than 1 or greater than the number of elements causes an error. To remove an element
+by value, find it first with `ListFind`, as the example does.
+example:
+<CFSET Planets = "Mercury,Venus,Earth,Mars,Jupiter,Saturn,Uranus,Neptune,Pluto">
+<CFSET Pos = ListFind(Planets, "Earth")>
+<CFOUTPUT>
+<P>Before: #Planets#</P>
+<P>Without element 1: #ListDeleteAt(Planets, 1)#</P>
+<P>Without "Earth" (element #Pos#): #ListDeleteAt(Planets, Pos)#</P>
+<P>Without the last one: #ListDeleteAt(Planets, ListLen(Planets))#</P>
+</CFOUTPUT>
+see: ListFind, ListInsertAt, ListSetAt, ArrayDeleteAt
+
+@func ListFind
+category: List functions
+summary: Finds an element in a list (case-sensitive).
+desc:
+Returns the position of the first element of a list that is exactly equal to the given value. The
+comparison is case-sensitive. If there is no such element, the result is 0.
+syntax:
+ListFind(list, value [, delimiters ])
+params:
+list | The list to search.
+value | The element to look for.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+The index of the matching element, or 0.
+usage:
+Since 0 means "not found", you can use the result directly in a `CFIF`. `ListFindNoCase` ignores
+case; `ListContains` matches part of an element.
+example:
+<CFSET Codes = "AK,AZ,CA,CO,NV,UT">
+<CFPARAM NAME="URL.State" DEFAULT="CA">
+<CFOUTPUT>
+<P>Western states we cover: #Codes#</P>
+<CFIF ListFind(Codes, URL.State)>
+  <P><B>#URL.State#</B> is element #ListFind(Codes, URL.State)# of the list.</P>
+<CFELSE>
+  <P><B>#URL.State#</B> is not in the list. (ListFind is case-sensitive, so "ca" would not match.)</P>
+</CFIF>
+<FORM ACTION="listfind.cfm" METHOD="get">
+State code: <INPUT TYPE="text" NAME="State" SIZE="3" VALUE="#HTMLEditFormat(URL.State)#">
+<INPUT TYPE="submit" VALUE="Look it up">
+</FORM>
+</CFOUTPUT>
+see: ListFindNoCase, ListContains, ListGetAt, ListValueCount
+
+@func ListFindNoCase
+category: List functions
+summary: Finds an element in a list, ignoring case.
+desc:
+Returns the position of the first element of a list that is equal to the given value, without regard
+to upper or lower case. If there is no such element, the result is 0.
+syntax:
+ListFindNoCase(list, value [, delimiters ])
+params:
+list | The list to search.
+value | The element to look for.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+The index of the matching element, or 0.
+usage:
+Good for checking user input against a list of allowed values. `ListFind` is the case-sensitive
+version.
+example:
+<CFSET Allowed = "Netscape;Explorer;Opera">
+<CFSET Tests = "netscape,EXPLORER,Mosaic">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Browser</TH><TH>ListFind</TH><TH>ListFindNoCase</TH></TR>
+<CFLOOP INDEX="B" LIST="#Tests#">
+<CFOUTPUT>
+<TR><TD>#B#</TD><TD>#ListFind(Allowed, B, ";")#</TD><TD>#ListFindNoCase(Allowed, B, ";")#</TD></TR>
+</CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: ListFind, ListContainsNoCase, ListValueCountNoCase, CompareNoCase
+
+@func ListFirst
+category: List functions
+summary: Returns the first element of a list.
+desc:
+Returns the first element of a list. If the list is empty, the result is an empty string.
+syntax:
+ListFirst(list [, delimiters ])
+params:
+list | The list.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+The first element.
+usage:
+Leading delimiters are skipped, so the first element of ",,apple,pear" is "apple". `ListRest`
+returns everything after the first element, and the two together let you walk through a list one
+element at a time. `ListLast` returns the last element.
+example:
+<CFSET Path = "/CFDOCS/snippets/listfirst.cfm">
+<CFSET Email = "webmaster@localhost">
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Expression</TH><TH>Result</TH></TR>
+<TR><TD>ListFirst("Larry,Moe,Curly")</TD><TD>#ListFirst("Larry,Moe,Curly")#</TD></TR>
+<TR><TD>ListFirst(Path, "/")</TD><TD>#ListFirst(Path, "/")#</TD></TR>
+<TR><TD>ListFirst(Email, "@")</TD><TD>#ListFirst(Email, "@")#</TD></TR>
+<TR><TD>ListFirst("")</TD><TD>[#ListFirst("")#]</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: ListRest, ListLast, ListGetAt, GetToken
+
+@func ListGetAt
+category: List functions
+summary: Returns the element at a given position in a list.
+desc:
+Returns the element of a list at the given position, counting from 1.
+syntax:
+ListGetAt(list, position [, delimiters ])
+params:
+list | The list.
+position | The index of the element, from 1 to `ListLen(list)`.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+The element at that position.
+usage:
+A position less than 1 or greater than the number of elements causes an error; check it against
+`ListLen` first. Empty elements do not count, so in "a,,b" element 2 is "b". If you read many
+elements of a long list, converting it once with `ListToArray` is faster.
+example:
+<CFSET Days = "Sun,Mon,Tue,Wed,Thu,Fri,Sat">
+<CFOUTPUT>
+<P>Today is #ListGetAt(Days, DayOfWeek(Now()))#.</P>
+<P>Y2K falls on a #ListGetAt(Days, DayOfWeek(CreateDate(2000, 1, 1)))#.</P>
+</CFOUTPUT>
+<CFTRY>
+  <CFOUTPUT>#ListGetAt(Days, 8)#</CFOUTPUT>
+<CFCATCH TYPE="Expression">
+  <CFOUTPUT><P>Asking for day 8 gives an error: <I>#CFCATCH.Message#</I></P></CFOUTPUT>
+</CFCATCH>
+</CFTRY>
+see: ListSetAt, ListLen, ListFirst, ListLast, ListFind
+
+@func ListInsertAt
+category: List functions
+summary: Inserts an element into a list at a given position.
+desc:
+Returns a copy of a list with a new element inserted before the element at the given position. The
+new element takes that position and the elements after it move one place to the right.
+syntax:
+ListInsertAt(list, position, value [, delimiters ])
+params:
+list | The list to change.
+position | Where to insert, from 1 to `ListLen(list)`.
+value | The element to insert.
+delimiters | Optional. The delimiter characters of the list; the default is a comma. The first
+  character is placed after the new element.
+returns:
+The new list.
+usage:
+The position must be an existing element, so ListInsertAt cannot add to the end of a list or to an
+empty list; use `ListAppend` for that.
+example:
+<CFSET Lineup = "Monday,Tuesday,Thursday,Friday">
+<CFSET Lineup = ListInsertAt(Lineup, 3, "Wednesday")>
+<CFSET Lineup = ListInsertAt(Lineup, 1, "Sunday")>
+<CFSET Lineup = ListAppend(Lineup, "Saturday")>
+<OL>
+<CFLOOP INDEX="Day" LIST="#Lineup#">
+  <CFOUTPUT><LI>#Day#</CFOUTPUT>
+</CFLOOP>
+</OL>
+see: ListAppend, ListPrepend, ListSetAt, ListDeleteAt, ArrayInsertAt
+
+@func ListLast
+category: List functions
+summary: Returns the last element of a list.
+desc:
+Returns the last element of a list. If the list is empty, the result is an empty string.
+syntax:
+ListLast(list [, delimiters ])
+params:
+list | The list.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+The last element.
+usage:
+A favourite trick: with "." as the delimiter, ListLast returns the extension of a file name, and with
+"/" or "\" it returns the file name from a path.
+example:
+<CFSET File = "/home/web/reports/sales_1999.xls">
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Expression</TH><TH>Result</TH></TR>
+<TR><TD>ListLast("Larry,Moe,Curly")</TD><TD>#ListLast("Larry,Moe,Curly")#</TD></TR>
+<TR><TD>ListLast(File, "/")</TD><TD>#ListLast(File, "/")#</TD></TR>
+<TR><TD>ListLast(File, ".")</TD><TD>#ListLast(File, ".")#</TD></TR>
+<TR><TD>ListLast("a,b,c,,,")</TD><TD>#ListLast("a,b,c,,,")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: ListFirst, ListRest, ListGetAt, GetFileFromPath
+
+@func ListLen
+category: List functions
+summary: Returns the number of elements in a list.
+desc:
+Returns the number of elements in a list. Empty elements are not counted, and an empty string is a
+list with no elements.
+syntax:
+ListLen(list [, delimiters ])
+params:
+list | The list.
+delimiters | Optional. The delimiter characters of the list; the default is a comma. Every character
+  counts on its own, so ", " splits at commas and at spaces.
+returns:
+The number of elements.
+usage:
+Use ListLen as the upper bound of an index loop over a list, or to check a position before you call
+`ListGetAt`. Since empty elements are skipped, "a,,b" has two elements, not three.
+example:
+<CFSET Sentence = "The quick brown fox jumps over the lazy dog">
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Expression</TH><TH>Result</TH></TR>
+<TR><TD>ListLen("a,b,c")</TD><TD>#ListLen("a,b,c")#</TD></TR>
+<TR><TD>ListLen("a,,b,")</TD><TD>#ListLen("a,,b,")#</TD></TR>
+<TR><TD>ListLen("")</TD><TD>#ListLen("")#</TD></TR>
+<TR><TD>ListLen(Sentence, " ")</TD><TD>#ListLen(Sentence, " ")#</TD></TR>
+<TR><TD>ListLen("1;2,3 4", ";, ")</TD><TD>#ListLen("1;2,3 4", ";, ")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: ListGetAt, ArrayLen, Len, ListValueCount
+
+@func ListPrepend
+category: List functions
+summary: Adds an element to the beginning of a list.
+desc:
+Returns a copy of a list with a new element added at the front.
+syntax:
+ListPrepend(list, value [, delimiters ])
+params:
+list | The list to add to. It may be empty.
+value | The element to add.
+delimiters | Optional. The delimiter characters of the list; the default is a comma. The first
+  character is the one placed between the new element and the old list.
+returns:
+The new list.
+usage:
+If the list is empty, the result is just the new element. `ListAppend` adds to the end;
+`ListInsertAt` adds anywhere in between.
+example:
+<CFSET Countdown = "">
+<CFLOOP INDEX="I" FROM="1" TO="10">
+  <CFSET Countdown = ListPrepend(Countdown, I)>
+</CFLOOP>
+<CFSET Countdown = ListAppend(Countdown, "Happy New Year!")>
+<CFOUTPUT>
+<P><B>#ListChangeDelims(Countdown, "... ")#</B></P>
+</CFOUTPUT>
+see: ListAppend, ListInsertAt, ArrayPrepend
+
+@func ListQualify
+category: List functions
+summary: Puts a qualifier, such as quotes, around each element of a list.
+desc:
+Returns a list in which each element is surrounded by a qualifier string, for example single quotes.
+You can qualify every element or only the ones that are not numbers.
+syntax:
+ListQualify(list, qualifier [, delimiters ] [, elements ])
+params:
+list | The list.
+qualifier | The string to put before and after each element, for example "'".
+delimiters | Optional. The delimiter characters of the list; the default is a comma. The first
+  character separates the elements of the result.
+elements | Optional. `ALL` (the default) qualifies every element; `CHAR` qualifies only elements
+  that are not numbers.
+returns:
+The qualified list.
+usage:
+The classic use is building a SQL IN clause from a list of strings, as the example shows. Remember
+that `CFQUERY` doubles single quotes inside variables; wrap the result in `PreserveSingleQuotes` to
+send the quotes through unchanged.
+example:
+<CFSET Wanted = "Sales,Training">
+<CFSET InList = ListQualify(Wanted, "'")>
+<CFQUERY NAME="GetPeople" DATASOURCE="cfsnippets">
+SELECT FirstName, LastName, Department FROM Employees
+WHERE Department IN (#PreserveSingleQuotes(InList)#)
+ORDER BY Department, LastName
+</CFQUERY>
+<CFOUTPUT>
+<P>IN clause: (#InList#)</P>
+<P>Only the text elements: #ListQualify("Joe,42,Jane,3.14", """", ",", "CHAR")#</P>
+</CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<CFOUTPUT QUERY="GetPeople">
+<TR><TD>#Department#</TD><TD>#FirstName# #LastName#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: QuotedValueList, PreserveSingleQuotes, ListChangeDelims, ValueList
+
+@func ListRest
+category: List functions
+summary: Returns a list without its first element.
+desc:
+Returns everything in a list after the first element. If the list has only one element, or none, the
+result is an empty string.
+syntax:
+ListRest(list [, delimiters ])
+params:
+list | The list.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+The rest of the list.
+usage:
+Delimiters at the start of the remaining list are removed. Together with `ListFirst`, ListRest lets you
+process a list like a stack: take the first element, then carry on with the rest, as the example does.
+example:
+<CFSET Queue = "Alice,Bob,Carol,Dave">
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Now serving</TH><TH>Still waiting</TH></TR>
+<CFLOOP CONDITION="Len(Queue) GT 0">
+<CFOUTPUT>
+<TR><TD>#ListFirst(Queue)#</TD><TD>#ListRest(Queue)#&nbsp;</TD></TR>
+</CFOUTPUT>
+<CFSET Queue = ListRest(Queue)>
+</CFLOOP>
+</TABLE>
+see: ListFirst, ListLast, ListDeleteAt, GetToken
+
+@func ListSetAt
+category: List functions
+summary: Replaces the element at a given position in a list.
+desc:
+Returns a copy of a list with the element at the given position replaced by a new value. All the
+delimiters stay exactly where they were.
+syntax:
+ListSetAt(list, position, value [, delimiters ])
+params:
+list | The list to change.
+position | The index of the element to replace, from 1 to `ListLen(list)`.
+value | The new element.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+The new list.
+usage:
+A position less than 1 or greater than the number of elements causes an error. Because the original
+delimiters are kept, ListSetAt works nicely on lists with mixed delimiters, such as a date or a
+sentence.
+example:
+<CFSET Party = "12/31/1999">
+<CFSET Sentence = "I love KoldFusion; it is fast, fun and friendly">
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Before</TH><TH>After</TH></TR>
+<TR><TD>#Party#</TD><TD>#ListSetAt(Party, 3, "2000", "/")#</TD></TR>
+<TR><TD>#Sentence#</TD><TD>#ListSetAt(Sentence, 6, "free", " ,;")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: ListGetAt, ListInsertAt, ListDeleteAt, ArraySet
+
+@func ListSort
+category: List functions
+summary: Sorts the elements of a list.
+desc:
+Returns a list with its elements sorted alphabetically or numerically, in ascending or descending
+order.
+syntax:
+ListSort(list, sort_type [, sort_order ] [, delimiters ])
+params:
+list | The list to sort.
+sort_type | `numeric` sorts numbers, `text` sorts strings with upper case before lower case,
+  `textnocase` sorts strings without regard to case.
+sort_order | Optional. `asc` (the default) or `desc`.
+delimiters | Optional. The delimiter characters of the list; the default is a comma. The first
+  character separates the elements of the result.
+returns:
+The sorted list.
+usage:
+A numeric sort of a list that contains something other than numbers causes an error, as does an
+unknown sort type. Empty elements are dropped. To sort a query, use ORDER BY in `CFQUERY`; to sort an
+array, `ArraySort`.
+example:
+<CFSET Fruit = "banana,Cherry,apple,date,Elderberry">
+<CFSET Scores = "100,9,42,1999,7">
+<CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Expression</TH><TH>Result</TH></TR>
+<TR><TD>ListSort(Fruit, "text")</TD><TD>#ListSort(Fruit, "text")#</TD></TR>
+<TR><TD>ListSort(Fruit, "textnocase")</TD><TD>#ListSort(Fruit, "textnocase")#</TD></TR>
+<TR><TD>ListSort(Fruit, "textnocase", "desc")</TD><TD>#ListSort(Fruit, "textnocase", "desc")#</TD></TR>
+<TR><TD>ListSort(Scores, "numeric")</TD><TD>#ListSort(Scores, "numeric")#</TD></TR>
+<TR><TD>ListSort(Scores, "text")</TD><TD>#ListSort(Scores, "text")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: ArraySort, ListToArray, ListQualify, ListChangeDelims
+
+@func ListToArray
+category: List functions
+summary: Converts a list to a one-dimensional array.
+desc:
+Returns a new one-dimensional array with one element for each element of the list, in the same order.
+syntax:
+ListToArray(list [, delimiters ])
+params:
+list | The list to convert.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+An array. An empty list gives an empty array.
+usage:
+Empty list elements are skipped. Arrays are faster than lists when you need to read or change many
+elements by position; `ArrayToList` converts back.
+example:
+<CFSET Tags = "CFQUERY,CFOUTPUT,,CFIF,CFLOOP">
+<CFSET TagArray = ListToArray(Tags)>
+<CFOUTPUT>
+<P>The list has #ListLen(Tags)# elements; the array has #ArrayLen(TagArray)#.</P>
+</CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Index</TH><TH>Element</TH></TR>
+<CFLOOP INDEX="I" FROM="1" TO="#ArrayLen(TagArray)#">
+<CFOUTPUT><TR><TD>#I#</TD><TD>#TagArray[I]#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+<CFSET Sorted = ArraySort(TagArray, "text")>
+<CFOUTPUT><P>Sorted and back to a list: #ArrayToList(TagArray, ", ")#</P></CFOUTPUT>
+see: ArrayToList, ListLen, ArrayNew, ListChangeDelims
+
+@func ListValueCount
+category: List functions
+summary: Counts how many list elements equal a value (case-sensitive).
+desc:
+Returns the number of elements in a list that are exactly equal to the given value. The comparison
+is case-sensitive.
+syntax:
+ListValueCount(list, value [, delimiters ])
+params:
+list | The list to search.
+value | The value to count.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+The number of matching elements; 0 if there are none.
+usage:
+Whole elements are compared, not parts of them. `ListValueCountNoCase` ignores case.
+example:
+<CFQUERY NAME="GetStaff" DATASOURCE="cfsnippets">
+SELECT Department FROM Employees
+</CFQUERY>
+<CFSET Depts = ValueList(GetStaff.Department)>
+<CFQUERY NAME="GetDepts" DATASOURCE="cfsnippets">
+SELECT Dept_Name FROM Departments ORDER BY Dept_Name
+</CFQUERY>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Department</TH><TH>Employees</TH></TR>
+<CFOUTPUT QUERY="GetDepts">
+<TR><TD>#Dept_Name#</TD><TD ALIGN="right">#ListValueCount(Depts, Dept_Name)#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+see: ListValueCountNoCase, ListFind, ListContains, ValueList
+
+@func ListValueCountNoCase
+category: List functions
+summary: Counts how many list elements equal a value, ignoring case.
+desc:
+Returns the number of elements in a list that are equal to the given value, without regard to upper
+or lower case.
+syntax:
+ListValueCountNoCase(list, value [, delimiters ])
+params:
+list | The list to search.
+value | The value to count.
+delimiters | Optional. The delimiter characters of the list; the default is a comma.
+returns:
+The number of matching elements; 0 if there are none.
+usage:
+Useful for tallying free-form input such as survey answers, where visitors type "Yes", "yes" and "YES".
+`ListValueCount` is the case-sensitive version.
+example:
+<CFSET Votes = "Yes yes NO maybe YES no Yes y2k">
+<CFOUTPUT>
+<P>Votes: #Votes#</P>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR><TH>Answer</TH><TH>ListValueCount</TH><TH>ListValueCountNoCase</TH></TR>
+<TR><TD>yes</TD><TD>#ListValueCount(Votes, "yes", " ")#</TD><TD>#ListValueCountNoCase(Votes, "yes", " ")#</TD></TR>
+<TR><TD>no</TD><TD>#ListValueCount(Votes, "no", " ")#</TD><TD>#ListValueCountNoCase(Votes, "no", " ")#</TD></TR>
+<TR><TD>maybe</TD><TD>#ListValueCount(Votes, "maybe", " ")#</TD><TD>#ListValueCountNoCase(Votes, "maybe", " ")#</TD></TR>
+</TABLE>
+</CFOUTPUT>
+see: ListValueCount, ListFindNoCase, ListContainsNoCase

@@ -1,0 +1,17 @@
+Source:  https://github.com/code4recovery/BTG-cfm  (files fetched from raw.githubusercontent.com/code4recovery/BTG-cfm/master/<file>)
+Author:  Cheri Jones (original "Bridge The Gap" volunteer-list app, site btg.tetrics.com; imported to GitHub 2021 by code4recovery)
+License: GPL-3.0 (LICENSE file in repo root)
+Description: Small, genuinely old-school CFML CRUD app (login -> list/add/update/delete volunteer contacts, district admins),
+             frameset index page, <font>-tag styling, CFFORM/CFINPUT client-side validation. Very representative of 1999-2003 CF code.
+Files saved (verbatim): application.cfm index.cfm splash.cfm translatit.cfm loginpost.cfm findcontact.cfm getcontact1.cfm getcontact2.cfm
+             add1.cfm add2.cfm update1.cfm delete1.cfm delete2.cfm admin3.cfm admin3a.cfm admin4.cfm admin4a.cfm admin4b.cfm admin5.cfm admin5a.cfm
+             (repo also has near-duplicate variants *1a..*1g.cfm, not saved). Some pages link to login.cfm which is not in the repo.
+CF features: CFAPPLICATION (client+session mgmt, CreateTimeSpan), CFQUERY, CFINSERT, CFUPDATE, CFFORM/CFINPUT(required/message)/CFSELECT,
+             CFINCLUDE, CFIF/CFELSE, CFOUTPUT query=, CFSET; funcs DateFormat NumberFormat Now CreateTimeSpan.
+             Uses "attributes.dsn" as a plain variable in application.cfm (old Fusebox-ish habit). Unscoped FORM vars (#user#, #pass#).
+             Plaintext passwords + unparameterised SQL (authentic to the era - don't deploy). translatit.cfm embeds Google Translate JS (modern addition).
+Datasource: YES - DSN "btg". Tables inferred from code:
+             login(username, password, adminlevel, district, ...)
+             contacts(first, last, address, city, zip, county, metro, state, district, gender, age, phone, email, interest, flang, current, added, ...)
+             statepart(...) (lookup used by a CFSELECT)
+CF4.5 compatible: yes (CFFORM/CFINPUT/CFSELECT, CFINSERT/CFUPDATE all existed in 4.x).

@@ -1,0 +1,772 @@
+# Administering KoldFusion Server -- one page per Administrator area, in navigation order.
+# Built by tools/mkdocs.py into wwwroot/CFDOCS/admin/.
+@book admin | Administering KoldFusion Server
+
+@page index | Administering KoldFusion Server
+
+Welcome to the KoldFusion Administrator guide. The KoldFusion Administrator is a set of CFML templates, served by KoldFusion itself, that you use to configure every part of the KoldFusion Application Server: request limits and caching, security, client and session variables, data sources, CFX tags, logging, the scheduler, mail, debugging and Verity collections. Every setting you change is written to the KoldFusion registry and, unless a page says otherwise, takes effect on the very next request. No reboot of your NT 4.0 box required.
+
+# Opening the Administrator
+
+With the server running, point Netscape Navigator 4.7 (or any frames-capable browser) at:
+
+    http://127.0.0.1:8500/CFIDE/administrator/index.cfm
+
+[Open the KoldFusion Administrator](/CFIDE/administrator/index.cfm)
+
+The Administrator is a two-frame window: the green navigation bar on the left lists the areas (server, data sources, extensions, logging, automated tasks, miscellaneous) and the right-hand frame shows the page you pick. Each chapter of this guide links straight to its page. The pages work on their own, but they look and behave best inside the frameset; the "inside the frameset" links open the Administrator with that page already selected. If you have not logged in yet, any of these links takes you to the login page first; after logging in you land on Server Settings, so just click the link again.
+
+# The Administrator password
+
+A fresh installation protects the Administrator with the password `admin`. The login page asks for it once; KoldFusion then remembers you with a browser cookie until you close the browser or click **Logout** at the bottom of the navigation bar. Please change the password on the [Basic Security](basicsecurity.htm) page before your server goes anywhere near a 56K modem. If you forget it, see [Troubleshooting](troubleshooting.htm).
+
+# Where KoldFusion keeps things
+
+KoldFusion runs happily on UNIX, but it keeps the Windows-flavored names its users know. The install directory, which the documentation calls "C:\CFUSION", is the `kfroot/` directory.
+
+| Location | Contents |
+| `kfroot/registry/kf.registry` | The registry: every Administrator setting, in REGEDIT4 format under HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion |
+| `kfroot/log/` | Log files (application.log, server.log, mail.log, schedule.log, access.log) |
+| `kfroot/db/` | Data sources: one directory per database, one .tbl file per table |
+| `kfroot/seed/` | SQL scripts that build the sample data sources on first start |
+| `kfroot/mail/` | The mail spool, undeliverable folder and sent-mail log |
+| `kfroot/cfx/` | CFX tag libraries (.so files) |
+| `kfroot/customtags/` | Custom tags available to every application |
+| `kfroot/verity/collections/` | Verity collections |
+| `wwwroot/` | The web root; the Administrator lives in `wwwroot/CFIDE/administrator/` |
+
+The registry is re-read automatically whenever the file changes, so a careful hand edit takes effect without a restart.
+
+# Starting the server
+
+From the KoldFusion directory, start the server with:
+
+    ./bin/kfserver
+
+It prints its install directory and web root and listens on http://127.0.0.1:8500/. The first start performs the "installation": it writes the default registry and builds the sample data sources. Command-line options:
+
+| Option | Meaning |
+| -p PORT | Listen on another port (default 8500) |
+| -b ADDRESS | Bind to another address (default 127.0.0.1; use 0.0.0.0 to serve your whole LAN) |
+| -r DIR | Use another install directory instead of `kfroot/` |
+| -w DIR | Use another web root instead of `wwwroot/` |
+| --run FILE [QUERY] | Render one template to standard output (HTTP headers first) and exit; handy for testing |
+| --reset-admin-password PW | Set a new Administrator password, then start as usual |
+
+To stop the server press Ctrl+C in its terminal. To restart it, use the **Restart Server...** button on the [Server Settings](settings.htm) page.
+
+@page settings | Server Settings
+
+The Server Settings page controls how many requests KoldFusion works on at once, how long they may run and what happens when things go wrong.
+
+**Go there:** [Open the Server Settings page](/CFIDE/administrator/server/settings.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=server/settings.cfm))
+
+| Setting | Default | What it does |
+| Limit simultaneous requests to | 15 | Templates processed at the same time; extra requests wait in a queue. Read only at startup, so restart after changing it. |
+| Timeout requests after N seconds | on, 30 | A request that runs longer is stopped with an error. A page can ask for more time with `?RequestTimeout=120` in its URL. |
+| Restart at N unresponsive requests | on, 10 | A request is counted as unresponsive once it has run for twice the timeout. When N are stuck at once, the server logs an error and restarts itself. Needs the request timeout to be on. |
+| Restart when requests terminate abnormally | on | Kept for compatibility; KoldFusion does not act on it. |
+| Enforce strict attribute validation | off | Unknown attributes on CFML tags become errors instead of being silently ignored. |
+| Suppress whitespace by default | off | Collapses runs of spaces, tabs and line breaks in page output. `CFPROCESSINGDIRECTIVE` can override it per template. |
+| Missing Template Handler | (blank) | Template to run when a requested .cfm file does not exist. |
+| Site-wide Error Handler | (blank) | Template to run for any error that no `CFERROR` in the application handles. |
+
+Handler paths are relative to the web root, or start with / to go through your [Mappings](mappings.htm), for example `/errors/oops.cfm`. The site-wide handler sees the same `Error` variables as a `CFERROR TYPE="Exception"` page.
+
+# Restart Server
+
+The **Restart Server...** button asks for confirmation and then restarts the KoldFusion Application Server in place, on the same port and with the same options. Wait a few seconds and reload the page. Running sessions and application variables are lost; client variables survive.
+
+> Strict attribute validation is a great friend during development: it catches typos such as `DATASORCE=` that would otherwise fail silently.
+
+@page caching | Caching
+
+New in KoldFusion 4.5, the Caching page tunes the two caches that make KoldFusion fast: compiled templates and cached query results.
+
+**Go there:** [Open the Caching page](/CFIDE/administrator/server/caching.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=server/caching.cfm))
+
+| Setting | Default | What it does |
+| Template cache size | 1024 KB | Memory for parsed templates. When it is full, the least recently used templates are dropped and re-read on their next request. The page shows how many templates and kilobytes are cached right now. |
+| Trusted cache | off | When on, cached templates are used without checking the file on disk. Faster, but edits to a template are ignored until you clear the cache. |
+| Limit database connection inactive time to | 60 minutes | Kept for compatibility. The built-in flat-file driver opens no network connections, so there is nothing to time out. |
+| Limit the maximum number of cached queries | 100 | Queries saved by `CFQUERY CACHEDWITHIN` or `CACHEDAFTER`. When the limit is reached the oldest one is dropped. Values above 100 are lowered to 100. |
+
+# Buttons
+
+- **Apply** saves the settings. All values must be numeric.
+- **Clear Template Cache** throws away every parsed template, so the next request for each one reads it fresh from disk.
+- **Clear Query Cache** discards every cached query result.
+
+# Tips
+
+- Size the template cache a little larger than all of your .cfm files put together; the "Currently" figure helps.
+- Turn on **Trusted cache** only on a finished production site. If you forget it is on, you will spend a long evening wondering why your changes do not show up. Clear Template Cache after each deployment.
+- A cached query is only reused when its name, data source and SQL text all match exactly.
+
+@page basicsecurity | Basic Security
+
+The Basic Server Security page holds the Administrator and Studio passwords and decides which powerful tags ordinary templates may use.
+
+**Go there:** [Open the Basic Security page](/CFIDE/administrator/server/basicsecurity.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=server/basicsecurity.cfm))
+
+# Passwords
+
+**Use a KoldFusion Administration Password** (on by default) makes the Administrator ask for a password. To change it, type the new password in **New Password** and **Confirmation** and click Apply. The fields show eight asterisks; leave them alone to keep the current password. Your login stays valid after the change. If you clear the checkbox the login page just shows an **Enter** button, so only do that when your web server already protects /CFIDE/administrator.
+
+**Use a KoldFusion Studio Password** works the same way for the Studio password (default `studio`). KoldFusion stores it, but no Studio ever connects to this server, so it has no effect.
+
+# Tag Restrictions
+
+| Tag | Why you might disable it |
+| `CFCONTENT` | Can send any file on the server to the browser |
+| `CFDIRECTORY` | Lists, creates and deletes directories |
+| `CFFILE` | Reads, writes, uploads and deletes files |
+| `CFOBJECT` | Creates COM, CORBA and Java objects (always an error on KoldFusion) |
+| `CFREGISTRY` | Reads and writes the KoldFusion registry, including these settings |
+| CFADMINSECURITY | Listed for compatibility; there is no such tag |
+| `CFEXECUTE` | Runs programs on the server |
+
+A checked tag can be used by any template. When you clear a checkbox, every template that uses the tag gets a Security error ("The requested template has been denied access to CFFILE"), except templates inside the **Unsecured Tags Directory**. That directory is the Administrator's own directory by default, because the Administrator itself depends on `CFREGISTRY`, `CFFILE`, `CFDIRECTORY` and `CFCONTENT`.
+
+> If you point the Unsecured Tags Directory somewhere else and also disable `CFREGISTRY`, the Administrator locks itself out. See [Troubleshooting](troubleshooting.htm) for the fix.
+
+The passwords are stored in the registry with a reversible cipher and a fixed key, in true 1999 fashion. Keep `kf.registry` away from prying eyes.
+
+@page advancedsecurity | Advanced Security
+
+Advanced Security gives your applications users, passwords and permissions. Templates use it through `CFAUTHENTICATE`, `CFIMPERSONATE`, `IsAuthenticated` and `IsAuthorized`.
+
+**Go there:** [Open the Advanced Security page](/CFIDE/administrator/server/advancedsecurity.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=server/advancedsecurity.cfm))
+
+# How the pieces fit
+
+The buttons at the bottom of the page lead to the parts of the framework:
+
+1. **User Directories** are lists of users and passwords. Add a directory, then add users (name, password, full name) to it. Only the "KoldFusion Registry" namespace really holds users; LDAP, Windows NT and ODBC are listed for old times' sake.
+2. **Security Contexts** group one or more user directories with **rules** and **policies**. A rule names a resource type (Application, CFML, File, DataSource, Component, Collection, CustomTag, Function, Tag or UserObject), a resource and a list of actions (`*` means all). A policy says which users get which rules.
+3. **Security Sandboxes** link a directory to a security context. They are saved but not enforced.
+4. **Resources** lists every protected resource in every context.
+5. **Map** prints the whole framework as a tree, ready for your dot-matrix printer.
+
+`CFAUTHENTICATE SECURITYCONTEXT="..."` checks a user name and password against the context's user directories, and `IsAuthorized` checks the context's rules and policies.
+
+# Settings on this page
+
+| Setting | Default | In KoldFusion |
+| Use Advanced Server Security | off | Cosmetic. Contexts and directories work whether or not it is checked. |
+| Security Server, Shared Secret, ports | 127.0.0.1, 2808, 2809 | Cosmetic. The security server is built in. |
+| Policy Store, Authorization and Server caches | on, 1 minute | Cosmetic. Every check reads the registry directly, so changes apply immediately. |
+| Use Administration / Studio Authentication | off | Cosmetic. The Administrator always uses the password from Basic Security. |
+| Use Security Sandbox Settings | off | Cosmetic. |
+| Protect all resources of protected resource types by default | off | Real. When on, `IsProtected` reports every resource as protected. |
+
+> Build and test a context with a single throwaway user before you protect a real application with it.
+
+@page variables | Variables
+
+The Variables page decides where client variables are stored and controls application and session variables for the whole server.
+
+**Go there:** [Open the Variables page](/CFIDE/administrator/server/variables.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=server/variables.cfm))
+
+# Client Variable Storage
+
+Client variables can live in the **Registry** (the KoldFusion registry file), in a browser **Cookie**, or in a data source. To add a data source, pick it from the list and click **Add...**. On the next page:
+
+- **Create Client database tables** (checked) creates the CDATA and CGLOBAL tables. Check it only the first time you set up a data source.
+- **Purge data for clients that remain unvisited for N days** (default 90) and **Disable global client variable updates** are saved for each data source but not acted on by KoldFusion.
+
+Click a data source name to edit it, or **remove** to stop using it (its tables stay put).
+
+**Default Client Variable Storage** (default Registry) is used by every `CFAPPLICATION` tag without a CLIENTSTORAGE attribute.
+
+# Session and Application Variables
+
+| Setting | Default | What it does |
+| Enable application variables | on | When off, `CFAPPLICATION` no longer creates the Application scope. |
+| Enable session variables | on | When off, SESSIONMANAGEMENT="Yes" has no effect. |
+| Application Variables Maximum Timeout | 2 days | Upper limit for APPLICATIONTIMEOUT. |
+| Application Variables Default Timeout | 2 days | Used when APPLICATIONTIMEOUT is omitted. |
+| Session Variables Maximum Timeout | 20 minutes | Upper limit for SESSIONTIMEOUT. |
+| Session Variables Default Timeout | 20 minutes | Used when SESSIONTIMEOUT is omitted. |
+
+Timeouts are entered in days, hours, minutes and seconds. An application that asks for more than the maximum quietly gets the maximum.
+
+> Registry storage is fine for a small site, but every client adds entries to `kf.registry`. For a busy site, use a data source.
+
+@page locking | Locking
+
+New in KoldFusion 4.5. Server, Application and Session variables are shared between requests that run at the same time, so they should be protected with `CFLOCK`. The Locking page lets the server check that for you.
+
+**Go there:** [Open the Locking page](/CFIDE/administrator/server/locking.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=server/locking.cfm))
+
+Each of the three scopes (Server Scope, Application Scope, Session Scope) has its own set of choices. The default for all three is no checking.
+
+| Choice | In KoldFusion |
+| No automatic checking or locking | The default. Your code is trusted. |
+| Full checking | Real. Any read or write of the scope outside a matching `CFLOCK` raises a Lock error: "Symbol SESSION is being accessed without a lock." A lock with SCOPE="Session" or any NAME= lock satisfies it. |
+| Automatic read locking | Saved, but KoldFusion does not check or lock anything in this mode. |
+| Single threaded sessions (Session Scope only) | Real. Requests from the same session run one at a time, so session variables never need locks. Requests from different users still run side by side. |
+
+Example of a correctly locked update:
+
+    <cflock scope="Session" type="Exclusive" timeout="10">
+        <cfset Session.cartCount = Session.cartCount + 1>
+    </cflock>
+
+# Tips
+
+- Switch on **Full checking** on your development server. It finds every unlocked access the first time the page runs, long before two customers hit the same line in the same millisecond.
+- **Single threaded sessions** is the easy way out for older applications, but a user who opens two windows will see the second one wait for the first.
+
+@page mappings | Mappings
+
+A mapping gives a directory a logical path, so that `CFINCLUDE` and `CFMODULE` can find templates by a name that starts with a slash.
+
+**Go there:** [Open the Mappings page](/CFIDE/administrator/server/mappings.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=server/mappings.cfm))
+
+# Adding a mapping
+
+1. Type the **Logical Path**, for example `/shared`.
+2. Type the **Directory Path** (the full path on the server), or click **Browse Server...** to pick a directory.
+3. Click **Add Mapping**.
+
+The directory must exist. The table below the form lists every mapping. The first row, `/`, is always the web root and cannot be changed. Click a mapping to edit it: the button changes to **Update Mapping**, and a **Delete** button appears.
+
+# How mappings are used
+
+When a template includes `/shared/header.cfm`, KoldFusion looks for the longest logical path that matches the start of it and swaps in that directory:
+
+    <cfinclude template="/shared/header.cfm">
+    <cfmodule template="/shared/tags/navbar.cfm">
+
+If no mapping matches, the path is taken relative to the web root. The Missing Template and Site-wide Error Handlers on the [Server Settings](settings.htm) page are resolved the same way.
+
+> Mappings apply only inside CFML. They do not change the URLs a browser can request; that is the web server's job.
+
+# Tips
+
+- Map a directory of shared includes outside the web root, so visitors cannot request them directly.
+- Logical paths are not case sensitive. A trailing slash makes no difference.
+
+@page java | Java
+
+New in KoldFusion 4.5. The Java page records the Java Virtual Machine settings that Java CFX tags and `CFOBJECT TYPE="Java"` would use.
+
+**Go there:** [Open the Java page](/CFIDE/administrator/server/java.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=server/java.cfm))
+
+| Field | Default | Purpose |
+| Java Virtual Machine Path | /usr/java/jdk1.2.2/jre/lib/i386/classic/libjvm.so | The JVM library to load |
+| Class Path | (blank) | Extra directories and JAR files to search for classes |
+| Initial Heap Size | 1024 KB | Starting heap |
+| Max Heap Size | 16384 KB | Largest heap |
+| System Options | (blank) | JVM system options, as OPT1=value;OPT2=value |
+| Implementation Options | (blank) | Vendor-specific JVM options, in the same form |
+| CFX Jar Path | kfroot/java/classes/cfx.jar | The cfx.jar that Java CFX tags compile against |
+
+Click **Apply** to save. The page reminds you to restart the server afterwards.
+
+# What actually happens
+
+KoldFusion never loads a Java Virtual Machine, so every field here is cosmetic. The status line at the bottom of the page says so. A Java CFX tag fails with "Error loading Java CFX", and `CFOBJECT` always raises an error. C/C++ CFX tags, registered on the [CFX Tags](cfx.htm) page, work fine and need no JVM at all.
+
+> In 1999 the 16 MB default heap was generous. Your workstation had 64 MB of RAM, and Netscape wanted most of it.
+
+@page versioninfo | Version Info
+
+The Version Information page tells you exactly what you are running and how busy it is. Nothing here can be changed. It is the page to print out before you call Allair technical support.
+
+**Go there:** [Open the Version Info page](/CFIDE/administrator/server/versioninfo.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=server/versioninfo.cfm))
+
+# Product information
+
+| Row | Shows |
+| Server Product | KoldFusion Server |
+| Version | The version number, also available as `Server.ColdFusion.ProductVersion` |
+| Edition | Enterprise |
+| Serial Number | The serial number recorded at installation |
+| Operating System, OS Version, Additional Information, Build Number | Details of the host machine, from the `Server.OS` structure |
+
+# Server Statistics
+
+- **Server started**: when the server last started (or restarted) and how long it has been up.
+- **Page requests served**: the number of CFML requests since then.
+- **Running / queued / timed out**: requests running right now, requests waiting for a free slot (see "Limit simultaneous requests" on the [Server Settings](settings.htm) page) and requests flagged as unresponsive.
+- **Cached templates / queries**: what the [Caching](caching.htm) page manages.
+- **Install directory**, **Web root** and **Listening on**: the paths and the address:port the server uses, plus its process ID.
+
+# Active Applications and Sessions
+
+A list of every application and session currently in memory, with the number of variables each holds and when it was last used. It is a quick way to see whether your session timeouts behave the way you expect.
+
+> If "queued" is often above zero, raise the simultaneous request limit or find the slow page (see [Logging Settings](logsettings.htm), "Log Slow Pages").
+
+@page odbc | ODBC Data Sources
+
+A data source is the name a `CFQUERY` uses to reach a database. The ODBC page lists the ODBC data sources and is where you create new ones.
+
+**Go there:** [Open the ODBC page](/CFIDE/administrator/datasources/odbc.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=datasources/odbc.cfm))
+
+> Whatever driver you choose (Access, dBase, Excel, FoxPro, Paradox, Text, SQL Server or the KoldFusion Flat-File Driver), every KoldFusion data source is served by the built-in flat-file driver. Each database is a directory under `kfroot/db/` with one .tbl file per table.
+
+# Creating a data source
+
+Type a name (letters, digits, spaces, hyphens and underscores), pick an **ODBC Driver** and click **Add...**. The form that follows has these fields:
+
+| Field | Notes |
+| Description | Free text for your own notes |
+| Server | SQL Server drivers only; cosmetic |
+| Database File | A plain name means `kfroot/db/name`; a full path is used as is. Defaults to the data source name in lower case. |
+| System Database, Page Timeout, Buffer Size | Access drivers only; cosmetic |
+| Login Name, Password | Stored; the flat-file driver does not ask for them |
+
+**CF Settings >>** opens the KoldFusion settings:
+
+| Setting | In KoldFusion |
+| Login Timeout, Limit Connections, Maintain database connections, Connection timeout | Stored; cosmetic |
+| Disable Database Connections | Real. Every query fails with "Connections to the data source ... have been disabled". |
+| Restrict SQL Operations | Real. Checked statements (SELECT, INSERT, UPDATE, DELETE, Stored Procedures) are refused for this data source. |
+| Enable retrieval of long text, Long Text Buffer Size | Stored; cosmetic |
+
+Click **Create**. KoldFusion creates the database directory if it does not exist yet and verifies the new data source. Later, **Update** saves your changes, **Delete** removes the data source (the database directory stays on disk) and **View Tables...** shows each table's columns and first ten rows.
+
+# The list
+
+Click a name to edit it. **Verify** tests one data source and **Verify All** tests every data source on the page. The samples `cfsnippets`, `exampleapp`, `btg`, `cfexamples`, `CompanyInfo` and `demos` are created on first start from `kfroot/seed/`.
+
+@page native | Native Drivers
+
+The Native Drivers page lists data sources that use the native database interfaces of Enterprise Edition: Sybase11, Oracle73, Oracle80, Informix9 and DB2. Native drivers skipped the ODBC layer and talked to the database client libraries directly. In 1999, that was how the big sites squeezed out the last few milliseconds.
+
+**Go there:** [Open the Native Drivers page](/CFIDE/administrator/datasources/native.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=datasources/native.cfm))
+
+# Creating a native data source
+
+Type a name, choose a **Native Driver** from the list and click **Add...**. The form is the same as for [ODBC data sources](odbc.htm), with one difference: in place of the Server field there is a **Host String**, the Net8 or Sybase alias of the database server. KoldFusion stores the host string but does not use it.
+
+# What you really get
+
+As with every KoldFusion data source, the driver name is a label. The data lives in the built-in flat-file database under `kfroot/db/`, and the same SQL works whichever driver you pick. So a native data source is a handy way to keep your development server's Administrator looking like your production server's. Behind the scenes, nothing changes.
+
+The settings that really count are the same as on the ODBC page: **Disable Database Connections** and **Restrict SQL Operations** (under **CF Settings >>**), and the **Database** directory.
+
+The **Verify** link, the **Verify All** button and **View Tables...** work exactly as described on the [ODBC](odbc.htm) page.
+
+> If you move an application from an ODBC data source to a native one, only the DATASOURCE attribute (or the variable that holds it) needs to change. KoldFusion data source names are not case sensitive.
+
+@page oledb | OLE DB
+
+The OLE DB page lists data sources that use an OLE DB provider instead of an ODBC driver. In the Windows world, OLE DB was Microsoft's newer data access layer; SQLOLEDB, the SQL Server provider, was the one most people used.
+
+**Go there:** [Open the OLE DB page](/CFIDE/administrator/datasources/oledb.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=datasources/oledb.cfm))
+
+# Creating an OLE DB data source
+
+Type a name, type the **Provider** name (the field starts out as `SQLOLEDB`; any text is accepted) and click **Add...**. The form that follows is the one described on the [ODBC](odbc.htm) page, with the Driver field labeled **Provider**.
+
+Like every KoldFusion data source, an OLE DB data source is really served by the built-in flat-file driver. Its tables live in the **Database** directory under `kfroot/db/`, and the provider name is a label. **Disable Database Connections** and **Restrict SQL Operations** under **CF Settings >>** work as usual.
+
+# Using it
+
+Nothing changes in your CFML:
+
+    <cfquery name="getStaff" datasource="StaffOLEDB">
+        SELECT LastName, FirstName FROM Employees ORDER BY LastName
+    </cfquery>
+
+> The OLE DB page lists only OLE DB data sources, and the ODBC page only ODBC ones. To see every data source on the server at once, use [Verify Data Source](verify.htm).
+
+@page verify | Verify Data Source
+
+The Verify Data Source page lists every data source on the server, whatever its type, and checks that each one can be reached.
+
+**Go there:** [Open the Verify Data Source page](/CFIDE/administrator/datasources/verify.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=datasources/verify.cfm))
+
+# Using the page
+
+- Click a **data source name** to test that one data source. KoldFusion shows the result in red between two rules, with a **Go Back** button.
+- Click **Verify All** to test every data source at once. The Status column shows **Verified** in green or **Failed** in red. Hold the mouse over "Failed" to see the reason.
+
+# What verification checks
+
+1. The data source exists in the registry.
+2. It is not disabled with **Disable Database Connections**.
+3. Its database directory exists.
+4. The table files in it can be read.
+
+Possible results:
+
+| Message | Meaning |
+| The connection to the data source was verified successfully. | All is well. |
+| Connections to data source X have been disabled by the administrator. | Clear **Disable Database Connections** on the data source's edit page. |
+| [Allair][KoldFusion Flat-File Driver] Could not find database directory '...'. | The **Database** path is wrong, or the directory was deleted. Open the data source and click Update to create an empty database there. |
+
+> To rebuild one of the sample data sources from scratch, stop the server, delete its directory under `kfroot/db/` and start the server again. It is rebuilt from `kfroot/seed/`.
+
+@page cfx | CFX Tags
+
+CFX tags are custom tags written in C or C++ and compiled into shared libraries. They run inside the server and are as fast as the built-in tags. Before a template can call `CFX_HELLO`, the tag must be registered on this page.
+
+**Go there:** [Open the CFX Tags page](/CFIDE/administrator/extensions/cfx.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=extensions/cfx.cfm))
+
+# Registering a tag
+
+Type the tag name in the box (it must start with `CFX_`; the field already says so), choose **C/C++** or **Java** and click **Add**. For a C/C++ tag:
+
+| Field | Default | Meaning |
+| Server library (.so) | (blank) | The shared library. A plain file name is looked up in `kfroot/cfx/`; a full path is used as is. Browse Server... helps you find it. |
+| Procedure | ProcessTagRequest | The exported function KoldFusion calls |
+| Keep library loaded | on | Keeps the library in memory after the first call. Clear it while you are developing a tag, so that each request loads a freshly compiled library. |
+| Description | (blank) | Shown in the list of tags |
+
+A Java tag asks only for a **Class Name**. Since KoldFusion never loads a Java Virtual Machine (see [Java](java.htm)), calling a Java CFX tag always reports an error.
+
+Click a tag name in the list to edit it, or to **Delete** it.
+
+# The samples
+
+Three C tags come registered out of the box:
+
+| Tag | Does |
+| CFX_HELLO | The traditional first CFX tag |
+| CFX_SYSINFO | Returns a query describing the server machine |
+| CFX_DICE | Rolls dice |
+
+A CFX library exports `void ProcessTagRequest(CFXRequest *pRequest)`. The interface is declared in `src/kfx.h`, and the `cfx` directory of the KoldFusion distribution has the sample source code.
+
+> Calling an unregistered tag fails with an error that asks you to check the spelling of the tag against its registry entry. The tag name in the template is not case sensitive.
+
+@page applets | Applets
+
+The Applets page registers Java applets so that templates can place them in a form with `CFAPPLET`. Registering an applet once means the details (class, codebase, size, parameters) are kept in one place instead of in every template.
+
+**Go there:** [Open the Applets page](/CFIDE/administrator/extensions/applets.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=extensions/applets.cfm))
+
+# Registering an applet
+
+Type a name and click **Register New Applet...**. Then fill in:
+
+| Field | Default | Meaning |
+| Codebase | (blank) | URL of the directory that holds the applet's classes |
+| Code | (blank) | The applet's class file, for example Marquee.class |
+| Method | (blank) | A method that returns the applet's value when the form is submitted |
+| Height, Width | 100, 200 | Size in pixels |
+| VSpace, HSpace | 0, 0 | Space around the applet |
+| Align | LEFT | Alignment, LEFT through ABSBOTTOM |
+| Java Not Supported Message | "Browser must support Java..." | Shown when the browser cannot run Java |
+| Parameter Name / Value | five empty rows | PARAM values passed to the applet |
+
+Click **Create**. Click an applet's name in the list to change or **Delete** it. Two samples, `copytext` and `marquee`, are registered at installation.
+
+# Using it
+
+    <cfform action="thanks.cfm">
+        <cfapplet appletsource="marquee" name="news">
+    </cfform>
+
+Attributes on `CFAPPLET` override the registered height, width and alignment, and a template can override a parameter by passing an attribute with the parameter's name.
+
+> Today's browsers no longer run Java applets, so visitors will see the **Java Not Supported Message** instead. Make it a friendly one. Navigator 4.7 users, of course, get the full show.
+
+@page logsettings | Logging Settings
+
+The General Error Logging page says where KoldFusion writes its logs, who the administrator is and what extra information gets logged.
+
+**Go there:** [Open the Logging Settings page](/CFIDE/administrator/logging/settings.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=logging/settings.cfm))
+
+| Setting | Default | What it does |
+| Administrator E-Mail | (blank) | When set, every error page ends with a request to tell the site administrator, and a mailto: link to this address. |
+| Log Directory | kfroot/log | Where every log file is written. The directory must already exist; Browse Server... helps you pick one. The change applies right away. |
+| Log Slow Pages | off, 30 seconds | Writes a Warning to server.log for every page that takes longer than the given number of seconds. |
+| System Logging: Use UNIX syslog | off | Also sends every log entry to the UNIX syslog (facility daemon), with Error, Warning or Information priority. |
+
+# What goes where
+
+| File | Contains |
+| application.log | Every CFML error a visitor saw, with the template, line and browser |
+| server.log | Server events: restarts, unresponsive requests, slow pages |
+| mail.log | Mail that could not be delivered |
+| mailsent.log | Every message sent, when "Log all email messages" is on ([Mail Logging](maillog.htm)) |
+| schedule.log | Scheduled task runs ([Scheduler Settings](schedsettings.htm)) |
+| access.log | Every HTTP request, web server style |
+
+Except for access.log, which uses the common web-server format, each line has the quoted, comma-separated layout of the 4.x logs: "Severity","ThreadID","Date","Time","Details". The files load straight into Excel.
+
+# Tips
+
+- Change the Log Directory only to a directory that the server process can write to. If it cannot, log entries are silently lost.
+- Set Log Slow Pages to 10 seconds or so on a production server, and check server.log on Monday mornings.
+
+@page maillog | Mail Logging
+
+The Mail Logging page controls what KoldFusion writes down about the mail it sends with `CFMAIL`.
+
+**Go there:** [Open the Mail Logging page](/CFIDE/administrator/logging/maillog.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=logging/maillog.cfm))
+
+| Setting | Default | What it does |
+| Error Log Severity | Warning | The severity used for undeliverable-mail entries in mail.log. With **Information**, failures are logged as Information; with **Error** or **Warning**, they are logged as Error. Failures are always logged. |
+| Log all email messages sent by KoldFusion | off | After each successful delivery, writes a one-line entry (subject and recipient) to mailsent.log in the log directory and appends the complete message to `kfroot/mail/log/mailsent.log`. |
+
+# How mail flows
+
+1. `CFMAIL` writes the message to the spool directory, `kfroot/mail/spool/`, and the page carries on at once.
+2. The mail spooler checks the spool every few seconds (see the Spool Interval on the [Mail](mail.htm) page) and sends each message to the SMTP server.
+3. Messages that cannot be delivered are moved to `kfroot/mail/undelivr/` and logged in mail.log.
+
+To read the logs, use the [Log Files](logfiles.htm) page. To resend undeliverable messages, use **Respool Undeliverable** on the Mail page.
+
+> "Log all email messages" stores the full text of every message on disk, including anything private in it. Turn it on while you debug a mailing, and remember to turn it off again.
+
+@page logfiles | Log Files
+
+The Log Files page lists every .log file in the log directory and lets you read, download or delete them without leaving your browser.
+
+**Go there:** [Open the Log Files page](/CFIDE/administrator/logging/logfiles.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=logging/logfiles.cfm))
+
+The page title shows the log directory in use (set on the [Logging Settings](logsettings.htm) page). The table shows each file's name, size in bytes and last-modified date. Empty files are listed but cannot be opened.
+
+# Viewing a log
+
+Click a file name to open it. The viewer shows the **last 200 lines, newest first**. Errors are shown in red and warnings in brown. Links above the log:
+
+- **Show 1000** shows the last thousand lines instead.
+- **Download** sends the whole file to your browser as plain text, ready to save.
+- **Delete** removes the file after you confirm. KoldFusion starts a new one the next time it has something to log.
+- **Back to Log Files** returns to the list.
+
+# Which log should I read?
+
+| Problem | Look in |
+| A visitor saw an error page | application.log |
+| The server restarted by itself or pages are slow | server.log |
+| Mail did not arrive | mail.log, and the Mail page's undeliverable folder |
+| A scheduled task did not run | schedule.log |
+| Who requested what, and when | access.log |
+
+# Tips
+
+- Logs grow forever. Download and delete them now and then, especially access.log.
+- From a shell, `tail -f kfroot/log/application.log` is still the fastest way to watch errors as they happen.
+
+@page schedsettings | Scheduler Settings
+
+The Scheduler Settings page has two global settings for the KoldFusion scheduler, which runs the tasks on the [Scheduled Tasks](scheduledtasks.htm) page.
+
+**Go there:** [Open the Scheduler Settings page](/CFIDE/administrator/tasks/settings.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=tasks/settings.cfm))
+
+| Setting | Default | In KoldFusion |
+| Scheduler Refresh Interval | 15 minutes | Cosmetic. KoldFusion's scheduler reads the task list from the registry every minute, so new and changed tasks are picked up within a minute anyway. The value must be a positive number. |
+| Log scheduled task activity | on | Real. Writes an entry to schedule.log each time the scheduler starts a task. |
+
+# How the scheduler works
+
+The scheduler starts with the server and wakes up once a minute. For each task it checks the start date and time, the end date, the interval and when the task last ran. When a task is due, the scheduler requests its URL just as a browser would.
+
+Whether "Log scheduled task activity" is on or off, schedule.log always gets:
+
+- an Information entry when a task completes, with the time it took and the HTTP status line,
+- an Error entry when a task fails (for example "Connection refused"),
+- an entry when you run a task by hand with the RUN link.
+
+# Tips
+
+- Tasks run only while the server is running. A task that comes due while the server is stopped runs once the server is back, if it is still within its dates.
+- To check that the scheduler is working, create a one-time task a couple of minutes in the future and watch schedule.log on the [Log Files](logfiles.htm) page.
+
+@page scheduledtasks | Scheduled Tasks
+
+A scheduled task is a URL that KoldFusion requests on its own: once, or on a regular schedule. Use tasks to build static pages overnight, send reminder mail or clean up old records. Templates can manage tasks too, with `CFSCHEDULE`.
+
+**Go there:** [Open the Scheduled Tasks page](/CFIDE/administrator/tasks/tasks.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=tasks/tasks.cfm))
+
+# The task list
+
+For each task, the list shows its name, operation, duration (start and end date), interval and last run. **RUN** starts the task immediately, in the background. **Delete** removes it. Click a task's name to edit it.
+
+# Adding a task
+
+Type a name, leave the operation at HTTPRequest (the only one) and click **Add New Task...**.
+
+| Field | Meaning |
+| Start Date, End Date | The task runs only between these dates. The end date is optional. |
+| One-time | Runs once, at the given time on the start date |
+| Recurring Daily, Weekly or Monthly | Runs once a day, week or month, at the given time |
+| Daily every N minutes between T1 and T2 | Runs every N minutes (at least 1) within that time window each day; leave the end time empty to run all day |
+| URL | The page to request. A URL starting with / goes to this server, such as /reports/nightly.cfm. |
+| Username, Password | Sent as HTTP basic authentication |
+| Request Time out | Seconds to wait for the page (default 30) |
+| Proxy server | A proxy to send the request through |
+| Publish: Save output to a file | Saves the page's output to the directory and file name given |
+| Resolve URL | Saved, but links in published output are left as they are |
+
+Times are on the 24-hour clock. The scheduler checks for due tasks once a minute, so a task may start up to a minute late.
+
+# Tips
+
+- Test the URL in your browser first. The scheduler gets exactly the same page you see.
+- Publishing a slow report to a static .htm file every night makes for happy users.
+- Results go to schedule.log; see the [Log Files](logfiles.htm) page.
+
+@page mail | Mail
+
+The Mail Server Connection Settings page tells `CFMAIL` which SMTP server to use, and lets you look after the mail spool.
+
+**Go there:** [Open the Mail page](/CFIDE/administrator/misc/mail.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=misc/mail.cfm))
+
+| Setting | Default | What it does |
+| Mail Server | (blank) | Host name or IP address of the SMTP server, such as mail.company.com |
+| Server Port | 25 | The SMTP port |
+| Connection Timeout | 60 seconds | How long to wait for the mail server to answer |
+| Spool Interval | 15 seconds | How often the spooler delivers waiting messages (at least 1) |
+
+A `CFMAIL` tag with its own SERVER, PORT or TIMEOUT attribute overrides these settings for that message.
+
+# Buttons
+
+- **Apply** saves the settings.
+- **Verify** saves them, then connects to the mail server and reports whether it answered like an SMTP server should.
+- **Deliver Now** processes the spool right away instead of waiting for the next spool interval.
+- **Respool Undeliverable** (shown only when needed) moves every message in the undeliverable folder back to the spool and tries again.
+
+# The Mail Spool
+
+The page shows how many messages are waiting in the spool (`kfroot/mail/spool/`) and how many are in the undeliverable folder (`kfroot/mail/undelivr/`). The first ten undeliverable messages are listed with their size and date. A message ends up there when the server could not be reached or refused it; the reason is in mail.log (see [Log Files](logfiles.htm)).
+
+# Tips
+
+- If mail is not arriving, click **Verify** first. Most problems are a wrong server name or a firewall.
+- Fix the setting, then click **Respool Undeliverable**. Nothing is lost.
+- To keep a record of everything that goes out, see [Mail Logging](maillog.htm).
+
+@page debugging | Debugging
+
+The Debug Settings page controls the debugging information that KoldFusion adds to the bottom of each page and to error messages, and who gets to see it.
+
+**Go there:** [Open the Debugging page](/CFIDE/administrator/misc/debugging.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=misc/debugging.cfm))
+
+| Option | Default | In KoldFusion |
+| Enable performance monitoring | off | Cosmetic; there is no performance monitor to feed |
+| Enable CFML stack trace | off | Cosmetic; `CFCATCH.TagContext` is always filled in |
+| Show variables | off | Real. Lists the URL, form, client, cookie and CGI variables under each page. |
+| Show processing time | off | Real. Shows the total time to process the page. |
+| Detail View | off | Real. Adds the time spent in each template (needs Show processing time). |
+| Show SQL and data source name | on | Real. Database error messages include the SQL statement and data source name. |
+| Show query information | off | Real. Lists each query with its record count, time and SQL. |
+| Display the template path in error messages | on | Real. Error messages include the full template path. |
+
+Debug output is added only to HTML pages, and only when at least one of Show variables, Show processing time or Show query information is checked. A template can turn it off for itself with `CFSETTING SHOWDEBUGOUTPUT="No"`, and `IsDebugMode` tells a template whether debug output is on.
+
+# Restrict debug output to selected IP addresses
+
+Type an IP address and click **Add** to put it on the list. Select addresses and click **Remove** to take them off. When the list is empty, **every** visitor sees the debug output. When it has entries, only those addresses do. Add `127.0.0.1` to keep the output to yourself while you work on the server machine.
+
+> On a production server, turn off Show SQL and the template path. Your visitors do not need to know your table names or where your files live.
+
+@page verity | Verity
+
+KoldFusion includes a compact full-text search engine in the style of Verity SEARCH'97. A **collection** is a searchable index of documents. The Verity page creates collections, fills them and keeps them tidy. Templates use them with `CFINDEX`, `CFSEARCH` and `CFCOLLECTION`.
+
+**Go there:** [Open the Verity page](/CFIDE/administrator/misc/verity.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=misc/verity.cfm))
+
+# Add a Collection
+
+| Field | Default | Meaning |
+| Name | (blank) | A unique name for the collection |
+| Path | kfroot/verity/collections | Directory in which the collection is stored |
+| Language | English | Stored with the collection |
+| Create / Map | Create | **Create** builds a new, empty collection. **Map** registers a collection that already exists at the given path. |
+
+Click **Create**.
+
+# Working with a collection
+
+Select a collection in the list (it shows the path and number of documents) and click a button:
+
+| Button | Does |
+| Index... | Opens a form to index files: File Extensions (default .htm, .html, .cfm, .cfml), Directory Path (default the web root), Recursively index sub directories, and the Return URL that search results will link to. Click Submit to see how many documents were indexed. |
+| Repair | Reads the collection and writes it back in clean form |
+| Optimize | The same as Repair; KoldFusion collections are always compact |
+| Purge | Removes every document, leaving an empty collection |
+| Delete | Removes the collection, after you confirm |
+
+# Searching
+
+    <cfsearch name="hits" collection="sitedocs" criteria="frosty">
+    <cfoutput query="hits"><a href="#URL#">#Title#</a> (#Score#)<br></cfoutput>
+
+> Re-index after you change your site, or new pages will not show up in search results. A nightly [Scheduled Task](scheduledtasks.htm) that runs a `CFINDEX ACTION="Refresh"` template does the job.
+
+@page sourcecontrol | Source Control
+
+New in KoldFusion 4.5. Server-side source control lets developers who use KoldFusion Studio check files in and out of a Microsoft Visual SourceSafe database through the KoldFusion server, so the whole team works from one copy of the source.
+
+**Go there:** [Open the Source Control page](/CFIDE/administrator/misc/sourcecontrol.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=misc/sourcecontrol.cfm))
+
+| Field | Default | Meaning |
+| Path to SrcSafe.ini | (blank) | Location of the SourceSafe database's srcsafe.ini file |
+| Working directory | (blank) | Where checked-out files are placed on the server |
+| Operation Timeout | 30 seconds | How long a check-in or check-out may take |
+
+Click **Apply** to save the settings.
+
+# What actually happens
+
+Visual SourceSafe integration requires Windows NT, and no KoldFusion Studio ever connects to this server. The page stores the three values in the registry, under the SourceControl key, so that your settings survive, but nothing uses them. The page says so itself.
+
+# Keeping your source safe anyway
+
+If your team needs version control for its CFML, keep the web root in a version control system of your choice and deploy from it. A few practical points:
+
+- After a deployment, click **Clear Template Cache** on the [Caching](caching.htm) page if **Trusted cache** is on.
+- Keep `kfroot/registry/kf.registry` under version control too. Every Administrator setting lives in that one text file, so your server's configuration can be compared, reviewed and restored like any other source file.
+- Do not check the `kfroot/log/` and `kfroot/mail/` directories in. They change constantly.
+
+> Back in 1999, "version control" often meant a zip file named site_final_FINAL2.zip on a shared drive. You can do better.
+
+@page troubleshooting | Troubleshooting
+
+Some common problems and how to fix them.
+
+# "Data source X could not be found"
+
+A `CFQUERY` names a data source that is not registered. Check the spelling of the DATASOURCE attribute (case does not matter), and check the [ODBC](odbc.htm), [Native Drivers](native.htm) and [OLE DB](oledb.htm) pages, or the complete list on [Verify Data Source](verify.htm). If the data source exists but verification fails, the message tells you why: the connections may be disabled, or the database directory may be missing. "The SQL operation is restricted" means that **Restrict SQL Operations** is set for that data source.
+
+# Forgotten Administrator password
+
+Stop the server and start it again with a new password:
+
+    ./bin/kfserver --reset-admin-password newsecret
+
+The password is changed before the server starts, and you can log in with it right away.
+
+# The Administrator says "denied access to CFREGISTRY"
+
+The Unsecured Tags Directory on [Basic Security](basicsecurity.htm) no longer covers the Administrator, and a tag it needs has been disabled. Open `kfroot/registry/kf.registry` in a text editor, find the TagRestrictions key and set the tag back to "1":
+
+    [HKEY_LOCAL_MACHINE\SOFTWARE\Allair\KoldFusion\CurrentVersion\Server\TagRestrictions]
+    "CFREGISTRY"="1"
+
+Save the file. KoldFusion notices the change on the next request.
+
+# Restarting the server
+
+Use **Restart Server...** on the [Server Settings](settings.htm) page, or stop the server with Ctrl+C and run `./bin/kfserver` again. Restart after changing "Limit simultaneous requests". Most other settings take effect immediately.
+
+# Changes to a template do not show up
+
+**Trusted cache** is on. Click **Clear Template Cache** on the [Caching](caching.htm) page.
+
+# The server restarted by itself
+
+Too many requests hung for more than twice the request timeout. server.log names the stuck templates. Find the slow query or the endless loop, or raise the timeout on the [Server Settings](settings.htm) page.
+
+# Mail does not arrive
+
+Click **Verify** on the [Mail](mail.htm) page, check mail.log, fix the problem and click **Respool Undeliverable**.
+
+# Reading the logs
+
+The [Log Files](logfiles.htm) page shows every log in the browser, newest entries first. application.log has the details of every error page a visitor saw, including the template and line number.
+
+# Port 8500 is already in use
+
+Another server is listening on that port. Start KoldFusion on another one with `./bin/kfserver -p 8501`.
