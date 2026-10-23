@@ -21,7 +21,8 @@ function runExample(name) {
 <HR NOSHADE SIZE=1>
 <DIV CLASS="docbody">
 <H1>CFLDAP</H1>
-<P>In ColdFusion 4.5, <B><CODE>CFLDAP</CODE></B> searches an LDAP directory, such as a company phone book, and returns the entries as a query; it can also add, modify and delete entries. KoldFusion recognizes the tag, but the Netscape Directory SDK it needs is not part of this server, so every call throws an Application exception.</P>
+<P><B><CODE>CFLDAP</CODE></B> talks to a Lightweight Directory Access Protocol (LDAP) server, such as a company phone book. ACTION=&quot;Query&quot; searches the directory and returns the entries as a query object, one column per attribute, so you can display them with CFOUTPUT just like database rows. ACTION=&quot;Add&quot;, &quot;Modify&quot;, &quot;ModifyDN&quot; and &quot;Delete&quot; change the directory.</P>
+<P>KoldFusion speaks LDAP version 3 itself, without a directory SDK, and ships with its own directory server, the <B>Gibson Directory Server</B>. It runs on the same machine as KoldFusion (port 3890 unless the Administrator says otherwise, see Miscellaneous &gt; Directory Server) and holds the employees of the Gibson Mainframe Co. below the base DN <CODE>o=Gibson Mainframe Co, c=US</CODE>. The variables <CODE>Server.Directory.Host</CODE>, <CODE>Server.Directory.Port</CODE> and <CODE>Server.Directory.BaseDN</CODE> tell your pages where to find it.</P>
 <H4>Category</H4><P><A HREF="index.htm#internet_protocols">Internet protocols</A></P>
 <H4>Syntax</H4>
 <PRE>&lt;CFLDAP SERVER=&quot;server_name&quot;
@@ -37,69 +38,89 @@ function runExample(name) {
     ATTRIBUTES=&quot;attribute, attribute&quot;
     FILTER=&quot;filter&quot;
     SORT=&quot;attribute[, attribute]...&quot;
+    SORTCONTROL=&quot;nocase, asc|desc&quot;
     DN=&quot;distinguished_name&quot;
     STARTROW=&quot;row_number&quot;
-    MODIFYTYPE=&quot;replace&quot;&gt;</PRE>
+    MODIFYTYPE=&quot;replace|add|delete&quot;
+    REBIND=&quot;Yes|No&quot;
+    REFERRAL=&quot;number_of_hops&quot;
+    SEPARATOR=&quot;separator_character&quot;
+    DELIMITER=&quot;delimiter_character&quot;&gt;</PRE>
 <H4>Attributes</H4>
 <DL>
 <DT><B>SERVER</B></DT>
-<DD><I>Required.</I> Host name or address of the LDAP server. It appears in the error message.</DD>
+<DD><I>Required.</I> Host name or IP address of the LDAP server. For the built-in directory use <CODE>#Server.Directory.Host#</CODE>.</DD>
 <DT><B>PORT</B></DT>
-<DD><I>Optional, default &quot;389&quot;.</I> Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional, default &quot;389&quot;.</I> TCP port of the LDAP server. The built-in directory listens on <CODE>#Server.Directory.Port#</CODE> (3890 by default).</DD>
 <DT><B>USERNAME</B></DT>
-<DD><I>Optional.</I> User for an authenticated bind. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> Distinguished name to bind (log in) as, for example &quot;cn=Directory Manager&quot;. Without it the tag binds anonymously, which is enough to search most directories but not to change them.</DD>
 <DT><B>PASSWORD</B></DT>
-<DD><I>Optional.</I> Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> Password of USERNAME.</DD>
 <DT><B>ACTION</B></DT>
-<DD><I>Optional, default &quot;Query&quot;.</I> Query, Add, Modify, ModifyDN or Delete. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional, default &quot;Query&quot;.</I> Query, Add, Modify, ModifyDN or Delete.</DD>
 <DT><B>NAME</B></DT>
-<DD><I>Required for Query.</I> Name of the result query. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Required for Query.</I> Name of the query object that receives the entries.</DD>
 <DT><B>TIMEOUT</B></DT>
-<DD><I>Optional.</I> Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional, default &quot;60&quot;.</I> Seconds to wait for the server.</DD>
 <DT><B>MAXROWS</B></DT>
-<DD><I>Optional.</I> Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> Maximum number of entries to return.</DD>
 <DT><B>START</B></DT>
-<DD><I>Required for Query.</I> Distinguished name where the search starts. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Required for Query.</I> Distinguished name of the entry where the search starts, such as &quot;ou=People, o=Gibson Mainframe Co, c=US&quot;.</DD>
 <DT><B>SCOPE</B></DT>
-<DD><I>Optional, default &quot;OneLevel&quot;.</I> OneLevel, Base or Subtree. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional, default &quot;OneLevel&quot;.</I> OneLevel (the entries directly below START), Base (START itself) or Subtree (START and everything below it).</DD>
 <DT><B>ATTRIBUTES</B></DT>
-<DD><I>Required for Query, Add, Modify.</I> Attributes to return or set. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Required for Query, Add, Modify, ModifyDN.</I> For Query, a comma-separated list of the attributes to return; each becomes a column (characters that are not allowed in column names become underscores). &quot;*&quot; returns every attribute plus a DN column; &quot;dn&quot; in the list adds the DN column. For Add and Modify, a list of name=value pairs separated by DELIMITER (a semicolon); several values for one attribute are separated by SEPARATOR (a comma). For ModifyDN, the new relative distinguished name, such as &quot;uid=bjensen&quot;.</DD>
 <DT><B>FILTER</B></DT>
-<DD><I>Optional, default &quot;objectclass=*&quot;.</I> Search filter. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional, default &quot;objectclass=*&quot;.</I> LDAP search filter (RFC 2254): (attribute=value), wildcards (sn=S*), presence (mail=*), (cn~=sound-alike), (employeeNumber&gt;=10), (employeeNumber&lt;=10) and the combinations (&amp;...) (|...) (!...). Use \2a, \28, \29 and \5c for a literal *, (, ) and \.</DD>
 <DT><B>SORT</B></DT>
-<DD><I>Optional.</I> Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> Comma-separated attributes to sort the entries by; each may be followed by ASC or DESC. KoldFusion sorts the results itself, as the 4.5 server did, so it works with any directory.</DD>
+<DT><B>SORTCONTROL</B></DT>
+<DD><I>Optional, default &quot;asc&quot;.</I> nocase (case-insensitive), asc and desc, combined with commas, as in &quot;nocase, desc&quot;.</DD>
 <DT><B>DN</B></DT>
-<DD><I>Required for Add, Modify, ModifyDN, Delete.</I> Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Required for Add, Modify, ModifyDN, Delete.</I> Distinguished name of the entry to change.</DD>
 <DT><B>STARTROW</B></DT>
-<DD><I>Optional.</I> Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional, default &quot;1&quot;.</I> First entry to return; use with MAXROWS to page through results.</DD>
 <DT><B>MODIFYTYPE</B></DT>
-<DD><I>Optional.</I> Add, Delete or Replace. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional, default &quot;Replace&quot;.</I> For Modify: Replace the attribute&#x27;s values, Add values to it, or Delete values (give &quot;name=&quot; with no value to delete the whole attribute).</DD>
+<DT><B>REBIND</B></DT>
+<DD><I>Optional, default &quot;No&quot;.</I> Yes binds to referred servers with USERNAME and PASSWORD; No binds anonymously.</DD>
+<DT><B>REFERRAL</B></DT>
+<DD><I>Optional, default &quot;0&quot;.</I> Number of referral hops to follow; 0 does not follow referrals.</DD>
+<DT><B>SEPARATOR</B></DT>
+<DD><I>Optional, default &quot;,&quot;.</I> Separates the values of a multi-valued attribute in ATTRIBUTES (Add, Modify). In query results multi-valued attributes are joined with &quot;, &quot; unless SEPARATOR is given.</DD>
+<DT><B>DELIMITER</B></DT>
+<DD><I>Optional, default &quot;;&quot;.</I> Separates the name=value pairs in ATTRIBUTES (Add, Modify).</DD>
 </DL>
 <H4>Usage</H4>
-<P>The exception has TYPE=&quot;Application&quot;, the message &quot;Error processing CFLDAP&quot; and a detail that names the server. Pages that may also run on a Windows NT ColdFusion server can catch it and fall back on a database lookup, as the example does with the Employees table.</P>
+<P>Query results have the usual RecordCount, CurrentRow and ColumnList variables. An attribute with several values, such as objectClass, shows them joined with commas: &quot;top, person, inetOrgPerson&quot;.</P>
+<P>Because SEPARATOR splits values at commas, a value that contains a comma (such as &quot;l=Boston, MA&quot;) needs another separator: SEPARATOR=&quot;|&quot; ATTRIBUTES=&quot;objectclass=top|person;l=Boston, MA&quot;.</P>
+<P>Errors are thrown as Application exceptions you can catch with CFCATCH TYPE=&quot;Any&quot;. The message carries the LDAP result code, for example &quot;An error has occured while trying to execute query :[LDAP: error code 32 - No Such Object]&quot;, and CFCATCH.ErrorCode holds the number (32). A server that cannot be reached gives &quot;Connection to LDAP server failed.&quot;</P>
+<P>CFLDAP can be disabled for ordinary templates on the Basic Security page of the Administrator.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfldap"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfldap'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
-<PRE CLASS="example">&lt;CFTRY&gt;
-  &lt;CFLDAP ACTION=&quot;Query&quot; SERVER=&quot;ldap.gibson.example&quot; NAME=&quot;People&quot;
-          START=&quot;o=Gibson, c=US&quot; SCOPE=&quot;Subtree&quot;
-          FILTER=&quot;(ou=Engineering)&quot; ATTRIBUTES=&quot;cn,mail,telephoneNumber&quot;&gt;
-  &lt;CFCATCH TYPE=&quot;Application&quot;&gt;
-    &lt;CFOUTPUT&gt;&lt;P&gt;&lt;B&gt;#CFCATCH.Message#:&lt;/B&gt; #CFCATCH.Detail#&lt;/P&gt;&lt;/CFOUTPUT&gt;
-    &lt;!--- Use the company database as the phone book instead ---&gt;
-    &lt;CFQUERY NAME=&quot;People&quot; DATASOURCE=&quot;cfsnippets&quot; MAXROWS=&quot;5&quot;&gt;
-    SELECT LastName AS cn, Email AS mail, Phone AS telephoneNumber
-    FROM Employees WHERE Department = &#x27;Engineering&#x27; ORDER BY LastName
-    &lt;/CFQUERY&gt;
-  &lt;/CFCATCH&gt;
-&lt;/CFTRY&gt;
+<PRE CLASS="example">&lt;!--- Who works in Engineering? Ask the Gibson Directory Server ---&gt;
+&lt;CFLDAP ACTION=&quot;Query&quot; NAME=&quot;People&quot;
+        SERVER=&quot;#Server.Directory.Host#&quot; PORT=&quot;#Server.Directory.Port#&quot;
+        START=&quot;ou=People, #Server.Directory.BaseDN#&quot; SCOPE=&quot;OneLevel&quot;
+        FILTER=&quot;(&amp;(objectclass=person)(ou=Engineering))&quot;
+        ATTRIBUTES=&quot;cn,title,mail,telephoneNumber&quot; SORT=&quot;cn&quot; SORTCONTROL=&quot;nocase&quot;&gt;
+&lt;CFOUTPUT&gt;&lt;P&gt;#People.RecordCount# people work in Engineering.&lt;/P&gt;&lt;/CFOUTPUT&gt;
 &lt;TABLE BORDER=1 CELLPADDING=3&gt;
-&lt;TR&gt;&lt;TH&gt;cn&lt;/TH&gt;&lt;TH&gt;mail&lt;/TH&gt;&lt;TH&gt;telephoneNumber&lt;/TH&gt;&lt;/TR&gt;
+&lt;TR&gt;&lt;TH&gt;Name&lt;/TH&gt;&lt;TH&gt;Title&lt;/TH&gt;&lt;TH&gt;E-mail&lt;/TH&gt;&lt;TH&gt;Phone&lt;/TH&gt;&lt;/TR&gt;
 &lt;CFOUTPUT QUERY=&quot;People&quot;&gt;
-&lt;TR&gt;&lt;TD&gt;#cn#&lt;/TD&gt;&lt;TD&gt;#mail#&lt;/TD&gt;&lt;TD&gt;#telephoneNumber#&lt;/TD&gt;&lt;/TR&gt;
+&lt;TR&gt;&lt;TD&gt;#cn#&lt;/TD&gt;&lt;TD&gt;#title#&lt;/TD&gt;&lt;TD&gt;#mail#&lt;/TD&gt;&lt;TD&gt;#telephoneNumber#&lt;/TD&gt;&lt;/TR&gt;
 &lt;/CFOUTPUT&gt;
-&lt;/TABLE&gt;</PRE>
+&lt;/TABLE&gt;
+&lt;!--- Errors carry the LDAP result code ---&gt;
+&lt;CFTRY&gt;
+  &lt;CFLDAP ACTION=&quot;Query&quot; NAME=&quot;Nobody&quot; SERVER=&quot;#Server.Directory.Host#&quot; PORT=&quot;#Server.Directory.Port#&quot;
+          START=&quot;ou=Nowhere, #Server.Directory.BaseDN#&quot; ATTRIBUTES=&quot;cn&quot;&gt;
+  &lt;CFCATCH TYPE=&quot;Any&quot;&gt;
+    &lt;CFOUTPUT&gt;&lt;P&gt;&lt;B&gt;#CFCATCH.Message#&lt;/B&gt; (ErrorCode #CFCATCH.ErrorCode#)&lt;/P&gt;&lt;/CFOUTPUT&gt;
+  &lt;/CFCATCH&gt;
+&lt;/CFTRY&gt;</PRE>
 <H4>See also</H4>
-<P><A HREF="cfquery.htm">CFQUERY</A>, <A HREF="cftry.htm">CFTRY</A>, <A HREF="cfauthenticate.htm">CFAUTHENTICATE</A></P>
+<P><A HREF="cfquery.htm">CFQUERY</A>, <A HREF="cfoutput.htm">CFOUTPUT</A>, <A HREF="cftry.htm">CFTRY</A>, <A HREF="cfauthenticate.htm">CFAUTHENTICATE</A></P>
 </DIV>
 <HR NOSHADE SIZE=1>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=2><TR><TD><A HREF="cfinsert.htm"><IMG SRC="/CFDOCS/images/doc_back.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Previous page"></A></TD><TD><A HREF="index.htm"><IMG SRC="/CFDOCS/images/doc_up.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Up one level"></A></TD><TD><A HREF="cflocation.htm"><IMG SRC="/CFDOCS/images/doc_next.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Next page"></A></TD><TD><A HREF="/CFDOCS/dochome.cfm"><IMG SRC="/CFDOCS/images/doc_home.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Documentation home"></A></TD><TD><A HREF="/CFDOCS/langref/index.htm"><IMG SRC="/CFDOCS/images/doc_index.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="CFML Language Reference contents"></A></TD></TR></TABLE>

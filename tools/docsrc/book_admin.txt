@@ -34,6 +34,7 @@ KoldFusion runs happily on UNIX, but it keeps the Windows-flavored names its use
 | `kfroot/customtags/` | Custom tags available to every application |
 | `kfroot/verity/collections/` | Verity collections |
 | `kfroot/ssl/` | The SSL certificate and private key (made on first start) and any per-site certificates |
+| `kfroot/ldap/` | The Gibson Directory Server's LDIF database (built from `kfroot/seed/directory.ldif`) |
 | `wwwroot/` | The web root; the Administrator lives in `wwwroot/CFIDE/administrator/` |
 
 The registry is re-read automatically whenever the file changes, so a careful hand edit takes effect without a restart.
@@ -54,6 +55,8 @@ It prints its install directory and web root and listens on http://127.0.0.1:850
 | -w DIR | Use another web root instead of `wwwroot/` |
 | --run FILE [QUERY] | Render one template to standard output (HTTP headers first) and exit; handy for testing |
 | --reset-admin-password PW | Set a new Administrator password, then start as usual |
+| --ldap-port PORT | Run the Gibson Directory Server on another port this time (the registry setting is not changed) |
+| --no-ldap | Do not start the Gibson Directory Server |
 
 To stop the server press Ctrl+C in its terminal. To restart it, use the **Restart Server...** button on the [Server Settings](settings.htm) page.
 
@@ -200,13 +203,15 @@ Advanced Security gives your applications users, passwords and permissions. Temp
 
 The buttons at the bottom of the page lead to the parts of the framework:
 
-1. **User Directories** are lists of users and passwords. Add a directory, then add users (name, password, full name) to it. Only the "KoldFusion Registry" namespace really holds users; LDAP, Windows NT and ODBC are listed for old times' sake.
-2. **Security Contexts** group one or more user directories with **rules** and **policies**. A rule names a resource type (Application, CFML, File, DataSource, Component, Collection, CustomTag, Function, Tag or UserObject), a resource and a list of actions (`*` means all). A policy says which users get which rules.
+1. **User Directories** are lists of users and passwords. A "KoldFusion Registry" directory keeps its users in the registry: add the directory, then add users (name, password, full name) to it. An **LDAP** directory checks users against any LDAP server, such as the built-in [Gibson Directory Server](directory.htm): give the server as host:port in Location, the search root (Root), and either a user DN pattern (Lookup Start `uid=` and Lookup End `,ou=People,o=...`, as in Netegrity SiteMinder) or a user attribute to search for (uid). `CFAUTHENTICATE` then binds to the directory as the user, and the LDAP groups that list the user (groupOfUniqueNames or groupOfNames) become the user's groups. Windows NT and ODBC are listed for old times' sake.
+2. **Security Contexts** group one or more user directories with **rules** and **policies**. A rule names a resource type (Application, CFML, File, DataSource, Component, Collection, CustomTag, Function, Tag or UserObject), a resource and a list of actions (`*` means all). A policy says which users, or which groups, get which rules.
 3. **Security Sandboxes** link a directory to a security context. They are saved but not enforced.
 4. **Resources** lists every protected resource in every context.
 5. **Map** prints the whole framework as a tree, ready for your dot-matrix printer.
 
 `CFAUTHENTICATE SECURITYCONTEXT="..."` checks a user name and password against the context's user directories, and `IsAuthorized` checks the context's rules and policies.
+
+A fresh installation includes the LDAP user directory **Gibson Directory** and the security context **GibsonIntranet**, whose policy PhoneBookEditors gives the members of the LDAP group "Directory Administrators" the rule EditPhoneBook (Application PhoneDirectory, action Edit). The Employee Phone Directory in Cool Stuff uses them: log in as hbrewster (password hbrewster) to edit entries.
 
 # Settings on this page
 
@@ -779,6 +784,51 @@ If your team needs version control for its CFML, keep the web root in a version 
 - Do not check the `kfroot/log/` and `kfroot/mail/` directories in. They change constantly.
 
 > Back in 1999, "version control" often meant a zip file named site_final_FINAL2.zip on a shared drive. You can do better.
+
+@page directory | Directory Server
+
+KoldFusion comes with its own LDAP directory, the **Gibson Directory Server 1.0**, so that `CFLDAP` and LDAP user directories have something to talk to out of the box. It speaks LDAP version 3 to any client: KoldFusion pages, Netscape Communicator's address book, or the OpenLDAP command-line tools.
+
+**Go there:** [Open the Directory Server page](/CFIDE/administrator/misc/directory.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=misc/directory.cfm))
+
+# Server status
+
+The top of the page shows whether the directory is running, its LDAP URL, the number of entries and the activity since it started. **Stop Server** and **Start Server** do what they say; **Reload LDIF** re-reads the database file (useful after editing it by hand) and **Restore Sample Directory** throws every entry away and rebuilds the sample directory. **Browse Directory...** walks the directory tree one level at a time and shows every attribute of an entry; leaf entries can be deleted from there.
+
+# Settings
+
+| Setting | Default | Meaning |
+| Enable the Gibson Directory Server | on | Start the directory with KoldFusion |
+| Server Port | 3890 | TCP port. The standard LDAP port, 389, needs root privileges |
+| Bind Address | 127.0.0.1 | Network address to listen on. Keep it local |
+| Base DN | o=Gibson Mainframe Co, c=US | The directory suffix: the root entry of the tree |
+| Directory Manager DN | cn=Directory Manager | The administrator of the directory, who may do anything |
+| Directory Manager Password | admin | Stored in the registry with the same reversible scrambling as the Administrator password |
+| Size Limit | 500 | Most entries one search returns (0 = no limit; the Directory Manager is never limited) |
+| Allow anonymous read access | on | Clients that do not log in may search the directory |
+| Password Storage Scheme | SHA | New userPassword values are stored as {SHA} hashes, the Netscape Directory Server default; or in clear text |
+| Log directory access | on | Write every connection and operation to directory.log |
+| LDIF Database File | kfroot/ldap/gibson.ldif | Where the directory is saved after every change |
+
+**Apply** saves the settings and restarts the directory server. If you change the port, the built-in "Gibson Directory" user directory follows it.
+
+# The sample directory
+
+The first start builds the directory from `kfroot/seed/directory.ldif`: the organization entry, `ou=People` with the 25 employees of the cfsnippets data source (cn, sn, givenName, uid, mail, telephoneNumber, ou, title, l, employeeNumber, employeeType, userPassword) and `ou=Groups` with a group per department, Contractors, the Y2K Task Force and Directory Administrators (groupOfUniqueNames). Every sample user's password is the same as their uid.
+
+# Access control
+
+- Anyone may read the directory (unless anonymous access is switched off), but userPassword values are only shown to the Directory Manager and to the user they belong to.
+- The Directory Manager, and the members of `cn=Directory Administrators,ou=Groups,<base DN>`, may add, change, rename and delete entries.
+- Every user may change his or her own entry.
+
+# Talking to it from the command line
+
+    ldapsearch -x -H ldap://127.0.0.1:3890 -b "o=Gibson Mainframe Co,c=US" "(sn=S*)" cn mail
+    ldapwhoami -x -H ldap://127.0.0.1:3890 -D "uid=hbrewster,ou=People,o=Gibson Mainframe Co,c=US" -w hbrewster
+    ldapmodify -x -H ldap://127.0.0.1:3890 -D "cn=Directory Manager" -w admin -f changes.ldif
+
+The server supports bind (simple), search with every RFC 2254 filter, add, modify, delete, modify DN (rename and move), compare and the "Who am I?" extended operation. SASL and StartTLS are not supported.
 
 @page troubleshooting | Troubleshooting
 

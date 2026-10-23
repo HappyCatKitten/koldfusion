@@ -17,13 +17,14 @@
 <H2>How the pieces fit</H2>
 <P>The buttons at the bottom of the page lead to the parts of the framework:</P>
 <OL>
-<LI><B>User Directories</B> are lists of users and passwords. Add a directory, then add users (name, password, full name) to it. Only the &quot;KoldFusion Registry&quot; namespace really holds users; LDAP, Windows NT and ODBC are listed for old times&#x27; sake.
-<LI><B>Security Contexts</B> group one or more user directories with <B>rules</B> and <B>policies</B>. A rule names a resource type (Application, CFML, File, DataSource, Component, Collection, CustomTag, Function, Tag or UserObject), a resource and a list of actions (<CODE>*</CODE> means all). A policy says which users get which rules.
+<LI><B>User Directories</B> are lists of users and passwords. A &quot;KoldFusion Registry&quot; directory keeps its users in the registry: add the directory, then add users (name, password, full name) to it. An <B>LDAP</B> directory checks users against any LDAP server, such as the built-in <A HREF="directory.htm">Gibson Directory Server</A>: give the server as host:port in Location, the search root (Root), and either a user DN pattern (Lookup Start <CODE>uid=</CODE> and Lookup End <CODE>,ou=People,o=...</CODE>, as in Netegrity SiteMinder) or a user attribute to search for (uid). <A HREF="/CFDOCS/langref/cfauthenticate.htm"><CODE>CFAUTHENTICATE</CODE></A> then binds to the directory as the user, and the LDAP groups that list the user (groupOfUniqueNames or groupOfNames) become the user&#x27;s groups. Windows NT and ODBC are listed for old times&#x27; sake.
+<LI><B>Security Contexts</B> group one or more user directories with <B>rules</B> and <B>policies</B>. A rule names a resource type (Application, CFML, File, DataSource, Component, Collection, CustomTag, Function, Tag or UserObject), a resource and a list of actions (<CODE>*</CODE> means all). A policy says which users, or which groups, get which rules.
 <LI><B>Security Sandboxes</B> link a directory to a security context. They are saved but not enforced.
 <LI><B>Resources</B> lists every protected resource in every context.
 <LI><B>Map</B> prints the whole framework as a tree, ready for your dot-matrix printer.
 </OL>
 <P><CODE>CFAUTHENTICATE SECURITYCONTEXT=&quot;...&quot;</CODE> checks a user name and password against the context&#x27;s user directories, and <A HREF="/CFDOCS/langref/isauthorized.htm"><CODE>IsAuthorized</CODE></A> checks the context&#x27;s rules and policies.</P>
+<P>A fresh installation includes the LDAP user directory <B>Gibson Directory</B> and the security context <B>GibsonIntranet</B>, whose policy PhoneBookEditors gives the members of the LDAP group &quot;Directory Administrators&quot; the rule EditPhoneBook (Application PhoneDirectory, action Edit). The Employee Phone Directory in Cool Stuff uses them: log in as hbrewster (password hbrewster) to edit entries.</P>
 <H2>Settings on this page</H2>
 <TABLE BORDER=0 CELLPADDING=3 CELLSPACING=1 BGCOLOR="#999999" CLASS="doctable">
 <TR BGCOLOR="#669966" VALIGN=TOP>

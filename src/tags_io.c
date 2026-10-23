@@ -877,12 +877,7 @@ TAG(pop) {
 }
 
 /* ================================================================ unsupported on UNIX */
-TAG(ldap) {
-    (void)flow;
-    kf_throw(c, "Application", "Error processing CFLDAP",
-             kprintf("Connection to the LDAP server %s failed. The Netscape Directory SDK is not installed.",
-                     kf_html_escape(attr_str(c, n, "server", ""))));
-}
+/* CFLDAP lives in ldap.c */
 TAG(object) {
     (void)flow;
     tag_security_check(c, "cfobject");

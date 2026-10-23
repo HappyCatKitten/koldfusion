@@ -2,7 +2,7 @@
  * main.c - KoldFusion Application Server 4.5 startup.
  *
  *   kfserver [-p port] [--ssl-port port] [-b bindaddr] [-r installdir] [-w webroot]
- *            [--reset-admin-password pw]
+ *            [--reset-admin-password pw] [--ldap-port port] [--no-ldap]
  *
  * On first start an "installation" is performed: the registry is created
  * with the defaults a fresh ColdFusion 4.5 install had, and the sample data
@@ -12,6 +12,7 @@
 #include "engine.h"
 #include "sql.h"
 #include "netio.h"
+#include "ldap.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
@@ -269,6 +270,7 @@ static void init_server_scope(void) {
     struct_set(os, "BuildNumber", v_strdup(u.machine));
     struct_set(os, "Arch", v_strdup(u.machine));
     struct_set(g_server_scope, "OS", v_struct(os));
+    ldapd_server_scope(g_server_scope);         /* Server.Directory: the Gibson Directory Server */
     g_arena = saved;
 }
 
@@ -303,10 +305,13 @@ int main(int argc, char **argv) {
         else if (!strcmp(argv[i], "-r") && i + 1 < argc) root = argv[++i];
         else if (!strcmp(argv[i], "-w") && i + 1 < argc) web = argv[++i];
         else if (!strcmp(argv[i], "--reset-admin-password") && i + 1 < argc) reset_pw = argv[++i];
+        else if (!strcmp(argv[i], "--ldap-port") && i + 1 < argc) ldapd_override_port(atoi(argv[++i]));
+        else if (!strcmp(argv[i], "--no-ldap")) ldapd_disable();
         else if (!strcmp(argv[i], "--run") && i + 1 < argc) { run_file = argv[++i]; if (i + 1 < argc && argv[i + 1][0] != '-') run_query = argv[++i]; }
         else {
             fprintf(stderr, "usage: %s [-p port] [--ssl-port port (0 = off)] [-b bind-address] [-r install-dir] [-w webroot]\n"
-                            "       [--reset-admin-password pw] [--run page.cfm [query-string]]\n", argv[0]);
+                            "       [--reset-admin-password pw] [--run page.cfm [query-string]]\n"
+                            "       [--ldap-port port] [--no-ldap]\n", argv[0]);
             return 2;
         }
     }
@@ -353,6 +358,7 @@ int main(int argc, char **argv) {
     G.started_ms = kf_time_ms();
 
     if (run_file) {
+        ldapd_set_lazy();
         seed_databases();
         session_init();
         init_server_scope();
@@ -364,6 +370,7 @@ int main(int argc, char **argv) {
     printf("  (A nostalgic tribute. Not affiliated with anyone, living or acquired.)\n\n");
     printf("  Install directory : %s\n  Web root          : %s\n", G.root, G.webroot);
     seed_databases();
+    ldapd_startup();
     session_init();
     init_server_scope();
     arena_free(a);

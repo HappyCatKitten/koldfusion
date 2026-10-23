@@ -1,0 +1,567 @@
+# Gibson Directory Server 1.0 - sample directory for KoldFusion
+# The employees of the cfsnippets data source, as LDAP entries.
+# Every sample user's password is the same as their uid (it is 1999).
+# Loaded the first time the directory server starts without kfroot/ldap/gibson.ldif.
+version: 1
+
+dn: o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: organization
+o: Gibson Mainframe Co
+description: Gibson Mainframe Co. - makers of KoldFusion
+telephoneNumber: 617-555-0100
+l: Boston, MA
+
+dn: ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+description: Employees of Gibson Mainframe Co.
+
+dn: ou=Groups,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: organizationalUnit
+ou: Groups
+description: Departments, teams and access groups
+
+dn: uid=creardon,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: creardon
+cn: Carol Reardon
+sn: Reardon
+givenName: Carol
+mail: creardon@cfsnippets.example
+telephoneNumber: 617-555-0101
+ou: Sales
+title: Account Executive
+l: Boston, MA
+employeeNumber: 1
+employeeType: Employee
+userPassword: {SHA}vQ8aJxkg0ahqLfAvd4HZxGpV58A=
+
+dn: uid=dwhitfield,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: dwhitfield
+cn: Doug Whitfield
+sn: Whitfield
+givenName: Doug
+mail: dwhitfield@cfsnippets.example
+telephoneNumber: 617-555-0102
+ou: Sales
+title: Sales Representative
+l: Boston, MA
+employeeNumber: 2
+employeeType: Employee
+userPassword: {SHA}crXkGXOHYGJBCiOfyxS15kZbTc8=
+
+dn: uid=galvarez,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: galvarez
+cn: Gina Alvarez
+sn: Alvarez
+givenName: Gina
+mail: galvarez@cfsnippets.example
+telephoneNumber: 617-555-0103
+ou: Sales
+title: Sales Associate
+l: Boston, MA
+employeeNumber: 3
+employeeType: Contractor
+userPassword: {SHA}rzGuCX5QzM9Z3CkKPvUt+Zgql1U=
+
+dn: uid=hpemberton,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: hpemberton
+cn: Harold Pemberton
+sn: Pemberton
+givenName: Harold
+mail: hpemberton@cfsnippets.example
+telephoneNumber: 617-555-0104
+ou: Sales
+title: Regional Sales Manager
+l: Boston, MA
+employeeNumber: 4
+employeeType: Employee
+userPassword: {SHA}MrtNEF3K3gCkCr6siDI0SeYffnI=
+
+dn: uid=eomalley,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: eomalley
+cn: Ellen O'Malley
+sn: O'Malley
+givenName: Ellen
+mail: eomalley@cfsnippets.example
+telephoneNumber: 617-555-0111
+ou: Marketing
+title: Marketing Director
+l: Boston, MA
+employeeNumber: 5
+employeeType: Employee
+userPassword: {SHA}HGdQVVoiK9DzxCHQIvWKQ7IvHig=
+
+dn: uid=fngata,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: fngata
+cn: Frank Ngata
+sn: Ngata
+givenName: Frank
+mail: fngata@cfsnippets.example
+telephoneNumber: 617-555-0112
+ou: Marketing
+title: Web Producer
+l: Boston, MA
+employeeNumber: 6
+employeeType: Contractor
+userPassword: {SHA}xPguZ6beG20YZcQzAHSmR3hljtM=
+
+dn: uid=praman,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: praman
+cn: Priya Raman
+sn: Raman
+givenName: Priya
+mail: praman@cfsnippets.example
+telephoneNumber: 617-555-0113
+ou: Marketing
+title: Product Marketing Manager
+l: Boston, MA
+employeeNumber: 7
+employeeType: Employee
+userPassword: {SHA}DL+h9ur0uFAgVsydH2AHurEwGHg=
+
+dn: uid=mfeld,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: mfeld
+cn: Marcus Feld
+sn: Feld
+givenName: Marcus
+mail: mfeld@cfsnippets.example
+telephoneNumber: 617-555-0114
+ou: Marketing
+title: Marketing Coordinator
+l: Boston, MA
+employeeNumber: 8
+employeeType: Contractor
+userPassword: {SHA}Lu82wsii29kY9ytMRQQjQwFlSiU=
+
+dn: uid=jlindqvist,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: jlindqvist
+cn: Jack Lindqvist
+sn: Lindqvist
+givenName: Jack
+mail: jlindqvist@cfsnippets.example
+telephoneNumber: 617-555-0121
+ou: Engineering
+title: Vice President, Engineering
+l: Cambridge, MA
+employeeNumber: 9
+employeeType: Employee
+userPassword: {SHA}X1oryRAL0VbvupiJrmbrwdtibnM=
+
+dn: uid=bokafor,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: bokafor
+cn: Beatriz Okafor
+sn: Okafor
+givenName: Beatriz
+mail: bokafor@cfsnippets.example
+telephoneNumber: 617-555-0122
+ou: Engineering
+title: Principal Engineer
+l: Cambridge, MA
+employeeNumber: 10
+employeeType: Employee
+userPassword: {SHA}CpQAHdyAB6QClnX2chVHkOn6s14=
+
+dn: uid=twren,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: twren
+cn: Tomasz Wren
+sn: Wren
+givenName: Tomasz
+mail: twren@cfsnippets.example
+telephoneNumber: 617-555-0123
+ou: Engineering
+title: Software Engineer
+l: Cambridge, MA
+employeeNumber: 11
+employeeType: Employee
+userPassword: {SHA}asWNF/M+dYqAKpZHGj4utJI7WD0=
+
+dn: uid=lhartmann,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: lhartmann
+cn: Lena Hartmann
+sn: Hartmann
+givenName: Lena
+mail: lhartmann@cfsnippets.example
+telephoneNumber: 617-555-0124
+ou: Engineering
+title: Y2K Remediation Specialist
+l: Cambridge, MA
+employeeNumber: 12
+employeeType: Contractor
+userPassword: {SHA}mXmtvEvBDbBIEd/r6EEnI0i0GAQ=
+
+dn: uid=shaddad,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: shaddad
+cn: Samir Haddad
+sn: Haddad
+givenName: Samir
+mail: shaddad@cfsnippets.example
+telephoneNumber: 617-555-0125
+ou: Engineering
+title: Software Engineer
+l: Cambridge, MA
+employeeNumber: 13
+employeeType: Employee
+userPassword: {SHA}eQwCEyMcOzm1unZe4xBH2iYak6A=
+
+dn: uid=wcastellano,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: wcastellano
+cn: Wendy Castellano
+sn: Castellano
+givenName: Wendy
+mail: wcastellano@cfsnippets.example
+telephoneNumber: 617-555-0126
+ou: Engineering
+title: Webmaster
+l: Cambridge, MA
+employeeNumber: 14
+employeeType: Employee
+userPassword: {SHA}DnmO6MVWeQVL8VxjNa79clusk/A=
+
+dn: uid=ikowalski,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: ikowalski
+cn: Ida Kowalski
+sn: Kowalski
+givenName: Ida
+mail: ikowalski@cfsnippets.example
+telephoneNumber: 617-555-0131
+ou: Accounting
+title: Controller
+l: Burlington, MA
+employeeNumber: 15
+employeeType: Employee
+userPassword: {SHA}z+kTPZ9HMUtwP/98lUoUGzS9Kb4=
+
+dn: uid=obrandt,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: obrandt
+cn: Oscar Brandt
+sn: Brandt
+givenName: Oscar
+mail: obrandt@cfsnippets.example
+telephoneNumber: 617-555-0132
+ou: Accounting
+title: Senior Accountant
+l: Burlington, MA
+employeeNumber: 16
+employeeType: Employee
+userPassword: {SHA}b/U/28xghrS0+udtQ1Y92kqQTzc=
+
+dn: uid=rdelgado,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: rdelgado
+cn: Rosa Delgado
+sn: Delgado
+givenName: Rosa
+mail: rdelgado@cfsnippets.example
+telephoneNumber: 617-555-0133
+ou: Accounting
+title: Accounts Payable Clerk
+l: Burlington, MA
+employeeNumber: 17
+employeeType: Employee
+userPassword: {SHA}+4MM7S76t9M8N1/ntIDZOMy3JO8=
+
+dn: uid=hbrewster,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: hbrewster
+cn: Hank Brewster
+sn: Brewster
+givenName: Hank
+mail: hbrewster@cfsnippets.example
+telephoneNumber: 617-555-0141
+ou: Administration
+title: Office Manager
+l: Boston, MA
+employeeNumber: 18
+employeeType: Employee
+userPassword: {SHA}m25iRuwIL6O4Jg+IjzYtk3Hw5fg=
+
+dn: uid=npetrova,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: npetrova
+cn: Nadia Petrova
+sn: Petrova
+givenName: Nadia
+mail: npetrova@cfsnippets.example
+telephoneNumber: 617-555-0142
+ou: Administration
+title: Receptionist
+l: Boston, MA
+employeeNumber: 19
+employeeType: Employee
+userPassword: {SHA}7v5cBPAYzw4wkaY3VjNUm0IEDrU=
+
+dn: uid=qachebe,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: qachebe
+cn: Quentin Achebe
+sn: Achebe
+givenName: Quentin
+mail: qachebe@cfsnippets.example
+telephoneNumber: 617-555-0143
+ou: Administration
+title: Administrative Assistant
+l: Boston, MA
+employeeNumber: 20
+employeeType: Contractor
+userPassword: {SHA}XvUYJtEGGT/3WezfyIBi6RHXXng=
+
+dn: uid=ytanabe,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: ytanabe
+cn: Yuki Tanabe
+sn: Tanabe
+givenName: Yuki
+mail: ytanabe@cfsnippets.example
+telephoneNumber: 617-555-0151
+ou: Training
+title: Training Manager
+l: Waltham, MA
+employeeNumber: 21
+employeeType: Employee
+userPassword: {SHA}DALVq9xlxu/IKDp5LSg03Tum2E8=
+
+dn: uid=vlemaire,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: vlemaire
+cn: Victor Lemaire
+sn: Lemaire
+givenName: Victor
+mail: vlemaire@cfsnippets.example
+telephoneNumber: 617-555-0152
+ou: Training
+title: CFML Instructor
+l: Waltham, MA
+employeeNumber: 22
+employeeType: Employee
+userPassword: {SHA}OSIZnBeV24RzZjzk0+Q0iVFXLPY=
+
+dn: uid=amoss,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: amoss
+cn: Abigail Moss
+sn: Moss
+givenName: Abigail
+mail: amoss@cfsnippets.example
+telephoneNumber: 617-555-0153
+ou: Training
+title: Courseware Developer
+l: Waltham, MA
+employeeNumber: 23
+employeeType: Contractor
+userPassword: {SHA}Mp19Vv8aFFtRMu9cYdN2RUo7DI0=
+
+dn: uid=fogundipe,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: fogundipe
+cn: Felix Ogundipe
+sn: Ogundipe
+givenName: Felix
+mail: fogundipe@cfsnippets.example
+telephoneNumber: 617-555-0127
+ou: Engineering
+title: Java Developer
+l: Cambridge, MA
+employeeNumber: 24
+employeeType: Contractor
+userPassword: {SHA}KbH4c/VEhikkZ9wyFJsKpPl+rdk=
+
+dn: uid=mquill,ou=People,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: mquill
+cn: Martha Quill
+sn: Quill
+givenName: Martha
+mail: mquill@cfsnippets.example
+telephoneNumber: 617-555-0105
+ou: Sales
+title: Sales Associate
+l: Boston, MA
+employeeNumber: 25
+employeeType: Employee
+userPassword: {SHA}Th3dUoDX/pyXwTqmYYjY5e+QDtE=
+
+dn: cn=Directory Administrators,ou=Groups,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Directory Administrators
+description: May add, change and delete directory entries
+uniqueMember: uid=hbrewster,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=wcastellano,ou=People,o=Gibson Mainframe Co,c=US
+
+dn: cn=Sales,ou=Groups,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Sales
+description: The Sales department (Boston, MA)
+uniqueMember: uid=creardon,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=dwhitfield,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=galvarez,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=hpemberton,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=mquill,ou=People,o=Gibson Mainframe Co,c=US
+
+dn: cn=Marketing,ou=Groups,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Marketing
+description: The Marketing department (Boston, MA)
+uniqueMember: uid=eomalley,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=fngata,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=praman,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=mfeld,ou=People,o=Gibson Mainframe Co,c=US
+
+dn: cn=Engineering,ou=Groups,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Engineering
+description: The Engineering department (Cambridge, MA)
+uniqueMember: uid=jlindqvist,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=bokafor,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=twren,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=lhartmann,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=shaddad,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=wcastellano,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=fogundipe,ou=People,o=Gibson Mainframe Co,c=US
+
+dn: cn=Accounting,ou=Groups,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Accounting
+description: The Accounting department (Burlington, MA)
+uniqueMember: uid=ikowalski,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=obrandt,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=rdelgado,ou=People,o=Gibson Mainframe Co,c=US
+
+dn: cn=Administration,ou=Groups,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Administration
+description: The Administration department (Boston, MA)
+uniqueMember: uid=hbrewster,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=npetrova,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=qachebe,ou=People,o=Gibson Mainframe Co,c=US
+
+dn: cn=Training,ou=Groups,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Training
+description: The Training department (Waltham, MA)
+uniqueMember: uid=ytanabe,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=vlemaire,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=amoss,ou=People,o=Gibson Mainframe Co,c=US
+
+dn: cn=Contractors,ou=Groups,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Contractors
+description: Contract staff
+uniqueMember: uid=galvarez,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=fngata,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=mfeld,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=lhartmann,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=qachebe,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=amoss,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=fogundipe,ou=People,o=Gibson Mainframe Co,c=US
+
+dn: cn=Y2K Task Force,ou=Groups,o=Gibson Mainframe Co,c=US
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Y2K Task Force
+description: Making sure the lights stay on at midnight
+uniqueMember: uid=jlindqvist,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=lhartmann,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=twren,ou=People,o=Gibson Mainframe Co,c=US
+uniqueMember: uid=ikowalski,ou=People,o=Gibson Mainframe Co,c=US

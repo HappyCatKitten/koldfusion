@@ -11,6 +11,7 @@
 /kfroot/temp/
 /kfroot/cache/
 /kfroot/verity/
+/kfroot/ldap/
 /kfroot/drive_*/
 /kfroot/ssl/
 

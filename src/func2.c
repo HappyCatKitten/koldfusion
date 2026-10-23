@@ -864,8 +864,11 @@ static const FuncDef FUNCS[] = {
 };
 
 extern const FuncDef ADMIN_FUNCS[];
+extern const FuncDef LDAP_ADMIN_FUNCS[];
 BuiltinFn func_lookup(const char *name, int *minargs, int *maxargs) {
     if (!kf_strnicmp(name, "kfusion_", 8)) {
+        for (int i = 0; LDAP_ADMIN_FUNCS[i].name; i++)
+            if (!kf_stricmp(LDAP_ADMIN_FUNCS[i].name, name)) { *minargs = LDAP_ADMIN_FUNCS[i].minargs; *maxargs = LDAP_ADMIN_FUNCS[i].maxargs; return LDAP_ADMIN_FUNCS[i].fn; }
         for (int i = 0; ADMIN_FUNCS[i].name; i++)
             if (!kf_stricmp(ADMIN_FUNCS[i].name, name)) { *minargs = ADMIN_FUNCS[i].minargs; *maxargs = ADMIN_FUNCS[i].maxargs; return ADMIN_FUNCS[i].fn; }
         return NULL;

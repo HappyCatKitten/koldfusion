@@ -38,6 +38,7 @@ static const struct { const char *tag, *attrs; } ALLOWED[] = {
     {"cfcol", "header,width,align,text"},
     {"cfschedule", "action,task,operation,file,path,startdate,starttime,url,publish,enddate,endtime,interval,requesttimeout,username,password,resolveurl,proxyserver,proxyport"},
     {"cfwddx", "action,input,output,toplevelvariable,usetimezoneinfo"},
+    {"cfldap", "server,port,username,password,action,name,timeout,maxrows,start,scope,attributes,filter,sort,sortcontrol,dn,startrow,modifytype,rebind,referral,secure,separator,delimiter"},
     {"cfindex", "collection,action,type,title,key,body,custom1,custom2,urlpath,extensions,query,recurse,language,external"},
     {"cfsearch", "name,collection,type,criteria,maxrows,startrow,external,language"},
     {"cfcollection", "action,collection,path,language"},

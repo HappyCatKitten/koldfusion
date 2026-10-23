@@ -379,9 +379,14 @@
     ATTRIBUTES=&quot;attribute, attribute&quot;
     FILTER=&quot;filter&quot;
     SORT=&quot;attribute[, attribute]...&quot;
+    SORTCONTROL=&quot;nocase, asc|desc&quot;
     DN=&quot;distinguished_name&quot;
     STARTROW=&quot;row_number&quot;
-    MODIFYTYPE=&quot;replace&quot;&gt;</PRE>
+    MODIFYTYPE=&quot;replace|add|delete&quot;
+    REBIND=&quot;Yes|No&quot;
+    REFERRAL=&quot;number_of_hops&quot;
+    SEPARATOR=&quot;separator_character&quot;
+    DELIMITER=&quot;delimiter_character&quot;&gt;</PRE>
 <P CLASS="qr"><A HREF="/CFDOCS/langref/cfmail.htm"><B>CFMAIL</B></A> &nbsp;<FONT SIZE=1>Sends an e-mail message, or one message per row or group of a query.</FONT></P>
 <PRE CLASS="qr">&lt;CFMAIL TO=&quot;recipient&quot;
     FROM=&quot;sender&quot;

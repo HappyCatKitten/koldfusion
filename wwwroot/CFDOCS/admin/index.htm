@@ -64,6 +64,10 @@
 <TD>The SSL certificate and private key (made on first start) and any per-site certificates</TD>
 </TR>
 <TR BGCOLOR="#FFFBF0" VALIGN=TOP>
+<TD><CODE>kfroot/ldap/</CODE></TD>
+<TD>The Gibson Directory Server&#x27;s LDIF database (built from <CODE>kfroot/seed/directory.ldif</CODE>)</TD>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
 <TD><CODE>wwwroot/</CODE></TD>
 <TD>The web root; the Administrator lives in <CODE>wwwroot/CFIDE/administrator/</CODE></TD>
 </TR>
@@ -106,6 +110,14 @@
 <TD>--reset-admin-password PW</TD>
 <TD>Set a new Administrator password, then start as usual</TD>
 </TR>
+<TR BGCOLOR="#FFFBF0" VALIGN=TOP>
+<TD>--ldap-port PORT</TD>
+<TD>Run the Gibson Directory Server on another port this time (the registry setting is not changed)</TD>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>--no-ldap</TD>
+<TD>Do not start the Gibson Directory Server</TD>
+</TR>
 </TABLE>
 <P>To stop the server press Ctrl+C in its terminal. To restart it, use the <B>Restart Server...</B> button on the <A HREF="settings.htm">Server Settings</A> page.</P>
 <H3>Contents</H3>
@@ -135,6 +147,7 @@
 <LI><A HREF="debugging.htm">Debugging</A>
 <LI><A HREF="verity.htm">Verity</A>
 <LI><A HREF="sourcecontrol.htm">Source Control</A>
+<LI><A HREF="directory.htm">Directory Server</A>
 <LI><A HREF="troubleshooting.htm">Troubleshooting</A>
 </OL>
 </DIV>

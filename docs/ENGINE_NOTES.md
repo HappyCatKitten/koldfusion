@@ -52,7 +52,7 @@ cfthrow cfrethrow cfscript cfsetting cfsilent cfprocessingdirective cflocation c
 cfapplication (session/client/application) cflock cferror cfcache (page caching to disk) cfquery (cachedwithin, maxrows) cfqueryparam
 cftransaction cfinsert cfupdate cfstoredproc(error) cfmail/cfmailparam (spooled to kfroot/mail/spool) cffile (upload, read,
 readbinary, write, append, copy, move, rename, delete) cfdirectory cfregistry cfhttp/cfhttpparam (http:// and https://) cfschedule
-cfexecute cfwddx cfpop cfftp (passive-mode client) cfldap(error) cfobject(error) cfservlet(error) cfreport(error) cfindex cfsearch
+cfexecute cfwddx cfpop cfftp (passive-mode client) cfldap (LDAPv3, see below) cfobject(error) cfservlet(error) cfreport(error) cfindex cfsearch
 cfcollection cfauthenticate cfimpersonate cfform cfinput cfselect cftextinput cfslider cfgrid/cfgridcolumn/cfgridrow/
 cfgridupdate cftree/cftreeitem cfapplet cftable/cfcol, custom tags (cf_name, cfmodule; Attributes/Caller/ThisTag),
 CFX tags (cfx_hello, cfx_dice, cfx_sysinfo).
@@ -60,6 +60,28 @@ CFX tags (cfx_hello, cfx_dice, cfx_sysinfo).
 Not in 4.5 and therefore not supported: CFDUMP, CFSAVECONTENT, CFFLUSH, CFFUNCTION/CFCOMPONENT/CFINVOKE/CFRETURN, CFLOG,
 user-defined functions in CFSCRIPT, query-of-queries (DBTYPE="query"), array/struct literals `[]` `{}`.
 CFSCRIPT accepts `==`, `!=`, `<`, `&&`, `++`, `+=` as a convenience, but tag expressions use EQ, NEQ, LT, GT, AND, OR, NOT.
+
+## LDAP
+- `./bin/kfserver` also starts the **Gibson Directory Server** (LDAPv3) on 127.0.0.1:3890 (registry key `DirectoryServer`,
+  Administrator > miscellaneous > Directory Server; `--ldap-port N` / `--no-ldap` on the command line). Base DN
+  `o=Gibson Mainframe Co, c=US`; `ou=People` holds the cfsnippets employees (uid, cn, sn, givenName, mail, telephoneNumber,
+  ou, title, l, employeeNumber, employeeType; password = uid), `ou=Groups` one groupOfUniqueNames per department plus
+  Contractors, Y2K Task Force and Directory Administrators. Manager: `cn=Directory Manager` / `admin`.
+- Data lives in `kfroot/ldap/gibson.ldif` (rewritten after every change, seeded from `kfroot/seed/directory.ldif`; delete it
+  or use "Restore Sample Directory" to start over).
+- In pages use `SERVER="#Server.Directory.Host#" PORT="#Server.Directory.Port#"` and `Server.Directory.BaseDN`.
+  `kfserver --run` starts the directory in-process the first time a page connects to it, if nothing is listening.
+- CFLDAP query results: one column per requested attribute (as spelled in ATTRIBUTES), `DN` column for `*` or `dn`;
+  multi-valued attributes joined with ", " (or SEPARATOR). SORT is done client-side. ADD/MODIFY ATTRIBUTES are
+  `name=v1,v2;name=v` (SEPARATOR `,` between values, DELIMITER `;` between pairs) - a value containing a comma needs
+  another SEPARATOR. MODIFYTYPE replace with an empty value removes the attribute. MODIFYDN's ATTRIBUTES is the new RDN.
+- Errors: TYPE Application, `An error has occured while trying to execute <action> :[LDAP: error code N - Name]`,
+  CFCATCH.ErrorCode = N; unreachable server: "Connection to LDAP server failed." (ErrorCode 91).
+- Directory access control: anonymous read (never another user's userPassword); Directory Manager and members of
+  `cn=Directory Administrators,ou=Groups,<base>` write; users may modify their own entry.
+- Advanced Security user directories with Namespace LDAP (registry: Location host:port, Root, Username/Password,
+  LookupStart/LookupEnd, UserAttribute) authenticate by binding; LDAP groups listing the user's DN become groups that
+  policy `Groups` (or `Users`) entries match. Built-in: directory "Gibson Directory", context "GibsonIntranet".
 
 ## Functions
 Abs ACos ArrayAppend ArrayAvg ArrayClear ArrayDeleteAt ArrayInsertAt ArrayIsEmpty ArrayLen ArrayMax ArrayMin ArrayNew
@@ -84,7 +106,7 @@ StructCopy StructCount StructDelete StructFind StructGet StructInsert StructIsEm
 StructKeyList StructNew StructUpdate Tan TimeFormat ToBase64 ToBinary ToString Trim UCase URLDecode URLEncodedFormat Val
 ValueList Week Wrap WriteOutput XMLFormat Year YesNoFormat.
 `KFUSION_CHECKSYNTAX(code)` (struct OK, Message, Detail, Line, Column) works anywhere; other KFUSION_* functions are
-Administrator-only.
+Administrator-only (`KFUSION_DIRECTORYSERVER(action [, dn])` drives the directory server page).
 
 ## CFML gotchas (all authentically 4.5)
 - Variable names are case-insensitive: `<cfloop index="t">` overwrites a struct named `T`.
