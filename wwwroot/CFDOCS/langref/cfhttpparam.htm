@@ -51,7 +51,9 @@ function runExample(name) {
   &lt;CFOUTPUT&gt;Name=#HTMLEditFormat(Form.Name)#; Cookie=#HTMLEditFormat(Cookie.Flavor)#&lt;/CFOUTPUT&gt;
   &lt;CFABORT&gt;
 &lt;/CFIF&gt;
-&lt;CFSET Target = &quot;http://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/snippets/cfhttpparam.cfm&quot;&gt;
+&lt;CFSET Scheme = &quot;http&quot;&gt;
+&lt;CFIF CGI.HTTPS IS &quot;on&quot;&gt;&lt;CFSET Scheme = &quot;https&quot;&gt;&lt;/CFIF&gt;
+&lt;CFSET Target = &quot;#Scheme#://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/snippets/cfhttpparam.cfm&quot;&gt;
 &lt;CFTRY&gt;
   &lt;CFHTTP URL=&quot;#Target#&quot; METHOD=&quot;POST&quot; TIMEOUT=&quot;10&quot; THROWONERROR=&quot;Yes&quot;&gt;
     &lt;CFHTTPPARAM TYPE=&quot;URL&quot; NAME=&quot;Echo&quot; VALUE=&quot;Yes&quot;&gt;

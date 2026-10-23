@@ -5,7 +5,9 @@
   <CFOUTPUT>Name=#HTMLEditFormat(Form.Name)#; Cookie=#HTMLEditFormat(Cookie.Flavor)#</CFOUTPUT>
   <CFABORT>
 </CFIF>
-<CFSET Target = "http://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/snippets/cfhttpparam.cfm">
+<CFSET Scheme = "http">
+<CFIF CGI.HTTPS IS "on"><CFSET Scheme = "https"></CFIF>
+<CFSET Target = "#Scheme#://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/snippets/cfhttpparam.cfm">
 <CFTRY>
   <CFHTTP URL="#Target#" METHOD="POST" TIMEOUT="10" THROWONERROR="Yes">
     <CFHTTPPARAM TYPE="URL" NAME="Echo" VALUE="Yes">

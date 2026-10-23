@@ -10,7 +10,7 @@
 <cfif Left(path, 1) IS NOT "/" OR Find("//", path) OR REFind("[[:space:][:cntrl:]]", path)>
 	<cfset path = "/">
 </cfif>
-<cfset target = "http://127.0.0.1:#CGI.SERVER_PORT##path#">
+<cfset target = "#IIf(CGI.HTTPS IS 'on', DE('https'), DE('http'))#://127.0.0.1:#CGI.SERVER_PORT##path#">
 
 <cfset started = GetTickCount()>
 <cfhttp url="#target#" method="GET" resolveurl="No" timeout="15" throwonerror="No"></cfhttp>

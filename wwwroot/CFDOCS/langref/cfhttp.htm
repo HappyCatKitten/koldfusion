@@ -38,14 +38,17 @@ function runExample(name) {
     PROXYSERVER=&quot;hostname&quot;
     PROXYPORT=&quot;port_number&quot;
     PORT=&quot;port_number&quot;
+    USERAGENT=&quot;user_agent&quot;
+    REDIRECT=&quot;Yes/No&quot;
     TIMEOUT=&quot;seconds&quot;
-    THROWONERROR=&quot;Yes/No&quot;&gt;
+    THROWONERROR=&quot;Yes/No&quot;
+    CHECKCERTIFICATE=&quot;Yes/No&quot;&gt;
   CFHTTPPARAM tags (for POST)
 &lt;/CFHTTP&gt;</PRE>
 <H4>Attributes</H4>
 <DL>
 <DT><B>URL</B></DT>
-<DD><I>Required.</I> Full URL to request, starting with http://.</DD>
+<DD><I>Required.</I> Full URL to request, starting with http:// or https://. A <CODE>user:password@</CODE> in the URL is used for Basic authentication when USERNAME is not given.</DD>
 <DT><B>METHOD</B></DT>
 <DD><I>Optional, default &quot;GET&quot;.</I> GET or POST. Use POST to send <A HREF="cfhttpparam.htm"><CODE>CFHTTPPARAM</CODE></A> form fields and files.</DD>
 <DT><B>USERNAME</B></DT>
@@ -67,15 +70,21 @@ function runExample(name) {
 <DT><B>RESOLVEURL</B></DT>
 <DD><I>Optional, default &quot;No&quot;.</I> Yes rewrites relative HREF, SRC, ACTION and BACKGROUND links in an HTML response into absolute URLs, so the page still works when you display it from your server.</DD>
 <DT><B>PROXYSERVER</B></DT>
-<DD><I>Optional.</I> Proxy server to go through.</DD>
+<DD><I>Optional.</I> Proxy server to go through. https:// requests are tunneled through it with CONNECT.</DD>
 <DT><B>PROXYPORT</B></DT>
 <DD><I>Optional, default &quot;80&quot;.</I> Port of the proxy server.</DD>
 <DT><B>PORT</B></DT>
-<DD><I>Optional, default &quot;80&quot;.</I> Port of the Web server, if it is not in the URL.</DD>
+<DD><I>Optional, default &quot;80&quot; (443 for https).</I> Port of the Web server, if it is not in the URL.</DD>
+<DT><B>USERAGENT</B></DT>
+<DD><I>Optional, default &quot;KoldFusion&quot;.</I> Value of the User-Agent header.</DD>
+<DT><B>REDIRECT</B></DT>
+<DD><I>Optional, default &quot;Yes&quot;.</I> Yes follows up to four redirects (301, 302, 303, 307). No returns the redirect itself; its target is in <CODE>CFHTTP.ResponseHeader.Location</CODE>, and with THROWONERROR=&quot;Yes&quot; the redirect throws an exception.</DD>
 <DT><B>TIMEOUT</B></DT>
-<DD><I>Optional, default &quot;60&quot;.</I> Seconds to wait for the response.</DD>
+<DD><I>Optional, default &quot;60&quot;.</I> Seconds the whole request may take, from connecting to the last byte.</DD>
 <DT><B>THROWONERROR</B></DT>
 <DD><I>Optional, default &quot;No&quot;.</I> Yes throws an Application exception when the server cannot be reached or answers with a status of 400 or higher.</DD>
+<DT><B>CHECKCERTIFICATE</B></DT>
+<DD><I>Optional, default from the Administrator (&quot;Yes&quot;).</I> A KoldFusion extra. Yes checks an https:// server&#x27;s certificate against the system&#x27;s certificate authorities; No accepts any certificate.</DD>
 </DL>
 <H4>Usage</H4>
 <P>After the call these variables are available:</P>
@@ -106,11 +115,13 @@ function runExample(name) {
 </TR>
 </TABLE>
 <P>Without THROWONERROR, a server that cannot be reached is not an error: FileContent is &quot;Connection Failure&quot; and StatusCode says the code is unavailable. Check for that, or use THROWONERROR=&quot;Yes&quot; with <A HREF="cftry.htm"><CODE>CFTRY</CODE></A>.</P>
-<P CLASS="note"><B>Note</B>&nbsp; KoldFusion speaks plain HTTP only. https:// URLs are refused, since secure sockets are a matter for the Netscape Enterprise Server in this day and age.</P>
+<P><B><CODE>CFHTTP</CODE></B> speaks HTTP/1.1 and understands chunked responses. For https:// URLs it needs the OpenSSL libraries on the server (KoldFusion loads them when first needed); without them the request fails with a &quot;secure HTTP is not available&quot; message. The server&#x27;s certificate must be signed by a certificate authority the system trusts, or be this KoldFusion server&#x27;s own certificate; otherwise you get &quot;Connection Failure: the SSL certificate presented by ... could not be verified&quot;. Use CHECKCERTIFICATE=&quot;No&quot;, or clear &quot;Verify server certificates in CFHTTP&quot; on the Web Server and SSL page of the Administrator, to accept any certificate, as 1999 browsers mostly did.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfhttp"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfhttp'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
 <PRE CLASS="example">&lt;!--- Fetch the documentation home page from this very server ---&gt;
-&lt;CFSET Target = &quot;http://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/index.cfm&quot;&gt;
+&lt;CFSET Scheme = &quot;http&quot;&gt;
+&lt;CFIF CGI.HTTPS IS &quot;on&quot;&gt;&lt;CFSET Scheme = &quot;https&quot;&gt;&lt;/CFIF&gt;
+&lt;CFSET Target = &quot;#Scheme#://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/index.cfm&quot;&gt;
 &lt;CFTRY&gt;
   &lt;CFHTTP URL=&quot;#Target#&quot; METHOD=&quot;GET&quot; TIMEOUT=&quot;10&quot; THROWONERROR=&quot;Yes&quot;&gt;&lt;/CFHTTP&gt;
   &lt;CFSET Start = FindNoCase(&quot;&lt;TITLE&gt;&quot;, CFHTTP.FileContent)&gt;

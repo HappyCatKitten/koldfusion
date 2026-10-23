@@ -4,7 +4,8 @@ KoldFusion is a C re-creation of an Allaire ColdFusion 4.5 server. Pages are CFM
 
 ## Build and run
 - `make` builds `bin/kfserver` and the CFX libraries in `kfroot/cfx/`.
-- `./bin/kfserver` serves on http://127.0.0.1:8500/ (`-p PORT` changes the port, `-b ADDR` the bind address).
+- `./bin/kfserver` serves on http://127.0.0.1:8500/ (`-p PORT` changes the port, `-b ADDR` the bind address), and on
+  https://127.0.0.1:8543/ when OpenSSL can be loaded (`--ssl-port PORT` changes it, `--ssl-port 0` turns it off).
 - `./bin/kfserver --run wwwroot/path/page.cfm [query-string]` renders one page to stdout (HTTP headers first) — the fastest way to test.
 - Administrator: /CFIDE/administrator/ (default password `admin`).
 - Install directory ("C:\CFUSION"): `kfroot/` — registry in `kfroot/registry/kf.registry` (REGEDIT4 format), logs in `kfroot/log/`,
@@ -16,6 +17,27 @@ KoldFusion is a C re-creation of an Allaire ColdFusion 4.5 server. Pages are CFM
   site has (e.g. `/web1999/`) to `http://localhost:PORT/...`, so sites can link to each other with relative paths.
 - Every `kfroot/seed/<dsn>.sql` whose first line is `-- DSN: description` is registered as a data source automatically.
 - Web root: `wwwroot/`. Custom tags: same directory as the caller, or anywhere under `kfroot/customtags/`.
+
+## Web server (http.c, netio.c, tls.c, httpc.c)
+- HTTP/1.1 with persistent connections and pipelining (HTTP/1.0 clients get keep-alive when they send
+  `Connection: keep-alive`), chunked request bodies, `Expect: 100-continue`, HEAD, exact Content-Length on every
+  response, `Last-Modified`/`ETag` and 304 for static files (the zoom setting is part of the validator). Settings:
+  Administrator > Web Server & SSL (registry `Server\KeepAlive*`, `HeaderTimeout`, `MaxConnections`).
+- One thread per connection; each request gets a fresh arena, and per-thread engine state is reset between requests
+  (`*_thread_reset()` in netio.h) - new `__thread` state in the engine must be reset there too.
+- Every socket read/write has a deadline (headers and SSL handshake: `HeaderTimeout`, 20 s; idle keep-alive: 15 s;
+  bodies: 30 s + 1 s per 64 KB), so slowloris-style clients are dropped with 408.
+- SSL: libssl/libcrypto are `dlopen()`ed at run time (3, 1.1, then unversioned; `KF_LIBSSL=none` pretends they are
+  missing, `KF_LIBSSL=/path/libssl.so.X` picks one). No OpenSSL headers or link-time dependency. The first start makes
+  `kfroot/ssl/kfserver.crt`/`.key` with `/usr/bin/openssl` (CN=localhost, O=Gibson Mainframe Co., SANs localhost,
+  *.localhost, 127.0.0.1 and each virtual site); `kfroot/ssl/<host>.crt`/`.key` are served by SNI.
+- Over SSL: `CGI.HTTPS` = on, `CGI.SERVER_PORT_SECURE` = 1, `CGI.SERVER_PORT` = the SSL port, and the IIS 4
+  `CGI.CERT_*` / `CGI.HTTPS_*` variables (KEYSIZE, SECRETKEYSIZE, SERVER_SUBJECT, SERVER_ISSUER, client SUBJECT,
+  ISSUER, SERIALNUMBER, COOKIE, FLAGS). Build self-referencing URLs with the scheme from `CGI.HTTPS`.
+- CFHTTP: http:// and https://, HTTP/1.1, chunked responses, PORT, PROXYSERVER/PROXYPORT (CONNECT for https),
+  USERNAME/PASSWORD, RESOLVEURL, REDIRECT (up to 4), TIMEOUT (whole request), THROWONERROR, USERAGENT, and the
+  KoldFusion extra `CHECKCERTIFICATE="No"`. Certificates are verified against the system CA store plus KoldFusion's own
+  certificate. A header received twice (Set-Cookie) is an array in `CFHTTP.ResponseHeader`.
 
 ## Data sources
 cfsnippets, exampleapp, btg, cfexamples, CompanyInfo, demos (all served by the built-in flat-file SQL engine:
@@ -29,7 +51,7 @@ collection) cfbreak cfabort cfexit cfparam cfinclude cfmodule cfassociate cfswit
 cfthrow cfrethrow cfscript cfsetting cfsilent cfprocessingdirective cflocation cfcookie cfheader cfcontent cfhtmlhead
 cfapplication (session/client/application) cflock cferror cfcache (page caching to disk) cfquery (cachedwithin, maxrows) cfqueryparam
 cftransaction cfinsert cfupdate cfstoredproc(error) cfmail/cfmailparam (spooled to kfroot/mail/spool) cffile (upload, read,
-readbinary, write, append, copy, move, rename, delete) cfdirectory cfregistry cfhttp/cfhttpparam (http:// only) cfschedule
+readbinary, write, append, copy, move, rename, delete) cfdirectory cfregistry cfhttp/cfhttpparam (http:// and https://) cfschedule
 cfexecute cfwddx cfpop cfftp (passive-mode client) cfldap(error) cfobject(error) cfservlet(error) cfreport(error) cfindex cfsearch
 cfcollection cfauthenticate cfimpersonate cfform cfinput cfselect cftextinput cfslider cfgrid/cfgridcolumn/cfgridrow/
 cfgridupdate cftree/cftreeitem cfapplet cftable/cfcol, custom tags (cf_name, cfmodule; Attributes/Caller/ThisTag),

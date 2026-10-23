@@ -338,7 +338,7 @@
     PROXYSERVER=&quot;proxyserver&quot;
     RETRYCOUNT=&quot;number&quot;
     AGENTNAME=&quot;name&quot;&gt;</PRE>
-<P CLASS="qr"><A HREF="/CFDOCS/langref/cfhttp.htm"><B>CFHTTP</B></A> &nbsp;<FONT SIZE=1>Fetches a page or file from a Web server with an HTTP GET or POST.</FONT></P>
+<P CLASS="qr"><A HREF="/CFDOCS/langref/cfhttp.htm"><B>CFHTTP</B></A> &nbsp;<FONT SIZE=1>Fetches a page or file from a Web server with an HTTP GET or POST, over http:// or https://.</FONT></P>
 <PRE CLASS="qr">&lt;CFHTTP URL=&quot;hostname&quot;
     METHOD=&quot;GET/POST&quot;
     USERNAME=&quot;username&quot;
@@ -353,8 +353,11 @@
     PROXYSERVER=&quot;hostname&quot;
     PROXYPORT=&quot;port_number&quot;
     PORT=&quot;port_number&quot;
+    USERAGENT=&quot;user_agent&quot;
+    REDIRECT=&quot;Yes/No&quot;
     TIMEOUT=&quot;seconds&quot;
-    THROWONERROR=&quot;Yes/No&quot;&gt;
+    THROWONERROR=&quot;Yes/No&quot;
+    CHECKCERTIFICATE=&quot;Yes/No&quot;&gt;
   CFHTTPPARAM tags (for POST)
 &lt;/CFHTTP&gt;</PRE>
 <P CLASS="qr"><A HREF="/CFDOCS/langref/cfhttpparam.htm"><B>CFHTTPPARAM</B></A> &nbsp;<FONT SIZE=1>Adds a URL parameter, form field, cookie, header or file to a CFHTTP request.</FONT></P>

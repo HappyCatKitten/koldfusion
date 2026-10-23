@@ -82,8 +82,11 @@ and magazine articles still make sense. Translate as follows:</P>
 <LI><B>CFLDAP, CFSERVLET, CFREPORT and CFSTOREDPROC</B> are recognized but not available in this edition;
     they throw an exception you can catch with <CODE>CFTRY</CODE>.
 <LI><B>CFFTP</B> uses passive-mode FTP only. If your firewall insists on active mode, your firewall wins.
-<LI><B>CFHTTP</B> supports <CODE>http://</CODE> URLs only. Secure (<CODE>https://</CODE>) requests need the
-    128-bit export license, which is currently stuck in the mail.
+<LI><B>SSL</B> (the <CODE>https://</CODE> listener on port 8543, and <CODE>https://</CODE> URLs in <CODE>CFHTTP</CODE>)
+    needs the OpenSSL libraries on the server. Without them the secure listener stays off and <CODE>CFHTTP</CODE>
+    refuses <CODE>https://</CODE> URLs. The certificate made at installation is self-signed, so browsers will ask you
+    to accept it; the 128-bit VeriSign certificate is currently stuck in the mail. See
+    <A HREF="admin/webserver.htm">Web Server and SSL</A>.
 <LI><B>Verity.</B> Collections are searched by the built-in engine; the advanced Verity query language is
     supported only in part (simple words, phrases, AND, OR, NOT and wildcards).
 <LI><B>Java applet form controls</B> (<CODE>CFGRID</CODE>, <CODE>CFTREE</CODE>, <CODE>CFSLIDER</CODE>, <CODE>CFTEXTINPUT</CODE>)

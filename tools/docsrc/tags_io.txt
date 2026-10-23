@@ -182,7 +182,7 @@ see: CFMAIL, CFMAILPARAM, CFTRY, CFOUTPUT
 
 @tag CFHTTP
 category: Internet protocols
-summary: Fetches a page or file from a Web server with an HTTP GET or POST.
+summary: Fetches a page or file from a Web server with an HTTP GET or POST, over http:// or https://.
 desc:
 `CFHTTP` makes your template a Web browser. It requests a URL, and the response ends up in the `CFHTTP`
 structure: the page text, the MIME type, the status code and the headers. It can also save the response to a
@@ -202,12 +202,16 @@ syntax:
     PROXYSERVER="hostname"
     PROXYPORT="port_number"
     PORT="port_number"
+    USERAGENT="user_agent"
+    REDIRECT="Yes/No"
     TIMEOUT="seconds"
-    THROWONERROR="Yes/No">
+    THROWONERROR="Yes/No"
+    CHECKCERTIFICATE="Yes/No">
   CFHTTPPARAM tags (for POST)
 </CFHTTP>
 attrs:
-URL | Required | Full URL to request, starting with http://.
+URL | Required | Full URL to request, starting with http:// or https://. A `user:password@` in the URL is used for
+  Basic authentication when USERNAME is not given.
 METHOD | Optional, default "GET" | GET or POST. Use POST to send `CFHTTPPARAM` form fields and files.
 USERNAME | Optional | User name for Basic authentication.
 PASSWORD | Optional | Password for Basic authentication.
@@ -220,12 +224,17 @@ PATH | Optional | Directory in which to save the response.
 FILE | Optional | File name for PATH. Defaults to the last part of the URL.
 RESOLVEURL | Optional, default "No" | Yes rewrites relative HREF, SRC, ACTION and BACKGROUND links in an HTML
   response into absolute URLs, so the page still works when you display it from your server.
-PROXYSERVER | Optional | Proxy server to go through.
+PROXYSERVER | Optional | Proxy server to go through. https:// requests are tunneled through it with CONNECT.
 PROXYPORT | Optional, default "80" | Port of the proxy server.
-PORT | Optional, default "80" | Port of the Web server, if it is not in the URL.
-TIMEOUT | Optional, default "60" | Seconds to wait for the response.
+PORT | Optional, default "80" (443 for https) | Port of the Web server, if it is not in the URL.
+USERAGENT | Optional, default "KoldFusion" | Value of the User-Agent header.
+REDIRECT | Optional, default "Yes" | Yes follows up to four redirects (301, 302, 303, 307). No returns the redirect itself;
+  its target is in `CFHTTP.ResponseHeader.Location`, and with THROWONERROR="Yes" the redirect throws an exception.
+TIMEOUT | Optional, default "60" | Seconds the whole request may take, from connecting to the last byte.
 THROWONERROR | Optional, default "No" | Yes throws an Application exception when the server cannot be reached
   or answers with a status of 400 or higher.
+CHECKCERTIFICATE | Optional, default from the Administrator ("Yes") | A KoldFusion extra. Yes checks an https://
+  server's certificate against the system's certificate authorities; No accepts any certificate.
 usage:
 After the call these variables are available:
 
@@ -239,11 +248,18 @@ After the call these variables are available:
 Without THROWONERROR, a server that cannot be reached is not an error: FileContent is "Connection Failure"
 and StatusCode says the code is unavailable. Check for that, or use THROWONERROR="Yes" with `CFTRY`.
 
-> KoldFusion speaks plain HTTP only. https:// URLs are refused, since secure sockets are a matter for
-> the Netscape Enterprise Server in this day and age.
+`CFHTTP` speaks HTTP/1.1 and understands chunked responses. For https:// URLs it needs the OpenSSL
+libraries on the server (KoldFusion loads them when first needed); without them the request fails with a
+"secure HTTP is not available" message. The server's certificate must be signed by a certificate authority
+the system trusts, or be this KoldFusion server's own certificate; otherwise you get "Connection Failure:
+the SSL certificate presented by ... could not be verified". Use CHECKCERTIFICATE="No", or clear "Verify
+server certificates in CFHTTP" on the Web Server and SSL page of the Administrator, to accept any
+certificate, as 1999 browsers mostly did.
 example:
 <!--- Fetch the documentation home page from this very server --->
-<CFSET Target = "http://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/index.cfm">
+<CFSET Scheme = "http">
+<CFIF CGI.HTTPS IS "on"><CFSET Scheme = "https"></CFIF>
+<CFSET Target = "#Scheme#://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/index.cfm">
 <CFTRY>
   <CFHTTP URL="#Target#" METHOD="GET" TIMEOUT="10" THROWONERROR="Yes"></CFHTTP>
   <CFSET Start = FindNoCase("<TITLE>", CFHTTP.FileContent)>
@@ -302,7 +318,9 @@ example:
   <CFOUTPUT>Name=#HTMLEditFormat(Form.Name)#; Cookie=#HTMLEditFormat(Cookie.Flavor)#</CFOUTPUT>
   <CFABORT>
 </CFIF>
-<CFSET Target = "http://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/snippets/cfhttpparam.cfm">
+<CFSET Scheme = "http">
+<CFIF CGI.HTTPS IS "on"><CFSET Scheme = "https"></CFIF>
+<CFSET Target = "#Scheme#://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/snippets/cfhttpparam.cfm">
 <CFTRY>
   <CFHTTP URL="#Target#" METHOD="POST" TIMEOUT="10" THROWONERROR="Yes">
     <CFHTTPPARAM TYPE="URL" NAME="Echo" VALUE="Yes">

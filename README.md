@@ -37,13 +37,18 @@ Then open:
 | http://127.0.0.1:8500/demos/ | Demo gallery of openly-licensed CFML found around the web |
 | http://127.0.0.1:8500/cool/ | Cool Stuff You Can Do |
 | http://localhost:8500/web1999/ | The 1999 Web: twelve retro sites, each on its own virtual host |
+| https://localhost:8543/ | The same server over SSL (self-signed certificate, made on first start) |
 
-Options: `-p PORT` (default 8500), `-b ADDRESS` (default 127.0.0.1 — keep it that way, the security is authentically
-1999), `-r INSTALLDIR` (default `kfroot/`), `-w WEBROOT` (default `wwwroot/`), `--reset-admin-password NEWPW`,
-`--run page.cfm [query-string]` (render a single page to stdout, handy for testing).
+Options: `-p PORT` (default 8500), `--ssl-port PORT` (default 8543, `0` = no SSL), `-b ADDRESS` (default 127.0.0.1 —
+keep it that way, the security is authentically 1999), `-r INSTALLDIR` (default `kfroot/`), `-w WEBROOT` (default
+`wwwroot/`), `--reset-admin-password NEWPW`, `--run page.cfm [query-string]` (render a single page to stdout, handy for
+testing).
 
-Requirements: a C compiler, GNU make, pthreads. No other libraries. Python 3 + Pillow only if you want to regenerate the
-GIFs (`make graphics`, `python3 tools/mkadmin_gfx.py`).
+Requirements: a C compiler, GNU make, pthreads. No other libraries. SSL (the https:// listener and https:// in CFHTTP)
+uses OpenSSL 3 or 1.1 if it is installed, loaded at run time, so the build never needs its headers; on first start
+`/usr/bin/openssl` makes a self-signed certificate in `kfroot/ssl/` (`curl --cacert kfroot/ssl/kfserver.crt
+https://localhost:8543/` trusts it). Python 3 + Pillow only if you want to regenerate the GIFs (`make graphics`,
+`python3 tools/mkadmin_gfx.py`).
 
 ## What's inside
 
@@ -56,7 +61,8 @@ src/            the server (about 15,000 lines of C)
   interp.c        execution, template cache, Application.cfm, error pages, debug output
   tags*.c         ~80 CFML tags        func*.c   ~230 built-in functions
   sql.c           the "KoldFusion Flat-File Driver": a small SQL engine over text tables
-  http.c          HTTP/1.0 server + CFHTTP client      session.c  session/application/client scopes, CFLOCK
+  http.c          HTTP/1.1 web server (keep-alive)     session.c  session/application/client scopes, CFLOCK
+  netio.c, tls.c  sockets with deadlines; SSL via OpenSSL loaded at run time      httpc.c  CFHTTP client
   registry.c      REGEDIT4-format registry           crypto.c   CFMX_COMPAT Encrypt(), MD5 Hash(), uuencode
   mail.c          CFMAIL spool + SMTP delivery        sched.c    CFSCHEDULE scheduler
   verity.c        Verity-style collections, CFINDEX/CFSEARCH     wddx.c  WDDX 1.0
@@ -103,7 +109,8 @@ invented.
 Every page from the 4.5 navigation is implemented and saves to the registry:
 
 - **server**: Settings (request limit, timeouts, *Restart at N unresponsive requests* watchdog, whitespace suppression,
-  missing-template and site-wide error handlers), Caching (template cache, trusted cache, query cache), Basic Security
+  missing-template and site-wide error handlers), Web Server & SSL (keep-alive, timeouts, the secure listener and its
+  certificate - a KoldFusion extra, since 4.5 left that to IIS), Caching (template cache, trusted cache, query cache), Basic Security
   (admin/Studio passwords, tag restrictions, unsecured tags directory), Advanced Security (user directories, security
   contexts, rules, policies, sandboxes, resource view, map), Variables (client storage in registry/cookie/data source,
   session & application timeouts), Locking (none / full checking / automatic read locking / single-threaded sessions),
@@ -140,6 +147,7 @@ Every page from the 4.5 navigation is implemented and saves to the registry:
 | Command | What it does |
 |---|---|
 | `tests/run_tests.sh` | CFML regression tests (`tests/cfml/*.cfm` vs `*.expected`) |
+| `python3 tests/http_tests.py` | Web server and CFHTTP tests: keep-alive, pipelining, HEAD, 304s, chunked bodies, timeouts, HTTPS, SNI, proxies (starts its own server on ports 8723/8546) |
 | `bash tools/testdocs.sh --all` | Renders every documentation page and all 337 reference snippets |
 | `python3 wwwroot/CFDOCS/exampleapp/selftest.py PORT` | Walks every example-application page and flow against a running server |
 | `make asan` | Builds `bin/kfserver-asan` with AddressSanitizer/UBSan |
@@ -151,8 +159,9 @@ Every page from the 4.5 navigation is implemented and saves to the registry:
 
 ## Known limitations
 
-No HTTPS (in either the server or CFHTTP), no CFLDAP, no Java or COM objects, no query-of-queries (that is a
-ColdFusion 5 feature anyway). The SQL engine is small and rewrites a whole table file on every write — fine for
+No CFLDAP, no Java or COM objects, no query-of-queries (that is a ColdFusion 5 feature anyway). HTTPS needs OpenSSL
+at run time and the certificate it makes is self-signed, so browsers will warn (as they did in 1999 for anyone who
+skipped VeriSign). The web server uses one thread per connection: fine for a desk, not for the Slashdot effect. The SQL engine is small and rewrites a whole table file on every write — fine for
 nostalgia, not for production. Please don't run this on a public network.
 
 ## Credits

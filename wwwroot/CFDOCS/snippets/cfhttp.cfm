@@ -1,5 +1,7 @@
 <!--- Fetch the documentation home page from this very server --->
-<CFSET Target = "http://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/index.cfm">
+<CFSET Scheme = "http">
+<CFIF CGI.HTTPS IS "on"><CFSET Scheme = "https"></CFIF>
+<CFSET Target = "#Scheme#://127.0.0.1:#CGI.SERVER_PORT#/CFDOCS/index.cfm">
 <CFTRY>
   <CFHTTP URL="#Target#" METHOD="GET" TIMEOUT="10" THROWONERROR="Yes"></CFHTTP>
   <CFSET Start = FindNoCase("<TITLE>", CFHTTP.FileContent)>
