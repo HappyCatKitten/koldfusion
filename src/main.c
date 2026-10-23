@@ -1,7 +1,7 @@
 /*
  * main.c - KoldFusion Application Server 4.5 startup.
  *
- *   kfserver [-p port] [-b bindaddr] [-r installdir] [-w webroot]
+ *   kfserver [-p port] [--ssl-port port] [-b bindaddr] [-r installdir] [-w webroot]
  *            [--reset-admin-password pw]
  *
  * On first start an "installation" is performed: the registry is created
@@ -11,6 +11,7 @@
 #define _GNU_SOURCE
 #include "engine.h"
 #include "sql.h"
+#include "netio.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
@@ -297,13 +298,15 @@ int main(int argc, char **argv) {
     const char *root = NULL, *web = NULL, *reset_pw = NULL, *run_file = NULL, *run_query = NULL;
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-p") && i + 1 < argc) G.port = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--ssl-port") && i + 1 < argc) tls_set_port_override(atoi(argv[++i]));
         else if (!strcmp(argv[i], "-b") && i + 1 < argc) G.bind = argv[++i];
         else if (!strcmp(argv[i], "-r") && i + 1 < argc) root = argv[++i];
         else if (!strcmp(argv[i], "-w") && i + 1 < argc) web = argv[++i];
         else if (!strcmp(argv[i], "--reset-admin-password") && i + 1 < argc) reset_pw = argv[++i];
         else if (!strcmp(argv[i], "--run") && i + 1 < argc) { run_file = argv[++i]; if (i + 1 < argc && argv[i + 1][0] != '-') run_query = argv[++i]; }
         else {
-            fprintf(stderr, "usage: %s [-p port] [-b bind-address] [-r install-dir] [-w webroot] [--reset-admin-password pw]\n", argv[0]);
+            fprintf(stderr, "usage: %s [-p port] [--ssl-port port (0 = off)] [-b bind-address] [-r install-dir] [-w webroot]\n"
+                            "       [--reset-admin-password pw] [--run page.cfm [query-string]]\n", argv[0]);
             return 2;
         }
     }
@@ -340,6 +343,8 @@ int main(int argc, char **argv) {
     for (int i = 0; dirs[i]; i++) kf_mkdirs(kf_path_join(G.root, dirs[i]));
     reg_init(kf_path_join(G.root, "registry/kf.registry"));
     install_defaults();
+    http_install_defaults();
+    tls_install_defaults();
     if (reset_pw) {
         cfg_set(REG_SERVER, "AdminPassword", kf_scramble(reset_pw));
         printf("Administrator password reset.\n");
@@ -371,6 +376,10 @@ int main(int argc, char **argv) {
     sched_start();
 
     printf("  Listening on      : http://%s:%d/\n", G.bind, G.port);
+    a = arena_new(); g_arena = a;
+    int sport = tls_server_init();
+    g_arena = NULL; arena_free(a);
+    if (sport) printf("  Secure listener   : https://%s:%d/\n", G.bind, sport);
     printf("  Administrator     : http://%s:%d/CFIDE/administrator/index.cfm\n\n", G.bind, G.port);
     fflush(stdout);
     int rc = http_serve();

@@ -79,6 +79,7 @@ static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 static unsigned long   g_serial;                 /* statement counter (cache pinning) */
 static __thread double g_identity;               /* SELECT @@IDENTITY */
 static __thread int    g_have_identity;
+void sql_thread_reset(void) { g_have_identity = 0; g_identity = 0; }   /* @@IDENTITY is per request */
 
 /* ========================================================= storage types */
 enum { CT_INT = 1, CT_FLOAT, CT_TEXT, CT_DATE, CT_BIT };

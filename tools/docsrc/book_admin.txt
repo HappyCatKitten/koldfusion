@@ -33,6 +33,7 @@ KoldFusion runs happily on UNIX, but it keeps the Windows-flavored names its use
 | `kfroot/cfx/` | CFX tag libraries (.so files) |
 | `kfroot/customtags/` | Custom tags available to every application |
 | `kfroot/verity/collections/` | Verity collections |
+| `kfroot/ssl/` | The SSL certificate and private key (made on first start) and any per-site certificates |
 | `wwwroot/` | The web root; the Administrator lives in `wwwroot/CFIDE/administrator/` |
 
 The registry is re-read automatically whenever the file changes, so a careful hand edit takes effect without a restart.
@@ -43,10 +44,11 @@ From the KoldFusion directory, start the server with:
 
     ./bin/kfserver
 
-It prints its install directory and web root and listens on http://127.0.0.1:8500/. The first start performs the "installation": it writes the default registry and builds the sample data sources. Command-line options:
+It prints its install directory and web root and listens on http://127.0.0.1:8500/, plus https://127.0.0.1:8543/ when SSL is available (see [Web Server and SSL](webserver.htm)). The first start performs the "installation": it writes the default registry, builds the sample data sources and makes a self-signed SSL certificate. Command-line options:
 
 | Option | Meaning |
 | -p PORT | Listen on another port (default 8500) |
+| --ssl-port PORT | Run the secure (https) listener on another port (default 8543 from the registry); 0 turns it off |
 | -b ADDRESS | Bind to another address (default 127.0.0.1; use 0.0.0.0 to serve your whole LAN) |
 | -r DIR | Use another install directory instead of `kfroot/` |
 | -w DIR | Use another web root instead of `wwwroot/` |
@@ -78,6 +80,62 @@ Handler paths are relative to the web root, or start with / to go through your [
 The **Restart Server...** button asks for confirmation and then restarts the KoldFusion Application Server in place, on the same port and with the same options. Wait a few seconds and reload the page. Running sessions and application variables are lost; client variables survive.
 
 > Strict attribute validation is a great friend during development: it catches typos such as `DATASORCE=` that would otherwise fail silently.
+
+@page webserver | Web Server and SSL
+
+ColdFusion 4.5 left the web server to IIS or Netscape Enterprise Server. KoldFusion brings its own, and this page (a KoldFusion extra) sets how it handles connections and secure sockets.
+
+**Go there:** [Open the Web Server and SSL page](/CFIDE/administrator/server/webserver.cfm) (or [inside the frameset](/CFIDE/administrator/index.cfm?page=server/webserver.cfm))
+
+# HTTP connections
+
+KoldFusion speaks HTTP/1.1. A browser can keep one connection open and send request after request over it (and HTTP/1.0 browsers that send `Connection: Keep-Alive`, as Netscape 4 and Internet Explorer 4 did, get the same treatment). Requests may be pipelined; the answers come back in order. Every answer carries an exact `Content-Length`, `HEAD` requests get the headers without the body, request bodies may be sent chunked, and `Expect: 100-continue` is honored. Static files carry `Last-Modified` and `ETag`, so a browser that already has a file gets a short "304 Not Modified"; changing the page zoom counts as a change to every HTML file.
+
+| Setting | Default | What it does |
+| Allow persistent (keep-alive) connections | on | Off answers every request with `Connection: close`, like 1999. |
+| Close idle connections after N seconds | 15 | How long an open connection may wait for its next request. |
+| ... and after N requests | 100 | Requests per connection before the server asks the browser to reconnect. |
+| Request header timeout | 20 seconds | The whole request header (and the SSL handshake) must arrive in this time. A client that trickles one byte at a time ("slowloris") is cut off with "408 Request Timeout". Request bodies get 30 seconds plus a second for every 64 KB. |
+| Maximum connections | 400 | Open connections at once; more are refused with "503 Service Unavailable". Above three quarters of the limit, responses close their connection instead of keeping it alive. |
+
+The keep-alive settings apply to new connections straight away. The request limit on [Server Settings](settings.htm) still counts templates being run, not open connections, so idle keep-alive connections never block the queue.
+
+# Secure Sockets Layer
+
+When the OpenSSL libraries (`libssl.so.3`, or 1.1) are installed, KoldFusion also listens for `https://` requests, on port 8543 unless you choose another. No SSL library is needed to build KoldFusion; it looks for one when it starts, and if there is none the page says so and the secure listener stays off.
+
+| Setting | Default | What it does |
+| Enable the secure listener on port | on, 8543 | `kfserver --ssl-port PORT` overrides the port for one run, and `--ssl-port 0` turns the listener off. |
+| Server certificate / Private key | `kfroot/ssl/kfserver.crt`, `.key` | PEM files. A certificate chain file may hold intermediate certificates after the server's own. |
+| Ask browsers for a client certificate | off | Any client certificate is accepted and shows up in `CGI.CERT_SUBJECT`, `CGI.CERT_ISSUER`, `CGI.CERT_SERIALNUMBER` and `CGI.CERT_FLAGS`. |
+| Verify server certificates in CFHTTP | on | `CFHTTP` checks an https:// server's certificate against the system's certificate authorities, and trusts this server's own certificate. Turn it off to accept anything, or use `CHECKCERTIFICATE="No"` on one tag. |
+
+Changes to the listener take effect when the server restarts; use **Restart Server...** at the bottom of the page.
+
+# The certificate
+
+On its first start KoldFusion asks `/usr/bin/openssl` for a self-signed certificate: subject `CN=localhost, O=Gibson Mainframe Co.`, valid for ten years, for the names `localhost`, `*.localhost`, `127.0.0.1` and every [virtual site](/web1999/) (`yowza.localhost` and friends, each named outright because OpenSSL does not accept a wildcard directly below `localhost`). **Generate Self-Signed Certificate** makes a fresh one, and the secure listener switches to it at once. To make one by hand:
+
+    openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
+      -keyout kfroot/ssl/kfserver.key -out kfroot/ssl/kfserver.crt \
+      -subj "/CN=localhost/O=Gibson Mainframe Co." \
+      -addext "subjectAltName=DNS:localhost,DNS:*.localhost,IP:127.0.0.1"
+
+Browsers warn about a self-signed certificate. Either click through, as everyone did in 1999, or import `kfserver.crt` as a trusted authority; `curl --cacert kfroot/ssl/kfserver.crt https://localhost:8543/` works without warnings. A virtual site can have its own certificate: put `<name>.localhost.crt` and `<name>.localhost.key` in `kfroot/ssl/`, and browsers that send the host name (SNI, which every browser since about 2006 does) get it.
+
+# What pages see
+
+| Variable | Plain HTTP | Over SSL |
+| CGI.HTTPS | off | on |
+| CGI.SERVER_PORT_SECURE | 0 | 1 |
+| CGI.SERVER_PORT | 8500 | 8543 |
+| CGI.CERT_KEYSIZE, CGI.HTTPS_KEYSIZE | (empty) | Bits of the session key, for example 256 |
+| CGI.CERT_SECRETKEYSIZE, CGI.HTTPS_SECRETKEYSIZE | (empty) | Bits of the server's private key, for example 2048 |
+| CGI.CERT_SERVER_SUBJECT, CGI.CERT_SERVER_ISSUER | (empty) | The server certificate's subject and issuer, such as `CN=localhost, O=Gibson Mainframe Co.` |
+| CGI.CERT_SUBJECT, CGI.CERT_ISSUER, CGI.CERT_SERIALNUMBER, CGI.CERT_COOKIE | (empty) | The client certificate, when one was asked for and sent |
+| CGI.CERT_FLAGS | (empty) | 0 without a client certificate, 1 with one, 3 when its issuer is not trusted |
+
+These are the names IIS 4.0 used. The redirects between virtual sites keep the scheme and port: a link from `https://yowza.localhost:8543/` to another site stays on https and port 8543.
 
 @page caching | Caching
 

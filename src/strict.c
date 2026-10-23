@@ -21,7 +21,7 @@ static const struct { const char *tag, *attrs; } ALLOWED[] = {
     {"cffile", "action,file,destination,source,output,variable,filefield,nameconflict,accept,mode,attributes,addnewline,charset"},
     {"cfdirectory", "action,directory,name,filter,sort,mode,newdirectory"},
     {"cfregistry", "action,branch,entry,variable,type,value,name,sort"},
-    {"cfhttp", "url,method,port,username,password,resolveurl,file,path,name,columns,delimiter,textqualifier,proxyserver,proxyport,useragent,throwonerror,redirect,timeout,firstrowasheaders"},
+    {"cfhttp", "url,method,port,username,password,resolveurl,file,path,name,columns,delimiter,textqualifier,proxyserver,proxyport,useragent,throwonerror,redirect,timeout,firstrowasheaders,checkcertificate"},
     {"cfhttpparam", "type,name,value,file"},
     {"cflock", "name,scope,timeout,type,throwontimeout"},
     {"cfthrow", "type,message,detail,errorcode,extendedinfo,object"},

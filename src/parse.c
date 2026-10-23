@@ -18,6 +18,7 @@ Expr *expr_parse_strlit(const char *src, int *pos, int len, const char **err);
 static __thread const char *lc_src;
 static __thread size_t lc_off;
 static __thread int lc_line, lc_col;
+void parse_thread_reset(void) { lc_src = NULL; lc_off = 0; }   /* the cached source may be freed memory now */
 
 void pos_to_linecol(const char *src, size_t off, int *line, int *col) {
     size_t i = 0; int l = 1, c = 1;

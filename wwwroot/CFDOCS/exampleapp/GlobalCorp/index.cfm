@@ -40,7 +40,7 @@
 	this same web server, so we build its URL from the CGI variables.
 	If it cannot be reached we say so instead of throwing an error.
 --->
-<CFSET QuoteURL = "http://#CGI.SERVER_NAME#:#CGI.SERVER_PORT##Request.Root#/quoteserver/quotes.cfm">
+<CFSET QuoteURL = "#IIf(CGI.HTTPS IS 'on', DE('https'), DE('http'))#://#CGI.SERVER_NAME#:#CGI.SERVER_PORT##Request.Root#/quoteserver/quotes.cfm">
 <CFSET TickerOK = FALSE>
 <CFTRY>
 	<CFHTTP URL="#QuoteURL#?symbols=GLBC,WDGT,CPLR,NETZ" METHOD="GET" TIMEOUT="5" THROWONERROR="Yes">

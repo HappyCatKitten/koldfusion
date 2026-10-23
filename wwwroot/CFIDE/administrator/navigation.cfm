@@ -1,6 +1,6 @@
 <!--- Left-hand navigation, after the 4.x Administrator --->
 <cfset sections = ArrayNew(1)>
-<cfset sections[1] = "server|Settings=server/settings.cfm|Caching=server/caching.cfm|Basic Security=server/basicsecurity.cfm|Advanced Security=server/advancedsecurity.cfm|Variables=server/variables.cfm|Locking=server/locking.cfm|Mappings=server/mappings.cfm|Java=server/java.cfm|Version Info=server/versioninfo.cfm">
+<cfset sections[1] = "server|Settings=server/settings.cfm|Web Server &amp; SSL=server/webserver.cfm|Caching=server/caching.cfm|Basic Security=server/basicsecurity.cfm|Advanced Security=server/advancedsecurity.cfm|Variables=server/variables.cfm|Locking=server/locking.cfm|Mappings=server/mappings.cfm|Java=server/java.cfm|Version Info=server/versioninfo.cfm">
 <cfset sections[2] = "datasources|ODBC=datasources/odbc.cfm|Native Drivers=datasources/native.cfm|OLE DB=datasources/oledb.cfm|Verify Data Source=datasources/verify.cfm">
 <cfset sections[3] = "extensions|CFX Tags=extensions/cfx.cfm|Applets=extensions/applets.cfm">
 <cfset sections[4] = "logging|Settings=logging/settings.cfm|Mail Logging=logging/maillog.cfm|Log Files=logging/logfiles.cfm">
