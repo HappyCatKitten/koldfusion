@@ -1,19 +1,21 @@
-<CFTRY>
-  <CFLDAP ACTION="Query" SERVER="ldap.gibson.example" NAME="People"
-          START="o=Gibson, c=US" SCOPE="Subtree"
-          FILTER="(ou=Engineering)" ATTRIBUTES="cn,mail,telephoneNumber">
-  <CFCATCH TYPE="Application">
-    <CFOUTPUT><P><B>#CFCATCH.Message#:</B> #CFCATCH.Detail#</P></CFOUTPUT>
-    <!--- Use the company database as the phone book instead --->
-    <CFQUERY NAME="People" DATASOURCE="cfsnippets" MAXROWS="5">
-    SELECT LastName AS cn, Email AS mail, Phone AS telephoneNumber
-    FROM Employees WHERE Department = 'Engineering' ORDER BY LastName
-    </CFQUERY>
-  </CFCATCH>
-</CFTRY>
+<!--- Who works in Engineering? Ask the Gibson Directory Server --->
+<CFLDAP ACTION="Query" NAME="People"
+        SERVER="#Server.Directory.Host#" PORT="#Server.Directory.Port#"
+        START="ou=People, #Server.Directory.BaseDN#" SCOPE="OneLevel"
+        FILTER="(&(objectclass=person)(ou=Engineering))"
+        ATTRIBUTES="cn,title,mail,telephoneNumber" SORT="cn" SORTCONTROL="nocase">
+<CFOUTPUT><P>#People.RecordCount# people work in Engineering.</P></CFOUTPUT>
 <TABLE BORDER=1 CELLPADDING=3>
-<TR><TH>cn</TH><TH>mail</TH><TH>telephoneNumber</TH></TR>
+<TR><TH>Name</TH><TH>Title</TH><TH>E-mail</TH><TH>Phone</TH></TR>
 <CFOUTPUT QUERY="People">
-<TR><TD>#cn#</TD><TD>#mail#</TD><TD>#telephoneNumber#</TD></TR>
+<TR><TD>#cn#</TD><TD>#title#</TD><TD>#mail#</TD><TD>#telephoneNumber#</TD></TR>
 </CFOUTPUT>
 </TABLE>
+<!--- Errors carry the LDAP result code --->
+<CFTRY>
+  <CFLDAP ACTION="Query" NAME="Nobody" SERVER="#Server.Directory.Host#" PORT="#Server.Directory.Port#"
+          START="ou=Nowhere, #Server.Directory.BaseDN#" ATTRIBUTES="cn">
+  <CFCATCH TYPE="Any">
+    <CFOUTPUT><P><B>#CFCATCH.Message#</B> (ErrorCode #CFCATCH.ErrorCode#)</P></CFOUTPUT>
+  </CFCATCH>
+</CFTRY>

@@ -531,8 +531,9 @@ static int soundex(const char *w, size_t n, char out[5]) {
     size_t i = 0; int k = 0;
     while (i < n && !isalpha((unsigned char)w[i])) i++;
     if (i >= n) return 0;
-    out[k++] = (char)toupper((unsigned char)w[i]);
+    /* unlike classic Soundex the first letter is coded too, so Carol ~= Karol */
     char last = codes[toupper((unsigned char)w[i]) - 'A'];
+    out[k++] = last != '0' ? last : (char)toupper((unsigned char)w[i]);
     for (i++; i < n && k < 4; i++) {
         if (!isalpha((unsigned char)w[i])) continue;
         char cd = codes[toupper((unsigned char)w[i]) - 'A'];
@@ -1567,8 +1568,7 @@ static void publish_scope(void);
 /* caller holds life_mu */
 static int ds_start(char *err, size_t el) {
     if (running) return 1;
-    conf_reload();
-    Conf *c = conf();
+    Conf *c = conf();                                   /* callers load the configuration */
     signal(SIGPIPE, SIG_IGN);
     pthread_rwlock_wrlock(&dit_lock);
     if (!dit_loaded) dit_load();

@@ -37,10 +37,13 @@ Then open:
 | http://127.0.0.1:8500/demos/ | Demo gallery of openly-licensed CFML found around the web |
 | http://127.0.0.1:8500/cool/ | Cool Stuff You Can Do |
 | http://localhost:8500/web1999/ | The 1999 Web: twelve retro sites, each on its own virtual host |
+| http://127.0.0.1:8500/cool/phonebook.cfm | Employee Phone Directory: CFLDAP against the built-in directory server |
+| ldap://127.0.0.1:3890/ | The Gibson Directory Server, a bundled LDAPv3 directory (`o=Gibson Mainframe Co, c=US`) |
 
 Options: `-p PORT` (default 8500), `-b ADDRESS` (default 127.0.0.1 — keep it that way, the security is authentically
 1999), `-r INSTALLDIR` (default `kfroot/`), `-w WEBROOT` (default `wwwroot/`), `--reset-admin-password NEWPW`,
-`--run page.cfm [query-string]` (render a single page to stdout, handy for testing).
+`--run page.cfm [query-string]` (render a single page to stdout, handy for testing), `--ldap-port PORT` (run the
+directory server on another port this time), `--no-ldap` (do not start it).
 
 Requirements: a C compiler, GNU make, pthreads. No other libraries. Python 3 + Pillow only if you want to regenerate the
 GIFs (`make graphics`, `python3 tools/mkadmin_gfx.py`).
@@ -62,7 +65,10 @@ src/            the server (about 15,000 lines of C)
   verity.c        Verity-style collections, CFINDEX/CFSEARCH     wddx.c  WDDX 1.0
   cfx.c, kfx.h    CFX tags as shared libraries        security.c Advanced Security, CFAUTHENTICATE
   ftp.c           CFFTP client                        strict.c   strict attribute validation
-kfroot/         the install directory ("C:\CFUSION"): registry/, log/, mail/{spool,undelivr}, db/, verity/, cfx/, customtags/
+  ldap.c          CFLDAP, an LDAPv3 client; LDAP user directories for Advanced Security
+  ldapd.c         the Gibson Directory Server, a bundled LDAPv3 server (LDIF-backed)
+  ber.c           BER codec, RFC 2254 filters, DNs, SHA-1 (shared by ldap.c and ldapd.c)
+kfroot/         the install directory ("C:\CFUSION"): registry/, log/, mail/{spool,undelivr}, db/, verity/, cfx/, customtags/, ldap/
 wwwroot/        the web root: Welcome page, /CFIDE/administrator, /CFDOCS, /demos, /cool, /web1999, sites/ (virtual sites)
 cfx/            source of the sample CFX tags (CFX_HELLO, CFX_DICE, CFX_SYSINFO)
 tools/          graphics generators (all GIFs are drawn procedurally — no original artwork is used)
@@ -114,7 +120,28 @@ Every page from the 4.5 navigation is implemented and saves to the registry:
 - **automated tasks**: Scheduler Settings, Scheduled Tasks (one-time, daily/weekly/monthly, every N minutes, RUN now,
   publish to file).
 - **miscellaneous**: Mail (verify, spool and undeliverable folder), Debugging (debug output appended to pages, IP
-  restrictions), Verity (create/index/repair/optimize/purge/delete collections), Source Control.
+  restrictions), Verity (create/index/repair/optimize/purge/delete collections), Source Control, Directory Server
+  (the bundled LDAP directory: settings, start/stop, restore the sample directory, browse the tree).
+
+## LDAP: CFLDAP and the Gibson Directory Server
+
+`CFLDAP` is a complete LDAPv3 client written from scratch in C (BER over TCP, no SDK): ACTION="Query" with every
+SCOPE, RFC 2254 filters, ATTRIBUTES (a list or `*`, plus a DN column), client-side SORT/SORTCONTROL,
+STARTROW/MAXROWS, REFERRAL/REBIND, and Add, Modify (MODIFYTYPE add/delete/replace), ModifyDN and Delete with
+SEPARATOR/DELIMITER. Errors read like the originals: `An error has occured while trying to execute query :[LDAP:
+error code 32 - No Such Object]`. It honours the Basic Security tag restrictions.
+
+So that it has something to talk to, KoldFusion starts the **Gibson Directory Server 1.0** next to the web server
+(127.0.0.1:3890, a Netscape Directory Server look-alike). It answers any LDAP client (`ldapsearch -x -H
+ldap://127.0.0.1:3890 -b "o=Gibson Mainframe Co,c=US" "(sn=S*)"`), supports bind, search, add, modify, delete,
+modify DN, compare and "Who am I?", stores userPassword as `{SHA}` like Netscape did, has a `cn=Directory Manager`
+(password `admin`) and a `cn=Directory Administrators` group, and keeps everything in `kfroot/ldap/gibson.ldif`.
+It is seeded with the 25 employees of the cfsnippets data source (each one's password is their uid) and
+department groups. Pages find it through `Server.Directory.Host`, `.Port` and `.BaseDN`.
+
+Advanced Security user directories of type LDAP work against it, or any other LDAP server: `CFAUTHENTICATE`
+binds as the user (SiteMinder-style DN lookup or a search), and LDAP group membership feeds `IsAuthorized()`. A
+fresh install has a "Gibson Directory" user directory and a GibsonIntranet context ready to go.
 
 ## Period-correct details
 
@@ -143,6 +170,9 @@ Every page from the 4.5 navigation is implemented and saves to the registry:
 | `bash tools/testdocs.sh --all` | Renders every documentation page and all 337 reference snippets |
 | `python3 wwwroot/CFDOCS/exampleapp/selftest.py PORT` | Walks every example-application page and flow against a running server |
 | `make asan` | Builds `bin/kfserver-asan` with AddressSanitizer/UBSan |
+| `tests/ldap_interop.sh [http-port] [ldap-port]` | Checks the directory server against the OpenLDAP command-line tools |
+| `tests/ldap_fuzz.py PORT` | Throws mutated, truncated and random LDAP messages at the directory server |
+| `tests/ber_fuzz.c` | Fuzzes the BER decoder, filter parser and DN code in-process (build line in the file) |
 | `python3 tools/mkdocs.py` | Regenerates the CFML Language Reference, Quick Reference and books from `tools/docsrc/` |
 | `tools/kfstat [-p port] [secs]` | Command-line performance monitor, like `cfstat` (enable performance monitoring on the Debugging page) |
 | `make reset` | Wipes registry, databases, logs, mail and caches for a pristine "fresh install" |
@@ -151,8 +181,9 @@ Every page from the 4.5 navigation is implemented and saves to the registry:
 
 ## Known limitations
 
-No HTTPS (in either the server or CFHTTP), no CFLDAP, no Java or COM objects, no query-of-queries (that is a
-ColdFusion 5 feature anyway). The SQL engine is small and rewrites a whole table file on every write — fine for
+No HTTPS (in either the server or CFHTTP), no LDAP over SSL (CFLDAP SECURE=) and no SASL/StartTLS or schema
+checking in the directory server, no Java or COM objects, no query-of-queries (that is a ColdFusion 5 feature
+anyway). The SQL engine is small and rewrites a whole table file on every write — fine for
 nostalgia, not for production. Please don't run this on a public network.
 
 ## Credits

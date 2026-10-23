@@ -371,7 +371,7 @@ static int cmp_entries(const void *a, const void *b) {
         if (t_sk[i].desc) r = -r;
         if (r) return r;
     }
-    return 0;
+    return strcmp(x->dn, y->dn);     /* qsort is not stable: keep ties in a fixed order */
 }
 
 /* "name=value;name=value" (DELIMITER) with SEPARATOR between multiple values */
@@ -416,7 +416,8 @@ static void put_attr_list(LBuf *b, AttrMod *m, int n) {
 }
 
 /* ================================================================ CFLDAP */
-static void do_query(Ctx *c, Node *n, LConn *lc, const char *user, const char *pass, int timeout, int referral_hops, int rebind) {
+static void do_query(Ctx *c, Node *n, const char *server, int port, const char *user, const char *pass, int timeout,
+                     int referral_hops, int rebind) {
     const char *name = require_attr(c, n, "name");
     const char *start = require_attr(c, n, "start");
     const char *attrs = require_attr(c, n, "attributes");
@@ -434,12 +435,17 @@ static void do_query(Ctx *c, Node *n, LConn *lc, const char *user, const char *p
     const char *sortcontrol = attr_str(c, n, "sortcontrol", "asc");
     const char *sep = has_attr(n, "separator") ? attr_str(c, n, "separator", ",") : ", ";
 
-    LBuf fb; lb_init(&fb);
+    LBuf fbm; lb_init(&fbm);
     const char *ferr = NULL;
-    if (!ldap_filter_encode(&fb, filter, &ferr)) {
-        lb_free(&fb);
+    if (!ldap_filter_encode(&fbm, filter, &ferr)) {
+        lb_free(&fbm);
         throw_ldap(c, "query", LDAP_FILTER_ERROR, kprintf("Bad filter %s: %s", filter, ferr), NULL);
     }
+    /* keep the encoded filter in the request arena, so errors thrown below leak nothing */
+    LBuf fb;
+    fb.p = kmalloc(fbm.len); memcpy(fb.p, fbm.p, fbm.len);
+    fb.len = fb.cap = fbm.len;
+    lb_free(&fbm);
 
     /* columns and the attributes to ask the server for */
     Array *req = split_list(attrs, ",");
@@ -495,11 +501,13 @@ static void do_query(Ctx *c, Node *n, LConn *lc, const char *user, const char *p
     Array *refs = array_new();
     LResult res;
     double t0 = kf_time_ms();
+    LConn lconn, *lc = &lconn;
+    connect_bind(c, lc, server, port, timeout, user, pass, "query");
     if (!lc_search(lc, start, scope, &fb, ask, sizelimit, timeout, &ents, &nent, &cap, refs, &res)) {
         close(lc->fd); lc->fd = -1;
-        lb_free(&fb);
         throw_ldap(c, "query", LDAP_SERVER_DOWN, "The connection to the server was lost", NULL);
     }
+    lc_close(lc);
     /* referrals: REFERRAL="hops" follows them, REBIND="Yes" re-uses the credentials */
     if (res.code == LDAP_REFERRAL && res.referrals) for (int i = 0; i < res.referrals->n; i++) array_push(refs, res.referrals->v[i]);
     if (res.code == LDAP_REFERRAL && referral_hops > 0 && refs->n) res.code = LDAP_SUCCESS;
@@ -521,7 +529,6 @@ static void do_query(Ctx *c, Node *n, LConn *lc, const char *user, const char *p
         refs = next;
     }
     double ms = kf_time_ms() - t0;
-    lb_free(&fb);
     if (res.code != LDAP_SUCCESS && res.code != LDAP_SIZELIMIT_EXCEEDED && res.code != LDAP_TIMELIMIT_EXCEEDED)
         throw_ldap(c, "query", res.code, res.diag, res.matched);
 
@@ -609,16 +616,29 @@ TAG(ldap) {
     if (!*delim) delim = ";";
     if (!*sep) sep = ",";
 
-    LConn lc;
     if (!strcmp(act, "query")) {
-        /* validate before connecting */
-        require_attr(c, n, "name"); require_attr(c, n, "start"); require_attr(c, n, "attributes");
-        connect_bind(c, &lc, server, port, timeout, user, pass, act);
-        do_query(c, n, &lc, user, pass, timeout, referral, rebind);
-        lc_close(&lc);
+        do_query(c, n, server, port, user, pass, timeout, referral, rebind);
         return;
     }
+    /* validate everything before connecting: nothing below may throw while a socket is open
+     * or the request buffer is allocated */
     const char *dn = require_attr(c, n, "dn");
+    const char *newrdn = NULL, *mt = NULL;
+    AttrMod *mods = NULL;
+    int na = 0, mop = 2;
+    if (!strcmp(act, "modifyDN")) newrdn = kf_trim(require_attr(c, n, "attributes"));
+    else if (strcmp(act, "delete")) {
+        mods = parse_attr_pairs(c, require_attr(c, n, "attributes"), delim, sep, &na);
+        if (!strcmp(act, "modify")) {
+            mt = attr_str(c, n, "modifytype", "replace");
+            if (!kf_stricmp(mt, "add")) mop = 0;
+            else if (!kf_stricmp(mt, "delete")) mop = 1;
+            else if (!kf_stricmp(mt, "replace")) mop = 2;
+            else throw_attr(c, "MODIFYTYPE", mt, "ADD, DELETE, REPLACE");
+        }
+    }
+    LConn lc;
+    connect_bind(c, &lc, server, port, timeout, user, pass, act);
     LBuf op; lb_init(&op);
     LResult r;
     unsigned restag;
@@ -626,7 +646,6 @@ TAG(ldap) {
         ber_put_cstr(&op, LDAP_REQ_DELETE, dn);
         restag = LDAP_RES_DELETE;
     } else if (!strcmp(act, "modifyDN")) {
-        const char *newrdn = kf_trim(require_attr(c, n, "attributes"));
         size_t m = ber_begin(&op, LDAP_REQ_MODDN);
         ber_put_cstr(&op, BER_OCTETSTRING, dn);
         ber_put_cstr(&op, BER_OCTETSTRING, newrdn);
@@ -634,8 +653,6 @@ TAG(ldap) {
         ber_end(&op, m);
         restag = LDAP_RES_MODDN;
     } else {
-        int na;
-        AttrMod *mods = parse_attr_pairs(c, require_attr(c, n, "attributes"), delim, sep, &na);
         if (!strcmp(act, "add")) {
             size_t m = ber_begin(&op, LDAP_REQ_ADD);
             ber_put_cstr(&op, BER_OCTETSTRING, dn);
@@ -645,12 +662,6 @@ TAG(ldap) {
             ber_end(&op, m);
             restag = LDAP_RES_ADD;
         } else {
-            const char *mt = attr_str(c, n, "modifytype", "replace");
-            int mop;
-            if (!kf_stricmp(mt, "add")) mop = 0;
-            else if (!kf_stricmp(mt, "delete")) mop = 1;
-            else if (!kf_stricmp(mt, "replace")) mop = 2;
-            else throw_attr(c, "MODIFYTYPE", mt, "ADD, DELETE, REPLACE");
             size_t m = ber_begin(&op, LDAP_REQ_MODIFY);
             ber_put_cstr(&op, BER_OCTETSTRING, dn);
             size_t l = ber_begin(&op, BER_SEQUENCE);
@@ -665,7 +676,6 @@ TAG(ldap) {
             restag = LDAP_RES_MODIFY;
         }
     }
-    connect_bind(c, &lc, server, port, timeout, user, pass, act);
     int ok = lc_simple_op(&lc, &op, restag, &r);
     lb_free(&op);
     check_result(c, &lc, ok, &r, act);
