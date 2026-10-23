@@ -145,7 +145,7 @@ Every page from the 4.5 navigation is implemented and saves to the registry:
 | Command | What it does |
 |---|---|
 | `tests/run_tests.sh` | CFML regression tests (`tests/cfml/*.cfm` vs `*.expected`) |
-| `bash tools/testdocs.sh --all` | Renders every documentation page and all 344 reference snippets |
+| `bash tools/testdocs.sh --all` | Renders every documentation page and all 348 reference snippets |
 | `python3 wwwroot/CFDOCS/exampleapp/selftest.py PORT` | Walks every example-application page and flow against a running server |
 | `make asan` | Builds `bin/kfserver-asan` with AddressSanitizer/UBSan |
 | `python3 tools/mkdocs.py` | Regenerates the CFML Language Reference, Quick Reference and books from `tools/docsrc/` |
