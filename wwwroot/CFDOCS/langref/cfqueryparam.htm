@@ -56,7 +56,7 @@ function runExample(name) {
 <LI>CF_SQL_DATE, CF_SQL_TIME and CF_SQL_TIMESTAMP accept anything <A HREF="isdate.htm"><CODE>IsDate</CODE></A> likes and send an ODBC date literal.
 <LI>Everything else is treated as text; single quotes are doubled for you.
 </UL>
-<P>A value that fails the check throws an exception of type Database (&quot;Invalid data ... for CFSQLTYPE ...&quot;), which you can catch with <A HREF="cftry.htm"><CODE>CFTRY</CODE></A>/<A HREF="cftry.htm"><CODE>CFCATCH</CODE></A>. Using the tag outside a <A HREF="cfquery.htm"><CODE>CFQUERY</CODE></A> is a Template error.</P>
+<P>A value that fails the check throws an exception of type Database (&quot;Invalid data &#x27;...&#x27; for CFSQLTYPE &#x27;...&#x27;.&quot;), which you can catch with <A HREF="cftry.htm"><CODE>CFTRY</CODE></A>/<A HREF="cftry.htm"><CODE>CFCATCH</CODE></A>. Using the tag outside a <A HREF="cfquery.htm"><CODE>CFQUERY</CODE></A> is a Template error.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfqueryparam"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfqueryparam'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
 <PRE CLASS="example">&lt;!--- Try ?Dept=Marketing&amp;MinID=7 or ?MinID=abc ---&gt;

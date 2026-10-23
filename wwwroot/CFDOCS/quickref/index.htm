@@ -126,6 +126,7 @@
 <P CLASS="qr"><A HREF="/CFDOCS/langref/cfcache.htm"><B>CFCACHE</B></A> &nbsp;<FONT SIZE=1>Saves the generated page to a file and serves that copy to later visitors.</FONT></P>
 <PRE CLASS="qr">&lt;CFCACHE ACTION=&quot;CACHE/FLUSH/CLIENTCACHE/OPTIMAL&quot;
     DIRECTORY=&quot;directory&quot;
+    CACHEDIRECTORY=&quot;directory&quot;
     TIMEOUT=&quot;date_time&quot;
     EXPIREURL=&quot;url&quot;
     PROTOCOL=&quot;http://&quot;
@@ -221,6 +222,7 @@
 <P CLASS="qr"><A HREF="/CFDOCS/langref/cfstoredproc.htm"><B>CFSTOREDPROC</B></A> &nbsp;<FONT SIZE=1>Calls a stored procedure in a data source.</FONT></P>
 <PRE CLASS="qr">&lt;CFSTOREDPROC PROCEDURE=&quot;procedure_name&quot;
     DATASOURCE=&quot;ds_name&quot;
+    DBTYPE=&quot;type&quot;
     USERNAME=&quot;username&quot;
     PASSWORD=&quot;password&quot;
     DBSERVER=&quot;dbms&quot;

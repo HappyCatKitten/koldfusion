@@ -27,7 +27,7 @@
 6|16|S1000|Cannot use a BREAK statement outside the scope of a WHILE statement. (procedure KfBad, line 1)
 6|17|S1000|Custom failure abc/42
 6|[Gibson][KoldFusion Flat-File Driver] Employee 99999 is not on file.|0
-6|Invalid data 1.5 for CFSQLTYPE CF_SQL_INTEGER.
+6|Invalid data '1.5' for CFSQLTYPE 'CF_SQL_INTEGER'.
 6|Attribute validation error for tag CFPROCPARAM.
 6|Attribute validation error for tag CFPROCPARAM.|The tag requires the attribute(s): VARIABLE when TYPE is OUT.
 6|Context validation error for tag CFPROCPARAM.

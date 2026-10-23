@@ -26,6 +26,7 @@ function runExample(name) {
 <H4>Syntax</H4>
 <PRE>&lt;CFCACHE ACTION=&quot;CACHE/FLUSH/CLIENTCACHE/OPTIMAL&quot;
     DIRECTORY=&quot;directory&quot;
+    CACHEDIRECTORY=&quot;directory&quot;
     TIMEOUT=&quot;date_time&quot;
     EXPIREURL=&quot;url&quot;
     PROTOCOL=&quot;http://&quot;
@@ -35,9 +36,11 @@ function runExample(name) {
 <H4>Attributes</H4>
 <DL>
 <DT><B>ACTION</B></DT>
-<DD><I>Optional, default &quot;CACHE&quot;.</I> &quot;CACHE&quot; serves and saves cached copies. &quot;FLUSH&quot; deletes cached copies. CLIENTCACHE and OPTIMAL (browser caching in ColdFusion) are treated like CACHE.</DD>
+<DD><I>Optional, default &quot;CACHE&quot;.</I> &quot;CACHE&quot; serves and saves cached copies on the server. &quot;FLUSH&quot; deletes cached copies. &quot;CLIENTCACHE&quot; lets the browser cache the page: the response carries a Last-Modified date (the template&#x27;s date, or TIMEOUT if that is later) and a browser that asks again with that date gets &quot;304 Not Modified&quot;. &quot;OPTIMAL&quot; does both.</DD>
 <DT><B>DIRECTORY</B></DT>
-<DD><I>Optional.</I> Absolute path of the directory that holds the cached copies. The default is the <CODE>cache</CODE> directory of the KoldFusion installation.</DD>
+<DD><I>Optional.</I> Absolute path of the directory that holds the cached copies. The default is the <CODE>cache</CODE> directory of the KoldFusion installation. With ACTION=&quot;FLUSH&quot;, the directory to flush.</DD>
+<DT><B>CACHEDIRECTORY</B></DT>
+<DD><I>Optional.</I> Directory the cached copies are written to with ACTION=&quot;CACHE&quot; or &quot;OPTIMAL&quot;; overrides DIRECTORY.</DD>
 <DT><B>TIMEOUT</B></DT>
 <DD><I>Optional.</I> A date/time. A cached copy made before this moment is stale and the page is run again. <CODE>DateAdd(&quot;h&quot;, -1, Now())</CODE> means &quot;no copy older than an hour&quot;. Without TIMEOUT a copy never expires.</DD>
 <DT><B>EXPIREURL</B></DT>

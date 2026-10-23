@@ -1184,8 +1184,8 @@ IsK2ServerABroker()
 returns:
 YES if the K2 Server is a broker, NO otherwise.
 usage:
-> The Verity K2 Server functions belong to the K2 Server support that shipped with the next major version;
-> KoldFusion provides them so pages written for it run here too.
+> This function came to CFML two major versions after 4.5, with later Verity K2 support; KoldFusion
+> provides it so pages written for it run here too.
 example:
 <CFOUTPUT>
 <P>K2 Broker: #IsK2ServerABroker()#</P>
@@ -1224,8 +1224,8 @@ IsK2ServerOnline()
 returns:
 YES or NO.
 usage:
-> The Verity K2 Server functions belong to the K2 Server support that shipped with the next major version;
-> KoldFusion provides them so pages written for it run here too.
+> This function came to CFML two major versions after 4.5, with later Verity K2 support; KoldFusion
+> provides it so pages written for it run here too.
 example:
 <CFIF IsK2ServerOnline()>
   <CFOUTPUT><P>The K2 Server is online with #ListLen(GetK2ServerCollections())# collection(s).</P></CFOUTPUT>

@@ -270,9 +270,9 @@ static void emit_param_value(Ctx *c, Buf *b, const char *val, const char *cls, c
     if (*cls == 'n') {
         double d;
         if (!v_isnumeric_str(val, &d))
-            kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
         if (kf_stristr(type, "INT") && d != floor(d))
-            kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
         if (scale >= 0 && (kf_stristr(type, "NUMERIC") || kf_stristr(type, "DECIMAL"))) {   /* SCALE: decimal places */
             double p = pow(10, scale);
             d = (d < 0 ? -1 : 1) * floor(fabs(d) * p + 0.5) / p;
@@ -283,14 +283,14 @@ static void emit_param_value(Ctx *c, Buf *b, const char *val, const char *cls, c
     if (*cls == 'b') {
         int bv;
         if (!v_tobool(v_str(val), &bv))
-            kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
         buf_puts(b, bv ? "1" : "0");
         return;
     }
     if (*cls == 'd') {
         double d;
         if (!date_parse(val, &d))
-            kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
         int y, mo, dd, h, mi, s;
         date_to_parts(d, &y, &mo, &dd, &h, &mi, &s);
         if (kf_stristr(type, "TIMESTAMP")) buf_printf(b, "{ts '%04d-%02d-%02d %02d:%02d:%02d'}", y, mo, dd, h, mi, s);
@@ -299,7 +299,7 @@ static void emit_param_value(Ctx *c, Buf *b, const char *val, const char *cls, c
         return;
     }
     if (maxlen > 0 && (int)strlen(val) > maxlen)
-        kf_throw(c, "Database", kprintf("The cfqueryparam value exceeds the MAXLENGTH setting (%d).", maxlen), "");
+        kf_throw(c, "Database", kprintf("Invalid data '%s' value exceeds MAXLENGTH setting '%d'.", kf_html_escape(val), maxlen), "");
     buf_putc(b, '\'');
     for (const char *p = val; *p; p++) { if (*p == '\'') buf_putc(b, '\''); buf_putc(b, *p); }
     buf_putc(b, '\'');
@@ -494,24 +494,24 @@ static Val proc_bind_value(Ctx *c, const char *val, const char *type, int maxlen
     double d;
     if (*cls == 'n') {
         if (!v_isnumeric_str(kf_trim(val), &d) || (kf_stristr(type, "INT") && d != floor(d)))
-            kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
         return v_num(d);
     }
     if (*cls == 'b') {
         int bv;
         if (!v_tobool(v_str(val), &bv))
-            kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
         return v_num(bv ? 1 : 0);
     }
     if (*cls == 'd') {
         if (!date_parse(val, &d))
-            kf_throw(c, "Database", kprintf("Invalid data %s for CFSQLTYPE %s.", kf_html_escape(val), kf_upper(type)), "");
+            kf_throw(c, "Database", kprintf("Invalid data '%s' for CFSQLTYPE '%s'.", kf_html_escape(val), kf_upper(type)), "");
         if (kf_stristr(type, "TIME") && !kf_stristr(type, "TIMESTAMP")) d -= floor(d);
         else if (!kf_stristr(type, "TIME")) d = floor(d);
         return v_date(d);
     }
     if (maxlen > 0 && (int)strlen(val) > maxlen)
-        kf_throw(c, "Database", kprintf("The CFPROCPARAM value exceeds the MAXLENGTH setting (%d).", maxlen),
+        kf_throw(c, "Database", kprintf("Invalid data '%s' value exceeds MAXLENGTH setting '%d'.", kf_html_escape(val), maxlen),
                  kprintf("The value is %d characters long.", (int)strlen(val)));
     return v_strdup(val);
 }
@@ -551,11 +551,14 @@ TAG(storedproc) {
         kf_throw(c, "Application", "Attribute validation error for tag CFSTOREDPROC.",
                  kprintf("The value of the attribute BLOCKFACTOR, which is currently \"%s\", must be an integer between 1 and 100.",
                          kf_html_escape(val_simple_str(c, bf, NULL))));
-    const char *dbtype = attr_str(c, n, "dbtype", "odbc");
-    if (kf_stricmp(dbtype, "odbc") && kf_stricmp(dbtype, "oledb") && kf_stricmp(dbtype, "dynamic"))
+    const char *dbtype = attr_str(c, n, "dbtype", "odbc");    /* every driver type reaches the same engine */
+    static const char *DBTYPES[] = {"odbc", "oledb", "oracle73", "oracle80", "sybase11", "db2", "informix73", NULL};
+    int okt = 0;
+    for (int i = 0; DBTYPES[i]; i++) if (!kf_stricmp(DBTYPES[i], dbtype)) okt = 1;
+    if (!okt)
         kf_throw(c, "Application", "Attribute validation error for tag CFSTOREDPROC.",
-                 kprintf("The value of the attribute DBTYPE, which is currently \"%s\", is not supported by the KoldFusion Flat-File Driver. Use ODBC or OLEDB.",
-                         kf_html_escape(dbtype)));
+                 kprintf("The value of the attribute DBTYPE, which is currently \"%s\", must be one of the values: "
+                         "ODBC, OLEDB, Oracle73, Oracle80, Sybase11, DB2, Informix73.", kf_html_escape(dbtype)));
 
     /* collect the CFPROCPARAM / CFPROCRESULT children */
     ProcCall pc; memset(&pc, 0, sizeof pc);
@@ -714,4 +717,14 @@ TAG(procresult) {
     struct_set(r, "resultset", v_num(set));
     struct_set(r, "maxrows", v_num(attr_num(c, n, "maxrows", -1)));
     array_push(t_proc->results, v_struct(r));
+}
+
+/* CFOBJECTCACHE ACTION="Clear": the undocumented 4.x tag that empties the query cache */
+TAG(objectcache) {
+    (void)flow;
+    const char *action = require_attr(c, n, "action");
+    if (kf_stricmp(action, "clear"))
+        kf_throw(c, "Application", "Attribute validation error for tag CFOBJECTCACHE.",
+                 kprintf("The value of the attribute ACTION, which is currently \"%s\", must be CLEAR.", kf_html_escape(action)));
+    qcache_flush();
 }

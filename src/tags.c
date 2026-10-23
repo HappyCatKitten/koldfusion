@@ -23,7 +23,7 @@ EXT(schedule) EXT(execute) EXT(wddx) EXT(pop) EXT(ftp) EXT(ldap) EXT(object) EXT
 EXT(report) EXT(index) EXT(search) EXT(collection) EXT(authenticate) EXT(impersonate)
 EXT(form) EXT(input) EXT(select) EXT(textinput) EXT(slider) EXT(grid) EXT(gridcolumn)
 EXT(gridrow) EXT(gridupdate) EXT(tree) EXT(treeitem) EXT(applet) EXT(table) EXT(col)
-EXT(adminsecurity) EXT(procparam) EXT(procresult)
+EXT(adminsecurity) EXT(procparam) EXT(procresult) EXT(objectcache)
 
 /* ================================================================ helpers */
 static void exec_body(Ctx *c, Node *n, int *flow) { exec_nodes(c, n->kids, n->nkids, flow); }
@@ -951,8 +951,34 @@ TAG(cache) {
     (void)flow;
     RState *rs = c->rs;
     const char *action = attr_str(c, n, "action", "cache");
-    const char *dir = attr_str(c, n, "directory", NULL);
+    const char *dir = attr_str(c, n, kf_stricmp(action, "flush") ? "cachedirectory" : "directory", NULL);
+    if (!dir) dir = attr_str(c, n, "directory", NULL);
     if (!dir) dir = kf_path_join(G.root, "cache");
+    if (kf_stricmp(action, "cache") && kf_stricmp(action, "flush") && kf_stricmp(action, "clientcache") && kf_stricmp(action, "optimal"))
+        kf_throw(c, "Application", "Attribute validation error for tag CFCACHE.",
+                 kprintf("The value of the attribute ACTION, which is currently \"%s\", must be one of the values: CACHE, FLUSH, CLIENTCACHE, OPTIMAL.",
+                         kf_html_escape(action)));
+    if (!kf_stricmp(action, "clientcache") || !kf_stricmp(action, "optimal")) {
+        /* browser caching: Last-Modified is the template's date (or TIMEOUT, if later); a browser
+         * that already holds that version gets 304 Not Modified */
+        struct stat ts;
+        time_t lm = rs->cur_tpl && stat(rs->cur_tpl->path, &ts) == 0 ? ts.st_mtime : time(NULL);
+        int tp; double td;
+        Val tov = attr_val(c, n, "timeout", &tp);
+        if (tp && v_todate(tov, &td)) { time_t tt = (time_t)((date_local_to_utc(td) - 25569.0) * 86400.0); if (tt > lm && tt <= time(NULL)) lm = tt; }
+        char *lms = http_date(lm);
+        if (!rs->headers) rs->headers = struct_new();
+        struct_set(rs->headers, "Last-Modified", v_str(lms));
+        struct_set(rs->headers, "Cache-Control", v_str("private"));
+        Val *ims = rs->http && rs->http->headers ? struct_get(rs->http->headers, "if-modified-since") : NULL;
+        if (ims && !strcmp(v_tostr(*ims), lms)) {
+            rs->status = 304; rs->status_text = "Not Modified";
+            rs->page.len = 0;
+            rs->debug_override = 0;
+            throw_abort(c);
+        }
+        if (!kf_stricmp(action, "clientcache")) return;
+    }
     kf_mkdirs(dir);
     if (!kf_stricmp(action, "flush")) {
         const char *expire = attr_str(c, n, "expireurl", NULL);
@@ -1021,7 +1047,7 @@ static TagDef TAGS[] = {
     /* database */
     {"cfquery", tag_query, 2}, {"cfqueryparam", tag_queryparam, 0}, {"cftransaction", tag_transaction, 2},
     {"cfinsert", tag_insert, 0}, {"cfupdate", tag_update, 0}, {"cfstoredproc", tag_storedproc, 2},
-    {"cfprocparam", tag_procparam, 0}, {"cfprocresult", tag_procresult, 0},
+    {"cfprocparam", tag_procparam, 0}, {"cfprocresult", tag_procresult, 0}, {"cfobjectcache", tag_objectcache, 0},
     /* io */
     {"cfmail", tag_mail, 2}, {"cfmailparam", tag_mailparam, 0}, {"cffile", tag_file, 0},
     {"cfdirectory", tag_directory, 0}, {"cfregistry", tag_registry, 0}, {"cfhttp", tag_http, 1},

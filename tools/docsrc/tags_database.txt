@@ -100,7 +100,7 @@ Values are checked before anything reaches the data source:
 - CF_SQL_DATE, CF_SQL_TIME and CF_SQL_TIMESTAMP accept anything `IsDate` likes and send an ODBC date literal.
 - Everything else is treated as text; single quotes are doubled for you.
 
-A value that fails the check throws an exception of type Database ("Invalid data ... for CFSQLTYPE ..."),
+A value that fails the check throws an exception of type Database ("Invalid data '...' for CFSQLTYPE '...'."),
 which you can catch with `CFTRY`/`CFCATCH`. Using the tag outside a `CFQUERY` is a Template error.
 example:
 <!--- Try ?Dept=Marketing&MinID=7 or ?MinID=abc --->
@@ -347,6 +347,7 @@ with GetEmployeesByDept, AddEmployee, CountByDept and GetEmployee.
 syntax:
 <CFSTOREDPROC PROCEDURE="procedure_name"
     DATASOURCE="ds_name"
+    DBTYPE="type"
     USERNAME="username"
     PASSWORD="password"
     DBSERVER="dbms"
@@ -361,6 +362,8 @@ syntax:
 attrs:
 PROCEDURE | Required | Name of the stored procedure. An owner prefix such as `dbo.AddEmployee` is accepted.
 DATASOURCE | Required | Data source that holds the procedure.
+DBTYPE | Optional, default "ODBC" | ODBC, OLEDB, Oracle73, Oracle80, Sybase11, DB2 or Informix73. All of them reach the
+  built-in engine in KoldFusion.
 USERNAME | Optional | Overrides the login name in the data source definition. The flat-file driver does not check it.
 PASSWORD | Optional | Overrides the password in the data source definition. The flat-file driver does not check it.
 DBSERVER | Optional | Server name for native drivers. Ignored by the flat-file driver.

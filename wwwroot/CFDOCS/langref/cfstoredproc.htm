@@ -27,6 +27,7 @@ function runExample(name) {
 <H4>Syntax</H4>
 <PRE>&lt;CFSTOREDPROC PROCEDURE=&quot;procedure_name&quot;
     DATASOURCE=&quot;ds_name&quot;
+    DBTYPE=&quot;type&quot;
     USERNAME=&quot;username&quot;
     PASSWORD=&quot;password&quot;
     DBSERVER=&quot;dbms&quot;
@@ -44,6 +45,8 @@ function runExample(name) {
 <DD><I>Required.</I> Name of the stored procedure. An owner prefix such as <CODE>dbo.AddEmployee</CODE> is accepted.</DD>
 <DT><B>DATASOURCE</B></DT>
 <DD><I>Required.</I> Data source that holds the procedure.</DD>
+<DT><B>DBTYPE</B></DT>
+<DD><I>Optional, default &quot;ODBC&quot;.</I> ODBC, OLEDB, Oracle73, Oracle80, Sybase11, DB2 or Informix73. All of them reach the built-in engine in KoldFusion.</DD>
 <DT><B>USERNAME</B></DT>
 <DD><I>Optional.</I> Overrides the login name in the data source definition. The flat-file driver does not check it.</DD>
 <DT><B>PASSWORD</B></DT>
