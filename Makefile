@@ -54,6 +54,7 @@ kfroot/java/classes/.built: $(JAVA_SAMPLES) kfroot/java/cfx.jar
 	$(JAVAC) $(JAVAC_FLAGS) -cp kfroot/java/cfx.jar -d kfroot/java/classes $(JAVA_SAMPLES)
 	@touch $@
 else
+all: java
 java:
 	@echo "javac not found: kfroot/java/cfx.jar not built (Java CFX tags and CFSERVLET need it; CFOBJECT does not)"
 endif

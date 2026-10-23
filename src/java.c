@@ -489,7 +489,7 @@ static int rt_init(JNIEnv *env) {
     jmethodID gsl = j_GetStaticMethodID(env, R.ClassLoader, "getSystemClassLoader", "()Ljava/lang/ClassLoader;");
     if (!gsl) { j_ExceptionClear(env); return 0; }
     jobject l = j_CallStaticObjectMethodA(env, R.ClassLoader, gsl, NULL);
-    if (!l) { j_ExceptionClear(env); return 0; }
+    if (j_ExceptionCheck(env) || !l) { j_ExceptionClear(env); return 0; }
     R.loader = j_NewGlobalRef(env, l);
     j_DeleteLocalRef(env, l);
     return 1;
@@ -503,9 +503,13 @@ jmethodID kfj_static_method(JNIEnv *env, jclass c, const char *name, const char 
     return m;
 }
 
+/* clear an exception after a call that should not throw (reflection metadata, conversions); -Xcheck:jni wants it */
+static inline void xc(JNIEnv *env) { if (j_ExceptionCheck(env)) j_ExceptionClear(env); }
+
 /* ================================================================ strings */
 /* CF strings are bytes; we treat them as UTF-8 (bytes that are not valid UTF-8 are taken as Latin-1) */
 jstring kfj_strn(JNIEnv *env, const char *s, size_t n) {
+    xc(env);
     jchar stackbuf[256] = {0};
     jchar *u = n < 256 ? stackbuf : malloc(sizeof(jchar) * (n + 1));
     u[0] = 0;
@@ -534,6 +538,7 @@ jstring kfj_strn(JNIEnv *env, const char *s, size_t n) {
 jstring kfj_str(JNIEnv *env, const char *s) { return kfj_strn(env, s ? s : "", s ? strlen(s) : 0); }
 
 char *kfj_cstr(JNIEnv *env, jstring s) {
+    if (j_ExceptionCheck(env)) { j_ExceptionClear(env); return kstrdup(""); }
     if (!s) return kstrdup("");
     jsize n = j_GetStringLength(env, s);
     jchar stackbuf[256] = {0};
@@ -567,6 +572,7 @@ jobjectArray kfj_strarray(JNIEnv *env, int n, const char *const *items) {
 
 static char *class_name(JNIEnv *env, jclass c) {
     jstring s = j_CallObjectMethodA(env, c, R.Class_getName, NULL);
+    xc(env);
     char *r = kfj_cstr(env, s);
     if (s) j_DeleteLocalRef(env, s);
     return r;
@@ -703,6 +709,7 @@ static JParam classify(JNIEnv *env, jclass p) {
 static void set_varargs(JNIEnv *env, JMember *m, int mods) {
     if (!(mods & 0x80) || m->np < 1 || m->p[m->np - 1].kind != K_ARRAY) return;   /* ACC_VARARGS (Java 5) */
     jclass comp = j_CallObjectMethodA(env, m->p[m->np - 1].cls, R.getComponentType, NULL);
+    xc(env);
     if (!comp) return;
     m->varargs = 1;
     m->vcomp = classify(env, comp);
@@ -711,6 +718,7 @@ static void set_varargs(JNIEnv *env, JMember *m, int mods) {
 
 static void params_of(JNIEnv *env, jobject member, jmethodID getter, JMember *m) {
     jobjectArray pa = j_CallObjectMethodA(env, member, getter, NULL);
+    xc(env);
     m->np = pa ? j_GetArrayLength(env, pa) : 0;
     m->p = calloc(m->np ? m->np : 1, sizeof(JParam));
     for (int i = 0; i < m->np; i++) {
@@ -727,19 +735,25 @@ static jobject public_equivalent(JNIEnv *env, jclass cls, jobject meth) {
     jclass todo[64]; int nt = 0, seen = 0;
     todo[nt++] = cls;
     jstring name = j_CallObjectMethodA(env, meth, R.Method_getName, NULL);
+    xc(env);
     jobjectArray ptypes = j_CallObjectMethodA(env, meth, R.Method_getParameterTypes, NULL);
+    xc(env);
     while (seen < nt) {
         jclass c = todo[seen++];
         int mods = j_CallIntMethodA(env, c, R.Class_getModifiers, NULL);
+        xc(env);
         if (seen > 1 && (mods & 0x1)) {
             jvalue a[2]; a[0].l = name; a[1].l = ptypes;
             jobject m = j_CallObjectMethodA(env, c, R.getMethod, a);
+            xc(env);
             if (m && !j_ExceptionCheck(env)) return m;
             j_ExceptionClear(env);
         }
         jclass sup = j_CallObjectMethodA(env, c, R.getSuperclass, NULL);
+        xc(env);
         if (sup && nt < 64) todo[nt++] = sup;
         jobjectArray ifs = j_CallObjectMethodA(env, c, R.getInterfaces, NULL);
+        xc(env);
         int ni = ifs ? j_GetArrayLength(env, ifs) : 0;
         for (int i = 0; i < ni && nt < 64; i++) todo[nt++] = j_GetObjectArrayElement(env, ifs, i);
     }
@@ -752,9 +766,11 @@ static JClassInfo *jci_build(JNIEnv *env, jclass cls, const char *name) {
     ci->name = pstrdup(name);
     ci->cls = j_NewGlobalRef(env, cls);
     int cmods = j_CallIntMethodA(env, cls, R.Class_getModifiers, NULL);
+    xc(env);
     ci->is_interface = (cmods & 0x200) != 0;
     /* methods */
     jobjectArray ms = j_CallObjectMethodA(env, cls, R.getMethods, NULL);
+    xc(env);
     if (j_ExceptionCheck(env)) { j_ExceptionClear(env); ms = NULL; }
     ci->nm = ms ? j_GetArrayLength(env, ms) : 0;
     ci->m = calloc(ci->nm ? ci->nm : 1, sizeof(JMember));
@@ -763,14 +779,18 @@ static JClassInfo *jci_build(JNIEnv *env, jclass cls, const char *name) {
         jobject m = j_GetObjectArrayElement(env, ms, i);
         JMember *jm = &ci->m[i];
         jstring nm = j_CallObjectMethodA(env, m, R.Method_getName, NULL);
+        xc(env);
         jm->name = pstrdup(kfj_cstr(env, nm));
         int mods = j_CallIntMethodA(env, m, R.Method_getModifiers, NULL);
+        xc(env);
         jm->is_static = (mods & 0x8) != 0;
         jm->bridge = (mods & 0x40) != 0;
         params_of(env, m, R.Method_getParameterTypes, jm);
         set_varargs(env, jm, mods);
         jclass dc = j_CallObjectMethodA(env, m, R.Method_getDeclaringClass, NULL);
+        xc(env);
         int dmods = dc ? j_CallIntMethodA(env, dc, R.Class_getModifiers, NULL) : 1;
+        xc(env);
         if (!(dmods & 0x1) && !jm->is_static) m = public_equivalent(env, cls, m);
         j_ExceptionClear(env);
         jm->ref = j_NewGlobalRef(env, m);
@@ -778,6 +798,7 @@ static JClassInfo *jci_build(JNIEnv *env, jclass cls, const char *name) {
     }
     /* constructors */
     jobjectArray cs = j_CallObjectMethodA(env, cls, R.getConstructors, NULL);
+    xc(env);
     if (j_ExceptionCheck(env)) { j_ExceptionClear(env); cs = NULL; }
     ci->nct = cs ? j_GetArrayLength(env, cs) : 0;
     ci->ct = calloc(ci->nct ? ci->nct : 1, sizeof(JMember));
@@ -787,11 +808,13 @@ static JClassInfo *jci_build(JNIEnv *env, jclass cls, const char *name) {
         ci->ct[i].name = pstrdup("<init>");
         params_of(env, m, R.Ctor_getParameterTypes, &ci->ct[i]);
         set_varargs(env, &ci->ct[i], j_CallIntMethodA(env, m, R.Ctor_getModifiers, NULL));
+        xc(env);
         ci->ct[i].ref = j_NewGlobalRef(env, m);
         j_PopLocalFrame(env, NULL);
     }
     /* public fields */
     jobjectArray fs = j_CallObjectMethodA(env, cls, R.getFields, NULL);
+    xc(env);
     if (j_ExceptionCheck(env)) { j_ExceptionClear(env); fs = NULL; }
     ci->nf = fs ? j_GetArrayLength(env, fs) : 0;
     ci->f = calloc(ci->nf ? ci->nf : 1, sizeof(JMember));
@@ -799,10 +822,13 @@ static JClassInfo *jci_build(JNIEnv *env, jclass cls, const char *name) {
         j_PushLocalFrame(env, 32);
         jobject f = j_GetObjectArrayElement(env, fs, i);
         jstring nm = j_CallObjectMethodA(env, f, R.Field_getName, NULL);
+        xc(env);
         ci->f[i].name = pstrdup(kfj_cstr(env, nm));
         int mods = j_CallIntMethodA(env, f, R.Field_getModifiers, NULL);
+        xc(env);
         ci->f[i].is_static = (mods & 0x8) != 0;
         jclass t = j_CallObjectMethodA(env, f, R.Field_getType, NULL);
+        xc(env);
         ci->f[i].type = classify(env, t);
         ci->f[i].ref = j_NewGlobalRef(env, f);
         j_PopLocalFrame(env, NULL);
@@ -915,7 +941,7 @@ F(javacast) {
 /* ================================================================ CF -> Java */
 static double dnum(Val v) { double d = 0; v_tonum(v, &d); return d; }
 
-static jobject box(JNIEnv *env, int kind, double d) {
+static jobject box0(JNIEnv *env, int kind, double d) {
     jvalue a[1];
     switch (kind) {
     case K_INT: a[0].i = (jint)d; return j_CallStaticObjectMethodA(env, R.Integer, R.Integer_valueOf, a);
@@ -928,16 +954,25 @@ static jobject box(JNIEnv *env, int kind, double d) {
     default: a[0].d = d; return j_CallStaticObjectMethodA(env, R.Double, R.Double_valueOf, a);
     }
 }
+static jobject box(JNIEnv *env, int kind, double d) {
+    jobject r = box0(env, kind, d);
+    xc(env);
+    return r;
+}
 jobject kfj_box_int(JNIEnv *env, int i) { return box(env, K_INT, i); }
 int kfj_int_value(JNIEnv *env, jobject o, int def) {
     if (!o || !j_IsInstanceOf(env, o, R.Number)) return def;
-    return j_CallIntMethodA(env, o, R.intValue, NULL);
+    int r = j_CallIntMethodA(env, o, R.intValue, NULL);
+    xc(env);
+    return r;
 }
 
 static jobject date_obj(JNIEnv *env, double oledate) {
     jvalue a[1];
     a[0].j = (jlong)llround((date_local_to_utc(oledate) - 25569.0) * 86400000.0);
-    return j_NewObjectA(env, R.Date, R.Date_init, a);
+    jobject r = j_NewObjectA(env, R.Date, R.Date_init, a);
+    xc(env);
+    return r;
 }
 
 static jobject bytes_obj(JNIEnv *env, const char *p, size_t n) {
@@ -968,16 +1003,19 @@ jobject kfj_to_java(JNIEnv *env, Val v, int hint) {
     case VT_BINARY: return bytes_obj(env, v.u.str.s, v.u.str.len);
     case VT_ARRAY: {
         jobject vec = j_NewObjectA(env, R.Vector, R.Vector_init, NULL);
+        xc(env);
         for (int i = 0; vec && i < v.u.a->n; i++) {
             jvalue a[1];
             a[0].l = kfj_to_java(env, v.u.a->v[i], hint_get(v.u.a->v[i]));
             j_CallVoidMethodA(env, vec, R.addElement, a);
+            xc(env);
             if (a[0].l) j_DeleteLocalRef(env, a[0].l);
         }
         return vec;
     }
     case VT_STRUCT: {
         jobject ht = j_NewObjectA(env, R.Hashtable, R.Hashtable_init, NULL);
+        xc(env);
         Struct *s = v.u.st;
         for (int i = 0; ht && i < s->n; i++) {
             jvalue a[2];
@@ -985,6 +1023,7 @@ jobject kfj_to_java(JNIEnv *env, Val v, int hint) {
             a[1].l = kfj_to_java(env, s->e[i].v, hint_get(s->e[i].v));
             if (!a[1].l) a[1].l = kfj_str(env, "");          /* Hashtable refuses null values */
             jobject old = j_CallObjectMethodA(env, ht, R.put, a);
+            xc(env);
             if (old) j_DeleteLocalRef(env, old);
             j_DeleteLocalRef(env, a[0].l); j_DeleteLocalRef(env, a[1].l);
         }
@@ -1047,10 +1086,12 @@ static jobject to_param(JNIEnv *env, Val v, int hint, JParam *p) {
     case K_ARRAY: {
         if (v.t != VT_ARRAY) return NULL;
         jclass comp = j_CallObjectMethodA(env, p->cls, R.getComponentType, NULL);
+        xc(env);
         JParam cp = classify_local(env, comp);
         jvalue a[3];
         a[0].l = comp; a[1].i = v.u.a->n;
         jobject arr = j_CallStaticObjectMethodA(env, R.RArray, R.Array_newInstance, a);
+        xc(env);
         for (int i = 0; arr && i < v.u.a->n && !j_ExceptionCheck(env); i++) {
             Val el = v.u.a->v[i];
             a[0].l = arr; a[1].i = i; a[2].l = to_param(env, el, hint_get(el), &cp);
@@ -1205,15 +1246,21 @@ static Val to_cf(JNIEnv *env, jobject o, int depth) {
     /* boxed primitives become CFML numbers; BigInteger, BigDecimal, AtomicLong... stay objects */
     if (j_IsInstanceOf(env, o, R.Integer) || j_IsInstanceOf(env, o, R.Double) || j_IsInstanceOf(env, o, R.Long) ||
         j_IsInstanceOf(env, o, R.Short) || j_IsInstanceOf(env, o, R.Byte) || j_IsInstanceOf(env, o, R.Float))
-        return v_num(j_CallDoubleMethodA(env, o, R.doubleValue, NULL));
+    {
+        double d = j_CallDoubleMethodA(env, o, R.doubleValue, NULL);
+        xc(env);
+        return v_num(d);
+    }
     if (j_IsInstanceOf(env, o, R.Character)) {
         /* as in ColdFusion: a Java char comes back as its character code (use Chr() to display it) */
         jstring s = j_CallObjectMethodA(env, o, R.toString, NULL);
+        xc(env);
         char *u = kfj_cstr(env, s);
         return v_num(*u ? first_char(u) : 0);
     }
     if (j_IsInstanceOf(env, o, R.Date)) {
         jlong ms = j_CallLongMethodA(env, o, R.getTime, NULL);
+        xc(env);
         return v_date(date_utc_to_local(ms / 86400000.0 + 25569.0));
     }
     if (j_IsInstanceOf(env, o, R.ByteArr)) {
@@ -1225,15 +1272,18 @@ static Val to_cf(JNIEnv *env, jobject o, int depth) {
     if (depth < 32) {
         jclass c = j_GetObjectClass(env, o);
         int isarr = j_CallBooleanMethodA(env, c, R.isArray, NULL);
+        xc(env);
         j_DeleteLocalRef(env, c);
         if (isarr) {
             jvalue a[2]; a[0].l = o;
             int n = j_CallStaticIntMethodA(env, R.RArray, R.Array_getLength, a);
+            xc(env);
             Array *arr = array_new();
             for (int i = 0; i < n; i++) {
                 a[1].i = i;
                 j_PushLocalFrame(env, 16);
                 jobject el = j_CallStaticObjectMethodA(env, R.RArray, R.Array_get, a);
+                xc(env);
                 array_push(arr, to_cf(env, el, depth + 1));
                 j_PopLocalFrame(env, NULL);
             }
@@ -1241,11 +1291,13 @@ static Val to_cf(JNIEnv *env, jobject o, int depth) {
         }
         if (j_IsInstanceOf(env, o, R.List)) {
             int n = j_CallIntMethodA(env, o, R.List_size, NULL);
+            xc(env);
             Array *arr = array_new();
             for (int i = 0; i < n && !j_ExceptionCheck(env); i++) {
                 jvalue a[1]; a[0].i = i;
                 j_PushLocalFrame(env, 16);
                 jobject el = j_CallObjectMethodA(env, o, R.List_get, a);
+                xc(env);
                 array_push(arr, to_cf(env, el, depth + 1));
                 j_PopLocalFrame(env, NULL);
             }
@@ -1256,14 +1308,18 @@ static Val to_cf(JNIEnv *env, jobject o, int depth) {
             Struct *st = struct_new();
             j_PushLocalFrame(env, 16);
             jobject ks = j_CallObjectMethodA(env, o, R.Map_keySet, NULL);
+            xc(env);
             jobjectArray keys = ks ? j_CallObjectMethodA(env, ks, R.Set_toArray, NULL) : NULL;
+            xc(env);
             int n = keys ? j_GetArrayLength(env, keys) : 0;
             for (int i = 0; i < n && !j_ExceptionCheck(env); i++) {
                 j_PushLocalFrame(env, 16);
                 jobject k = j_GetObjectArrayElement(env, keys, i);
                 jvalue a[1]; a[0].l = k;
                 jobject val = j_CallObjectMethodA(env, o, R.Map_get, a);
+                xc(env);
                 jstring ksn = k ? j_CallObjectMethodA(env, k, R.toString, NULL) : NULL;
+                xc(env);
                 struct_set(st, kfj_cstr(env, ksn), to_cf(env, val, depth + 1));
                 j_PopLocalFrame(env, NULL);
             }
@@ -1334,9 +1390,11 @@ static jobjectArray build_args(JNIEnv *env, JMember *m, int argc, Val *argv, int
         jvalue a[3];
         a[0].l = m->vcomp.cls; a[1].i = argc - nf;
         jobject va = j_CallStaticObjectMethodA(env, R.RArray, R.Array_newInstance, a);
+        xc(env);
         for (int i = nf; va && i < argc && !j_ExceptionCheck(env); i++) {
             a[0].l = va; a[1].i = i - nf; a[2].l = to_param(env, argv[i], hints[i], &m->vcomp);
             j_CallStaticObjectMethodA(env, R.RArray, R.Array_set, a);
+            xc(env);
             if (a[2].l) j_DeleteLocalRef(env, a[2].l);
         }
         if (arr) j_SetObjectArrayElement(env, arr, nf, va);
