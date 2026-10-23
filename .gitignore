@@ -2,6 +2,8 @@
 /bin/
 /build/
 /kfroot/cfx/*.so
+/kfroot/java/cfx.jar
+/kfroot/java/classes/
 
 # runtime state of the "install" (recreated on first start; `make reset` wipes it)
 /kfroot/registry/

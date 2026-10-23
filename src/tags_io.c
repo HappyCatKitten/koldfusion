@@ -867,21 +867,7 @@ TAG(ldap) {
              kprintf("Connection to the LDAP server %s failed. The Netscape Directory SDK is not installed.",
                      kf_html_escape(attr_str(c, n, "server", ""))));
 }
-TAG(object) {
-    (void)flow;
-    tag_security_check(c, "cfobject");
-    const char *type = attr_str(c, n, "type", "COM");
-    if (!kf_stricmp(type, "com"))
-        kf_throw(c, "Object", "COM objects are not supported on this platform.",
-                 kprintf("KoldFusion for UNIX cannot create the COM object %s.", kf_html_escape(attr_str(c, n, "class", ""))));
-    kf_throw(c, "Object", kprintf("Unable to create the %s object.", kf_html_escape(type)),
-             "The required runtime (Java Virtual Machine or CORBA ORB) is not configured. See the Java page in the KoldFusion Administrator.");
-}
-TAG(servlet) {
-    (void)flow;
-    kf_throw(c, "Application", "Error processing CFSERVLET",
-             kprintf("Unable to connect to the JRun servlet engine to run %s.", kf_html_escape(attr_str(c, n, "code", ""))));
-}
+/* CFOBJECT, CFSERVLET and CFSERVLETPARAM live in java.c / java_ext.c */
 TAG(report) {
     (void)flow;
     kf_throw(c, "Application", "Error processing CFREPORT",

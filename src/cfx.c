@@ -85,9 +85,7 @@ void cfx_call(Ctx *c, Node *n, const char *name) {
                  "check the spelling of the tag within your template to ensure that it matches the database entry.");
     char *key = cfg_key(kprintf("CFX\\%s", real));
     const char *type = reg_get(key, "Type", "C++");
-    if (!kf_stricmp(type, "java"))
-        kf_throw(c, "Application", kprintf("Error loading Java CFX %s.", uname),
-                 "Java CFX tags require a Java Virtual Machine. Configure one on the Java page of the KoldFusion Administrator.");
+    if (!kf_stricmp(type, "java")) { java_cfx_call(c, n, uname, key); return; }    /* java_ext.c */
     const char *lib = reg_get(key, "LibraryPath", "");
     const char *proc = reg_get(key, "Procedure", "ProcessTagRequest");
     int keep = atoi(reg_get(key, "KeepLoaded", "1"));

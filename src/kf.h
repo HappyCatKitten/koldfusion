@@ -33,6 +33,7 @@ void   *arena_alloc(Arena *a, size_t n);          /* zeroed */
 size_t  arena_used(Arena *a);
 void    arena_set_limit(Arena *a, size_t bytes);  /* 0 = unlimited */
 Arena  *arena_new_shared(void);                   /* mutex-protected, for shared scopes */
+void    arena_on_free(Arena *a, void (*fn)(void *), void *arg);  /* run fn(arg) when a is freed */
 
 
 extern __thread Arena *g_arena;                   /* current thread's arena */
@@ -54,12 +55,14 @@ char *buf_cstr(Buf *b);                           /* NUL-terminated, never NULL 
 /* --------------------------------------------------------------- values */
 typedef enum {
     VT_NULL = 0, VT_STR, VT_NUM, VT_BOOL, VT_DATE,
-    VT_ARRAY, VT_STRUCT, VT_QUERY, VT_BINARY
+    VT_ARRAY, VT_STRUCT, VT_QUERY, VT_BINARY,
+    VT_OBJECT                                     /* a Java object (CFOBJECT, CreateObject; java.c) */
 } VType;
 
 typedef struct Array  Array;
 typedef struct Struct Struct;
 typedef struct Query  Query;
+typedef struct KfObject KfObject;
 
 typedef struct Val {
     VType t;
@@ -70,6 +73,7 @@ typedef struct Val {
         Array  *a;
         Struct *st;
         Query  *q;
+        KfObject *obj;
     } u;
 } Val;
 
@@ -84,6 +88,8 @@ Val v_arr(Array *a);
 Val v_struct(Struct *s);
 Val v_query(Query *q);
 Val v_binary(const char *p, size_t n);
+Val v_object(KfObject *o);
+Val kfobj_copy(Val v);                            /* java.c: a new reference owned by g_arena */
 
 int  v_is_simple(Val v);                          /* str/num/bool/date/null */
 const char *v_tostr(Val v);                       /* never NULL, simple values only */
