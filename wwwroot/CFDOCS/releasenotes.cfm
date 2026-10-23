@@ -79,7 +79,7 @@ and magazine articles still make sense. Translate as follows:</P>
 <UL>
 <LI><B>COM, CORBA and Java objects.</B> <CODE>CFOBJECT</CODE> and <CODE>CreateObject</CODE> report an error on this
     platform: COM is a Windows NT technology, no ORB is installed, and the Java Virtual Machine is not loaded.
-<LI><B>CFLDAP, CFSERVLET, CFREPORT and CFSTOREDPROC</B> are recognized but not available in this edition;
+<LI><B>CFLDAP, CFSERVLET and CFREPORT</B> are recognized but not available in this edition;
     they throw an exception you can catch with <CODE>CFTRY</CODE>.
 <LI><B>CFFTP</B> uses passive-mode FTP only. If your firewall insists on active mode, your firewall wins.
 <LI><B>CFHTTP</B> supports <CODE>http://</CODE> URLs only. Secure (<CODE>https://</CODE>) requests need the
