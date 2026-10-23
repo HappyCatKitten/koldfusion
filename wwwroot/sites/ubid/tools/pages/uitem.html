@@ -1,0 +1,16 @@
+<SCRIPT LANGUAGE="JavaScript">
+var it = findItem(qs("id"));
+if (!it || !it[11]) {
+  document.write("<FONT SIZE=3>That listing isn't on this computer. Listings you create with <A HREF=\"" + P + "sell.html\">Sell your item</A> are stored in your own browser.</FONT>");
+} else {
+  document.write("<TABLE WIDTH=\"100%\" BORDER=0 CELLPADDING=4 CELLSPACING=0><TR><TD BGCOLOR=\"#99CCFF\" ALIGN=CENTER><FONT FACE=\"Arial, Helvetica\" SIZE=4><B>" + esc(it[1]) + "</B></FONT><BR><FONT FACE=\"Arial, Helvetica\" SIZE=2>Item #" + esc(it[0]) + "</FONT></TD></TR></TABLE>");
+  document.write("<CENTER><FONT SIZE=2><A HREF=\"" + P + "categories.html\">Categories</A> &gt; <A HREF=\"" + P + "category/" + it[2] + ".html\">" + catName(it[2]) + "</A></FONT></CENTER><BR>");
+  document.write("<TABLE WIDTH=\"100%\" BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD VALIGN=TOP>");
+  writeItemBox(it[0]);
+  document.write("</TD><TD VALIGN=TOP ALIGN=RIGHT WIDTH=170><IMG SRC=\"" + photoURL(it) + "\" WIDTH=160 HEIGHT=120 BORDER=1></TD></TR></TABLE><BR>");
+  document.write("<TABLE WIDTH=\"100%\" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR=\"#EFEFEF\"><FONT FACE=\"Arial, Helvetica\" SIZE=3><B>Description</B></FONT></TD></TR></TABLE>");
+  document.write("<BLOCKQUOTE><FONT SIZE=3>" + esc(it[13]) + "</FONT></BLOCKQUOTE>");
+  document.write("<A NAME=\"bid\"></A><TABLE WIDTH=\"100%\" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR=\"#CCCCFF\"><FONT FACE=\"Arial, Helvetica\" SIZE=3><B>Bidding</B></FONT></TD></TR></TABLE>");
+  writeBidForm(it[0]);
+}
+</SCRIPT>

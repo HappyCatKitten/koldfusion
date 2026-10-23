@@ -1,0 +1,271 @@
+<HTML>
+<HEAD>
+<TITLE>Petz.com : Hot Rock Deluxe Heated Stone</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<STYLE TYPE="text/css">
+<!--
+.editorialtitle { font-family: Verdana, Arial, Helvetica; font-size: 11px; font-weight: bold; color: #000000 }
+.editorialsubhead { font-family: Verdana, Arial, Helvetica; font-size: 10px; font-style: italic; color: #666633 }
+.ticker { background-color: #000000; color: #33FF33; font-family: Courier New, Courier; font-size: 12px; font-weight: bold; border: 0px }
+-->
+</STYLE>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+// ---- category tab rollovers (document.images swaps)
+var tabNames = new Array("home", "dogs", "cats", "fish", "birds", "ferrets", "reptiles", "smallpets");
+var tabOn = new Array();
+var tabOff = new Array();
+if (document.images) {
+  for (var i = 0; i < tabNames.length; i++) {
+    tabOn[tabNames[i]] = new Image();
+    tabOn[tabNames[i]]["src"] = "images/tab_" + tabNames[i] + "_on" + ".gif";
+    tabOff[tabNames[i]] = new Image();
+    tabOff[tabNames[i]]["src"] = "images/tab_" + tabNames[i] + ".gif";
+  }
+}
+function imgOn(n) {
+  if (document.images) document.images["t" + n]["src"] = tabOn[n]["src"];
+}
+function imgOff(n) {
+  if (document.images && n != curTab) document.images["t" + n]["src"] = tabOff[n]["src"];
+}
+// ---- search box
+function isBlank(s) {
+  if (s == null) return true;
+  for (var i = 0; i < s.length; i++) {
+    if (s.charAt(i) != " ") return false;
+  }
+  return true;
+}
+function checkSearch(f) {
+  if (isBlank(f.q.value)) {
+    alert("Please type something to search for.\nTry 'litter', 'hamster' or 'loss'.");
+    f.q.focus();
+    return false;
+  }
+  return true;
+}
+// ---- newsletter
+function checkNews(f) {
+  var e = f.email.value;
+  if (e.indexOf("@") < 1 || e.indexOf(".") < 0) {
+    alert("Please enter an e-mail address like argyle@petz.com");
+    return false;
+  }
+  alert("Thanks! You are now subscribed to The Petz Weekly Wag.\n(Nothing was actually sent anywhere. Our mail server is a beagle.)");
+  return false;
+}
+// ---- 1999 Web Ring random hop
+var ringSites = new Array("yowza", "altavisor", "askreeves", "orinoco", "ubid", "etoyz", "petz",
+  "geohoods", "hamstershuffle", "dashdot", "snapster", "cnm");
+function ringRandom() {
+  var n = Math.floor(Math.random() * ringSites.length);
+  var u = "../" + ringSites[n] + "/" + "index.html";
+  window.location = u;
+  return false;
+}
+//-->
+</SCRIPT>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+// ---- PETZ stock ticker: it only goes up (price kept in eighths, remembered in a cookie)
+var tkOpen = 679;   // opened today at 84 7/8
+function tkGet() {
+  var c = document.cookie;
+  var i = c.indexOf("petzpx=");
+  if (i < 0) return 698;
+  var j = c.indexOf(";", i);
+  if (j < 0) j = c.length;
+  var v = parseInt(c.substring(i + 7, j), 10);
+  if (isNaN(v) || v < 698) return 698;
+  return v;
+}
+function tkFmt(e) {
+  var w = Math.floor(e / 8);
+  var r = e % 8;
+  var f = new Array("", "1/8", "1/4", "3/8", "1/2", "5/8", "3/4", "7/8");
+  if (r == 0) return "" + w;
+  return w + " " + f[r];
+}
+function tkShow(e) {
+  if (document.forms["ticker"]) {
+    document.forms["ticker"].px.value = tkFmt(e);
+    document.forms["ticker"].chg.value = "+" + tkFmt(e - tkOpen);
+  }
+}
+function tkTick() {
+  var e = tkGet() + 1 + Math.floor(Math.random() * 3);
+  document.cookie = "petzpx=" + e;
+  tkShow(e);
+  setTimeout("tkTick()", 2500);
+}
+function tkStart() {
+  tkShow(tkGet());
+  setTimeout("tkTick()", 2500);
+}
+//-->
+</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var curTab = "reptiles";
+//-->
+</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function Prod(id, name, cat, price, list, ship, loss, text) {
+  this.id = id; this.name = name; this.cat = cat; this.price = price; this.list = list;
+  this.ship = ship; this.loss = loss; this.text = text;
+}
+var PZ = new Object();
+var PZids = new Array();
+PZ["rp05"] = new Prod("rp05", "Hot Rock Deluxe Heated Stone", "reptiles", 9.99, 24.99, 6.95, 5.46, "SunBeam A resin rock with a built-in heating element. Looks like a rock. Feels like a warm rock. Is a rock. Our most honest product.");
+for (var k in PZ) PZids[PZids.length] = k;
+
+// ---- shopping cart kept in document.cookie as  petzcart=id.qty-id.qty
+function money(n) {
+  var c = Math.round(n * 100);
+  var d = Math.floor(c / 100);
+  c = c % 100;
+  var s = "" + d;
+  if (d >= 1000) s = Math.floor(d / 1000) + "," + ("" + (1000 + d % 1000)).substring(1);
+  return "$" + s + "." + (c < 10 ? "0" : "") + c;
+}
+function cartRead() {
+  var c = document.cookie;
+  var i = c.indexOf("petzcart=");
+  var items = new Array();
+  if (i < 0) return items;
+  var j = c.indexOf(";", i);
+  if (j < 0) j = c.length;
+  var v = c.substring(i + 9, j);
+  if (v == "") return items;
+  var parts = v.split("-");
+  for (var n = 0; n < parts.length; n++) {
+    var pq = parts[n].split(".");
+    var q = parseInt(pq[1], 10);
+    if (pq.length == 2 && !isNaN(q) && q > 0) {
+      items[items.length] = new Array(pq[0], q);
+    }
+  }
+  return items;
+}
+function cartWrite(items) {
+  var s = "";
+  for (var n = 0; n < items.length; n++) {
+    if (items[n][1] > 0) {
+      if (s != "") s = s + "-";
+      s = s + items[n][0] + "." + items[n][1];
+    }
+  }
+  if (s == "") document.cookie = "petzcart=; expires=Thu, 01-Jan-1970 00:00:01 GMT";
+  else document.cookie = "petzcart=" + s;
+}
+function cartAdd(id, q) {
+  var items = cartRead();
+  for (var n = 0; n < items.length; n++) {
+    if (items[n][0] == id) {
+      items[n][1] = items[n][1] + q;
+      cartWrite(items);
+      return;
+    }
+  }
+  items[items.length] = new Array(id, q);
+  cartWrite(items);
+}
+function cartCount() {
+  var items = cartRead();
+  var t = 0;
+  for (var n = 0; n < items.length; n++) t = t + items[n][1];
+  return t;
+}
+function cartTotals() {
+  var items = cartRead();
+  var t = new Object();
+  t.sub = 0; t.ship = 0; t.save = 0; t.loss = 0; t.count = 0;
+  for (var n = 0; n < items.length; n++) {
+    var p = PZ[items[n][0]];
+    var q = items[n][1];
+    if (!p) continue;
+    t.sub = t.sub + p.price * q;
+    t.ship = t.ship + p.ship * q;
+    t.save = t.save + (p.list - p.price) * q;
+    t.loss = t.loss + p.loss * q;
+    t.count = t.count + q;
+  }
+  return t;
+}
+
+function buyIt(f) {
+  var q = parseInt(f.qty.value, 10);
+  if (isNaN(q) || q < 1) {
+    alert("Please enter a quantity of 1 or more.\nZero is our profit margin, not a quantity.");
+    f.qty.focus();
+    return false;
+  }
+  if (q > 99) {
+    alert("Whoa! Our warehouse only has 99 of these.\nAlso, our accountant just fainted.");
+    return false;
+  }
+  cartAdd("rp05", q);
+  return true;
+}
+//-->
+</SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" BACKGROUND="images/spine.gif" MARGINHEIGHT=0 MARGINWIDTH=0 LEFTMARGIN=0 TOPMARGIN=0 TEXT="#000000" LINK="#000000" ALINK="#FF0033" VLINK="#000000" onLoad="tkStart();">
+<TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=770>
+<TR><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=232 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=446 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=86 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=6 HEIGHT=1 BORDER=0></TD></TR>
+<TR><TD BGCOLOR="#99CC33" VALIGN=TOP><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=4 BORDER=0><BR><IMG SRC="images/dot_clear.gif" WIDTH=2 HEIGHT=1 BORDER=0><A HREF="index.html"><IMG SRC="images/logo.gif" WIDTH=230 HEIGHT=66 BORDER=0 ALT="Petz.com - Because pets can't drive!"></A></TD>
+<TD BGCOLOR="#99CC33" ALIGN=CENTER VALIGN=MIDDLE><FORM NAME="ticker" onSubmit="return false"><TABLE BORDER=0 CELLPADDING=2 CELLSPACING=0 BGCOLOR="#000000"><TR><TD><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">&nbsp;<B>PETZ</B> (NASDAQ: PETZ)</FONT></TD><TD><INPUT TYPE=TEXT NAME="px" VALUE="87 1/4" SIZE=8 CLASS="ticker"></TD><TD><IMG SRC="images/up_arrow.gif" WIDTH=11 HEIGHT=11 BORDER=0 ALT=""></TD><TD><INPUT TYPE=TEXT NAME="chg" VALUE="+2 3/8" SIZE=9 CLASS="ticker"></TD></TR><TR><TD COLSPAN=4 ALIGN=CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#99CC33"><A HREF="investor.html"><FONT COLOR="#FFFFFF">Investor info</FONT></A> &middot; delayed 20 min, not that it matters</FONT></TD></TR></TABLE></FORM></TD>
+<TD BGCOLOR="#99CC33" VALIGN=TOP><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=4 BORDER=0><BR><A HREF="cart.html"><IMG SRC="images/btn_cart.gif" WIDTH=86 HEIGHT=20 BORDER=0 ALT="Shopping Cart"></A><BR><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=4 BORDER=0><BR><A HREF="myaccount.html"><IMG SRC="images/btn_account.gif" WIDTH=86 HEIGHT=20 BORDER=0 ALT="My Account"></A><BR><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=4 BORDER=0><BR><A HREF="help.html"><IMG SRC="images/btn_help.gif" WIDTH=86 HEIGHT=20 BORDER=0 ALT="Help"></A></TD><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=72 BORDER=0></TD></TR>
+<TR><TD BGCOLOR="#99CC33" COLSPAN=4 VALIGN=BOTTOM><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0><TR><TD VALIGN=BOTTOM><A HREF="dogs.html" onMouseOver="imgOn('dogs')" onMouseOut="imgOff('dogs')"><IMG NAME="tdogs" SRC="images/tab_dogs.gif" WIDTH=55 HEIGHT=60 BORDER=0 ALT="Dogs"></A><A HREF="cats.html" onMouseOver="imgOn('cats')" onMouseOut="imgOff('cats')"><IMG NAME="tcats" SRC="images/tab_cats.gif" WIDTH=52 HEIGHT=60 BORDER=0 ALT="Cats"></A><A HREF="fish.html" onMouseOver="imgOn('fish')" onMouseOut="imgOff('fish')"><IMG NAME="tfish" SRC="images/tab_fish.gif" WIDTH=50 HEIGHT=60 BORDER=0 ALT="Fish"></A><A HREF="birds.html" onMouseOver="imgOn('birds')" onMouseOut="imgOff('birds')"><IMG NAME="tbirds" SRC="images/tab_birds.gif" WIDTH=60 HEIGHT=60 BORDER=0 ALT="Birds"></A><A HREF="ferrets.html" onMouseOver="imgOn('ferrets')" onMouseOut="imgOff('ferrets')"><IMG NAME="tferrets" SRC="images/tab_ferrets.gif" WIDTH=66 HEIGHT=60 BORDER=0 ALT="Ferrets"></A><A HREF="reptiles.html" onMouseOver="imgOn('reptiles')" onMouseOut="imgOff('reptiles')"><IMG NAME="treptiles" SRC="images/tab_reptiles_on.gif" WIDTH=69 HEIGHT=60 BORDER=0 ALT="Reptiles"></A><A HREF="smallpets.html" onMouseOver="imgOn('smallpets')" onMouseOut="imgOff('smallpets')"><IMG NAME="tsmallpets" SRC="images/tab_smallpets.gif" WIDTH=87 HEIGHT=60 BORDER=0 ALT="Small Pets"></A></TD><TD VALIGN=BOTTOM><A HREF="index.html" onMouseOver="imgOn('home')" onMouseOut="imgOff('home')"><IMG NAME="thome" SRC="images/tab_home.gif" WIDTH=59 HEIGHT=20 BORDER=0 ALT="Home"></A></TD></TR></TABLE></TD></TR>
+<TR><TD BGCOLOR="#000000" COLSPAN=4><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=770><TR><TD><IMG SRC="images/title_reptiles.gif" WIDTH=150 HEIGHT=28 BORDER=0 ALT=""></TD><TD WIDTH=611><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=1 BORDER=0></TD><TD VALIGN=BOTTOM><IMG SRC="images/corner.gif" WIDTH=9 HEIGHT=11 BORDER=0 ALT=""></TD></TR></TABLE></TD></TR>
+</TABLE><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=770><TR><TD BGCOLOR="#FFFFCC" VALIGN=TOP WIDTH=170><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=170>
+<TR><TD ALIGN=RIGHT><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=8 BORDER=0><BR><FORM NAME="search" ACTION="search.html" METHOD="GET" onSubmit="return checkSearch(this)"><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 BGCOLOR="#CCCC99"><TR><TD BGCOLOR="#FFFFCC"><IMG SRC="images/search_side.gif" WIDTH=16 HEIGHT=36 BORDER=0 ALT=""></TD><TD BGCOLOR="#CCCC99"><IMG SRC="images/find.gif" WIDTH=20 HEIGHT=10 BORDER=0 ALT="find"><IMG SRC="images/dot_clear.gif" WIDTH=2 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#CCCC99"><INPUT TYPE=TEXT NAME="q" SIZE=9 MAXLENGTH=100><IMG SRC="images/dot_clear.gif" WIDTH=2 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#CCCC99"><INPUT TYPE=IMAGE NAME="go" SRC="images/go.gif" WIDTH=20 HEIGHT=20 BORDER=0><IMG SRC="images/dot_clear.gif" WIDTH=2 HEIGHT=1 BORDER=0></TD></TR></TABLE></FORM></TD></TR>
+<TR><TD><TABLE CELLSPACING=2 CELLPADDING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=12 HEIGHT=1 BORDER=0></TD><TD><IMG SRC="images/todays_features.gif" WIDTH=135 HEIGHT=15 BORDER=0 ALT="Today's Features"></TD></TR></TABLE>
+<TABLE CELLSPACING=2 CELLPADDING=0 BORDER=0>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="feature_1.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Puppy Love, Online</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Is your pug ready for e-dating?</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="feature_2.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Is Your Cat Y2K Ready?</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Stock up on litter before the clocks roll</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="feature_3.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>The 56k Hamster</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>One rodent, one wheel, one tiny ISP</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="superbowl.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Our Super Bowl Ad</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Thirty seconds, two million dollars, one sock</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="mascot.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Meet Argyle</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>The sock that launched a thousand shipments</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="advice.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Ask the Vet</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Dr. Woofington answers your letters</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="advice_5.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Sock Thieves</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Why does my ferret do that?</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="investor.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Investor Relations</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Our stock only goes up. Ask anyone.</I></FONT></TD></TR></TABLE></TD></TR>
+</TABLE><BR>
+<CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Shop by pet:</B><BR><A HREF="dogs.html">Dogs</A> &middot; <A HREF="cats.html">Cats</A> &middot; <A HREF="fish.html">Fish</A> &middot; <A HREF="birds.html">Birds</A> &middot; <A HREF="ferrets.html">Ferrets</A> &middot; <A HREF="reptiles.html">Reptiles</A> &middot; <A HREF="smallpets.html">Small Pets</A></FONT></CENTER><BR>
+</TD></TR></TABLE></TD><TD WIDTH=14><IMG SRC="images/dot_clear.gif" WIDTH=14 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP WIDTH=586><IMG SRC="images/dot_clear.gif" WIDTH=586 HEIGHT=10 BORDER=0><BR>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1><A HREF="index.html">home</A> &gt; <A HREF="reptiles.html">reptiles</A> &gt; Hot Rock Deluxe Heated Stone</FONT>
+<BR><BR><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=586><TR>
+<TD VALIGN=TOP WIDTH=210><IMG SRC="images/prod_rp05.gif" WIDTH=200 HEIGHT=200 BORDER=0 ALT="Hot Rock Deluxe Heated Stone"><BR><CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#999999"><I>actual size may vary</I></FONT></CENTER></TD><TD WIDTH=16><IMG SRC="images/dot_clear.gif" WIDTH=16 HEIGHT=1 BORDER=0></TD>
+<TD VALIGN=TOP>
+<FONT FACE="Arial, Helvetica" SIZE=3><B>Hot Rock Deluxe Heated Stone</B></FONT><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666666">by SunBeam</FONT><BR><BR>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=2>A resin rock with a built-in heating element. Looks like a rock. Feels like a warm rock. Is a rock. Our most honest product.</FONT><BR><BR>
+<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 BGCOLOR="#CCCC99" WIDTH=340><TR><TD><TABLE CELLSPACING=0 CELLPADDING=6 BORDER=0 BGCOLOR="#FFFFCC" WIDTH=100%><TR><TD>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=2>List price: <S>$24.99</S></FONT><BR>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=2><B>Our price: <FONT COLOR="#CC0000" SIZE=3>$9.99</FONT></B> &mdash; you save $15.00, which is more than we make!</FONT><BR>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Shipping: $6.95.</B> Our accountant has asked us to stop saying this out loud.</FONT><BR>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#999999"><I>(Petz.com loses $5.46 on every one of these. We make it up in volume.)</I></FONT>
+<BR><BR><FORM NAME="buy" ACTION="cart.html" METHOD="GET" onSubmit="return buyIt(this)"><INPUT TYPE=HIDDEN NAME="added" VALUE="rp05"><FONT FACE="Verdana, Arial, Helvetica" SIZE=2><B>Qty:</B></FONT> <INPUT TYPE=TEXT NAME="qty" VALUE="1" SIZE=2 MAXLENGTH=3> <INPUT TYPE=IMAGE SRC="images/btn_addcart.gif" WIDTH=110 HEIGHT=24 BORDER=0 ALIGN=ABSMIDDLE ALT="Add to Cart"></FORM>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#336600">In stock. Ships within 24 hours from our Indianapolis warehouse.</FONT>
+</TD></TR></TABLE></TD></TR></TABLE>
+</TD></TR></TABLE><BR>
+<IMG SRC="images/hdr_related.gif" WIDTH=300 HEIGHT=20 BORDER=0 ALT="Customers also lost money on">
+<TABLE CELLSPACING=0 CELLPADDING=4 BORDER=0><TR>
+<TD VALIGN=TOP ALIGN=CENTER WIDTH=140><A HREF="product_rp01.html"><IMG SRC="images/thumb_rp01.gif" WIDTH=90 HEIGHT=90 BORDER=0 ALT="Basking Heat Lamp, 150 Watt"></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><A HREF="product_rp01.html">Basking Heat Lamp, 150 Watt</A></FONT><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$14.99</B></FONT></TD>
+<TD VALIGN=TOP ALIGN=CENTER WIDTH=140><A HREF="product_rp02.html"><IMG SRC="images/thumb_rp02.gif" WIDTH=90 HEIGHT=90 BORDER=0 ALT="Desert Oasis 20-Gallon Terrarium"></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><A HREF="product_rp02.html">Desert Oasis 20-Gallon Terrarium</A></FONT><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$39.99</B></FONT></TD>
+<TD VALIGN=TOP ALIGN=CENTER WIDTH=140><A HREF="product_rp03.html"><IMG SRC="images/thumb_rp03.gif" WIDTH=90 HEIGHT=90 BORDER=0 ALT="Live Crickets, 500 Count"></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><A HREF="product_rp03.html">Live Crickets, 500 Count</A></FONT><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$6.99</B></FONT></TD>
+</TR></TABLE>
+</TD></TR></TABLE>
+
+<TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=770><TR><TD WIDTH=170 BGCOLOR="#FFFFCC"><IMG SRC="images/dot_clear.gif" WIDTH=170 HEIGHT=1 BORDER=0></TD><TD ALIGN=CENTER>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1><BR><BR><A HREF="help.html">Help</A> | <A HREF="help.html#contact">Contact Us</A> | <A HREF="about.html">About Us</A> | <A HREF="about.html#jobs">Jobs</A> | <A HREF="help.html#terms">Terms of Use</A> | <A HREF="about.html#associates">Associates</A> | <A HREF="help.html#guarantee">Our Guarantee</A><BR><BR>Copyright &copy; 1999 Petz.com, Inc. All rights reserved. Petz.com is not responsible for pets that drive.<BR><BR></FONT>
+<CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../etoyz/index.html">&lt;&lt; Prev</A> | <A HREF="../../web1999/index.html" onClick="return ringRandom()">Random</A> | <B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Petz.com is site 7 of 12 | <A HREF="../geohoods/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE></CENTER>
+<BR><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion"><BR><BR>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

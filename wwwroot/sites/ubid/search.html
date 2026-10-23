@@ -1,0 +1,60 @@
+<HTML>
+<HEAD>
+<TITLE>uBid Search</TITLE>
+<META NAME="description" CONTENT="uBid: your personal trading post. Bid on Beanie Babies, Furbys, Zip disks and Y2K survival kits.">
+<SCRIPT LANGUAGE="JavaScript">var P = "";</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript1.2" SRC="js/items.js"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript1.2" SRC="js/ubid.js"></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000CC" VLINK="#660099">
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR><TD ROWSPAN=2 WIDTH=160 VALIGN=TOP><A HREF="index.html"><IMG SRC="images/logo.gif" WIDTH=150 HEIGHT=64 BORDER=0 ALT="uBid"></A></TD>
+<TD ALIGN=RIGHT VALIGN=TOP><FONT FACE="Arial, Helvetica" SIZE=2><A HREF="index.html">home</A> | <A HREF="myubid.html">my uBid</A> | <A HREF="sitemap.html">site map</A> | <SCRIPT LANGUAGE="JavaScript">writeUserLinks();</SCRIPT></FONT></TD></TR>
+<TR><TD VALIGN=BOTTOM NOWRAP><A HREF="categories.html"><IMG SRC="images/nav/browse_0.gif" WIDTH=66 HEIGHT=24 BORDER=0 ALT="Browse"></A><A HREF="sell.html"><IMG SRC="images/nav/sell_0.gif" WIDTH=43 HEIGHT=24 BORDER=0 ALT="Sell"></A><A HREF="myubid.html"><IMG SRC="images/nav/services_0.gif" WIDTH=72 HEIGHT=24 BORDER=0 ALT="Services"></A><A HREF="search.html"><IMG SRC="images/nav/search_1.gif" WIDTH=62 HEIGHT=24 BORDER=0 ALT="Search"></A><A HREF="help.html"><IMG SRC="images/nav/help_0.gif" WIDTH=48 HEIGHT=24 BORDER=0 ALT="Help"></A><A HREF="feedback.html"><IMG SRC="images/nav/community_0.gif" WIDTH=88 HEIGHT=24 BORDER=0 ALT="Community"></A></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#F28C00"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=3></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#EFEFEF"><TABLE WIDTH="100%" BORDER=0 CELLPADDING=2 CELLSPACING=0><TR><TD><FONT FACE="Arial, Helvetica" SIZE=2>&nbsp;<A HREF="search.html">find items</A> | <A HREF="search.html#seller">by seller</A> | <A HREF="search.html#completed">completed auctions</A></FONT></TD><TD ALIGN=RIGHT><FORM NAME="hs" ACTION="search.html" METHOD=GET><FONT FACE="Arial, Helvetica" SIZE=2><INPUT TYPE=text NAME="q" SIZE=14> <INPUT TYPE=submit VALUE="Search"></FONT></FORM></TD></TR></TABLE></TD></TR>
+</TABLE>
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD><BR><FONT FACE="Arial, Helvetica" SIZE=5><B>Search</B></FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var q = qs("q"), seller = qs("seller").toLowerCase(), done = qs("completed") != "", sort = qs("sort");
+if (sort == "") sort = "end";
+function sel(v, label) { return "<OPTION VALUE=\"" + v + "\"" + (sort == v ? " SELECTED" : "") + ">" + label; }
+var h = "<FORM NAME=\"s\" ACTION=\"" + P + "search.html\" METHOD=GET><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR=\"#CCCCFF\" WIDTH=\"100%\"><TR><TD>";
+h += "<FONT FACE=\"Arial, Helvetica\" SIZE=2><B>Find items:</B> <INPUT TYPE=text NAME=\"q\" SIZE=28 VALUE=\"" + esc(q) + "\"> ";
+h += "<SELECT NAME=\"sort\">" + sel("end", "ending first") + sel("price", "highest prices") + sel("new", "newly listed") + "</SELECT> ";
+h += "<INPUT TYPE=checkbox NAME=\"completed\" VALUE=\"1\"" + (done ? " CHECKED" : "") + "> completed auctions ";
+h += "<INPUT TYPE=submit VALUE=\"Search\"></FONT></TD></TR></TABLE></FORM>";
+document.write(h);
+if (q != "" || seller != "") {
+  var rows = seller != "" ? pick("seller", seller, done) : pick("search", q, done);
+  if (done && sort == "end") sort = "ended";
+  rows = sortRows(rows, sort);
+  document.write("<FONT SIZE=2><B>" + rows.length + "</B> " + (done ? "completed " : "") + "item" + (rows.length == 1 ? "" : "s") + " found for <B>" + esc(seller != "" ? "seller " + seller : q) + "</B>.");
+  if (!done) document.write(" <A HREF=\"" + P + "search.html?q=" + escape(q) + "&seller=" + escape(seller) + "&completed=1\">Search completed auctions</A> to see what things sold for.");
+  document.write("</FONT><BR><BR>" + listTable(rows, done ? "ended" : "live"));
+  if (rows.length == 0 && q != "") {
+    document.write("<BR><FONT SIZE=2>No luck? Try a shorter word, or look for <A HREF=\"" + P + "../orinoco/search.html?index=blended&keywords=" + escape(q) + "\">\"" + esc(q) + "\" at Orinoco.com</A> ");
+    document.write("or <A HREF=\"" + P + "../etoyz/search.html?q=" + escape(q) + "\">at eToyz</A>.</FONT>");
+  }
+} else {
+  document.write("<FONT SIZE=2>Search titles and descriptions of every item for sale. Popular searches this week: ");
+  var pop = new Array("furby", "beanie", "pokemon", "y2k", "zip", "palm", "lunchbox", "pez");
+  for (var i = 0; i < pop.length; i++) document.write("<A HREF=\"" + P + "search.html?q=" + pop[i] + "\">" + pop[i] + "</A>" + (i < pop.length - 1 ? ", " : "."));
+  document.write("</FONT>");
+}
+</SCRIPT>
+<A NAME="seller"></A><BR><BR>
+<FORM NAME="bys" ACTION="search.html" METHOD=GET><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#EFEFEF"><TR><TD>
+<FONT FACE="Arial, Helvetica" SIZE=2><B>Search by seller:</B> User ID <INPUT TYPE=text NAME="seller" SIZE=16> <INPUT TYPE=submit VALUE="Search"></FONT></TD></TR></TABLE></FORM>
+<A NAME="completed"></A>
+<FORM NAME="byc" ACTION="search.html" METHOD=GET><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#EFEFEF"><TR><TD>
+<FONT FACE="Arial, Helvetica" SIZE=2><B>Search completed auctions:</B> <INPUT TYPE=text NAME="q" SIZE=20><INPUT TYPE=hidden NAME="completed" VALUE="1"> <INPUT TYPE=submit VALUE="Search"></FONT></TD></TR></TABLE></FORM>
+</TD></TR></TABLE>
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD ALIGN=CENTER><BR><HR SIZE=1 NOSHADE>
+<FONT FACE="Arial, Helvetica" SIZE=2><A HREF="help.html#news">Announcements</A> | <A HREF="register.html">Register</A> | <A HREF="help.html#safebid">SafeBid</A> | <A HREF="feedback.html">Feedback Forum</A> | <A HREF="help.html#about">About uBid</A><BR><A HREF="categories.html">Browse</A> | <A HREF="sell.html">Sell</A> | <A HREF="myubid.html">Services</A> | <A HREF="search.html">Search</A> | <A HREF="help.html">Help</A> | <A HREF="feedback.html">Community</A><BR><BR><FONT SIZE=1><SCRIPT LANGUAGE="JavaScript">writeStamp();</SCRIPT><BR>Copyright &copy; 1995-1999 uBid Inc. All Rights Reserved. By bidding you agree to the uBid User Agreement, which mostly says &quot;pay for what you win.&quot;<BR>Running on a rack of KoldFusion 4.5 servers from Gibson Mainframe Co. <I>A 1999 Web parody: every item, member and bid here is invented.</I></FONT></FONT>
+<BR><BR><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../orinoco/index.html">&lt;&lt; Prev</A> | <A HREF="../../web1999/index.html" onClick="return ringRandom()">Random</A> | <B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> | <A HREF="../etoyz/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

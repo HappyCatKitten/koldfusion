@@ -1,0 +1,132 @@
+<HTML>
+<HEAD>
+<TITLE>Snapster v2.0 BETA 5 - Browse y2k_bunker_bob</TITLE>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+// ---- Snapster Web Edition common code (JavaScript 1.2) ----
+function sw(n, s) {
+  if (document.images && document.images[n]) document.images[n].src = s;
+}
+function getArg(name) {
+  var q = location.search, i, parts, kv;
+  if (q.length < 2) return "";
+  parts = q.substring(1).split("&");
+  for (i = 0; i < parts.length; i++) {
+    kv = parts[i].split("=");
+    if (kv[0] == name && kv.length > 1) return unescape(kv[1].split("+").join(" "));
+  }
+  return "";
+}
+function getCookie(name) {
+  var c = "; " + document.cookie, p = "; " + name + "=", i = c.indexOf(p), j;
+  if (i == -1) return "";
+  j = c.indexOf(";", i + p.length);
+  if (j == -1) j = c.length;
+  return unescape(c.substring(i + p.length, j));
+}
+function setCookie(name, value, days) {
+  var exp = new Date();
+  exp.setTime(exp.getTime() + days * 86400000);
+  document.cookie = name + "=" + escape(value) + "; expires=" + exp.toGMTString();
+}
+function getSelected(f) {
+  var ids = new Array(), old = getCookie("snapdl"), i, e, n = 0;
+  if (old != "") ids = old.split(".");
+  for (i = 0; i < f.elements.length; i++) {
+    e = f.elements[i];
+    if (e.type == "checkbox" && e.checked && e.value != "") {
+      var dup = false;
+      for (var j = 0; j < ids.length; j++) if (ids[j] == e.value) dup = true;
+      if (!dup) { ids[ids.length] = e.value; n++; }
+    }
+  }
+  if (n == 0) {
+    alert("Select at least one song first.\nSnappy can't read minds. Yet. (Beta 6.)");
+    return false;
+  }
+  while (ids.length > 30) ids = ids.slice(1);
+  setCookie("snapdl", ids.join("."), 7);
+  location.href = "transfer.html";
+  return false;
+}
+function selAll(f, on) {
+  for (var i = 0; i < f.elements.length; i++)
+    if (f.elements[i].type == "checkbox") f.elements[i].checked = on;
+}
+function menu(m) {
+  if (m == "file") alert("File\n\nNew Window... (disabled)\nExit (please don't, we're bonding)");
+  else if (m == "actions") alert("Actions\n\nShare MP3s: ON\nAuto-reconnect: ON\nPretend to have a T3: OFF (thank you)");
+  else alert("Snapster v2.0 BETA 5 (Web Edition)\n\n(c) 1999-2000 Snapster, Inc.\nTurtle by Snappy.");
+}
+function winBtn(b) {
+  if (b == "min") alert("Snapster has been minimized to the system tray.\n(Not really. This is a web page.)");
+  else alert("Snapster is already as big as it gets.\nTry a 17-inch monitor.");
+}
+function commas(n) {
+  var s = "" + n, out = "";
+  while (s.length > 3) { out = "," + s.substring(s.length - 3) + out; s = s.substring(0, s.length - 3); }
+  return s + out;
+}
+function mmss(sec) {
+  var m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+  return m + ":" + (s < 10 ? "0" : "") + s;
+}
+// -->
+</SCRIPT>
+
+
+</HEAD>
+<BODY BGCOLOR="#008080" TEXT="#CCCCCC" LINK="#99CCCC" VLINK="#99CCCC" ALINK="#FFFFFF">
+<CENTER>
+<P><TABLE BORDER=2 CELLPADDING=0 CELLSPACING=0 BGCOLOR="#C0C0C0" WIDTH=644><TR><TD>
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=640>
+<TR>
+  <TD BGCOLOR="#000080" WIDTH=584><IMG SRC="images/titlebar.gif" WIDTH=584 HEIGHT=18 ALT="Snapster v2.0 BETA 5"></TD>
+  <TD BGCOLOR="#1084D0" ALIGN=RIGHT NOWRAP><A HREF="javascript:winBtn('min')"><IMG SRC="images/win_min.gif" WIDTH=16 HEIGHT=14 BORDER=0 ALT="_"></A><A HREF="javascript:winBtn('max')"><IMG SRC="images/win_max.gif" WIDTH=16 HEIGHT=14 BORDER=0 ALT="[]"></A><IMG SRC="images/clear.gif" WIDTH=2 HEIGHT=14><A HREF="index.html"><IMG SRC="images/win_close.gif" WIDTH=16 HEIGHT=14 BORDER=0 ALT="X"></A><IMG SRC="images/clear.gif" WIDTH=2 HEIGHT=14></TD>
+</TR>
+<TR><TD COLSPAN=2 BGCOLOR="#C0C0C0"><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">&nbsp;
+  <A HREF="javascript:menu('file')"><FONT COLOR="#000000"><U>F</U>ile</FONT></A> &nbsp;
+  <A HREF="javascript:menu('actions')"><FONT COLOR="#000000"><U>A</U>ctions</FONT></A> &nbsp;
+  <A HREF="javascript:menu('help')"><FONT COLOR="#000000"><U>H</U>elp</FONT></A></FONT></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#1A1A1A">
+  <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=640><TR>
+  <TD><A HREF="client.html" onMouseOver="sw('tb_home','images/tab_home_mo.gif')" onMouseOut="sw('tb_home','images/tab_home.gif')"><IMG SRC="images/tab_home.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_home" ALT="Home"></A></TD>
+  <TD><A HREF="chat.html" onMouseOver="sw('tb_chat','images/tab_chat_mo.gif')" onMouseOut="sw('tb_chat','images/tab_chat.gif')"><IMG SRC="images/tab_chat.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_chat" ALT="Chat"></A></TD>
+  <TD><A HREF="library.html" onMouseOver="sw('tb_library','images/tab_library_mo.gif')" onMouseOut="sw('tb_library','images/tab_library.gif')"><IMG SRC="images/tab_library.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_library" ALT="Library"></A></TD>
+  <TD><A HREF="search.html" onMouseOver="sw('tb_search','images/tab_search_mo.gif')" onMouseOut="sw('tb_search','images/tab_search.gif')"><IMG SRC="images/tab_search.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_search" ALT="Search"></A></TD>
+  <TD><A HREF="hotlist.html"><IMG SRC="images/tab_hotlist_on.gif" WIDTH=70 HEIGHT=50 BORDER=0 ALT="Hot List"></A></TD>
+  <TD><A HREF="transfer.html" onMouseOver="sw('tb_transfer','images/tab_transfer_mo.gif')" onMouseOut="sw('tb_transfer','images/tab_transfer.gif')"><IMG SRC="images/tab_transfer.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_transfer" ALT="Transfer"></A></TD>
+  <TD><A HREF="discover.html" onMouseOver="sw('tb_discover','images/tab_discover_mo.gif')" onMouseOut="sw('tb_discover','images/tab_discover.gif')"><IMG SRC="images/tab_discover.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_discover" ALT="Discover"></A></TD>
+  <TD><A HREF="help.html" onMouseOver="sw('tb_help','images/tab_help_mo.gif')" onMouseOut="sw('tb_help','images/tab_help.gif')"><IMG SRC="images/tab_help.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_help" ALT="Help"></A></TD>
+  <TD ALIGN=RIGHT WIDTH=80><A HREF="index.html"><IMG SRC="images/snappy_48.gif" WIDTH=48 HEIGHT=48 BORDER=0 ALT="snapster.com" HSPACE=6></A></TD>
+  </TR></TABLE>
+</TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#3A3A3A" HEIGHT=360 VALIGN=TOP>
+<TABLE BORDER=0 CELLPADDING=8 CELLSPACING=0 WIDTH=640><TR><TD VALIGN=TOP>
+<TABLE BORDER=0 CELLPADDING=1 CELLSPACING=0 BGCOLOR="#666666" WIDTH="100%"><TR><TD><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#2A2A2A" WIDTH="100%"><TR><TD BGCOLOR="#555555"><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#FFFFFF"><B>Browsing: y2k_bunker_bob</B></FONT></TD></TR><TR><TD><P><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#FF6666"><B>Could not browse y2k_bunker_bob.</B></FONT><BR><FONT FACE="Arial, Helvetica" SIZE=2>The user is not online. Note on your Hot List: <I>logged off to fill water jugs</I>.<P>Try again later, or go back to your <A HREF="hotlist.html">Hot List</A>.</FONT></TD></TR></TABLE></TD></TR></TABLE>
+</TD></TR></TABLE>
+</TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#C0C0C0">
+  <TABLE BORDER=1 CELLPADDING=1 CELLSPACING=0 WIDTH=640><TR><TD><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">Online (snapfan_99): Sharing 18 songs. Currently 8,412 users (1,207,553 songs) available.</FONT></TD><TD WIDTH=60 ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">11:52 PM</FONT></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+</TD></TR></TABLE>
+<P><FONT FACE="Arial, Helvetica" SIZE=1>This is <B>Snapster Web Edition</B>, a pretend client. Back to <A HREF="index.html"><FONT COLOR="#FFFFFF">snapster.com</FONT></A>.</FONT>
+</CENTER>
+
+<SCRIPT LANGUAGE="JavaScript1.2">
+<!--
+function ringRandom() {
+  var list = new Array("../yowza/index.html", "../altavisor/index.html", "../askreeves/index.html", "../orinoco/index.html", "../ubid/index.html", "../etoyz/index.html", "../petz/index.html", "../geohoods/index.html", "../hamstershuffle/index.html", "../dashdot/index.html", "../snapster/index.html", "../cnm/index.html");
+  location.href = list[Math.floor(Math.random() * list.length)];
+  return false;
+}
+// -->
+</SCRIPT>
+<P><CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../dashdot/index.html"><FONT COLOR="#000080">&lt;&lt; Prev</FONT></A> <FONT COLOR="#000000">|</FONT> <A HREF="../../web1999/index.html" onClick="return ringRandom()"><FONT COLOR="#000080">Random</FONT></A> <FONT COLOR="#000000">|</FONT> <B><A HREF="../../web1999/index.html"><FONT COLOR="#000080">The 1999 Web Ring</FONT></A></B> <FONT COLOR="#000000">&middot; Snapster is site 11 of 12 |</FONT> <A HREF="../cnm/index.html"><FONT COLOR="#000080">Next &gt;&gt;</FONT></A>
+</FONT></TD></TR></TABLE></CENTER>
+
+</BODY>
+</HTML>

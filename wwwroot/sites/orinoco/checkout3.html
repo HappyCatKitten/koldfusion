@@ -1,0 +1,70 @@
+<HTML>
+<HEAD>
+<TITLE>Orinoco.com: Checkout: Place Your Order</TITLE>
+<META NAME="description" CONTENT="Orinoco.com, Earth's Biggest Bookstore: millions of titles, invented daily.">
+<SCRIPT LANGUAGE="JavaScript">var P = "";</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript1.2" SRC="js/books.js"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript1.2" SRC="js/orinoco.js"></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#003399" VLINK="#996633" ALINK="#FF9900">
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR>
+<TD ROWSPAN=2 VALIGN=BOTTOM WIDTH=176><A HREF="index.html"><IMG SRC="images/logo.gif" WIDTH=172 HEIGHT=58 BORDER=0 ALT="Orinoco.com"></A></TD>
+<TD ALIGN=RIGHT VALIGN=TOP><FONT FACE="verdana,arial,helvetica" SIZE=-2><SCRIPT LANGUAGE="JavaScript">writeCartLine();</SCRIPT>&nbsp;</FONT><A HREF="cart.html"><IMG SRC="images/btn_cart.gif" WIDTH=80 HEIGHT=19 BORDER=0 ALT="View Cart"></A><A HREF="account.html"><IMG SRC="images/btn_account.gif" WIDTH=103 HEIGHT=19 BORDER=0 ALT="Your Account"></A><A HREF="help.html"><IMG SRC="images/btn_help.gif" WIDTH=53 HEIGHT=19 BORDER=0 ALT="Help"></A></TD>
+</TR>
+<TR><TD VALIGN=BOTTOM NOWRAP><A HREF="index.html"><IMG SRC="images/tabs/welcome_on.gif" WIDTH=75 HEIGHT=22 BORDER=0 ALT="WELCOME"></A><A HREF="books.html"><IMG SRC="images/tabs/books_off.gif" WIDTH=60 HEIGHT=20 BORDER=0 ALT="BOOKS"></A><A HREF="music.html"><IMG SRC="images/tabs/music_off.gif" WIDTH=57 HEIGHT=20 BORDER=0 ALT="MUSIC"></A><A HREF="video.html"><IMG SRC="images/tabs/video_off.gif" WIDTH=56 HEIGHT=20 BORDER=0 ALT="VIDEO"></A><A HREF="toys.html"><IMG SRC="images/tabs/toys_off.gif" WIDTH=101 HEIGHT=20 BORDER=0 ALT="TOYS &amp; GAMES"></A><A HREF="auctions.html"><IMG SRC="images/tabs/auctions_off.gif" WIDTH=76 HEIGHT=20 BORDER=0 ALT="AUCTIONS"></A><A HREF="ecards.html"><IMG SRC="images/tabs/ecards_off.gif" WIDTH=68 HEIGHT=20 BORDER=0 ALT="e-CARDS"></A></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#336699" HEIGHT=20 ALIGN=CENTER><FONT FACE="verdana,arial,helvetica" SIZE=-2 COLOR="#FFFFFF"><A HREF="hot100.html"><FONT COLOR="#FFFFFF"><B>HOT 100</B></FONT></A> &nbsp;|&nbsp; <A HREF="books.html"><FONT COLOR="#FFFFFF"><B>BOOKS</B></FONT></A> &nbsp;|&nbsp; <A HREF="music.html"><FONT COLOR="#FFFFFF"><B>MUSIC</B></FONT></A> &nbsp;|&nbsp; <A HREF="video.html"><FONT COLOR="#FFFFFF"><B>VIDEO</B></FONT></A> &nbsp;|&nbsp; <A HREF="ecards.html"><FONT COLOR="#FFFFFF"><B>e-CARDS</B></FONT></A> &nbsp;|&nbsp; <A HREF="wishlist.html"><FONT COLOR="#FFFFFF"><B>WISH LISTS</B></FONT></A> &nbsp;|&nbsp; <A HREF="account.html"><FONT COLOR="#FFFFFF"><B>YOUR ACCOUNT</B></FONT></A></FONT></TD></TR>
+</TABLE>
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD><BR><FONT FACE="verdana,arial,helvetica" SIZE=-1><TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%"><TR>
+<TD><FONT FACE="verdana,arial,helvetica" SIZE=+1><B>Checkout: Review and Place Your Order</B></FONT></TD>
+<TD ALIGN=RIGHT><FONT FACE="verdana,arial,helvetica" SIZE=-2>1. ADDRESS &gt; 2. SHIPPING &amp; PAYMENT &gt; <B><FONT COLOR="#CC6600">3. PLACE ORDER</FONT></B></FONT></TD></TR></TABLE><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var a = addrGet(), c = cartGet();
+if (!userGet()) location.href = P + "signin.html?next=checkout.html";
+else if (c.length == 0) location.href = P + "cart.html";
+else if (!a || a.length < 9 || a[7] == "") location.href = P + "checkout2.html";
+function doPlace() {
+  var f = document.forms["place"];
+  var no = placeOrder(c, parseInt(a[6]));
+  // gift wrap is added to the stored order total
+  if (a[9] == "1") {
+    var o = ordersGet();
+    o[0][4] = "" + (parseInt(o[0][4]) + 249 * cartCount());
+    ordersSet(o);
+  }
+  if (f.oneclick.checked) setCookie("orinoco_1click", "on", 365);
+  cartSet(new Array());
+  location.href = P + "thanks.html?order=" + no;
+  return false;
+}
+var F = "<FONT FACE=\"verdana,arial,helvetica\" SIZE=-1>";
+if (a && c.length) {
+  var n = cartCount(), sub = cartTotal(c), ship = shipCost(parseInt(a[6]), n), wrap = (a[9] == "1" ? 249 * n : 0);
+  document.write("<FORM NAME=\"place\" onSubmit=\"return doPlace()\">");
+  document.write("<TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 WIDTH=\"100%\"><TR><TD VALIGN=TOP BGCOLOR=\"#EEEECC\" WIDTH=\"50%\">" + F + "<B>Shipping to:</B> <FONT SIZE=-2>(<A HREF=\"" + P + "checkout.html\">change</A>)</FONT><BR>");
+  document.write(esc(a[0]) + "<BR>" + esc(a[1]) + "<BR>" + esc(a[2]) + ", " + esc(a[3]) + " " + esc(a[4]) + "<BR>" + esc(a[5]) + "</FONT></TD>");
+  document.write("<TD VALIGN=TOP BGCOLOR=\"#EEEECC\">" + F + "<B>Shipping method:</B> <FONT SIZE=-2>(<A HREF=\"" + P + "checkout2.html\">change</A>)</FONT><BR>" + SHIP[parseInt(a[6])][0] + "<BR><BR>");
+  document.write("<B>Payment:</B><BR>" + esc(a[7]) + (a[8] != "" ? " ending in " + esc(a[8]) : "") + "</FONT></TD></TR></TABLE><BR>");
+  document.write("<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=0 WIDTH=\"100%\">");
+  for (var i = 0; i < c.length; i++) {
+    var it = findItem(c[i][0]);
+    document.write("<TR><TD>" + F + c[i][1] + " x <B>" + esc(it[1]) + "</B><BR><FONT SIZE=-2>" + esc(it[2]) + "; " + esc(it[7]) + "</FONT></FONT></TD><TD ALIGN=RIGHT VALIGN=TOP>" + F + money(it[3] * c[i][1]) + "</FONT></TD></TR>");
+  }
+  document.write("<TR><TD ALIGN=RIGHT>" + F + "Items:</FONT></TD><TD ALIGN=RIGHT>" + F + money(sub) + "</FONT></TD></TR>");
+  document.write("<TR><TD ALIGN=RIGHT>" + F + "Shipping &amp; Handling:</FONT></TD><TD ALIGN=RIGHT>" + F + money(ship) + "</FONT></TD></TR>");
+  if (wrap) document.write("<TR><TD ALIGN=RIGHT>" + F + "Gift-wrap:</FONT></TD><TD ALIGN=RIGHT>" + F + money(wrap) + "</FONT></TD></TR>");
+  document.write("<TR><TD ALIGN=RIGHT>" + F + "Sales tax:</FONT></TD><TD ALIGN=RIGHT>" + F + "$0.00</FONT></TD></TR>");
+  document.write("<TR><TD ALIGN=RIGHT>" + F + "<B>Order Total:</B></FONT></TD><TD ALIGN=RIGHT>" + F + "<B><FONT COLOR=\"#990000\">" + money(sub + ship + wrap) + "</FONT></B></FONT></TD></TR></TABLE><BR>");
+  document.write(F + "<INPUT TYPE=checkbox NAME=\"oneclick\" CHECKED> Remember this address and payment method, and turn on <B>1-Click</B> ordering for next time.</FONT><BR><BR>");
+  document.write("<CENTER><INPUT TYPE=image SRC=\"" + P + "images/btn_placeorder.gif\" WIDTH=136 HEIGHT=20 BORDER=0 ALT=\"Place Your Order\"></CENTER></FORM>");
+}
+</SCRIPT>
+</FONT></TD></TR></TABLE><TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD ALIGN=CENTER>
+<BR><HR NOSHADE SIZE=1 COLOR="#CCCC99">
+<FONT FACE="verdana,arial,helvetica" SIZE=-2><A HREF="index.html">Orinoco.com Home</A> | <A HREF="books.html">Books</A> | <A HREF="music.html">Music</A> | <A HREF="video.html">Video</A> | <A HREF="toys.html">Toys &amp; Games</A> | <A HREF="auctions.html">Auctions</A> | <A HREF="ecards.html">e-Cards</A> | <A HREF="hot100.html">Hot 100</A> | <A HREF="account.html">Your Account</A> | <A HREF="cart.html">Shopping Cart</A> | <A HREF="help.html">Help</A><BR><BR><A HREF="help.html#privacy">Our Privacy Pledge</A> | <A HREF="help.html#safe">Safe Shopping Pledge</A> | <A HREF="help.html#about">About Orinoco.com</A><BR><BR>Copyright &copy; 1996-1999, Orinoco.com, Inc. All rights reserved. Served by a KoldFusion 4.5 cluster from Gibson Mainframe Co.<BR><I>A 1999 Web parody. No rivers, retailers or authors were harmed; every book here is invented.</I></FONT>
+<BR><BR><CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../askreeves/index.html">&lt;&lt; Prev</A> | <A HREF="../../web1999/index.html" onClick="return ringRandom()">Random</A> | <B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> | <A HREF="../ubid/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE></CENTER>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

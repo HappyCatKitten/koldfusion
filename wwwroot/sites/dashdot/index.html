@@ -1,0 +1,309 @@
+<HTML><HEAD><TITLE>Dashdot: News for Nerds. Stuff that Matters.</TITLE>
+<SCRIPT LANGUAGE="JavaScript"><!--
+
+function getCookie(n) {
+  var c = document.cookie.split("; ");
+  for (var i = 0; i < c.length; i++) {
+    var p = c[i].indexOf("=");
+    if (p > 0 && c[i].substring(0, p) == n) return unescape(c[i].substring(p + 1));
+  }
+  return "";
+}
+function setCookie(n, v, days) {
+  var e = "";
+  if (days) { var d = new Date(); d.setTime(d.getTime() + days * 86400000); e = "; expires=" + d.toGMTString(); }
+  document.cookie = n + "=" + escape(v) + e + "; path=/";
+}
+function delCookie(n) { document.cookie = n + "=; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/"; }
+function qs(n) {
+  var q = location.search.substring(1).split("&");
+  for (var i = 0; i < q.length; i++) {
+    var p = q[i].indexOf("=");
+    if (p > 0 && q[i].substring(0, p) == n) return unescape(q[i].substring(p + 1).replace(/\+/g, " "));
+  }
+  return "";
+}
+function htmlEsc(s) {
+  s = "" + s;
+  s = s.replace(/&/g, "&amp;"); s = s.replace(/</g, "&lt;"); s = s.replace(/>/g, "&gt;"); s = s.replace(/"/g, "&quot;");
+  return s;
+}
+
+function ringRandom(p) {
+  var s = new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","snapster","cnm");
+  var n = Math.floor(Math.random() * s.length);
+  location.href = p + "../" + s[n] + "/" + "index.html";
+  return false;
+}
+
+function ddLogin(f) {
+  var n = f.unickname.value;
+  if (n == "") { alert("Please enter a nickname. Even Anonymous Cowards have to type something."); return false; }
+  if (f.upasswd.value == "") { alert("Please enter your password. (We won't look at it. We don't even keep it.)"); return false; }
+  setCookie("dd_user", n, 30);
+  if (getCookie("dd_points") == "") {
+    setCookie("dd_points", "5", 3);
+    alert("Welcome back, " + n + "!\n\nYou have been randomly selected to moderate.\nYou have 5 moderator points; they expire in 3 days.\nUse them wisely: look for the Moderate menus under each comment.");
+  }
+  location.reload();
+  return false;
+}
+function ddLogout() { delCookie("dd_user"); location.reload(); }
+function loginBox(root) {
+  var u = getCookie("dd_user");
+  if (u != "") {
+    var p = getCookie("dd_points"); if (p == "") p = "0";
+    document.write('<B>Welcome back, ' + htmlEsc(u) + '!</B><BR>Karma: Positive<BR>Moderator points: <B>' + p + '</B><P>');
+    document.write('[ <A HREF="' + root + 'preferences.html">preferences</A> | <A HREF="javascript:ddLogout()">logout</A> ]');
+  } else {
+    document.write('<FORM ACTION="' + root + 'users.html" METHOD="get" onSubmit="return ddLogin(this)">');
+    document.write('<B>Nickname:</B><BR><INPUT TYPE="text" NAME="unickname" SIZE=18><BR><B>Password:</B><BR>');
+    document.write('<INPUT TYPE="password" NAME="upasswd" SIZE=18><BR><INPUT TYPE="submit" VALUE="userlogin"></FORM>');
+    document.write('No account? <A HREF="' + root + 'users.html">Make one</A>. It\'s free, and it lets you pick your comment threshold, keep your nickname, and moderate when the dice say so.');
+  }
+}
+
+//--></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#000000" TEXT="#000000" LINK="#006666" VLINK="#000000">
+<CENTER><A HREF="advertising.html"><IMG SRC="images/banner_kf.gif" WIDTH=468 HEIGHT=60 BORDER=0 ALT="KoldFusion 4.5 from Gibson Mainframe Co."></A></CENTER><P>
+<TABLE BGCOLOR="#FFFFFF" CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH="99%" ALIGN=CENTER><TR>
+<TD VALIGN=TOP ALIGN=LEFT><A HREF="index.html"><IMG SRC="images/title.gif" WIDTH=300 HEIGHT=72 BORDER=0 ALT="Welcome to Dashdot"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_y2k.html"><IMG SRC="images/topicy2k.gif" BORDER=0 ALT="Y2K"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_hardware.html"><IMG SRC="images/topichardware.gif" BORDER=0 ALT="Hardware"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_patents.html"><IMG SRC="images/topicpatents.gif" BORDER=0 ALT="Patents"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_linix.html"><IMG SRC="images/topiclinix.gif" BORDER=0 ALT="Linix"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_games.html"><IMG SRC="images/topicgames.gif" BORDER=0 ALT="Games"></A></TD>
+</TR></TABLE>
+<TABLE WIDTH="99%" ALIGN=CENTER CELLPADDING=0 CELLSPACING=0 BORDER=0 BGCOLOR="#FFFFFF"><TR>
+<TD VALIGN=TOP ROWSPAN=5 WIDTH=110 BGCOLOR="#FFFFFF"><NOBR><FONT FACE="arial,helvetica" SIZE=2><B>
+&nbsp;<A HREF="faq.html">faq</A><BR>
+&nbsp;<A HREF="code.html">code</A><BR>
+&nbsp;<A HREF="awards.html">awards</A><BR>
+&nbsp;<A HREF="privacy.html">privacy</A><BR>
+&nbsp;<A HREF="dashnet.html">dashNET</A><BR>
+&nbsp;<A HREF="older.html">older stuff</A><BR>
+&nbsp;<A HREF="grits.html">grits' page</A><BR>
+&nbsp;<A HREF="preferences.html">preferences</A><BR>
+&nbsp;<A HREF="overandover.html">overandover.net</A><BR>
+&nbsp;<A HREF="submit.html">submit story</A><BR>
+&nbsp;<A HREF="advertising.html">advertising</A><BR>
+&nbsp;<A HREF="supporters.html">supporters</A><BR>
+&nbsp;<A HREF="polls.html">past polls</A><BR>
+&nbsp;<A HREF="topics.html">topics</A><BR>
+&nbsp;<A HREF="about.html">about</A><BR>
+&nbsp;<A HREF="jobs.html">jobs</A><BR>
+&nbsp;<A HREF="hof.html">hof</A><BR>
+&nbsp;<A HREF="search.html">search</A>
+</B></FONT></NOBR>
+<P><TABLE BORDER=0 CELLPADDING=1 CELLSPACING=0 ALIGN=CENTER BGCOLOR="#CCCCCC"><TR><TD><FONT FACE="arial,helvetica" SIZE=2 COLOR="#000000"><B>&nbsp;Sections</B></FONT></TD></TR>
+<TR><TD><TABLE BORDER=0 CELLSPACING=1 CELLPADDING=1 BGCOLOR="#FFFFFF" WIDTH="100%"><TR><TD><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2><NOBR>
+10/17<BR>
+<B><A HREF="askdashdot.html">askdashdot</A></B><BR>
+10/14<BR>
+<B><A HREF="books.html">books</A></B><BR>
+10/14<BR>
+<B><A HREF="bsd.html">bsd</A></B><BR>
+10/12<BR>
+<B><A HREF="features.html">features</A></B><BR>
+10/15<BR>
+<B><A HREF="interviews.html">interviews</A></B><BR>
+10/18 (1)<BR>
+<B><A HREF="yro.html">yro</A></B><BR>
+</NOBR></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2 COLOR="#000000"><B>&nbsp;Overandover.net</B></FONT></TD></TR>
+<TR><TD><TABLE BORDER=0 CELLSPACING=1 CELLPADDING=1 BGCOLOR="#FFFFFF" WIDTH="100%"><TR><TD><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2><NOBR>
+<A HREF="../snapster/index.html">Snapster</A><BR>
+<A HREF="../cnm/index.html">CNM</A><BR>
+<A HREF="../petz/index.html">Petz.com</A><BR>
+<A HREF="../ubid/index.html">uBid</A><BR>
+<A HREF="../geohoods/index.html">GeoHoods</A><BR>
+</NOBR></FONT></TD></TR></TABLE></TD></TR></TABLE><P>
+</TD>
+<TD VALIGN=TOP ALIGN=LEFT><FONT FACE="arial,helvetica" COLOR="#000000">
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Y2K Bug Found in Smart Refrigerator Firmware</B></FONT></TD></TR></TABLE>
+<A HREF="topic_y2k.html"><IMG SRC="images/topicy2k.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Y2K"></A>
+<B>Posted by <A HREF="users/cmdrgrits.html">CmdrGrits</A> on Monday October 18, @09:42AM EDT</B><BR>
+<FONT SIZE=2><B>from the it's-the-y2k-dept dept.</B></FONT><BR>
+<A HREF="users/frostbyte.html">frostbyte</A> writes <I>"Owners of the Kelvinator-Plus NetChill 2000, the fridge that e-mails you when you're out of milk, have discovered that it thinks January 1st 2000 is January 1st 1900. Since milk bought in 1999 will then be 99 years in the future, the fridge has decided all of it has expired and is scheduling a self-defrost. The vendor says a patch will ship on floppy disk 'well before the holidays.'"</I> Nothing says the future like a refrigerator that needs a firmware upgrade. I'm keeping my milk in a cooler.<P><B>( </B><A HREF="article/y2kfridge.html"><B>Read More...</B></A> | <B><A HREF="article/y2kfridge.html">20</A> of <A HREF="article/y2kfridge_tm1.html">24</A> </B>comments | <B>622 bytes in body</B> <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Intellon Ships 600MHz Pentode III</B></FONT></TD></TR></TABLE>
+<A HREF="topic_hardware.html"><IMG SRC="images/topichardware.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Hardware"></A>
+<B>Posted by <A HREF="users/pixelfish.html">Pixelfish</A> on Monday October 18, @08:15AM EDT</B><BR>
+<FONT SIZE=2><B>from the more-megahertz-than-sense dept.</B></FONT><BR>
+<A HREF="users/overclocked_otter.html">overclocked_otter</A> writes <I>"Intellon today announced the Pentode III at 600MHz, featuring a new 0.18 micron process and an on-die cache that actually runs at full speed. The chip lists at $669 in quantities of a thousand, which means about $1,100 at the store down the street. Benchmarks show it beating last month's chip by a margin noticeable only to benchmarks."</I> Meanwhile Advanced Micro Gizmos says its Marathon will hit 700 before Christmas. Your move, Intellon.<P><B>( </B><A HREF="article/pentode600.html"><B>Read More...</B></A> | <B><A HREF="article/pentode600.html">13</A> of <A HREF="article/pentode600_tm1.html">18</A> </B>comments | <B>280 bytes in body</B> <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Your Rights Online: Orinoco.com Granted Patent on Clicking</B></FONT></TD></TR></TABLE>
+<A HREF="topic_patents.html"><IMG SRC="images/topicpatents.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Patents"></A>
+<B>Posted by <A HREF="users/jamie_k.html">jamie_k</A> on Monday October 18, @07:30AM EDT</B><BR>
+<FONT SIZE=2><B>from the click-here-to-infringe dept.</B></FONT><BR>
+<A HREF="users/prior_art_pete.html">Prior Art Pete</A> writes <I>"The online bookseller <A HREF="../orinoco/index.html">Orinoco.com</A> has been granted U.S. Patent 5,999,999 covering 'a method and system for placing an order by means of a pointing device actuated a single time.' The claims appear to cover any web store where you buy something with one click. Competitors are said to be considering a two-click workaround, or in one case, a long press."</I> The patent office appears to be granting patents on anything that runs on a computer and has been done before, as long as it is described with enough words. I'm patenting 'a method of reading Dashdot at work.'<P><B>( </B><A HREF="article/orinococlick.html"><B>Read More...</B></A> | <B><A HREF="article/orinococlick.html">15</A> of <A HREF="article/orinococlick_tm1.html">22</A> </B>comments | <B>221 bytes in body</B> <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Linix Kernel 2.3.22 Released; 2.4 'Real Soon Now'</B></FONT></TD></TR></TABLE>
+<A HREF="topic_linix.html"><IMG SRC="images/topiclinix.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Linix"></A>
+<B>Posted by <A HREF="users/hemlock.html">Hemlock</A> on Sunday October 17, @11:05PM EDT</B><BR>
+<FONT SIZE=2><B>from the development-kernels-are-for-developers dept.</B></FONT><BR>
+<A HREF="users/kernel_kid.html">kernel_kid</A> writes <I>"The latest development kernel is out, with USB updates, a reworked VM, and a new filesystem driver for reading disks formatted by a 1987 word processor. As always, this is a development series. It will eat your disk, your cat and your homework. 2.4 is expected 'when it is done,' which is the official release date of all good software."</I> Download it from your nearest mirror. Please, the nearest. The main site is hosted on a 486 in a closet.<P><B>( </B><A HREF="article/kernel2322.html"><B>Read More...</B></A> | <B><A HREF="article/kernel2322.html">35</A> of <A HREF="article/kernel2322_tm1.html">48</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Sego Daydream Sells 500,000 Units in Two Weeks</B></FONT></TD></TR></TABLE>
+<A HREF="topic_games.html"><IMG SRC="images/topicgames.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Games"></A>
+<B>Posted by <A HREF="users/pixelfish.html">Pixelfish</A> on Sunday October 17, @08:12PM EDT</B><BR>
+<FONT SIZE=2><B>from the 128-bits-of-fun dept.</B></FONT><BR>
+<A HREF="users/retroraccoon.html">RetroRaccoon</A> writes <I>"Sego's new Daydream console has reportedly moved half a million units since its 9/9/99 launch, making it the fastest selling console ever, at least until the next one. The box has a built-in 56k modem, which means it is the first game console that can tell you your mom is trying to use the phone."</I> I've been playing Soul Spatula for twelve days straight. Send help, or more controllers.<P><B>( </B><A HREF="article/sego_daydream.html"><B>Read More...</B></A> | <B><A HREF="article/sego_daydream.html">10</A> of <A HREF="article/sego_daydream_tm1.html">11</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Ask Dashdot: How Do I Explain My Job to My Grandmother?</B></FONT></TD></TR></TABLE>
+<A HREF="topic_humor.html"><IMG SRC="images/topichumor.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Humor"></A>
+<B>Posted by <A HREF="users/rotundo.html">Rotundo</A> on Sunday October 17, @05:40PM EDT</B><BR>
+<FONT SIZE=2><B>from the it's-like-a-typewriter-but dept.</B></FONT><BR>
+<A HREF="users/sysadmin_steve.html">sysadmin_steve</A> writes <I>"I'm a Unix system administrator. Every Thanksgiving my grandmother asks what I do, and every year I say 'I keep the computers running' and she asks if I can fix her VCR clock. This year I want to do better. How do you explain sysadmin work, network engineering, or (heaven help you) database administration to someone who still writes checks at the supermarket?"</I> My personal approach: 'I'm a plumber, but the pipes are invisible and the water is made of numbers.'<P><B>( </B><A HREF="article/doublebytefinder.html"><B>Read More...</B></A> | <B><A HREF="article/doublebytefinder.html">18</A> of <A HREF="article/doublebytefinder_tm1.html">22</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Secretive Startup Transmuta Updates Web Page</B></FONT></TD></TR></TABLE>
+<A HREF="topic_hardware.html"><IMG SRC="images/topichardware.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Hardware"></A>
+<B>Posted by <A HREF="users/cmdrgrits.html">CmdrGrits</A> on Sunday October 17, @02:02PM EDT</B><BR>
+<FONT SIZE=2><B>from the this-headline-is-not-here-yet dept.</B></FONT><BR>
+<A HREF="users/speculatron.html">Speculatron</A> writes <I>"The famously quiet chip startup Transmuta has changed its web page. Where it previously said 'This web page is not here yet,' it now says 'This web page is still not here yet.' Analysts are reading the extra word as a signal of an imminent product launch, or possibly of a new web designer."</I> Rumors range from a low-power x86 clone to a quantum toaster. I'm putting my money on the toaster.<P><B>( </B><A HREF="article/transmuta.html"><B>Read More...</B></A> | <B><A HREF="article/transmuta.html">8</A> of <A HREF="article/transmuta_tm1.html">15</A> </B>comments | <B>221 bytes in body</B> <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>College Student's MP3 Swapping Program Takes Off</B></FONT></TD></TR></TABLE>
+<A HREF="topic_music.html"><IMG SRC="images/topicmusic.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Music"></A>
+<B>Posted by <A HREF="users/hemlock.html">Hemlock</A> on Sunday October 17, @11:25AM EDT</B><BR>
+<FONT SIZE=2><B>from the what-could-possibly-go-wrong dept.</B></FONT><BR>
+<A HREF="users/dormroom_dj.html">dormroom_dj</A> writes <I>"A freshman has written a program called <A HREF="../snapster/index.html">Snapster</A> that lets you search other people's hard drives for MP3s and download them directly. It has a chat room, a hot list, and about 30,000 users who are apparently all in my dorm, judging by the network. Our campus admins have started muttering about bandwidth. The record labels have not said anything yet, which is probably the calm before something."</I> This is either the future of music or the future of a lot of lawyers. Possibly both.<P><B>( </B><A HREF="article/snapsterlaunch.html"><B>Read More...</B></A> | <B><A HREF="article/snapsterlaunch.html">25</A> of <A HREF="article/snapsterlaunch_tm1.html">36</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Online Retailers Brace for First 'E-Christmas'</B></FONT></TD></TR></TABLE>
+<A HREF="topic_internet.html"><IMG SRC="images/topicinternet.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="The Internet"></A>
+<B>Posted by <A HREF="users/cmdrgrits.html">CmdrGrits</A> on Sunday October 17, @08:20AM EDT</B><BR>
+<FONT SIZE=2><B>from the ho-ho-http dept.</B></FONT><BR>
+<A HREF="users/shoppersheila.html">ShopperSheila</A> writes <I>"Analysts predict this will be the first holiday season where millions of people do their shopping online. Toy sites like <A HREF="../etoyz/index.html">eToyz</A> are hiring warehouse staff by the thousand, and auction sites like <A HREF="../ubid/index.html">uBid</A> are bracing for a flood of novelty plush toys. Shipping companies say they are ready. Shipping companies always say they are ready."</I> Prediction: at least one large web store will promise delivery by Christmas and deliver in February.<P><B>( </B><A HREF="article/ecommerce_xmas.html"><B>Read More...</B></A> | <B><A HREF="article/ecommerce_xmas.html">17</A> of <A HREF="article/ecommerce_xmas_tm1.html">24</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>GNUME 1.0.55 and KDX 1.1.2 Desktop Wars Continue</B></FONT></TD></TR></TABLE>
+<A HREF="topic_linix.html"><IMG SRC="images/topiclinix.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Linix"></A>
+<B>Posted by <A HREF="users/rotundo.html">Rotundo</A> on Saturday October 16, @10:48PM EDT</B><BR>
+<FONT SIZE=2><B>from the my-desktop-can-beat-up-your-desktop dept.</B></FONT><BR>
+<A HREF="users/windowmaniac.html">WindowManiac</A> writes <I>"Both of the big free desktops shipped point releases this week. GNUME adds a new panel applet that shows the phase of the moon, while KDX now has a control center for its control center. Flame wars on the mailing lists have reached a level not seen since the great vi versus emacs conflict of last Tuesday."</I> I run twm. Get off my lawn.<P><B>( </B><A HREF="article/gnume_kdx.html"><B>Read More...</B></A> | <B><A HREF="article/gnume_kdx.html">17</A> of <A HREF="article/gnume_kdx_tm1.html">23</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Mars Weather Probe Lost Over Feet-vs-Furlongs Mixup</B></FONT></TD></TR></TABLE>
+<A HREF="topic_space.html"><IMG SRC="images/topicspace.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Space"></A>
+<B>Posted by <A HREF="users/hemlock.html">Hemlock</A> on Saturday October 16, @07:30PM EDT</B><BR>
+<FONT SIZE=2><B>from the should-have-used-cubits dept.</B></FONT><BR>
+<A HREF="users/rocketrandy.html">RocketRandy</A> writes <I>"An investigation board has concluded that the Mars Weather Probe was lost because one contractor's software reported thrust in pound-force seconds and the navigation team assumed newton-seconds. The $125 million spacecraft is now believed to be either in a very low orbit or a very small crater."</I> Let this be a lesson to everyone who ever skipped the units in physics class. I'm looking at myself here.<P><B>( </B><A HREF="article/marsprobe.html"><B>Read More...</B></A> | <B><A HREF="article/marsprobe.html">28</A> of <A HREF="article/marsprobe_tm1.html">35</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Your Rights Online: DVD Encryption Cracked by Norwegian Teens</B></FONT></TD></TR></TABLE>
+<A HREF="topic_security.html"><IMG SRC="images/topicsecurity.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Security"></A>
+<B>Posted by <A HREF="users/jamie_k.html">jamie_k</A> on Saturday October 16, @04:10PM EDT</B><BR>
+<FONT SIZE=2><B>from the forty-bits-of-security dept.</B></FONT><BR>
+<A HREF="users/linixdvd.html">Linixdvd</A> writes <I>"A program called DeScramble that decrypts DVD video has appeared on the net, apparently because one software player left its key lying around unencrypted. The goal, according to its authors, was to let Linix users watch DVDs they had bought. The movie studios do not appear to see it that way."</I> Forty-bit keys in 1999. Somewhere a cryptographer is crying into a pocket protector.<P><B>( </B><A HREF="article/descramble.html"><B>Read More...</B></A> | <B><A HREF="article/descramble.html">24</A> of <A HREF="article/descramble_tm1.html">28</A> </B>comments | <B>225 bytes in body</B> <B>)</B>
+<P>
+<P ALIGN=RIGHT><FONT SIZE=2><B><A HREF="yesterday.html">Yesterday's Edition</A> | <A HREF="older.html">Older Articles</A></B></FONT>
+</FONT></TD>
+<TD WIDTH=210 ALIGN=CENTER VALIGN=TOP>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B><A HREF="features.html"><FONT COLOR="#FFFFFF">Features</FONT></A></B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+The Dashdot source code is out under the GPL. Look upon our Perl, ye mighty, and despair. <A HREF="article/slashcode.html">More...</A><P>Our interview with Walt Ferraday, the man who wrote the payroll code in 1974, in all capital letters. <A HREF="article/greybeardinterview.html">More...</A><P>Is XML the answer to everything? Readers weigh in with well-formed opinions. <A HREF="article/xmlhype.html">More...</A><P ALIGN=RIGHT><B><A HREF="features.html">Past Features</A></B>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Dashdot Login</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<SCRIPT LANGUAGE="JavaScript"><!--
+loginBox("");
+//--></SCRIPT>
+<NOSCRIPT><A HREF="users.html">Log in or create an account</A>.</NOSCRIPT>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Dashdot Poll</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<FORM ACTION="pollbooth.html" METHOD="get"><INPUT TYPE="hidden" NAME="qid" VALUE="y2kplans">
+<B>Where will you be when the clock strikes 2000?</B><BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="1">At a party, like a normal person<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="2">In the server room, watching logs<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="3">In a bunker with 400 cans of beans<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="4">Asleep. It's just a number.<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="5">Rebooting something<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="6">Wherever CmdrGrits is<BR>
+<INPUT TYPE="submit" VALUE="Vote"> [ <A HREF="pollbooth.html?qid=y2kplans"><B>Results</B></A> | <A HREF="polls.html"><B>Polls</B></A> ]<BR>Comments:<B>482</B> | Votes:<B>29377</B></FORM>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Older Stuff</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<P><B><FONT SIZE=4>Saturday</FONT> October 16</B>
+<LI><A HREF="article/petzipo.html">Petz.com IPO Soars Despite Losing Money on Every Sale</A> (45)
+<LI><A HREF="article/crapware.html">Leaked: Portals 2000 Requires 64MB and a 300MHz CPU</A> (30)
+<LI><A HREF="article/jolt_lang.html">Solar Microsystems Releases Jolt 2 Platform</A> (33)
+<P><B><FONT SIZE=4>Friday</FONT> October 15</B>
+<LI><A HREF="article/ucluta.html">UCLUTA: The Shrink-Wrap License Law You Should Be Worried About</A> (25)
+<LI><A HREF="article/beowulfgarage.html">Teen Builds 64-Node Cluster in Parents' Garage</A> (16)
+<LI><A HREF="article/godzillam10.html">Mothzilla Milestone 10 Released</A> (16)
+<LI><A HREF="article/greybeardinterview.html">Interview: The Man Who Wrote the Payroll Code in 1974</A> (39)
+<LI><A HREF="article/ostrichsat.html">Ostrich Satellite Phone Network to Deorbit 66 Satellites</A> (32)
+<P><B><FONT SIZE=4>Thursday</FONT> October 14</B>
+<LI><A HREF="article/bsddaemon.html">FreeDaemon 3.3 Released</A> (19)
+<LI><A HREF="article/regexbook.html">Review: Regular Expressions for Irregular People</A> (24)
+<LI><A HREF="article/pearitop.html">Pear Computer's iTop Laptop Now in Five Fruit Flavors</A> (18)
+<LI><A HREF="article/kevlarthumb.html">Researchers Grow Cloned Llama Named 'Tina'</A> (33)
+<LI><A HREF="article/quackarena.html">Quack III Arena Demo Hits the Net</A> (15)
+<LI><A HREF="article/gpsweek.html">GPS Week Number Rollover Passed Without Incident (Mostly)</A> (26)
+<P ALIGN=RIGHT><BR><B><A HREF="older.html">Older Articles</A></B><BR><B><A HREF="yesterday.html">Yesterday's Edition</A></B>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B><A HREF="books.html"><FONT COLOR="#FFFFFF">Book Reviews</FONT></A></B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<P>Can a book teach regular expressions to humans? We read <CITE><A HREF="article/regexbook.html">Regular Expressions for Irregular People</A></CITE> to find out.<P>Coming soon: a review of <CITE>Debugging the Year 2000</CITE>, which is either a technical manual or a horror novel.<P>Visit our <A HREF="books.html">Book Reviews Section</A> for more.
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Quick Links</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<P><B>Cool Sites:</B>
+<LI><A HREF="../orinoco/index.html">Orinoco.com</A> (Buy a book. With one click.)
+<LI><A HREF="../snapster/index.html">Snapster</A> (The labels will love this)
+<LI><A HREF="../cnm/index.html">CNM Interactive</A> (Real news. Well, news.)
+<LI><A HREF="../yowza/index.html">Yowza!</A> (Find stuff)
+<LI><A HREF="../altavisor/index.html">AltaVisor</A> (Find more stuff)
+<LI><A HREF="../hamstershuffle/index.html">Hamster Shuffle</A> (Don't ask)
+<P><B>Support Dashdot:</B>
+<LI><A HREF="shirts.html">Dashdot T-shirts</A> (Clothe yourself in Dashdot)
+<LI><A HREF="advertising.html">Advertise here</A> (We have eyeballs)
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B><A HREF="freshbeat.html"><FONT COLOR="#FFFFFF">Freshbeat</FONT></A></B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<P><FONT SIZE=4 COLOR="#006666"><B>October</B></FONT><BR>
+<LI><A HREF="freshbeat.html">grepmail 3.4</A>
+<LI><A HREF="freshbeat.html">xsnow 1.40</A>
+<LI><A HREF="freshbeat.html">gkrellm-ish 0.7.2</A>
+<LI><A HREF="freshbeat.html">fetchpopmail 5.1.1</A>
+<LI><A HREF="freshbeat.html">ToastTerm 0.3</A>
+<LI><A HREF="freshbeat.html">libdashdot 0.0.1</A>
+<LI><A HREF="freshbeat.html">y2kcheck 1.0</A>
+<LI><A HREF="freshbeat.html">mp3blaster-lite 2.0</A>
+<LI><A HREF="freshbeat.html">sockpuppetd 0.9</A>
+<LI><A HREF="freshbeat.html">beanctl 1.2</A>
+<P ALIGN=RIGHT><B><A HREF="freshbeat.html">More Beat...</A></B>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B><A HREF="askdashdot.html"><FONT COLOR="#FFFFFF">Ask Dashdot</FONT></A></B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<LI><A HREF="article/doublebytefinder.html">How Do I Explain My Job to My Grandmother?</A>
+<LI><A HREF="article/y2kgenerator.html">Should I Buy a Generator for Y2K?</A>
+<LI><A HREF="article/firstpost.html">Why Do People Post 'First Post'?</A>
+<P>If you have a question for Ask Dashdot, <A HREF="submit.html">submit it</A>.
+</FONT></TD></TR></TABLE><P>
+</TD>
+</TR></TABLE>
+<TABLE BGCOLOR="#FFFFFF" WIDTH="99%" ALIGN=CENTER BORDER=0 CELLPADDING=4 CELLSPACING=0><TR><TD>
+<TABLE WIDTH="100%" BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD BGCOLOR="#006666"><IMG SRC="images/pix.gif" WIDTH=1 HEIGHT=4 ALT=""></TD></TR></TABLE>
+<CENTER><FORM ACTION="search.html" METHOD="get"><FONT FACE="arial,helvetica" SIZE=2><INPUT TYPE="text" NAME="query" SIZE=20> <INPUT TYPE="submit" VALUE="Search"></FONT></FORM>
+<FONT FACE="arial,helvetica" SIZE=2><I>You will be dashdotted within the hour. Back up your web server.</I></FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>[ <A HREF="index.html">home</A> | <A HREF="awards.html">awards</A> | <A HREF="supporters.html">supporters</A> | <A HREF="grits.html">grits' homepage</A> | <A HREF="submit.html">contribute story</A> | <A HREF="older.html">older articles</A> | <A HREF="overandover.html">overandover.net</A> | <A HREF="advertising.html">advertising</A> | <A HREF="polls.html">past polls</A> | <A HREF="topics.html">topics</A> | <A HREF="about.html">about</A> | <A HREF="jobs.html">jobs</A> | <A HREF="hof.html">hof</A> ]</FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>Trademarks belong to whoever trademarked them. Comments belong to whoever typed them. Everything else &copy; 1997-99 Overandover.net. Dashdot is served hot by KoldFusion 4.5 from Gibson Mainframe Co.</FONT><BR>
+<A HREF="about.html"><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion" VSPACE=6></A>
+</CENTER></TD></TR></TABLE>
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../hamstershuffle/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="return ringRandom('')">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Dashdot is site 10 of 12 |
+<A HREF="../snapster/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER><P>
+</BODY></HTML>

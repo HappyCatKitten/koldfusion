@@ -548,7 +548,7 @@ F(getfilefrompath) { const char *p = fa_str(c, call, argv, 0); const char *s = s
 F(expandpath) {
     const char *p = fa_str(c, call, argv, 0);
     Ctx tmp = *c;
-    tmp.tagdir = kf_template_dir(c->rs->base_template ? c->rs->base_template : G.webroot);
+    tmp.tagdir = kf_template_dir(c->rs->base_template ? c->rs->base_template : kf_docroot());
     return v_strdup(resolve_template_path(&tmp, p, 0));
 }
 F(fileexists) {

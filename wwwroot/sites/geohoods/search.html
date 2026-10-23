@@ -1,0 +1,97 @@
+<HTML>
+<HEAD>
+<TITLE>GeoHoods Search</TITLE>
+<META NAME="GENERATOR" CONTENT="GeoHoods Portal Server 3.1">
+<SCRIPT LANGUAGE="JavaScript" SRC="ghdata.js"></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000CC" VLINK="#551A8B">
+<CENTER>
+<TABLE WIDTH=600 BORDER=0 CELLSPACING=0 CELLPADDING=0><TR>
+<TD VALIGN=MIDDLE><A HREF="index.html"><IMG SRC="images/gh_logo.gif" WIDTH=300 HEIGHT=54 BORDER=0 ALT="GeoHoods"></A></TD>
+<TD ALIGN=RIGHT VALIGN=BOTTOM NOWRAP><FONT FACE="Arial, Helvetica" SIZE=2><A HREF="neighborhoods.html">Neighborhoods</A> - <A HREF="search.html">Search</A> - <A HREF="help.html">Help</A></FONT></TD></TR></TABLE>
+<HR SIZE=1 WIDTH=600 NOSHADE>
+<TABLE BGCOLOR="#EEEEEE" WIDTH=600 CELLPADDING=3 CELLSPACING=0 BORDER=0><TR><TD><FONT FACE="Arial, Helvetica" SIZE=2>&nbsp;<B>Welcome, Homesteader!</B> - <A HREF="filemanager.html">[Member Login]</A></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2><A HREF="join.html">Get a free home page</A></FONT> <A HREF="join.html"><IMG SRC="images/arrow.gif" WIDTH=9 HEIGHT=9 BORDER=0 ALT="" HSPACE=4></A></TD></TR></TABLE>
+<P><FONT FACE="Arial" SIZE=5><B>Search Home Pages</B></FONT></P>
+<FORM NAME="s" ACTION="search.html" METHOD="GET"><FONT FACE="Arial, Helvetica" SIZE=2><INPUT TYPE="text" NAME="q" SIZE=30> in <SELECT NAME="hood"><OPTION VALUE="">All Neighborhoods
+<OPTION VALUE="SiliconHills">SiliconHills
+<OPTION VALUE="Tinseltown">Tinseltown
+<OPTION VALUE="Gridiron">Gridiron
+<OPTION VALUE="Area52">Area52
+<OPTION VALUE="Bayou">Bayou
+<OPTION VALUE="Hearth">Hearth
+<OPTION VALUE="Prairie">Prairie
+<OPTION VALUE="Boulevard">Boulevard
+<OPTION VALUE="Athenaeum">Athenaeum
+<OPTION VALUE="Arcade">Arcade
+<OPTION VALUE="Campus">Campus
+<OPTION VALUE="Bunker">Bunker
+<OPTION VALUE="Driftwood">Driftwood
+<OPTION VALUE="Skillet">Skillet
+<OPTION VALUE="Workbench">Workbench
+</SELECT> <INPUT TYPE="submit" VALUE="Search"></FONT></FORM>
+<TABLE WIDTH=600 BORDER=0><TR><TD><FONT FACE="Arial, Helvetica" SIZE=2>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function getParam(name) {
+  var s = location.search.substring(1);
+  var parts = s.split("&");
+  for (var i = 0; i < parts.length; i++) {
+    var kv = parts[i].split("=");
+    if (kv[0] == name && kv.length > 1) return unescape(kv[1].replace(/\+/g, " "));
+  }
+  return "";
+}
+function clean(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+var q = getParam("q");
+var hood = getParam("hood");
+document.forms["s"].q.value = q;
+for (var i = 0; i < document.forms["s"].hood.options.length; i++)
+  if (document.forms["s"].hood.options[i].value == hood) document.forms["s"].hood.selectedIndex = i;
+if (q != "" || hood != "") {
+  var words = q.toLowerCase().split(" ");
+  var hits = new Array();
+  for (var i = 0; i < ghPages.length; i++) {
+    var p = ghPages[i];
+    if (hood != "" && p[4] != hood) continue;
+    var text = (p[0] + " " + p[1] + " " + p[2] + " " + p[3] + " " + p[6] + " " + p[7]).toLowerCase();
+    var ok = true;
+    for (var j = 0; j < words.length; j++)
+      if (words[j] != "" && text.indexOf(words[j]) < 0) ok = false;
+    if (ok) hits[hits.length] = p;
+  }
+  document.write("<P><B>" + hits.length + "</B> home page" + (hits.length == 1 ? "" : "s") + " found for <B>" +
+                 clean(q == "" ? hood : q) + "</B>.</P>");
+  if (hits.length == 0)
+    document.write("<P>No pages found. Try a different word, or browse the <A HREF=\"neighborhoods.html\">" +
+                   "neighborhoods</A>.</P>");
+  for (var i = 0; i < hits.length; i++) {
+    var p = hits[i];
+    document.write("<P><IMG SRC=\"images/ball_blue.gif\" WIDTH=14 HEIGHT=14> <B><A HREF=\"" + p[0] +
+                   "index.html\">" + p[1] + "</A></B><BR>" + p[6] + "<BR><FONT SIZE=1 COLOR=\"#008000\">" +
+                   "geohoods.com/" + p[0] + " - by " + p[2] + " - " + p[4] + "/" + p[5] + "</FONT></P>");
+  }
+} else {
+  document.write("<P>Type a word and press Search to look through all " + ghPages.length +
+                 " GeoHoods home pages. Try <A HREF=\"search.html?q=monstropals\">monstropals</A>, " +
+                 "<A HREF=\"search.html?q=bunker\">bunker</A> or <A HREF=\"search.html?q=poems\">poems</A>.</P>");
+}
+// -->
+</SCRIPT>
+<NOSCRIPT>Search needs JavaScript. You can browse the <A HREF="directory/index.html">Members Directory</A>
+instead.</NOSCRIPT>
+</FONT></TD></TR></TABLE>
+<P></P><HR SIZE=1 WIDTH=600 NOSHADE>
+<FONT FACE="Arial, Helvetica" SIZE=1>Copyright &copy; 1994-1999 GeoHoods Inc. All rights reserved.<BR>
+<A HREF="help.html">Help</A> - <A HREF="guidelines.html">Terms of Service</A> - <A HREF="guidelines.html#content">Content Guidelines</A> - <A HREF="news.html">Press &amp; News</A> - <A HREF="addons/index.html">Add-Ons</A></FONT>
+<P><CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">
+<A HREF="../petz/index.html">&lt;&lt; Prev</A> |
+<A HREF="../yowza/index.html" onClick="var s=new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","dashdot","snapster","cnm"); location.href='../'+s[Math.floor(Math.random()*s.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> |
+<A HREF="../hamstershuffle/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE></CENTER></P>
+<P><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion"></P>
+</CENTER>
+</BODY>
+</HTML>

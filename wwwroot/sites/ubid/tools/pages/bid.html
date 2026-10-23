@@ -1,0 +1,47 @@
+<FONT FACE="Arial, Helvetica" SIZE=5><B>Review and Confirm Bid</B></FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var id = qs("item"), it = findItem(id), max = cents(qs("maxbid"));
+function placeBid() {
+  var f = document.forms["confirm"];
+  var who = f.userid.value.toLowerCase().replace(/\s/g, "");
+  var err = checkLogin(who, f.pass.value);
+  if (err != "") { alert(err); return false; }
+  if (who == it[3]) { alert("Sellers may not bid on their own items. That would be shill bidding, and we'd have to call your mother."); return false; }
+  var A = auction(it, now());
+  if (!A.live) { alert("Sorry, this auction ended while you were thinking it over."); location.href = itemURL(it); return false; }
+  if (max < A.minBid) { alert("Somebody bid while you were deciding. The minimum bid is now " + money(A.minBid) + "."); location.href = itemURL(it) + "#bid"; return false; }
+  signIn(who);
+  addMyBid(it[0], max, who);
+  location.href = P + "bidresult.html?item=" + it[0];
+  return false;
+}
+if (!it) {
+  document.write("<FONT SIZE=3>We could not find that item. <A HREF=\"" + P + "categories.html\">Browse the categories</A>.</FONT>");
+} else {
+  var A = auction(it, now());
+  var problem = "";
+  if (!A.live) problem = "This auction has ended. Bidding is closed.";
+  else if (max < 0) problem = "Please enter your maximum bid as a number, like 12.50.";
+  else if (max < A.minBid) problem = "Your bid of " + money(max) + " is below the minimum bid of " + money(A.minBid) + ". Please enter at least " + money(A.minBid) + ".";
+  else if (max > 10000000) problem = "Whoa there, big spender. uBid bids are limited to $100,000.";
+  if (problem != "") {
+    document.write("<TABLE BORDER=0 CELLPADDING=6 WIDTH=\"100%\"><TR><TD BGCOLOR=\"#FFCCCC\"><FONT SIZE=3><B>Problem with bid</B><BR>" + problem + "</FONT></TD></TR></TABLE><BR>");
+    document.write("<FONT SIZE=3>Please go back to <A HREF=\"" + itemURL(it) + "#bid\">" + esc(it[1]) + "</A> and try again.</FONT>");
+  } else {
+    var h = "<TABLE BORDER=1 CELLPADDING=5 CELLSPACING=0 WIDTH=\"100%\">";
+    h += "<TR><TD BGCOLOR=\"#CCCCFF\" WIDTH=180><FONT SIZE=2><B>Item</B></FONT></TD><TD><FONT SIZE=2><A HREF=\"" + itemURL(it) + "\">" + esc(it[1]) + "</A> (#" + it[0] + ")</FONT></TD></TR>";
+    h += "<TR><TD BGCOLOR=\"#CCCCFF\"><FONT SIZE=2><B>Current bid</B></FONT></TD><TD><FONT SIZE=2>" + money(A.price) + " (" + A.nbids + " bids)</FONT></TD></TR>";
+    h += "<TR><TD BGCOLOR=\"#CCCCFF\"><FONT SIZE=2><B>Your maximum bid</B></FONT></TD><TD><FONT SIZE=3><B>" + money(max) + "</B></FONT></TD></TR>";
+    h += "<TR><TD BGCOLOR=\"#CCCCFF\"><FONT SIZE=2><B>Time left</B></FONT></TD><TD><FONT SIZE=2>" + timeLeft(A.end - now()) + "</FONT></TD></TR>";
+    h += "<TR><TD BGCOLOR=\"#CCCCFF\"><FONT SIZE=2><B>Seller</B></FONT></TD><TD><FONT SIZE=2>" + userLink(it[3]) + "</FONT></TD></TR></TABLE><BR>";
+    h += "<FONT SIZE=2>uBid will bid for you, one increment at a time, only as high as needed to keep you in the lead, up to <B>" + money(max) + "</B>. ";
+    h += "If you win, you are entering into a contract to buy this item from the seller. Please bid responsibly. (And please don't bid on the haunted jar unless you mean it.)</FONT><BR><BR>";
+    h += "<FORM NAME=\"confirm\" onSubmit=\"return placeBid()\"><TABLE BORDER=0 CELLPADDING=4 BGCOLOR=\"#EFEFEF\"><TR><TD COLSPAN=2><FONT SIZE=2><B>Your uBid User ID and password are required to place a bid.</B></FONT></TD></TR>";
+    h += "<TR><TD><FONT SIZE=2>User ID:</FONT></TD><TD><INPUT TYPE=text NAME=\"userid\" SIZE=20 VALUE=\"" + esc(userId()) + "\"> <FONT SIZE=1><A HREF=\"" + P + "register.html\">register</A></FONT></TD></TR>";
+    h += "<TR><TD><FONT SIZE=2>Password:</FONT></TD><TD><INPUT TYPE=password NAME=\"pass\" SIZE=20></TD></TR>";
+    h += "<TR><TD></TD><TD><INPUT TYPE=submit VALUE=\"Place bid\"></TD></TR></TABLE></FORM>";
+    document.write(h);
+  }
+}
+</SCRIPT>
+<NOSCRIPT>Bidding requires JavaScript.</NOSCRIPT>

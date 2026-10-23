@@ -1,0 +1,93 @@
+<HTML>
+<HEAD>
+<TITLE>uBid Feedback Forum</TITLE>
+<META NAME="description" CONTENT="uBid: your personal trading post. Bid on Beanie Babies, Furbys, Zip disks and Y2K survival kits.">
+<SCRIPT LANGUAGE="JavaScript">var P = "";</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript1.2" SRC="js/items.js"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript1.2" SRC="js/ubid.js"></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000CC" VLINK="#660099">
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR><TD ROWSPAN=2 WIDTH=160 VALIGN=TOP><A HREF="index.html"><IMG SRC="images/logo.gif" WIDTH=150 HEIGHT=64 BORDER=0 ALT="uBid"></A></TD>
+<TD ALIGN=RIGHT VALIGN=TOP><FONT FACE="Arial, Helvetica" SIZE=2><A HREF="index.html">home</A> | <A HREF="myubid.html">my uBid</A> | <A HREF="sitemap.html">site map</A> | <SCRIPT LANGUAGE="JavaScript">writeUserLinks();</SCRIPT></FONT></TD></TR>
+<TR><TD VALIGN=BOTTOM NOWRAP><A HREF="categories.html"><IMG SRC="images/nav/browse_0.gif" WIDTH=66 HEIGHT=24 BORDER=0 ALT="Browse"></A><A HREF="sell.html"><IMG SRC="images/nav/sell_0.gif" WIDTH=43 HEIGHT=24 BORDER=0 ALT="Sell"></A><A HREF="myubid.html"><IMG SRC="images/nav/services_0.gif" WIDTH=72 HEIGHT=24 BORDER=0 ALT="Services"></A><A HREF="search.html"><IMG SRC="images/nav/search_0.gif" WIDTH=62 HEIGHT=24 BORDER=0 ALT="Search"></A><A HREF="help.html"><IMG SRC="images/nav/help_0.gif" WIDTH=48 HEIGHT=24 BORDER=0 ALT="Help"></A><A HREF="feedback.html"><IMG SRC="images/nav/community_1.gif" WIDTH=88 HEIGHT=24 BORDER=0 ALT="Community"></A></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#339933"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=3></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#EFEFEF"><TABLE WIDTH="100%" BORDER=0 CELLPADDING=2 CELLSPACING=0><TR><TD><FONT FACE="Arial, Helvetica" SIZE=2>&nbsp;<A HREF="feedback.html">feedback forum</A> | <A HREF="help.html#news">news</A> | <A HREF="help.html#about">about uBid</A></FONT></TD><TD ALIGN=RIGHT><FORM NAME="hs" ACTION="search.html" METHOD=GET><FONT FACE="Arial, Helvetica" SIZE=2><INPUT TYPE=text NAME="q" SIZE=14> <INPUT TYPE=submit VALUE="Search"></FONT></FORM></TD></TR></TABLE></TD></TR>
+</TABLE>
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD><BR><FONT FACE="Arial, Helvetica" SIZE=5><B>Feedback Forum</B></FONT><BR>
+<FONT SIZE=2>uBid works because members tell each other how it went. Praise good traders, warn about bad ones, and always be polite. Every member's
+rating is the number of members who left them positive feedback, minus the number who left negative feedback.</FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+function strip(s) { return s.replace(/[\^;\r\n]/g, " "); }
+function viewProfile() {
+  var id = document.forms["view"].user.value.toLowerCase().replace(/\s/g, "");
+  if (findUser(id)) { location.href = P + "member/" + id + ".html"; return false; }
+  location.href = P + "feedback.html?user=" + escape(id);
+  return false;
+}
+function leaveFeedback() {
+  var f = document.forms["leave"], me = userId();
+  if (me == "") { alert("Please sign in before leaving feedback."); location.href = P + "signin.html?next=feedback.html"; return false; }
+  var to = f.to.value.toLowerCase().replace(/\s/g, "");
+  if (to == "" || (!findUser(to) && !findAccount(to))) { alert("There is no uBid member called \"" + to + "\"."); return false; }
+  if (to == me) { alert("Nice try! You can't leave feedback for yourself."); return false; }
+  var type = "positive";
+  for (var i = 0; i < f.type.length; i++) if (f.type[i].checked) type = f.type[i].value;
+  var c = strip(f.comment.value).substring(0, 80);
+  if (c.replace(/\s/g, "").length < 3) { alert("Please write a short comment (80 characters max)."); return false; }
+  var old = getCookie("ubid_fb"), list = (old == "" ? new Array() : old.split(";")), out = new Array();
+  out[0] = to + "^" + type + "^" + c + "^" + (f.item.value.replace(/[^0-9A-Za-z_-]/g, "") || "n/a") + "^" + now();
+  for (var i = 0; i < list.length && out.length < 10; i++) if (list[i].split("^")[0] != to) out[out.length] = list[i];
+  setCookie("ubid_fb", out.join(";"), 365);
+  alert("Thanks! Your " + type + " feedback for " + to + " has been posted.");
+  location.href = findUser(to) ? P + "member/" + to + ".html" : P + "feedback.html?user=" + to;
+  return false;
+}
+var u = qs("user");
+if (u != "") {
+  document.write("<TABLE BORDER=1 CELLPADDING=6 CELLSPACING=0 WIDTH=\"100%\"><TR><TD BGCOLOR=\"#FFFFCC\"><FONT FACE=\"Arial, Helvetica\" SIZE=4><B>" + esc(u) + "</B> (" + scoreOf(u) + ")" + starImg(scoreOf(u)) + "</FONT><BR>");
+  if (findAccount(u)) document.write("<FONT SIZE=2>A newly registered member. Everybody starts somewhere!</FONT>");
+  else document.write("<FONT SIZE=2>We couldn't find a member with that User ID.</FONT>");
+  document.write("</TD></TR></TABLE>");
+  writeMyFeedback(u);
+  document.write("<BR>");
+}
+</SCRIPT>
+<TABLE BORDER=0 CELLPADDING=6 CELLSPACING=0 WIDTH="100%"><TR>
+<TD VALIGN=TOP WIDTH="40%" BGCOLOR="#E5E5CC"><FONT FACE="Arial, Helvetica" SIZE=3><B>View a member's feedback</B></FONT><BR>
+<FORM NAME="view" onSubmit="return viewProfile()"><FONT SIZE=2>User ID:</FONT> <INPUT TYPE=text NAME="user" SIZE=16> <INPUT TYPE=submit VALUE="View"></FORM>
+<FONT SIZE=2>Some of our most trusted traders:<BR>
+&#149; <A HREF="member/garage_gus.html">garage_gus</A> (6100)<BR>
+&#149; <A HREF="member/estate_sale_ed.html">estate_sale_ed</A> (3150)<BR>
+&#149; <A HREF="member/hobby_hut.html">hobby_hut</A> (2890)<BR>
+&#149; <A HREF="member/vintage_vicki.html">vintage_vicki</A> (2310)<BR>
+&#149; <A HREF="member/coin_collector_cy.html">coin_collector_cy</A> (1888)</FONT></TD>
+<TD WIDTH=12></TD>
+<TD VALIGN=TOP BGCOLOR="#EFEFEF"><FONT FACE="Arial, Helvetica" SIZE=3><B>Leave feedback for a member</B></FONT><BR>
+<FORM NAME="leave" onSubmit="return leaveFeedback()"><TABLE BORDER=0 CELLPADDING=2>
+<TR><TD><FONT SIZE=2>User ID of member:</FONT></TD><TD><INPUT TYPE=text NAME="to" SIZE=18></TD></TR>
+<TR><TD><FONT SIZE=2>Item # (optional):</FONT></TD><TD><INPUT TYPE=text NAME="item" SIZE=18></TD></TR>
+<TR><TD><FONT SIZE=2>Is your comment:</FONT></TD><TD><FONT SIZE=2><INPUT TYPE=radio NAME="type" VALUE="positive" CHECKED>positive
+<INPUT TYPE=radio NAME="type" VALUE="neutral">neutral <INPUT TYPE=radio NAME="type" VALUE="negative">negative</FONT></TD></TR>
+<TR><TD><FONT SIZE=2>Comment:</FONT></TD><TD><INPUT TYPE=text NAME="comment" SIZE=40 MAXLENGTH=80></TD></TR>
+<TR><TD></TD><TD><INPUT TYPE=submit VALUE="Leave comment"></TD></TR></TABLE></FORM>
+<FONT SIZE=1>You must be signed in. Feedback can't be taken back, so count to ten before leaving a negative.</FONT></TD>
+</TR></TABLE>
+<SCRIPT LANGUAGE="JavaScript">
+var to = qs("to");
+if (to != "") { document.forms["leave"].to.value = to; document.forms["leave"].item.value = qs("item"); }
+</SCRIPT>
+<BR><FONT FACE="Arial, Helvetica" SIZE=3><B>Overheard in the Forum this week</B></FONT><BR>
+<FONT SIZE=2>&#149; &quot;Shipped my Furby in a shoebox full of popcorn. Buyer ate the popcorn. A+ buyer.&quot; -- <A HREF="member/furbyfan99.html">furbyfan99</A><BR>
+&#149; &quot;Third Y2K kit this month. Seller threw in extra candles!&quot; -- <A HREF="member/y2kprepper.html">y2kprepper</A><BR>
+&#149; &quot;Lost the Princess bear in the last ten seconds again. Somebody out there is a robot.&quot; -- <A HREF="member/beaniebaron.html">beaniebaron</A><BR>
+&#149; &quot;Zip disks arrived formatted for Mac. Seller sent a PC set the same day. Class act.&quot; -- <A HREF="member/zipdiskzach.html">zipdiskzach</A></FONT>
+</TD></TR></TABLE>
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD ALIGN=CENTER><BR><HR SIZE=1 NOSHADE>
+<FONT FACE="Arial, Helvetica" SIZE=2><A HREF="help.html#news">Announcements</A> | <A HREF="register.html">Register</A> | <A HREF="help.html#safebid">SafeBid</A> | <A HREF="feedback.html">Feedback Forum</A> | <A HREF="help.html#about">About uBid</A><BR><A HREF="categories.html">Browse</A> | <A HREF="sell.html">Sell</A> | <A HREF="myubid.html">Services</A> | <A HREF="search.html">Search</A> | <A HREF="help.html">Help</A> | <A HREF="feedback.html">Community</A><BR><BR><FONT SIZE=1><SCRIPT LANGUAGE="JavaScript">writeStamp();</SCRIPT><BR>Copyright &copy; 1995-1999 uBid Inc. All Rights Reserved. By bidding you agree to the uBid User Agreement, which mostly says &quot;pay for what you win.&quot;<BR>Running on a rack of KoldFusion 4.5 servers from Gibson Mainframe Co. <I>A 1999 Web parody: every item, member and bid here is invented.</I></FONT></FONT>
+<BR><BR><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../orinoco/index.html">&lt;&lt; Prev</A> | <A HREF="../../web1999/index.html" onClick="return ringRandom()">Random</A> | <B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> | <A HREF="../etoyz/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

@@ -36,6 +36,7 @@ Then open:
 | http://127.0.0.1:8500/CFDOCS/examplehome.cfm | Example applications |
 | http://127.0.0.1:8500/demos/ | Demo gallery of openly-licensed CFML found around the web |
 | http://127.0.0.1:8500/cool/ | Cool Stuff You Can Do |
+| http://localhost:8500/web1999/ | The 1999 Web: twelve retro sites, each on its own virtual host |
 
 Options: `-p PORT` (default 8500), `-b ADDRESS` (default 127.0.0.1 — keep it that way, the security is authentically
 1999), `-r INSTALLDIR` (default `kfroot/`), `-w WEBROOT` (default `wwwroot/`), `--reset-admin-password NEWPW`,
@@ -62,11 +63,37 @@ src/            the server (about 15,000 lines of C)
   cfx.c, kfx.h    CFX tags as shared libraries        security.c Advanced Security, CFAUTHENTICATE
   ftp.c           CFFTP client                        strict.c   strict attribute validation
 kfroot/         the install directory ("C:\CFUSION"): registry/, log/, mail/{spool,undelivr}, db/, verity/, cfx/, customtags/
-wwwroot/        the web root: Welcome page, /CFIDE/administrator, /CFDOCS, /demos, /cool
+wwwroot/        the web root: Welcome page, /CFIDE/administrator, /CFDOCS, /demos, /cool, /web1999, sites/ (virtual sites)
 cfx/            source of the sample CFX tags (CFX_HELLO, CFX_DICE, CFX_SYSINFO)
 tools/          graphics generators (all GIFs are drawn procedurally — no original artwork is used)
 docs/           RESEARCH.md (what the real thing looked like), ENGINE_NOTES.md (how to write pages)
 ```
+
+## The 1999 Web
+
+Twelve parody web sites from the dot-com boom, hosted the way IIS hosted virtual sites: each one lives in
+`wwwroot/sites/<name>/` and answers at `http://<name>.localhost:8500/` (also at `http://localhost:8500/sites/<name>/`).
+Start at the ring hub, http://localhost:8500/web1999/.
+
+| Site | A takeoff of | Highlights |
+|---|---|---|
+| Yowza! | Yahoo! | 124 directory categories, 352 invented sites, search, Suggest a Site, My Yowza! |
+| AltaVisor | AltaVista | A crawler (`tools/crawl.py`) that spiders every other site plus an invented "rest of the Web"; ranked search, Translate |
+| Ask Reeves | Ask Jeeves | Plain-English questions, "I have found answers to the following questions:", Peek Through the Keyhole |
+| Orinoco.com | Amazon.com | 148 invented books, reviews, cart, 3-step checkout, 1-Click |
+| uBid | eBay | 197 auctions that really end and relist, proxy bidding, feedback stars, My uBid |
+| eToyz | eToys | Shop by age, Gift Finder, wish lists, "Order by Dec. 20" countdown |
+| Petz.com | Pets.com | Argyle the Sock Dog, a stock ticker that only goes up, a hidden liquidation page |
+| GeoHoods | GeoCities | 251 member homepages in 15 neighborhoods, guestbooks, webrings, Build-a-Page, File Manager |
+| Hamster Shuffle | Hampster Dance | 356 dancing critters and an original chiptune |
+| Dashdot | Slashdot | 41 stories, ~1,000 threaded comments, moderation, thresholds, polls |
+| Snapster | Napster | Song search, fake downloads with progress bars, chat channels |
+| CNM Interactive | CNN.com | 81 stories from December 20, 1999, QuickVote, Y2K countdown |
+
+The sites are plain static HTML: carts, bids, comments and votes are done the 1999 way, with cookies and
+`document.write()`. All links are relative, so the folders work anywhere. Each site keeps its Python generators (pages,
+Pillow graphics, MIDI) and its link checker in its own `tools/` folder. Every name, story, product and graphic is
+invented.
 
 ## The Administrator
 

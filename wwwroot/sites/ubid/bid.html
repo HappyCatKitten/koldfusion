@@ -1,0 +1,72 @@
+<HTML>
+<HEAD>
+<TITLE>uBid Review Bid</TITLE>
+<META NAME="description" CONTENT="uBid: your personal trading post. Bid on Beanie Babies, Furbys, Zip disks and Y2K survival kits.">
+<SCRIPT LANGUAGE="JavaScript">var P = "";</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript1.2" SRC="js/items.js"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript1.2" SRC="js/ubid.js"></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000CC" VLINK="#660099">
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR><TD ROWSPAN=2 WIDTH=160 VALIGN=TOP><A HREF="index.html"><IMG SRC="images/logo.gif" WIDTH=150 HEIGHT=64 BORDER=0 ALT="uBid"></A></TD>
+<TD ALIGN=RIGHT VALIGN=TOP><FONT FACE="Arial, Helvetica" SIZE=2><A HREF="index.html">home</A> | <A HREF="myubid.html">my uBid</A> | <A HREF="sitemap.html">site map</A> | <SCRIPT LANGUAGE="JavaScript">writeUserLinks();</SCRIPT></FONT></TD></TR>
+<TR><TD VALIGN=BOTTOM NOWRAP><A HREF="categories.html"><IMG SRC="images/nav/browse_1.gif" WIDTH=66 HEIGHT=24 BORDER=0 ALT="Browse"></A><A HREF="sell.html"><IMG SRC="images/nav/sell_0.gif" WIDTH=43 HEIGHT=24 BORDER=0 ALT="Sell"></A><A HREF="myubid.html"><IMG SRC="images/nav/services_0.gif" WIDTH=72 HEIGHT=24 BORDER=0 ALT="Services"></A><A HREF="search.html"><IMG SRC="images/nav/search_0.gif" WIDTH=62 HEIGHT=24 BORDER=0 ALT="Search"></A><A HREF="help.html"><IMG SRC="images/nav/help_0.gif" WIDTH=48 HEIGHT=24 BORDER=0 ALT="Help"></A><A HREF="feedback.html"><IMG SRC="images/nav/community_0.gif" WIDTH=88 HEIGHT=24 BORDER=0 ALT="Community"></A></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#6A2DB8"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=3></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#EFEFEF"><TABLE WIDTH="100%" BORDER=0 CELLPADDING=2 CELLSPACING=0><TR><TD><FONT FACE="Arial, Helvetica" SIZE=2>&nbsp;<A HREF="categories.html">categories</A> | <A HREF="featured.html">featured</A> | <A HREF="ending.html">going, going, gone</A> | <A HREF="new.html">new today</A> | <A HREF="completed.html">completed</A></FONT></TD><TD ALIGN=RIGHT><FORM NAME="hs" ACTION="search.html" METHOD=GET><FONT FACE="Arial, Helvetica" SIZE=2><INPUT TYPE=text NAME="q" SIZE=14> <INPUT TYPE=submit VALUE="Search"></FONT></FORM></TD></TR></TABLE></TD></TR>
+</TABLE>
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD><BR><FONT FACE="Arial, Helvetica" SIZE=5><B>Review and Confirm Bid</B></FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var id = qs("item"), it = findItem(id), max = cents(qs("maxbid"));
+function placeBid() {
+  var f = document.forms["confirm"];
+  var who = f.userid.value.toLowerCase().replace(/\s/g, "");
+  var err = checkLogin(who, f.pass.value);
+  if (err != "") { alert(err); return false; }
+  if (who == it[3]) { alert("Sellers may not bid on their own items. That would be shill bidding, and we'd have to call your mother."); return false; }
+  var A = auction(it, now());
+  if (!A.live) { alert("Sorry, this auction ended while you were thinking it over."); location.href = itemURL(it); return false; }
+  if (max < A.minBid) { alert("Somebody bid while you were deciding. The minimum bid is now " + money(A.minBid) + "."); location.href = itemURL(it) + "#bid"; return false; }
+  signIn(who);
+  addMyBid(it[0], max, who);
+  location.href = P + "bidresult.html?item=" + it[0];
+  return false;
+}
+if (!it) {
+  document.write("<FONT SIZE=3>We could not find that item. <A HREF=\"" + P + "categories.html\">Browse the categories</A>.</FONT>");
+} else {
+  var A = auction(it, now());
+  var problem = "";
+  if (!A.live) problem = "This auction has ended. Bidding is closed.";
+  else if (max < 0) problem = "Please enter your maximum bid as a number, like 12.50.";
+  else if (max < A.minBid) problem = "Your bid of " + money(max) + " is below the minimum bid of " + money(A.minBid) + ". Please enter at least " + money(A.minBid) + ".";
+  else if (max > 10000000) problem = "Whoa there, big spender. uBid bids are limited to $100,000.";
+  if (problem != "") {
+    document.write("<TABLE BORDER=0 CELLPADDING=6 WIDTH=\"100%\"><TR><TD BGCOLOR=\"#FFCCCC\"><FONT SIZE=3><B>Problem with bid</B><BR>" + problem + "</FONT></TD></TR></TABLE><BR>");
+    document.write("<FONT SIZE=3>Please go back to <A HREF=\"" + itemURL(it) + "#bid\">" + esc(it[1]) + "</A> and try again.</FONT>");
+  } else {
+    var h = "<TABLE BORDER=1 CELLPADDING=5 CELLSPACING=0 WIDTH=\"100%\">";
+    h += "<TR><TD BGCOLOR=\"#CCCCFF\" WIDTH=180><FONT SIZE=2><B>Item</B></FONT></TD><TD><FONT SIZE=2><A HREF=\"" + itemURL(it) + "\">" + esc(it[1]) + "</A> (#" + it[0] + ")</FONT></TD></TR>";
+    h += "<TR><TD BGCOLOR=\"#CCCCFF\"><FONT SIZE=2><B>Current bid</B></FONT></TD><TD><FONT SIZE=2>" + money(A.price) + " (" + A.nbids + " bids)</FONT></TD></TR>";
+    h += "<TR><TD BGCOLOR=\"#CCCCFF\"><FONT SIZE=2><B>Your maximum bid</B></FONT></TD><TD><FONT SIZE=3><B>" + money(max) + "</B></FONT></TD></TR>";
+    h += "<TR><TD BGCOLOR=\"#CCCCFF\"><FONT SIZE=2><B>Time left</B></FONT></TD><TD><FONT SIZE=2>" + timeLeft(A.end - now()) + "</FONT></TD></TR>";
+    h += "<TR><TD BGCOLOR=\"#CCCCFF\"><FONT SIZE=2><B>Seller</B></FONT></TD><TD><FONT SIZE=2>" + userLink(it[3]) + "</FONT></TD></TR></TABLE><BR>";
+    h += "<FONT SIZE=2>uBid will bid for you, one increment at a time, only as high as needed to keep you in the lead, up to <B>" + money(max) + "</B>. ";
+    h += "If you win, you are entering into a contract to buy this item from the seller. Please bid responsibly. (And please don't bid on the haunted jar unless you mean it.)</FONT><BR><BR>";
+    h += "<FORM NAME=\"confirm\" onSubmit=\"return placeBid()\"><TABLE BORDER=0 CELLPADDING=4 BGCOLOR=\"#EFEFEF\"><TR><TD COLSPAN=2><FONT SIZE=2><B>Your uBid User ID and password are required to place a bid.</B></FONT></TD></TR>";
+    h += "<TR><TD><FONT SIZE=2>User ID:</FONT></TD><TD><INPUT TYPE=text NAME=\"userid\" SIZE=20 VALUE=\"" + esc(userId()) + "\"> <FONT SIZE=1><A HREF=\"" + P + "register.html\">register</A></FONT></TD></TR>";
+    h += "<TR><TD><FONT SIZE=2>Password:</FONT></TD><TD><INPUT TYPE=password NAME=\"pass\" SIZE=20></TD></TR>";
+    h += "<TR><TD></TD><TD><INPUT TYPE=submit VALUE=\"Place bid\"></TD></TR></TABLE></FORM>";
+    document.write(h);
+  }
+}
+</SCRIPT>
+<NOSCRIPT>Bidding requires JavaScript.</NOSCRIPT>
+</TD></TR></TABLE>
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD ALIGN=CENTER><BR><HR SIZE=1 NOSHADE>
+<FONT FACE="Arial, Helvetica" SIZE=2><A HREF="help.html#news">Announcements</A> | <A HREF="register.html">Register</A> | <A HREF="help.html#safebid">SafeBid</A> | <A HREF="feedback.html">Feedback Forum</A> | <A HREF="help.html#about">About uBid</A><BR><A HREF="categories.html">Browse</A> | <A HREF="sell.html">Sell</A> | <A HREF="myubid.html">Services</A> | <A HREF="search.html">Search</A> | <A HREF="help.html">Help</A> | <A HREF="feedback.html">Community</A><BR><BR><FONT SIZE=1><SCRIPT LANGUAGE="JavaScript">writeStamp();</SCRIPT><BR>Copyright &copy; 1995-1999 uBid Inc. All Rights Reserved. By bidding you agree to the uBid User Agreement, which mostly says &quot;pay for what you win.&quot;<BR>Running on a rack of KoldFusion 4.5 servers from Gibson Mainframe Co. <I>A 1999 Web parody: every item, member and bid here is invented.</I></FONT></FONT>
+<BR><BR><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../orinoco/index.html">&lt;&lt; Prev</A> | <A HREF="../../web1999/index.html" onClick="return ringRandom()">Random</A> | <B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> | <A HREF="../etoyz/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

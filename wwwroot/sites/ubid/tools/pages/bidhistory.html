@@ -1,0 +1,21 @@
+<FONT FACE="Arial, Helvetica" SIZE=5><B>Bid History</B></FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var it = findItem(qs("item"));
+if (!it) document.write("Item not found.");
+else {
+  var A = auction(it, now());
+  document.write("<FONT SIZE=3><A HREF=\"" + itemURL(it) + "\"><B>" + esc(it[1]) + "</B></A> (Item #" + it[0] + ")</FONT><BR>");
+  document.write("<FONT SIZE=2>Currently: <B>" + money(A.price) + "</B> &nbsp; First bid: " + money(it[4]) + " &nbsp; # of bids: " + A.nbids + " &nbsp; " + (A.live ? "Ends " + longTime(A.end) : "Ended " + longTime(A.end)) + "</FONT><BR><BR>");
+  if (A.live) document.write("<FONT SIZE=2>Bid amounts are kept secret until the auction ends, so nobody can peek at anybody's maximum. Bidders are listed most recent first.</FONT><BR><BR>");
+  var h = "<TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 WIDTH=\"100%\"><TR BGCOLOR=\"#CCCCFF\"><TD><FONT SIZE=2><B>User ID</B></FONT></TD>" + (A.live ? "" : "<TD ALIGN=RIGHT><FONT SIZE=2><B>Bid</B></FONT></TD>") + "<TD ALIGN=RIGHT><FONT SIZE=2><B>Date of Bid</B></FONT></TD></TR>";
+  if (A.nbids == 0) h += "<TR><TD COLSPAN=3><FONT SIZE=2><I>No bids yet. Be the first!</I></FONT></TD></TR>";
+  for (var i = A.bids.length - 1, n = 0; i >= 0; i--, n++) {
+    var b = A.bids[i];
+    h += "<TR BGCOLOR=\"" + (n % 2 ? "#EFEFEF" : "#FFFFFF") + "\"><TD><FONT SIZE=2>" + userLink(b[1]) + (b[3] ? " <FONT SIZE=1 COLOR=\"#E0218A\"><B>(you)</B></FONT>" : "") + "</FONT></TD>";
+    if (!A.live) h += "<TD ALIGN=RIGHT><FONT SIZE=2>" + money(b[2]) + "</FONT></TD>";
+    h += "<TD ALIGN=RIGHT><FONT SIZE=2>" + longTime(b[0]) + "</FONT></TD></TR>";
+  }
+  document.write(h + "</TABLE>");
+  if (!A.live) document.write("<BR><FONT SIZE=2>Maximum bids are shown now that the auction is over. The winner pays one increment over the second-highest maximum (or the reserve, if higher).</FONT>");
+}
+</SCRIPT>

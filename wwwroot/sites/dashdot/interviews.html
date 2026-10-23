@@ -1,0 +1,243 @@
+<HTML><HEAD><TITLE>Dashdot | Interviews</TITLE>
+<SCRIPT LANGUAGE="JavaScript"><!--
+
+function getCookie(n) {
+  var c = document.cookie.split("; ");
+  for (var i = 0; i < c.length; i++) {
+    var p = c[i].indexOf("=");
+    if (p > 0 && c[i].substring(0, p) == n) return unescape(c[i].substring(p + 1));
+  }
+  return "";
+}
+function setCookie(n, v, days) {
+  var e = "";
+  if (days) { var d = new Date(); d.setTime(d.getTime() + days * 86400000); e = "; expires=" + d.toGMTString(); }
+  document.cookie = n + "=" + escape(v) + e + "; path=/";
+}
+function delCookie(n) { document.cookie = n + "=; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/"; }
+function qs(n) {
+  var q = location.search.substring(1).split("&");
+  for (var i = 0; i < q.length; i++) {
+    var p = q[i].indexOf("=");
+    if (p > 0 && q[i].substring(0, p) == n) return unescape(q[i].substring(p + 1).replace(/\+/g, " "));
+  }
+  return "";
+}
+function htmlEsc(s) {
+  s = "" + s;
+  s = s.replace(/&/g, "&amp;"); s = s.replace(/</g, "&lt;"); s = s.replace(/>/g, "&gt;"); s = s.replace(/"/g, "&quot;");
+  return s;
+}
+
+function ringRandom(p) {
+  var s = new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","snapster","cnm");
+  var n = Math.floor(Math.random() * s.length);
+  location.href = p + "../" + s[n] + "/" + "index.html";
+  return false;
+}
+
+function ddLogin(f) {
+  var n = f.unickname.value;
+  if (n == "") { alert("Please enter a nickname. Even Anonymous Cowards have to type something."); return false; }
+  if (f.upasswd.value == "") { alert("Please enter your password. (We won't look at it. We don't even keep it.)"); return false; }
+  setCookie("dd_user", n, 30);
+  if (getCookie("dd_points") == "") {
+    setCookie("dd_points", "5", 3);
+    alert("Welcome back, " + n + "!\n\nYou have been randomly selected to moderate.\nYou have 5 moderator points; they expire in 3 days.\nUse them wisely: look for the Moderate menus under each comment.");
+  }
+  location.reload();
+  return false;
+}
+function ddLogout() { delCookie("dd_user"); location.reload(); }
+function loginBox(root) {
+  var u = getCookie("dd_user");
+  if (u != "") {
+    var p = getCookie("dd_points"); if (p == "") p = "0";
+    document.write('<B>Welcome back, ' + htmlEsc(u) + '!</B><BR>Karma: Positive<BR>Moderator points: <B>' + p + '</B><P>');
+    document.write('[ <A HREF="' + root + 'preferences.html">preferences</A> | <A HREF="javascript:ddLogout()">logout</A> ]');
+  } else {
+    document.write('<FORM ACTION="' + root + 'users.html" METHOD="get" onSubmit="return ddLogin(this)">');
+    document.write('<B>Nickname:</B><BR><INPUT TYPE="text" NAME="unickname" SIZE=18><BR><B>Password:</B><BR>');
+    document.write('<INPUT TYPE="password" NAME="upasswd" SIZE=18><BR><INPUT TYPE="submit" VALUE="userlogin"></FORM>');
+    document.write('No account? <A HREF="' + root + 'users.html">Make one</A>. It\'s free, and it lets you pick your comment threshold, keep your nickname, and moderate when the dice say so.');
+  }
+}
+
+//--></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#000000" TEXT="#000000" LINK="#006666" VLINK="#000000">
+<CENTER><A HREF="../orinoco/index.html"><IMG SRC="images/banner_orinoco.gif" WIDTH=468 HEIGHT=60 BORDER=0 ALT="Orinoco.com"></A></CENTER><P>
+<TABLE BGCOLOR="#FFFFFF" CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH="99%" ALIGN=CENTER><TR>
+<TD VALIGN=TOP ALIGN=LEFT><A HREF="index.html"><IMG SRC="images/title.gif" WIDTH=300 HEIGHT=72 BORDER=0 ALT="Welcome to Dashdot"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_y2k.html"><IMG SRC="images/topicy2k.gif" BORDER=0 ALT="Y2K"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_hardware.html"><IMG SRC="images/topichardware.gif" BORDER=0 ALT="Hardware"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_patents.html"><IMG SRC="images/topicpatents.gif" BORDER=0 ALT="Patents"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_linix.html"><IMG SRC="images/topiclinix.gif" BORDER=0 ALT="Linix"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_games.html"><IMG SRC="images/topicgames.gif" BORDER=0 ALT="Games"></A></TD>
+</TR></TABLE>
+<TABLE WIDTH="99%" ALIGN=CENTER CELLPADDING=0 CELLSPACING=0 BORDER=0 BGCOLOR="#FFFFFF"><TR>
+<TD VALIGN=TOP ROWSPAN=5 WIDTH=110 BGCOLOR="#FFFFFF"><NOBR><FONT FACE="arial,helvetica" SIZE=2><B>
+&nbsp;<A HREF="faq.html">faq</A><BR>
+&nbsp;<A HREF="code.html">code</A><BR>
+&nbsp;<A HREF="awards.html">awards</A><BR>
+&nbsp;<A HREF="privacy.html">privacy</A><BR>
+&nbsp;<A HREF="dashnet.html">dashNET</A><BR>
+&nbsp;<A HREF="older.html">older stuff</A><BR>
+&nbsp;<A HREF="grits.html">grits' page</A><BR>
+&nbsp;<A HREF="preferences.html">preferences</A><BR>
+&nbsp;<A HREF="overandover.html">overandover.net</A><BR>
+&nbsp;<A HREF="submit.html">submit story</A><BR>
+&nbsp;<A HREF="advertising.html">advertising</A><BR>
+&nbsp;<A HREF="supporters.html">supporters</A><BR>
+&nbsp;<A HREF="polls.html">past polls</A><BR>
+&nbsp;<A HREF="topics.html">topics</A><BR>
+&nbsp;<A HREF="about.html">about</A><BR>
+&nbsp;<A HREF="jobs.html">jobs</A><BR>
+&nbsp;<A HREF="hof.html">hof</A><BR>
+&nbsp;<A HREF="search.html">search</A>
+</B></FONT></NOBR>
+<P><TABLE BORDER=0 CELLPADDING=1 CELLSPACING=0 ALIGN=CENTER BGCOLOR="#CCCCCC"><TR><TD><FONT FACE="arial,helvetica" SIZE=2 COLOR="#000000"><B>&nbsp;Sections</B></FONT></TD></TR>
+<TR><TD><TABLE BORDER=0 CELLSPACING=1 CELLPADDING=1 BGCOLOR="#FFFFFF" WIDTH="100%"><TR><TD><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2><NOBR>
+10/17<BR>
+<B><A HREF="askdashdot.html">askdashdot</A></B><BR>
+10/14<BR>
+<B><A HREF="books.html">books</A></B><BR>
+10/14<BR>
+<B><A HREF="bsd.html">bsd</A></B><BR>
+10/12<BR>
+<B><A HREF="features.html">features</A></B><BR>
+10/15<BR>
+<B><A HREF="interviews.html">interviews</A></B><BR>
+10/18 (1)<BR>
+<B><A HREF="yro.html">yro</A></B><BR>
+</NOBR></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2 COLOR="#000000"><B>&nbsp;Overandover.net</B></FONT></TD></TR>
+<TR><TD><TABLE BORDER=0 CELLSPACING=1 CELLPADDING=1 BGCOLOR="#FFFFFF" WIDTH="100%"><TR><TD><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2><NOBR>
+<A HREF="../snapster/index.html">Snapster</A><BR>
+<A HREF="../cnm/index.html">CNM</A><BR>
+<A HREF="../petz/index.html">Petz.com</A><BR>
+<A HREF="../ubid/index.html">uBid</A><BR>
+<A HREF="../geohoods/index.html">GeoHoods</A><BR>
+</NOBR></FONT></TD></TR></TABLE></TD></TR></TABLE><P>
+</TD>
+<TD VALIGN=TOP ALIGN=LEFT><FONT FACE="arial,helvetica" COLOR="#000000">
+<FONT SIZE=2><B>Interviews:</B> You ask the questions. We forward the best ten.</FONT><P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Interview: The Man Who Wrote the Payroll Code in 1974</B></FONT></TD></TR></TABLE>
+<A HREF="topic_y2k.html"><IMG SRC="images/topicy2k.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Y2K"></A>
+<B>Posted by <A HREF="users/rotundo.html">Rotundo</A> on Friday October 15, @12:10PM EDT</B><BR>
+<FONT SIZE=2><B>from the back-then-we-had-to-use-two-digits dept.</B></FONT><BR>
+Last month you sent in questions for Walt Ferraday, the COBOL programmer who wrote the payroll system that is still running at a large Midwestern insurance company, and who came out of retirement this year to fix it. His answers are below. He typed them himself, on a terminal, in all capital letters.<P><B>( </B><A HREF="article/greybeardinterview.html"><B>Read More...</B></A> | <B><A HREF="article/greybeardinterview.html">25</A> of <A HREF="article/greybeardinterview_tm1.html">39</A> </B>comments | <B>1035 bytes in body</B> <B>)</B>
+<P>
+</FONT></TD>
+<TD WIDTH=210 ALIGN=CENTER VALIGN=TOP>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B><A HREF="features.html"><FONT COLOR="#FFFFFF">Features</FONT></A></B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+The Dashdot source code is out under the GPL. Look upon our Perl, ye mighty, and despair. <A HREF="article/slashcode.html">More...</A><P>Our interview with Walt Ferraday, the man who wrote the payroll code in 1974, in all capital letters. <A HREF="article/greybeardinterview.html">More...</A><P>Is XML the answer to everything? Readers weigh in with well-formed opinions. <A HREF="article/xmlhype.html">More...</A><P ALIGN=RIGHT><B><A HREF="features.html">Past Features</A></B>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Dashdot Login</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<SCRIPT LANGUAGE="JavaScript"><!--
+loginBox("");
+//--></SCRIPT>
+<NOSCRIPT><A HREF="users.html">Log in or create an account</A>.</NOSCRIPT>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Dashdot Poll</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<FORM ACTION="pollbooth.html" METHOD="get"><INPUT TYPE="hidden" NAME="qid" VALUE="y2kplans">
+<B>Where will you be when the clock strikes 2000?</B><BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="1">At a party, like a normal person<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="2">In the server room, watching logs<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="3">In a bunker with 400 cans of beans<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="4">Asleep. It's just a number.<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="5">Rebooting something<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="6">Wherever CmdrGrits is<BR>
+<INPUT TYPE="submit" VALUE="Vote"> [ <A HREF="pollbooth.html?qid=y2kplans"><B>Results</B></A> | <A HREF="polls.html"><B>Polls</B></A> ]<BR>Comments:<B>482</B> | Votes:<B>29377</B></FORM>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Older Stuff</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<P><B><FONT SIZE=4>Monday</FONT> October 18</B>
+<LI><A HREF="article/y2kfridge.html">Y2K Bug Found in Smart Refrigerator Firmware</A> (24)
+<LI><A HREF="article/pentode600.html">Intellon Ships 600MHz Pentode III</A> (18)
+<LI><A HREF="article/orinococlick.html">Orinoco.com Granted Patent on Clicking</A> (22)
+<P><B><FONT SIZE=4>Sunday</FONT> October 17</B>
+<LI><A HREF="article/kernel2322.html">Linix Kernel 2.3.22 Released; 2.4 'Real Soon Now'</A> (48)
+<LI><A HREF="article/sego_daydream.html">Sego Daydream Sells 500,000 Units in Two Weeks</A> (11)
+<LI><A HREF="article/doublebytefinder.html">Ask Dashdot: How Do I Explain My Job to My Grandmother?</A> (22)
+<LI><A HREF="article/transmuta.html">Secretive Startup Transmuta Updates Web Page</A> (15)
+<LI><A HREF="article/snapsterlaunch.html">College Student's MP3 Swapping Program Takes Off</A> (36)
+<LI><A HREF="article/ecommerce_xmas.html">Online Retailers Brace for First 'E-Christmas'</A> (24)
+<P><B><FONT SIZE=4>Saturday</FONT> October 16</B>
+<LI><A HREF="article/gnume_kdx.html">GNUME 1.0.55 and KDX 1.1.2 Desktop Wars Continue</A> (23)
+<LI><A HREF="article/marsprobe.html">Mars Weather Probe Lost Over Feet-vs-Furlongs Mixup</A> (35)
+<LI><A HREF="article/descramble.html">DVD Encryption Cracked by Norwegian Teens</A> (28)
+<LI><A HREF="article/petzipo.html">Petz.com IPO Soars Despite Losing Money on Every Sale</A> (45)
+<LI><A HREF="article/crapware.html">Leaked: Portals 2000 Requires 64MB and a 300MHz CPU</A> (30)
+<P ALIGN=RIGHT><BR><B><A HREF="older.html">Older Articles</A></B><BR><B><A HREF="yesterday.html">Yesterday's Edition</A></B>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B><A HREF="books.html"><FONT COLOR="#FFFFFF">Book Reviews</FONT></A></B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<P>Can a book teach regular expressions to humans? We read <CITE><A HREF="article/regexbook.html">Regular Expressions for Irregular People</A></CITE> to find out.<P>Coming soon: a review of <CITE>Debugging the Year 2000</CITE>, which is either a technical manual or a horror novel.<P>Visit our <A HREF="books.html">Book Reviews Section</A> for more.
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Quick Links</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<P><B>Cool Sites:</B>
+<LI><A HREF="../orinoco/index.html">Orinoco.com</A> (Buy a book. With one click.)
+<LI><A HREF="../snapster/index.html">Snapster</A> (The labels will love this)
+<LI><A HREF="../cnm/index.html">CNM Interactive</A> (Real news. Well, news.)
+<LI><A HREF="../yowza/index.html">Yowza!</A> (Find stuff)
+<LI><A HREF="../altavisor/index.html">AltaVisor</A> (Find more stuff)
+<LI><A HREF="../hamstershuffle/index.html">Hamster Shuffle</A> (Don't ask)
+<P><B>Support Dashdot:</B>
+<LI><A HREF="shirts.html">Dashdot T-shirts</A> (Clothe yourself in Dashdot)
+<LI><A HREF="advertising.html">Advertise here</A> (We have eyeballs)
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B><A HREF="freshbeat.html"><FONT COLOR="#FFFFFF">Freshbeat</FONT></A></B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<P><FONT SIZE=4 COLOR="#006666"><B>October</B></FONT><BR>
+<LI><A HREF="freshbeat.html">grepmail 3.4</A>
+<LI><A HREF="freshbeat.html">xsnow 1.40</A>
+<LI><A HREF="freshbeat.html">gkrellm-ish 0.7.2</A>
+<LI><A HREF="freshbeat.html">fetchpopmail 5.1.1</A>
+<LI><A HREF="freshbeat.html">ToastTerm 0.3</A>
+<LI><A HREF="freshbeat.html">libdashdot 0.0.1</A>
+<LI><A HREF="freshbeat.html">y2kcheck 1.0</A>
+<LI><A HREF="freshbeat.html">mp3blaster-lite 2.0</A>
+<LI><A HREF="freshbeat.html">sockpuppetd 0.9</A>
+<LI><A HREF="freshbeat.html">beanctl 1.2</A>
+<P ALIGN=RIGHT><B><A HREF="freshbeat.html">More Beat...</A></B>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B><A HREF="askdashdot.html"><FONT COLOR="#FFFFFF">Ask Dashdot</FONT></A></B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<LI><A HREF="article/doublebytefinder.html">How Do I Explain My Job to My Grandmother?</A>
+<LI><A HREF="article/y2kgenerator.html">Should I Buy a Generator for Y2K?</A>
+<LI><A HREF="article/firstpost.html">Why Do People Post 'First Post'?</A>
+<P>If you have a question for Ask Dashdot, <A HREF="submit.html">submit it</A>.
+</FONT></TD></TR></TABLE><P>
+</TD>
+</TR></TABLE>
+<TABLE BGCOLOR="#FFFFFF" WIDTH="99%" ALIGN=CENTER BORDER=0 CELLPADDING=4 CELLSPACING=0><TR><TD>
+<TABLE WIDTH="100%" BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD BGCOLOR="#006666"><IMG SRC="images/pix.gif" WIDTH=1 HEIGHT=4 ALT=""></TD></TR></TABLE>
+<CENTER><FORM ACTION="search.html" METHOD="get"><FONT FACE="arial,helvetica" SIZE=2><INPUT TYPE="text" NAME="query" SIZE=20> <INPUT TYPE="submit" VALUE="Search"></FONT></FORM>
+<FONT FACE="arial,helvetica" SIZE=2><I>If at first you don't succeed, call it version 1.0.</I></FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>[ <A HREF="index.html">home</A> | <A HREF="awards.html">awards</A> | <A HREF="supporters.html">supporters</A> | <A HREF="grits.html">grits' homepage</A> | <A HREF="submit.html">contribute story</A> | <A HREF="older.html">older articles</A> | <A HREF="overandover.html">overandover.net</A> | <A HREF="advertising.html">advertising</A> | <A HREF="polls.html">past polls</A> | <A HREF="topics.html">topics</A> | <A HREF="about.html">about</A> | <A HREF="jobs.html">jobs</A> | <A HREF="hof.html">hof</A> ]</FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>Trademarks belong to whoever trademarked them. Comments belong to whoever typed them. Everything else &copy; 1997-99 Overandover.net. Dashdot is served hot by KoldFusion 4.5 from Gibson Mainframe Co.</FONT><BR>
+<A HREF="about.html"><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion" VSPACE=6></A>
+</CENTER></TD></TR></TABLE>
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../hamstershuffle/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="return ringRandom('')">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Dashdot is site 10 of 12 |
+<A HREF="../snapster/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER><P>
+</BODY></HTML>

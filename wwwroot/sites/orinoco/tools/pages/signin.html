@@ -1,0 +1,59 @@
+<SCRIPT LANGUAGE="JavaScript">
+var next = qs("next");
+if (next == "" || next.indexOf(":") != -1 || next.charAt(0) == "/") next = "account.html";
+function finishSignin(name, email) {
+  setCookie("orinoco_user", name + "|" + email, 30);
+  location.href = P + next;
+}
+function doSignin() {
+  var f = document.forms["signin"];
+  var email = f.email.value.toLowerCase().replace(/^\s+|\s+$/g, "");
+  if (email.indexOf("@") < 1 || email.indexOf(".") == -1) { alert("Please enter a valid e-mail address, like della@example.com."); f.email.focus(); return false; }
+  if (f.action[0].checked) {
+    if (findAccount(email)) { alert("There is already an account for " + email + ". Please choose \"Yes, I have a password\" and enter it."); return false; }
+    location.href = P + "signin.html?step=new&email=" + escape(email) + "&next=" + escape(next);
+    return false;
+  }
+  var acct = findAccount(email);
+  if (!acct) { alert("We have no customer with the e-mail address " + email + ". If you are new, please choose \"No, I am a new customer.\""); return false; }
+  if (pwHash(f.password.value) != acct[2]) { alert("The password you entered does not match our records. Please try again. (Hint for the demo account: it flows through Venezuela.)"); f.password.value = ""; return false; }
+  finishSignin(acct[1], acct[0]);
+  return false;
+}
+function doRegister() {
+  var f = document.forms["reg"];
+  var email = qs("email").toLowerCase();
+  var name = f.fullname.value.replace(/[|;~^]/g, "").replace(/^\s+|\s+$/g, "");
+  if (name == "") { alert("Please tell us your name."); return false; }
+  if (f.pw1.value.length < 4) { alert("Please choose a password of at least 4 characters."); return false; }
+  if (f.pw1.value != f.pw2.value) { alert("The two passwords you typed do not match."); return false; }
+  var s = getCookie("orinoco_reg");
+  setCookie("orinoco_reg", (s == "" ? "" : s + ";") + email + "|" + name + "|" + pwHash(f.pw1.value), 365);
+  alert("Welcome to Orinoco.com, " + name.split(" ")[0] + "! Your account has been created.");
+  finishSignin(name, email);
+  return false;
+}
+var F = "<FONT FACE=\"verdana,arial,helvetica\" SIZE=-1>";
+if (qs("step") == "new") {
+  document.write("<FONT FACE=\"verdana,arial,helvetica\" SIZE=+1><B>New to Orinoco.com? Welcome!</B></FONT><BR><BR>");
+  document.write(F + "Just a few more details and you're on your way. Your e-mail address is <B>" + esc(qs("email")) + "</B>.<BR><BR>");
+  document.write("<FORM NAME=\"reg\" onSubmit=\"return doRegister()\"><TABLE BORDER=0 CELLPADDING=3>");
+  document.write("<TR><TD>" + F + "Your full name:</FONT></TD><TD><INPUT TYPE=text NAME=\"fullname\" SIZE=30></TD></TR>");
+  document.write("<TR><TD>" + F + "Choose a password:</FONT></TD><TD><INPUT TYPE=password NAME=\"pw1\" SIZE=20></TD></TR>");
+  document.write("<TR><TD>" + F + "Type it again:</FONT></TD><TD><INPUT TYPE=password NAME=\"pw2\" SIZE=20></TD></TR>");
+  document.write("<TR><TD></TD><TD><INPUT TYPE=image SRC=\"" + P + "images/btn_continue.gif\" WIDTH=78 HEIGHT=19 BORDER=0 ALT=\"Continue\"></TD></TR></TABLE></FORM></FONT>");
+} else {
+  document.write("<FONT FACE=\"verdana,arial,helvetica\" SIZE=+1><B>Sign In</B></FONT><BR><BR>");
+  if (userGet()) document.write(F + "You are currently signed in as <B>" + esc(userGet()[0]) + "</B>. Not you? Sign in below as someone else.</FONT><BR><BR>");
+  document.write("<FORM NAME=\"signin\" onSubmit=\"return doSignin()\"><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR=\"#EEEECC\" WIDTH=\"100%\"><TR><TD>");
+  document.write(F + "<B>What is your e-mail address?</B><BR>My e-mail address is <INPUT TYPE=text NAME=\"email\" SIZE=28 VALUE=\"" + esc(qs("email")) + "\"><BR><BR>");
+  document.write("<B>Do you have an Orinoco.com password?</B><BR>");
+  document.write("<INPUT TYPE=radio NAME=\"action\" VALUE=\"new\"> No, I am a new customer.<BR>");
+  document.write("<INPUT TYPE=radio NAME=\"action\" VALUE=\"returning\" CHECKED> Yes, I have a password: <INPUT TYPE=password NAME=\"password\" SIZE=14><BR><BR>");
+  document.write("<INPUT TYPE=image SRC=\"" + P + "images/btn_signin.gif\" WIDTH=198 HEIGHT=20 BORDER=0 ALT=\"Sign in using our secure server\"></FONT>");
+  document.write("</TD></TR></TABLE></FORM>");
+  document.write("<FONT FACE=\"verdana,arial,helvetica\" SIZE=-2><IMG SRC=\"" + P + "images/lock.gif\" WIDTH=20 HEIGHT=24 ALIGN=LEFT> The secure server encrypts your information with 40 bits of the finest encryption 1999 can export. ");
+  document.write("Forgot your password? Make a new account; we won't tell.<BR CLEAR=ALL><BR><B>Just looking around?</B> Try the demo account: <TT>demo@orinoco.com</TT> / <TT>river</TT></FONT>");
+}
+</SCRIPT>
+<NOSCRIPT>Signing in requires JavaScript.</NOSCRIPT>

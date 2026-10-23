@@ -1,0 +1,20 @@
+<SCRIPT LANGUAGE="JavaScript">
+var F = "<FONT FACE=\"Arial, Helvetica\" SIZE=2>";
+var no = qs("order"), o = ordersGet(), mine = null;
+for (var i = 0; i < o.length; i++) if (o[i][0] == no) mine = o[i];
+if (!mine) document.write(F + "We couldn't find that order. Check <A HREF=\"" + P + "account.html\">my eToyz</A>.</FONT>");
+else {
+  document.write("<TABLE BORDER=0 CELLPADDING=4><TR><TD><IMG SRC=\"" + P + "images/sprocket.gif\" WIDTH=110 HEIGHT=130 ALT=\"Sprocket\"></TD><TD>");
+  document.write("<FONT FACE=\"Arial, Helvetica\" SIZE=5 COLOR=\"#E21B1B\"><B>Thank you! Your toys are on the way!</B></FONT><BR><BR>");
+  document.write(F + "Order number <B>" + esc(no) + "</B> is in Sprocket's capable (if slightly clumsy) hands. A confirmation is on its way to <B>" + esc(mine[5]) + "</B>.<BR><BR>");
+  var m = parseInt(mine[3]);
+  document.write("Shipping: " + SHIP[m][0] + ". " + (inTimeForXmas(m) ? "<FONT COLOR=\"#1BA84A\"><B>It will arrive in time for Christmas.</B></FONT>" : "") + "<BR>");
+  document.write("Order total: <B>" + money(parseInt(mine[4])) + "</B></FONT></TD></TR></TABLE><BR>");
+  var its = mine[2].split(",");
+  for (var k = 0; k < its.length; k++) {
+    var p = its[k].split(":"), t = findToy(p[0]);
+    if (t) document.write("<IMG SRC=\"" + toyImg(t) + "\" WIDTH=70 HEIGHT=70 ALIGN=ABSMIDDLE> " + F + p[1] + " x <A HREF=\"" + toyURL(t) + "\">" + esc(t[1]) + "</A></FONT><BR>");
+  }
+  document.write("<BR>" + F + "Track this order any time in <A HREF=\"" + P + "account.html\">my eToyz</A>.</FONT>");
+}
+</SCRIPT>

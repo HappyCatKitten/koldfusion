@@ -1,0 +1,151 @@
+<HTML>
+<HEAD>
+<TITLE>Yowza! Search Results</TITLE>
+<META NAME="description" CONTENT="Yowza! - a hand-sorted guide to the World Wide Web.">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000CC" VLINK="#551A8B" ALINK="#FF0000">
+<SCRIPT LANGUAGE="JavaScript" SRC="yz_index.js"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function getArg(name) {
+  var q = location.search.substring(1).split('&');
+  for (var i = 0; i < q.length; i++) {
+    var kv = q[i].split('=');
+    if (kv[0] == name && kv.length > 1) return unescape(kv[1].replace(/\+/g, ' '));
+  }
+  return '';
+}
+function h(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function words(s) {
+  var w = s.toLowerCase().replace(/[^a-z0-9\-\.' ]/g, ' ').split(' '), out = new Array();
+  for (var i = 0; i < w.length; i++) if (w[i].length > 1 && w[i] != 'and' && w[i] != 'the' && w[i] != 'of') out[out.length] = w[i];
+  return out;
+}
+function hasAll(text, ws) {
+  text = ' ' + text.toLowerCase().replace(/[^a-z0-9\-\.']/g, ' ') + ' ';
+  for (var i = 0; i < ws.length; i++) if (text.indexOf(' ' + ws[i]) < 0) return false;
+  return true;
+}
+function bold(text, ws) {
+  var out = h(text);
+  for (var i = 0; i < ws.length; i++) {
+    if (ws[i].length < 2) continue;
+    var re = new RegExp('(^|[^a-zA-Z0-9])(' + ws[i].replace(/[\.\-]/g, '\\$&') + '[a-z]*)', 'gi');
+    out = out.replace(re, '$1<B>$2</B>');
+  }
+  return out;
+}
+function crumb(path, ws) {
+  var segs = path.split('/'), out = '';
+  for (var i = 1; i <= segs.length; i++) {
+    var p = segs.slice(0, i).join('/');
+    out += (i > 1 ? ' &gt; ' : '') + bold(T[p], ws);
+  }
+  return out;
+}
+var p = getArg('p'), c = getArg('c'), b = parseInt(getArg('b')) || 1, mode = getArg('h');
+var ws = words(p);
+var cm = new Array(), sm = new Array();
+if (ws.length > 0) {
+  for (var i = 0; i < C.length; i++) {
+    var f = C[i].split('|');
+    if (c != '' && f[0] != c && f[0].indexOf(c + '/') != 0) continue;
+    if (hasAll(f[1] + ' ' + f[0].replace(/_/g, ' '), ws) && hasAll(f[1], ws.slice(ws.length - 1))) cm[cm.length] = f;
+  }
+  for (var i = 0; i < S.length; i++) {
+    var f = S[i].split('|');
+    if (c != '' && f[2] != c && f[2].indexOf(c + '/') != 0) continue;
+    if (hasAll(f[0] + ' ' + f[1] + ' ' + T[f[2]], ws)) sm[sm.length] = f;
+  }
+}
+function tabs() {
+  var q = escape(p);
+  var t = '<P><TABLE BGCOLOR="black" BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%"><TR><TD><TABLE BORDER=0 CELLPADDING=2 CELLSPACING=1 WIDTH="100%"><TR ALIGN=center BGCOLOR="#EEEEEE">';
+  t += (mode == 's' ? '<TD WIDTH="20%"><FONT SIZE=-1 FACE=arial><A HREF="search.html?p=' + q + '&c=' + escape(c) + '">Categories</A></FONT></TD><TD BGCOLOR="#A0B8C8" WIDTH="20%"><FONT SIZE=-1 FACE=arial><B>Web Sites</B></FONT></TD>'
+                    : '<TD BGCOLOR="#A0B8C8" WIDTH="20%"><FONT SIZE=-1 FACE=arial><B>Categories</B></FONT></TD><TD WIDTH="20%"><FONT SIZE=-1 FACE=arial><A HREF="search.html?h=s&p=' + q + '&c=' + escape(c) + '">Web Sites</A></FONT></TD>');
+  t += '<TD WIDTH="20%"><FONT SIZE=-1 FACE=arial><A HREF="../altavisor/results.html?q=' + q + '">Web Pages</A></FONT></TD>';
+  t += '<TD WIDTH="20%"><FONT SIZE=-1 FACE=arial><A HREF="../cnm/index.html">Related News</A></FONT></TD>';
+  t += '<TD WIDTH="20%"><FONT SIZE=-1 FACE=arial><A HREF="services/events.html">Net Events</A></FONT></TD></TR></TABLE></TD></TR></TABLE><P>';
+  return t;
+}
+function catUrl(path) { return 'dir/' + path + '/index.html'; }
+function siteLi(f, showCat) {
+  var s = '<LI><A HREF="' + f[3] + '">' + bold(f[0], ws) + '</A>';
+  if (f[4].indexOf('c') >= 0) s += ' <IMG SRC="images/cool.gif" WIDTH=22 HEIGHT=11 ALT="[cool]">';
+  if (f[4].indexOf('n') >= 0) s += ' <IMG SRC="images/new2.gif" WIDTH=28 HEIGHT=11 ALT="[new]">';
+  s += ' - ' + bold(f[1], ws);
+  if (showCat) s += '<BR><FONT SIZE=-1><A HREF="' + catUrl(f[2]) + '">' + crumb(f[2], ws) + '</A></FONT>';
+  return s + '\n';
+}
+function pager(total, per) {
+  if (total <= b + per - 1) return '';
+  var n = b + per;
+  return '<P><CENTER><FONT FACE=arial><A HREF="search.html?h=' + mode + '&p=' + escape(p) + '&c=' + escape(c) + '&b=' + n + '">Next ' + Math.min(per, total - n + 1) + ' Matches</A></FONT></CENTER>';
+}
+// -->
+</SCRIPT>
+<TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=0><TR><TD VALIGN=MIDDLE WIDTH="1%">
+<A HREF="index.html"><IMG BORDER=0 HEIGHT=31 WIDTH=147 SRC="images/yowza_sm.gif" ALT="Yowza!"></A></TD>
+<TD VALIGN=MIDDLE><TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="100%"><TR>
+<TD VALIGN=BOTTOM ALIGN=LEFT><FONT FACE=arial SIZE=-1><A HREF="my.html">Personalize</A></FONT></TD>
+<TD ALIGN=RIGHT VALIGN=BOTTOM><FONT FACE=arial SIZE=-1><A HREF="help.html">Help</A> - <A HREF="mail.html">Check Email</A></FONT></TD>
+</TR></TABLE><HR SIZE=1 NOSHADE></TD></TR></TABLE>
+<FORM NAME="sf" METHOD=GET ACTION="search.html">
+<TABLE BORDER=0 WIDTH="100%" CELLPADDING=6 CELLSPACING=0><TR><TD BGCOLOR="#DDDDDD">
+<INPUT SIZE=30 NAME=p> <INPUT TYPE=submit VALUE=Search> <FONT SIZE=-1><A HREF="search_adv.html">advanced search</A></FONT>
+</TD></TR></TABLE></FORM>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+document.sf.p.value = p;
+var where = (c != '' ? ' in <B>' + h(T[c] || c) + '</B>' : '');
+document.write('<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=2 WIDTH="100%"><TR><TD BGCOLOR="#A0B8C8"><FONT FACE=arial><B>Search Result</B></FONT>&nbsp;&nbsp;<FONT SIZE=-1 FACE=arial>Found <B>' + cm.length + '</B> categories and <B>' + sm.length + '</B> sites for <B>' + h(p) + '</B>' + where + '</FONT></TD></TR></TABLE>');
+if (ws.length == 0) {
+  document.write('<P>Please type a word or two in the box above and press <B>Search</B>. Yowza! will look through every category and every site our surfers have filed.');
+} else if (cm.length == 0 && sm.length == 0) {
+  document.write(tabs());
+  document.write('<P><CENTER><B>Sorry, no matches were found containing <I>' + h(p) + '</I>.</B></CENTER><P>Yowza! looked through ' + C.length + ' categories and ' + S.length + ' sites, under every couch cushion. Some ideas:<UL>');
+  document.write('<LI>Check your spelling. (We have all typed &quot;teh&quot;.)<LI>Try fewer or more general words.');
+  document.write('<LI>Let <A HREF="../altavisor/results.html?q=' + escape(p) + '">AltaVisor</A> search the full text of millions of Web pages for <B>' + h(p) + '</B>.');
+  document.write('<LI>Ask the butler: <A HREF="../askreeves/answer.html?ask=' + escape(p) + '">Ask Reeves</A> about <B>' + h(p) + '</B>.');
+  document.write('<LI>Know a good site about it? <A HREF="suggest.html">Suggest a Site</A>.</UL>');
+} else if (mode == 's' || cm.length == 0) {
+  mode = 's';
+  document.write(tabs());
+  var per = 20, last = Math.min(sm.length, b + per - 1);
+  document.write('<CENTER><FONT SIZE="+1"><B>Yowza! Site Matches &nbsp; <FONT SIZE="-1">(' + b + '&nbsp;-&nbsp;' + last + '&nbsp;of&nbsp;' + sm.length + ')</FONT></B></FONT></CENTER><P><UL>');
+  for (var i = b - 1; i < last; i++) document.write(siteLi(sm[i], true));
+  document.write('</UL>' + pager(sm.length, per));
+} else {
+  document.write(tabs());
+  var per = 20, last = Math.min(cm.length, b + per - 1);
+  document.write('<CENTER><FONT SIZE="+1"><B>Yowza! Category Matches &nbsp; <FONT SIZE="-1">(' + b + '&nbsp;-&nbsp;' + last + '&nbsp;of&nbsp;' + cm.length + ')</FONT></B></FONT></CENTER>');
+  for (var i = b - 1; i < last; i++) document.write('<P><A HREF="' + catUrl(cm[i][0]) + '">' + crumb(cm[i][0], ws) + '</A>');
+  document.write(pager(cm.length, per));
+  if (sm.length > 0 && b == 1) {
+    document.write('<P><HR SIZE=0><CENTER><FONT SIZE="+1"><B>Yowza! Site Matches &nbsp; <FONT SIZE="-1">(1&nbsp;-&nbsp;' + Math.min(sm.length, 10) + '&nbsp;of&nbsp;' + sm.length + ')</FONT></B></FONT></CENTER><P><UL>');
+    for (var i = 0; i < Math.min(sm.length, 10); i++) document.write(siteLi(sm[i], true));
+    document.write('</UL>');
+    if (sm.length > 10) document.write('<CENTER><FONT FACE=arial><A HREF="search.html?h=s&p=' + escape(p) + '&c=' + escape(c) + '">More Site Matches</A></FONT></CENTER>');
+  }
+}
+// -->
+</SCRIPT>
+<NOSCRIPT><P><B>Yowza! search needs JavaScript.</B> Please turn it on in your browser's preferences,
+or browse the <A HREF="index.html">categories</A> by hand like it's 1994.</NOSCRIPT>
+<P><HR SIZE=0>
+<CENTER><FONT SIZE=-1><I>Copyright &copy; 1994-99 Yowza! Inc. All Rights Reserved.</I> -
+<A HREF="info.html">Company Information</A> -
+<A HREF="suggest.html">Suggest a Site</A> -
+<A HREF="help.html">FAQ</A></FONT></CENTER>
+
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../cnm/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="var r=new Array('yowza','altavisor','askreeves','orinoco','ubid','etoyz','petz','geohoods','hamstershuffle','dashdot','snapster','cnm'); location.href='../'+r[Math.floor(Math.random()*r.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Yowza! is site 1 of 12 |
+<A HREF="../altavisor/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER>
+</BODY>
+</HTML>

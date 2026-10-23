@@ -1,0 +1,359 @@
+<HTML><HEAD><TITLE>Dashdot | College Student's MP3 Swapping Program Takes Off</TITLE>
+<SCRIPT LANGUAGE="JavaScript"><!--
+
+function getCookie(n) {
+  var c = document.cookie.split("; ");
+  for (var i = 0; i < c.length; i++) {
+    var p = c[i].indexOf("=");
+    if (p > 0 && c[i].substring(0, p) == n) return unescape(c[i].substring(p + 1));
+  }
+  return "";
+}
+function setCookie(n, v, days) {
+  var e = "";
+  if (days) { var d = new Date(); d.setTime(d.getTime() + days * 86400000); e = "; expires=" + d.toGMTString(); }
+  document.cookie = n + "=" + escape(v) + e + "; path=/";
+}
+function delCookie(n) { document.cookie = n + "=; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/"; }
+function qs(n) {
+  var q = location.search.substring(1).split("&");
+  for (var i = 0; i < q.length; i++) {
+    var p = q[i].indexOf("=");
+    if (p > 0 && q[i].substring(0, p) == n) return unescape(q[i].substring(p + 1).replace(/\+/g, " "));
+  }
+  return "";
+}
+function htmlEsc(s) {
+  s = "" + s;
+  s = s.replace(/&/g, "&amp;"); s = s.replace(/</g, "&lt;"); s = s.replace(/>/g, "&gt;"); s = s.replace(/"/g, "&quot;");
+  return s;
+}
+
+function ringRandom(p) {
+  var s = new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","snapster","cnm");
+  var n = Math.floor(Math.random() * s.length);
+  location.href = p + "../" + s[n] + "/" + "index.html";
+  return false;
+}
+
+function ddLogin(f) {
+  var n = f.unickname.value;
+  if (n == "") { alert("Please enter a nickname. Even Anonymous Cowards have to type something."); return false; }
+  if (f.upasswd.value == "") { alert("Please enter your password. (We won't look at it. We don't even keep it.)"); return false; }
+  setCookie("dd_user", n, 30);
+  if (getCookie("dd_points") == "") {
+    setCookie("dd_points", "5", 3);
+    alert("Welcome back, " + n + "!\n\nYou have been randomly selected to moderate.\nYou have 5 moderator points; they expire in 3 days.\nUse them wisely: look for the Moderate menus under each comment.");
+  }
+  location.reload();
+  return false;
+}
+function ddLogout() { delCookie("dd_user"); location.reload(); }
+function loginBox(root) {
+  var u = getCookie("dd_user");
+  if (u != "") {
+    var p = getCookie("dd_points"); if (p == "") p = "0";
+    document.write('<B>Welcome back, ' + htmlEsc(u) + '!</B><BR>Karma: Positive<BR>Moderator points: <B>' + p + '</B><P>');
+    document.write('[ <A HREF="' + root + 'preferences.html">preferences</A> | <A HREF="javascript:ddLogout()">logout</A> ]');
+  } else {
+    document.write('<FORM ACTION="' + root + 'users.html" METHOD="get" onSubmit="return ddLogin(this)">');
+    document.write('<B>Nickname:</B><BR><INPUT TYPE="text" NAME="unickname" SIZE=18><BR><B>Password:</B><BR>');
+    document.write('<INPUT TYPE="password" NAME="upasswd" SIZE=18><BR><INPUT TYPE="submit" VALUE="userlogin"></FORM>');
+    document.write('No account? <A HREF="' + root + 'users.html">Make one</A>. It\'s free, and it lets you pick your comment threshold, keep your nickname, and moderate when the dice say so.');
+  }
+}
+
+var MODPTS = 0;
+if (getCookie("dd_user") != "") { MODPTS = parseInt("0" + getCookie("dd_points"), 10); }
+var MODS = getCookie("dd_mods");
+function S(c, b, r) {
+  var d = 0, rr = r;
+  if (MODS != "") {
+    var a = MODS.split("|");
+    for (var i = 0; i < a.length; i++) {
+      var f = a[i].split(":");
+      if (f[0] == SID && f[1] == "" + c) { d += parseInt(f[2], 10); rr = f[3]; }
+    }
+  }
+  var s = b + d; if (s > 5) s = 5; if (s < -1) s = -1;
+  document.write("(Score:" + s + (rr != "" ? ", " + rr : "") + ")");
+}
+function M(c) {
+  if (MODPTS <= 0) return;
+  document.write(' | <SELECT NAME="m' + c + '"><OPTION VALUE="">Moderate</OPTION>' +
+    '<OPTION VALUE="-1:Offtopic">Offtopic</OPTION><OPTION VALUE="-1:Flamebait">Flamebait</OPTION>' +
+    '<OPTION VALUE="-1:Troll">Troll</OPTION><OPTION VALUE="-1:Redundant">Redundant</OPTION>' +
+    '<OPTION VALUE="1:Insightful">Insightful</OPTION><OPTION VALUE="1:Interesting">Interesting</OPTION>' +
+    '<OPTION VALUE="1:Informative">Informative</OPTION><OPTION VALUE="1:Funny">Funny</OPTION>' +
+    '<OPTION VALUE="-1:Overrated">Overrated</OPTION><OPTION VALUE="1:Underrated">Underrated</OPTION></SELECT>');
+}
+function modButton() {
+  if (MODPTS > 0) {
+    document.write('<CENTER><TABLE BORDER=0 CELLPADDING=4 BGCOLOR="#CCCCCC"><TR><TD ALIGN=CENTER><FONT SIZE=2>' +
+      'You have <B>' + MODPTS + '</B> moderator point(s). Pick reasons from the menus above, then ' +
+      '<INPUT TYPE="button" VALUE="Moderate" onClick="doMod()"></FONT></TD></TR></TABLE></CENTER>');
+  }
+}
+function doMod() {
+  var f = document.forms["mod"];
+  var list = new Array();
+  for (var i = 0; i < f.elements.length; i++) {
+    var e = f.elements[i];
+    if (e.name && e.name.charAt(0) == "m" && e.options) {
+      var v = e.options[e.selectedIndex].value;
+      if (v != "") list[list.length] = SID + ":" + e.name.substring(1) + ":" + v;
+    }
+  }
+  if (list.length == 0) { alert("You didn't pick any moderations. Choose a reason from a comment's Moderate menu first."); return; }
+  if (list.length > MODPTS) { alert("You only have " + MODPTS + " moderator point(s) left, but you picked " + list.length + "."); return; }
+  var m = getCookie("dd_mods");
+  for (var j = 0; j < list.length; j++) m += (m == "" ? "" : "|") + list[j];
+  while (m.length > 3000) m = m.substring(m.indexOf("|") + 1);
+  setCookie("dd_mods", m, 30);
+  setCookie("dd_points", "" + (MODPTS - list.length), 3);
+  location.href = ROOT + "moderated.html?n=" + list.length + "&sid=" + SID;
+}
+function mine() {
+  var raw = getCookie("dd_posts_" + SID);
+  if (raw == "") return;
+  var recs = raw.split("~#~");
+  document.write('<A NAME="mine"></A><P><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#006666"><FONT SIZE=2 COLOR="#FFFFFF"><B>Your comments</B> (saved in your browser until the next cron run weaves them into the thread)</FONT></TD></TR></TABLE>');
+  for (var i = 0; i < recs.length; i++) {
+    var f = recs[i].split("~|~");
+    if (f.length < 6) continue;
+    var sc = (f[1] == "Anonymous Coward") ? 0 : 1;
+    document.write('<TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC">' +
+      '<FONT SIZE=3 COLOR="#000000"><B>' + htmlEsc(f[2]) + '</B></FONT> (Score:' + sc + ')<BR><FONT SIZE=2>by ' +
+      (f[1] == "Anonymous Coward" ? "Anonymous Coward" : '<B>' + htmlEsc(f[1]) + '</B>') + ' on ' + htmlEsc(f[4]) +
+      (f[0] != "0" ? ' (reply to <A HREF="#' + f[0] + '">#' + f[0] + '</A>)' : '') + '</FONT></TD></TR>' +
+      '<TR><TD><FONT SIZE=2>' + f[3] + '</FONT></TD></TR></TABLE><P>');
+  }
+}
+
+var SID = "snapsterlaunch"; var ROOT = "../";
+
+function changeT(f) {
+  var t = f.threshold.options[f.threshold.selectedIndex].value;
+  var m = f.mode.options[f.mode.selectedIndex].value;
+  var o = f.order.options[f.order.selectedIndex].value;
+  if (m == "flat" || m == "thread") alert("Flat and Threaded modes are coming in Dash 0.4. Until then, enjoy Nested.");
+  if (m == "nocomment") { location.href = "../index.html"; return false; }
+  if (o != "0") alert("Sorting is handled by a cron job that is currently on fire. Showing oldest first.");
+  location.href = SID + (t == "1" ? "" : "_t" + (t == "-1" ? "m1" : t)) + ".html";
+  return false;
+}
+
+//--></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#000000" TEXT="#000000" LINK="#006666" VLINK="#000000">
+<CENTER><A HREF="../../orinoco/index.html"><IMG SRC="../images/banner_orinoco.gif" WIDTH=468 HEIGHT=60 BORDER=0 ALT="Orinoco.com"></A></CENTER><P>
+<TABLE BGCOLOR="#FFFFFF" CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH="99%" ALIGN=CENTER><TR>
+<TD VALIGN=TOP ALIGN=LEFT><A HREF="../index.html"><IMG SRC="../images/title.gif" WIDTH=300 HEIGHT=72 BORDER=0 ALT="Welcome to Dashdot"></A></TD>
+</TR></TABLE>
+<TABLE WIDTH="99%" ALIGN=CENTER CELLPADDING=8 CELLSPACING=0 BORDER=0 BGCOLOR="#FFFFFF"><TR>
+<TD VALIGN=TOP><FONT FACE="arial,helvetica" COLOR="#000000">
+<A NAME="top"></A><TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="../images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>College Student's MP3 Swapping Program Takes Off</B></FONT></TD></TR></TABLE>
+<A HREF="../topic_music.html"><IMG SRC="../images/topicmusic.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Music"></A>
+<B>Posted by <A HREF="../users/hemlock.html">Hemlock</A> on Sunday October 17, @11:25AM EDT</B><BR>
+<FONT SIZE=2><B>from the what-could-possibly-go-wrong dept.</B></FONT><BR>
+<A HREF="../users/dormroom_dj.html">dormroom_dj</A> writes <I>"A freshman has written a program called <A HREF="../../snapster/index.html">Snapster</A> that lets you search other people's hard drives for MP3s and download them directly. It has a chat room, a hot list, and about 30,000 users who are apparently all in my dorm, judging by the network. Our campus admins have started muttering about bandwidth. The record labels have not said anything yet, which is probably the calm before something."</I> This is either the future of music or the future of a lot of lawyers. Possibly both.<BR CLEAR=ALL>
+<P><TABLE WIDTH="100%" BORDER=0 CELLSPACING=0 CELLPADDING=0>
+<TR><TD BGCOLOR="#006666" ALIGN=CENTER><FONT SIZE=2 COLOR="#FFFFFF"><B>College Student's MP3 Swapping Program Takes Off</B> | <A HREF="../users.html"><FONT COLOR="#FFFFFF">Login/Create an Account</FONT></A> | <A HREF="#top"><FONT COLOR="#FFFFFF">Top</FONT></A> | <B>36</B> comments | <A HREF="../search.html?query=snapsterlaunch"><FONT COLOR="#FFFFFF">Search Discussion</FONT></A></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC" ALIGN=CENTER><FORM NAME="ctl" onSubmit="return changeT(this)"><FONT SIZE=2>
+Threshold: <SELECT NAME="threshold"><OPTION VALUE="-1" SELECTED>-1: 36 comments
+<OPTION VALUE="0">0: 32 comments
+<OPTION VALUE="1">1: 25 comments
+<OPTION VALUE="2">2: 20 comments
+<OPTION VALUE="3">3: 13 comments
+<OPTION VALUE="4">4: 8 comments
+<OPTION VALUE="5">5: 2 comments
+</SELECT>
+<SELECT NAME="mode"><OPTION VALUE="nested" SELECTED>Nested<OPTION VALUE="flat">Flat<OPTION VALUE="thread">Threaded<OPTION VALUE="nocomment">No Comments</SELECT>
+<SELECT NAME="order"><OPTION VALUE="0" SELECTED>Oldest First<OPTION VALUE="1">Newest First<OPTION VALUE="2">Highest Scores First</SELECT>
+<INPUT TYPE="submit" VALUE="Change"> <INPUT TYPE="button" VALUE="Reply" onClick="location.href='../reply.html?sid=snapsterlaunch'">
+</FONT></FORM></TD></TR>
+<TR><TD BGCOLOR="#006666" ALIGN=CENTER><FONT SIZE=2 COLOR="#FFFFFF">The fine print: the following comments belong to whoever typed them. Dashdot takes no responsibility for them, and frankly, neither do most of the people who typed them.</FONT></TD></TR></TABLE><P>
+<FORM NAME="mod" onSubmit="return false">
+<UL>
+<A NAME="1"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>first post!</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(1,-1,"Offtopic")</SCRIPT><NOSCRIPT>(Score:-1, Offtopic)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @11:28AM EDT (<A HREF="#1">#1</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>first post!!!1 woohoo</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=1">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(1)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<P>
+<A NAME="2"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(2,5,"Insightful")</SCRIPT><NOSCRIPT>(Score:5, Insightful)</NOSCRIPT><BR>by <A HREF="../users/lowearthlarry.html">LowEarthLarry</A> on Sunday October 17, @11:31AM EDT (<A HREF="#2">#2</A>)<BR>(<A HREF="../users/lowearthlarry.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Give it six months. The Recording Industry Association of Anywhere is going to come down on this like a ton of shrink-wrapped CDs.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=2">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(2)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="3"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(3,0,"")</SCRIPT><NOSCRIPT>(Score:0)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @11:35AM EDT (<A HREF="#3">#3</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Hey, at least it's not Portals.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=3">Reply to This</A> | <A HREF="#2">Parent</A><SCRIPT LANGUAGE="JavaScript">M(3)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<A NAME="4"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(4,4,"Interesting")</SCRIPT><NOSCRIPT>(Score:4, Interesting)</NOSCRIPT><BR>by <A HREF="../users/biobob.html">BioBob</A> on Sunday October 17, @11:42AM EDT (<A HREF="#4">#4</A>)<BR>(<A HREF="../users/biobob.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Citation needed. Where are you getting these numbers?</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=4">Reply to This</A> | <A HREF="#2">Parent</A><SCRIPT LANGUAGE="JavaScript">M(4)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="12"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(12,1,"Funny")</SCRIPT><NOSCRIPT>(Score:1, Funny)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @12:48PM EDT (<A HREF="#12">#12</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>I tried that and it set my monitor on fire. Thanks a lot.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=12">Reply to This</A> | <A HREF="#4">Parent</A><SCRIPT LANGUAGE="JavaScript">M(12)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="17"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(17,2,"Informative")</SCRIPT><NOSCRIPT>(Score:2, Informative)</NOSCRIPT><BR>by <A HREF="../users/anthropologeek.html">Anthropologeek</A> on Sunday October 17, @01:47PM EDT (<A HREF="#17">#17</A>)<BR>(<A HREF="../users/anthropologeek.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Not true at all. I've been running it for months with no problems. Maybe check your hardware?</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=17">Reply to This</A> | <A HREF="#12">Parent</A><SCRIPT LANGUAGE="JavaScript">M(17)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="21"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(21,3,"Interesting")</SCRIPT><NOSCRIPT>(Score:3, Interesting)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @02:28PM EDT (<A HREF="#21">#21</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Thanks for posting this. I learned something today, which is rare for a comment section.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=21">Reply to This</A> | <A HREF="#17">Parent</A><SCRIPT LANGUAGE="JavaScript">M(21)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+</UL>
+</UL>
+<A NAME="9"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(9,4,"Insightful")</SCRIPT><NOSCRIPT>(Score:4, Insightful)</NOSCRIPT><BR>by <A HREF="../users/lowearthlarry.html">LowEarthLarry</A> on Sunday October 17, @12:20PM EDT (<A HREF="#9">#9</A>)<BR>(<A HREF="../users/lowearthlarry.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>The parent's point stands, though: it depends entirely on the use case.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=9">Reply to This</A> | <A HREF="#2">Parent</A><SCRIPT LANGUAGE="JavaScript">M(9)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="10"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(10,4,"Insightful")</SCRIPT><NOSCRIPT>(Score:4, Insightful)</NOSCRIPT><BR>by <A HREF="../users/fidofan.html">FidoFan</A> on Sunday October 17, @12:32PM EDT (<A HREF="#10">#10</A>)<BR>(<A HREF="../users/fidofan.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>This is the most sensible thing I've read on Dashdot all week. Somebody mod this up.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=10">Reply to This</A> | <A HREF="#9">Parent</A><SCRIPT LANGUAGE="JavaScript">M(10)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="18"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(18,2,"Funny")</SCRIPT><NOSCRIPT>(Score:2, Funny)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @01:53PM EDT (<A HREF="#18">#18</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>You must be new here.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=18">Reply to This</A> | <A HREF="#10">Parent</A><SCRIPT LANGUAGE="JavaScript">M(18)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="22"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(22,4,"Funny")</SCRIPT><NOSCRIPT>(Score:4, Funny)</NOSCRIPT><BR>by <A HREF="../users/hemlock.html">Hemlock</A> on Sunday October 17, @02:45PM EDT (<A HREF="#22">#22</A>)<BR>(<A HREF="../users/hemlock.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Whoosh. That was the sound of the joke going over your head.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=22">Reply to This</A> | <A HREF="#18">Parent</A><SCRIPT LANGUAGE="JavaScript">M(22)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="29"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(29,1,"Flamebait")</SCRIPT><NOSCRIPT>(Score:1, Flamebait)</NOSCRIPT><BR>by <A HREF="../users/gnuisance.html">Gnuisance</A> on Sunday October 17, @03:40PM EDT (<A HREF="#29">#29</A>)<BR>(<A HREF="../users/gnuisance.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>No, that's not how any of this works. Please read the FAQ before posting.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=29">Reply to This</A> | <A HREF="#22">Parent</A><SCRIPT LANGUAGE="JavaScript">M(29)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="32"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(32,0,"")</SCRIPT><NOSCRIPT>(Score:0)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @03:53PM EDT (<A HREF="#32">#32</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>I think you're missing the point. Nobody is arguing it's perfect, just that it's better than what we had.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=32">Reply to This</A> | <A HREF="#29">Parent</A><SCRIPT LANGUAGE="JavaScript">M(32)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+</UL>
+<A NAME="24"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The labels will sue</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(24,-1,"Offtopic")</SCRIPT><NOSCRIPT>(Score:-1, Offtopic)</NOSCRIPT><BR>by <A HREF="../users/shoppersheila.html">ShopperSheila</A> on Sunday October 17, @02:54PM EDT (<A HREF="#24">#24</A>)<BR>(<A HREF="../users/shoppersheila.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Mod parent down! Flamebait.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=24">Reply to This</A> | <A HREF="#18">Parent</A><SCRIPT LANGUAGE="JavaScript">M(24)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+</UL>
+</UL>
+</UL>
+<P>
+<A NAME="5"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Bandwidth</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(5,0,"")</SCRIPT><NOSCRIPT>(Score:0)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @11:43AM EDT (<A HREF="#5">#5</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Our dorm's T1 is now 90% MP3s. The other 10% is people asking why the web is so slow.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=5">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(5)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="7"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:Bandwidth</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(7,0,"")</SCRIPT><NOSCRIPT>(Score:0)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @12:04PM EDT (<A HREF="#7">#7</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>You're both wrong, and I'm going to explain why in a post that's way too long for anyone to read. Paragraph one: ...</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=7">Reply to This</A> | <A HREF="#5">Parent</A><SCRIPT LANGUAGE="JavaScript">M(7)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+<P>
+<A NAME="6"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Hmm</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(6,4,"Funny")</SCRIPT><NOSCRIPT>(Score:4, Funny)</NOSCRIPT><BR>by <A HREF="../users/grumpygreybeard.html">GrumpyGreybeard</A> on Sunday October 17, @11:47AM EDT (<A HREF="#6">#6</A>)<BR>(<A HREF="../users/grumpygreybeard.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>I wonder how long until someone ports Doom to it.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=6">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(6)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<P>
+<A NAME="8"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Karma</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(8,-1,"Offtopic")</SCRIPT><NOSCRIPT>(Score:-1, Offtopic)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @12:15PM EDT (<A HREF="#8">#8</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>I'm posting this to burn karma. Please mod me down so I can feel something.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=8">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(8)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<P>
+<A NAME="11"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Slashdotted</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(11,4,"Informative")</SCRIPT><NOSCRIPT>(Score:4, Informative)</NOSCRIPT><BR>by <A HREF="../users/navnerd.html">NavNerd</A> on Sunday October 17, @12:33PM EDT (<A HREF="#11">#11</A>)<BR>(<A HREF="../users/navnerd.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Site's already slashdotted. Er, dashdotted. Anyone have a mirror?</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=11">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(11)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="15"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:Slashdotted</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(15,2,"")</SCRIPT><NOSCRIPT>(Score:2)</NOSCRIPT><BR>by <A HREF="../users/sysadmin_steve.html">sysadmin_steve</A> on Sunday October 17, @01:16PM EDT (<A HREF="#15">#15</A>)<BR>(<A HREF="../users/sysadmin_steve.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Heh. Nice one.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=15">Reply to This</A> | <A HREF="#11">Parent</A><SCRIPT LANGUAGE="JavaScript">M(15)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+<P>
+<A NAME="13"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Read the article</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(13,2,"Insightful")</SCRIPT><NOSCRIPT>(Score:2, Insightful)</NOSCRIPT><BR>by <A HREF="../users/modem_mike.html">modem_mike</A> on Sunday October 17, @12:58PM EDT (<A HREF="#13">#13</A>)<BR>(<A HREF="../users/modem_mike.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Did anyone actually read the article? Half the comments here are answering questions that are answered in the second paragraph.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=13">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(13)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<P>
+<A NAME="14"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>The real problem</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(14,3,"Insightful")</SCRIPT><NOSCRIPT>(Score:3, Insightful)</NOSCRIPT><BR>by <A HREF="../users/tux_tamer.html">Tux_Tamer</A> on Sunday October 17, @01:01PM EDT (<A HREF="#14">#14</A>)<BR>(<A HREF="../users/tux_tamer.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>The real problem here is management. Engineers know how to build things right; management sets a deadline that makes it impossible, and then acts surprised when it ships broken. Every single time.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=14">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(14)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="16"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:The real problem</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(16,-1,"Offtopic")</SCRIPT><NOSCRIPT>(Score:-1, Offtopic)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @01:32PM EDT (<A HREF="#16">#16</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Don't feed the trolls.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=16">Reply to This</A> | <A HREF="#14">Parent</A><SCRIPT LANGUAGE="JavaScript">M(16)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+<P>
+<A NAME="19"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Standards</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(19,3,"Insightful")</SCRIPT><NOSCRIPT>(Score:3, Insightful)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @02:07PM EDT (<A HREF="#19">#19</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>This is why we need open standards. Without them every vendor builds a little walled garden and the users pay for the walls.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=19">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(19)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="20"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:Standards</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(20,3,"Informative")</SCRIPT><NOSCRIPT>(Score:3, Informative)</NOSCRIPT><BR>by <A HREF="../users/retroraccoon.html">RetroRaccoon</A> on Sunday October 17, @02:09PM EDT (<A HREF="#20">#20</A>)<BR>(<A HREF="../users/retroraccoon.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Actually, that's a common misconception. The spec explicitly allows it; it's the vendors who didn't implement it.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=20">Reply to This</A> | <A HREF="#19">Parent</A><SCRIPT LANGUAGE="JavaScript">M(20)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="27"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:Standards</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(27,1,"Funny")</SCRIPT><NOSCRIPT>(Score:1, Funny)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @03:16PM EDT (<A HREF="#27">#27</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Real men use a magnetized needle and a steady hand.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=27">Reply to This</A> | <A HREF="#20">Parent</A><SCRIPT LANGUAGE="JavaScript">M(27)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+<A NAME="25"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:Standards</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(25,2,"")</SCRIPT><NOSCRIPT>(Score:2)</NOSCRIPT><BR>by <A HREF="../users/kludge_king.html">kludge_king</A> on Sunday October 17, @03:04PM EDT (<A HREF="#25">#25</A>)<BR>(<A HREF="../users/kludge_king.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Funny, I had the exact opposite experience. Ymmv, I guess.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=25">Reply to This</A> | <A HREF="#19">Parent</A><SCRIPT LANGUAGE="JavaScript">M(25)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="30"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:Standards</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(30,1,"Interesting")</SCRIPT><NOSCRIPT>(Score:1, Interesting)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @03:47PM EDT (<A HREF="#30">#30</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Did you even read the parent post? He said the opposite.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=30">Reply to This</A> | <A HREF="#25">Parent</A><SCRIPT LANGUAGE="JavaScript">M(30)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+</UL>
+<P>
+<A NAME="23"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Meh</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(23,0,"Flamebait")</SCRIPT><NOSCRIPT>(Score:0, Flamebait)</NOSCRIPT><BR>by <A HREF="../users/daytraderdan.html">DayTraderDan</A> on Sunday October 17, @02:49PM EDT (<A HREF="#23">#23</A>)<BR>(<A HREF="../users/daytraderdan.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Meh. Wake me up when it's open source.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=23">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(23)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="26"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:Meh</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(26,2,"Insightful")</SCRIPT><NOSCRIPT>(Score:2, Insightful)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @03:10PM EDT (<A HREF="#26">#26</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Exactly. And the vendors know it, which is why they're scared.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=26">Reply to This</A> | <A HREF="#23">Parent</A><SCRIPT LANGUAGE="JavaScript">M(26)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="28"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:Meh</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(28,0,"")</SCRIPT><NOSCRIPT>(Score:0)</NOSCRIPT><BR>by Anonymous Coward on Sunday October 17, @03:23PM EDT (<A HREF="#28">#28</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Mod parent up!</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=28">Reply to This</A> | <A HREF="#26">Parent</A><SCRIPT LANGUAGE="JavaScript">M(28)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+</UL>
+<P>
+<A NAME="31"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Quality</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(31,2,"Informative")</SCRIPT><NOSCRIPT>(Score:2, Informative)</NOSCRIPT><BR>by <A HREF="../users/domaindave.html">DomainDave</A> on Sunday October 17, @03:52PM EDT (<A HREF="#31">#31</A>)<BR>(<A HREF="../users/domaindave.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Half the files are 96kbps rips with a skip in the middle and the last 20 seconds missing. The other half are labelled as one band and turn out to be another.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=31">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(31)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<P>
+<A NAME="33"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Year 2000</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(33,5,"Funny")</SCRIPT><NOSCRIPT>(Score:5, Funny)</NOSCRIPT><BR>by <A HREF="../users/grumpygreybeard.html">GrumpyGreybeard</A> on Sunday October 17, @04:05PM EDT (<A HREF="#33">#33</A>)<BR>(<A HREF="../users/grumpygreybeard.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Just wait until January. Then we'll see who's laughing. (Probably everyone. The answer is probably everyone.)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=33">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(33)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<P>
+<A NAME="34"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>lol</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(34,1,"")</SCRIPT><NOSCRIPT>(Score:1)</NOSCRIPT><BR>by <A HREF="../users/cyber_wombat.html">cyber_wombat</A> on Sunday October 17, @04:08PM EDT (<A HREF="#34">#34</A>)<BR>(<A HREF="../users/cyber_wombat.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>lol</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=34">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(34)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<P>
+<A NAME="35"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Distribution is the point</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(35,3,"Insightful")</SCRIPT><NOSCRIPT>(Score:3, Insightful)</NOSCRIPT><BR>by <A HREF="../users/stargazersue.html">StargazerSue</A> on Sunday October 17, @04:09PM EDT (<A HREF="#35">#35</A>)<BR>(<A HREF="../users/stargazersue.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>The interesting thing isn't piracy, it's that a single kid replaced a distribution network that costs billions. The labels should be buying this, not suing it.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=35">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(35)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<P>
+<A NAME="36"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Boring</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(36,0,"Troll")</SCRIPT><NOSCRIPT>(Score:0, Troll)</NOSCRIPT><BR>by <A HREF="../users/biobob.html">BioBob</A> on Sunday October 17, @04:22PM EDT (<A HREF="#36">#36</A>)<BR>(<A HREF="../users/biobob.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Another day, another story about a chip that is 8% faster. Wake me when they invent the flying car. Or at least the flying modem.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=snapsterlaunch&amp;pid=36">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(36)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<P>
+</UL>
+<SCRIPT LANGUAGE="JavaScript"><!--
+mine();
+modButton();
+//--></SCRIPT>
+</FORM>
+</FONT></TD></TR></TABLE>
+<TABLE BGCOLOR="#FFFFFF" WIDTH="99%" ALIGN=CENTER BORDER=0 CELLPADDING=4 CELLSPACING=0><TR><TD>
+<TABLE WIDTH="100%" BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD BGCOLOR="#006666"><IMG SRC="../images/pix.gif" WIDTH=1 HEIGHT=4 ALT=""></TD></TR></TABLE>
+<CENTER><FORM ACTION="../search.html" METHOD="get"><FONT FACE="arial,helvetica" SIZE=2><INPUT TYPE="text" NAME="query" SIZE=20> <INPUT TYPE="submit" VALUE="Search"></FONT></FORM>
+<FONT FACE="arial,helvetica" SIZE=2><I>Any sufficiently advanced bug is indistinguishable from a feature.</I></FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>[ <A HREF="../index.html">home</A> | <A HREF="../awards.html">awards</A> | <A HREF="../supporters.html">supporters</A> | <A HREF="../grits.html">grits' homepage</A> | <A HREF="../submit.html">contribute story</A> | <A HREF="../older.html">older articles</A> | <A HREF="../overandover.html">overandover.net</A> | <A HREF="../advertising.html">advertising</A> | <A HREF="../polls.html">past polls</A> | <A HREF="../topics.html">topics</A> | <A HREF="../about.html">about</A> | <A HREF="../jobs.html">jobs</A> | <A HREF="../hof.html">hof</A> ]</FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>Trademarks belong to whoever trademarked them. Comments belong to whoever typed them. Everything else &copy; 1997-99 Overandover.net. Dashdot is served hot by KoldFusion 4.5 from Gibson Mainframe Co.</FONT><BR>
+<A HREF="../about.html"><IMG SRC="../images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion" VSPACE=6></A>
+</CENTER></TD></TR></TABLE>
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../../hamstershuffle/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../../web1999/index.html" onClick="return ringRandom('../')">Random</A> |
+<B><A HREF="../../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Dashdot is site 10 of 12 |
+<A HREF="../../snapster/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER><P>
+</BODY></HTML>

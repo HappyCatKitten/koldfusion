@@ -1,0 +1,125 @@
+<HTML><HEAD><TITLE>Dashdot | FAQ</TITLE>
+<SCRIPT LANGUAGE="JavaScript"><!--
+
+function getCookie(n) {
+  var c = document.cookie.split("; ");
+  for (var i = 0; i < c.length; i++) {
+    var p = c[i].indexOf("=");
+    if (p > 0 && c[i].substring(0, p) == n) return unescape(c[i].substring(p + 1));
+  }
+  return "";
+}
+function setCookie(n, v, days) {
+  var e = "";
+  if (days) { var d = new Date(); d.setTime(d.getTime() + days * 86400000); e = "; expires=" + d.toGMTString(); }
+  document.cookie = n + "=" + escape(v) + e + "; path=/";
+}
+function delCookie(n) { document.cookie = n + "=; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/"; }
+function qs(n) {
+  var q = location.search.substring(1).split("&");
+  for (var i = 0; i < q.length; i++) {
+    var p = q[i].indexOf("=");
+    if (p > 0 && q[i].substring(0, p) == n) return unescape(q[i].substring(p + 1).replace(/\+/g, " "));
+  }
+  return "";
+}
+function htmlEsc(s) {
+  s = "" + s;
+  s = s.replace(/&/g, "&amp;"); s = s.replace(/</g, "&lt;"); s = s.replace(/>/g, "&gt;"); s = s.replace(/"/g, "&quot;");
+  return s;
+}
+
+function ringRandom(p) {
+  var s = new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","snapster","cnm");
+  var n = Math.floor(Math.random() * s.length);
+  location.href = p + "../" + s[n] + "/" + "index.html";
+  return false;
+}
+
+function ddLogin(f) {
+  var n = f.unickname.value;
+  if (n == "") { alert("Please enter a nickname. Even Anonymous Cowards have to type something."); return false; }
+  if (f.upasswd.value == "") { alert("Please enter your password. (We won't look at it. We don't even keep it.)"); return false; }
+  setCookie("dd_user", n, 30);
+  if (getCookie("dd_points") == "") {
+    setCookie("dd_points", "5", 3);
+    alert("Welcome back, " + n + "!\n\nYou have been randomly selected to moderate.\nYou have 5 moderator points; they expire in 3 days.\nUse them wisely: look for the Moderate menus under each comment.");
+  }
+  location.reload();
+  return false;
+}
+function ddLogout() { delCookie("dd_user"); location.reload(); }
+function loginBox(root) {
+  var u = getCookie("dd_user");
+  if (u != "") {
+    var p = getCookie("dd_points"); if (p == "") p = "0";
+    document.write('<B>Welcome back, ' + htmlEsc(u) + '!</B><BR>Karma: Positive<BR>Moderator points: <B>' + p + '</B><P>');
+    document.write('[ <A HREF="' + root + 'preferences.html">preferences</A> | <A HREF="javascript:ddLogout()">logout</A> ]');
+  } else {
+    document.write('<FORM ACTION="' + root + 'users.html" METHOD="get" onSubmit="return ddLogin(this)">');
+    document.write('<B>Nickname:</B><BR><INPUT TYPE="text" NAME="unickname" SIZE=18><BR><B>Password:</B><BR>');
+    document.write('<INPUT TYPE="password" NAME="upasswd" SIZE=18><BR><INPUT TYPE="submit" VALUE="userlogin"></FORM>');
+    document.write('No account? <A HREF="' + root + 'users.html">Make one</A>. It\'s free, and it lets you pick your comment threshold, keep your nickname, and moderate when the dice say so.');
+  }
+}
+
+//--></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#000000" TEXT="#000000" LINK="#006666" VLINK="#000000">
+<CENTER><A HREF="advertising.html"><IMG SRC="images/banner_kf.gif" WIDTH=468 HEIGHT=60 BORDER=0 ALT="KoldFusion 4.5 from Gibson Mainframe Co."></A></CENTER><P>
+<TABLE BGCOLOR="#FFFFFF" CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH="99%" ALIGN=CENTER><TR>
+<TD VALIGN=TOP ALIGN=LEFT><A HREF="index.html"><IMG SRC="images/title.gif" WIDTH=300 HEIGHT=72 BORDER=0 ALT="Welcome to Dashdot"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_y2k.html"><IMG SRC="images/topicy2k.gif" BORDER=0 ALT="Y2K"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_hardware.html"><IMG SRC="images/topichardware.gif" BORDER=0 ALT="Hardware"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_patents.html"><IMG SRC="images/topicpatents.gif" BORDER=0 ALT="Patents"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_linix.html"><IMG SRC="images/topiclinix.gif" BORDER=0 ALT="Linix"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_games.html"><IMG SRC="images/topicgames.gif" BORDER=0 ALT="Games"></A></TD>
+</TR></TABLE>
+<TABLE WIDTH="99%" ALIGN=CENTER CELLPADDING=8 CELLSPACING=0 BORDER=0 BGCOLOR="#FFFFFF"><TR>
+<TD VALIGN=TOP><FONT FACE="arial,helvetica" COLOR="#000000">
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Frequently Asked Questions</B></FONT></TD></TR></TABLE>
+<P>
+<FONT SIZE=2>
+<P><B>What is Dashdot?</B><BR>Dashdot is news for nerds: a few stories a day about computers, science, the Internet and
+whatever else our editors find interesting at 3am, followed by hundreds of comments from readers who disagree with them.
+<P><B>Why is it called Dashdot?</B><BR>Say it out loud: dash, dot. In Morse code, dash-dot is the letter N. N is for News.
+Also, the domain was available.
+<P><B>How do stories get posted?</B><BR>Readers <A HREF="submit.html">submit</A> them. Editors pick the ones that look
+interesting, add a snarky remark, invent a department name, and hit the button. We get about 300 submissions a day. If
+yours didn't run, don't take it personally. Unless it was about your own web site.
+<P><B>What's a department?</B><BR>The little "from the something dept." line under each headline. It's a joke. It has
+always been a joke. There is no actual department. We checked.
+<P><B>What is moderation?</B><BR>Comments start with a score (0 for Anonymous Cowards, 1 for registered users, 2 for
+users with good karma). Moderators, picked at random from regular readers, get five points to spend adding or subtracting
+a point with a reason like Insightful, Funny, Troll or Offtopic. Readers set a threshold and only see comments at or
+above it. In theory, the good stuff floats and the junk sinks. In practice, Funny floats highest of all.
+<P><B>How do I become a moderator?</B><BR><A HREF="users.html">Log in</A>. If the random number generator smiles on
+you, you'll get points. Use them wisely, then go meta-moderate the other moderators on the
+<A HREF="metamod.html">meta-moderation</A> page.
+<P><B>What's karma?</B><BR>A number that goes up when your comments are moderated up and down when they're moderated down.
+It is not a measure of your worth as a person. It is, however, a measure of your worth as a Dashdot poster.
+<P><B>What is a "Dashdot effect"?</B><BR>When we link to a small web site and fifty thousand nerds click on it in the same
+ten minutes. Sorry about that. We recommend static HTML and a sturdy 486.
+<P><B>Why does the site look like this?</B><BR>Because tables and FONT tags work in every browser, including the one
+running on your toaster.
+<P><B>Who runs this?</B><BR>See <A HREF="about.html">about</A>. We're a handful of people, a rack of donated servers,
+and a Perl script that's held together with hope.
+</FONT></FONT></TD></TR></TABLE>
+<TABLE BGCOLOR="#FFFFFF" WIDTH="99%" ALIGN=CENTER BORDER=0 CELLPADDING=4 CELLSPACING=0><TR><TD>
+<TABLE WIDTH="100%" BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD BGCOLOR="#006666"><IMG SRC="images/pix.gif" WIDTH=1 HEIGHT=4 ALT=""></TD></TR></TABLE>
+<CENTER><FORM ACTION="search.html" METHOD="get"><FONT FACE="arial,helvetica" SIZE=2><INPUT TYPE="text" NAME="query" SIZE=20> <INPUT TYPE="submit" VALUE="Search"></FONT></FORM>
+<FONT FACE="arial,helvetica" SIZE=2><I>You will be dashdotted within the hour. Back up your web server.</I></FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>[ <A HREF="index.html">home</A> | <A HREF="awards.html">awards</A> | <A HREF="supporters.html">supporters</A> | <A HREF="grits.html">grits' homepage</A> | <A HREF="submit.html">contribute story</A> | <A HREF="older.html">older articles</A> | <A HREF="overandover.html">overandover.net</A> | <A HREF="advertising.html">advertising</A> | <A HREF="polls.html">past polls</A> | <A HREF="topics.html">topics</A> | <A HREF="about.html">about</A> | <A HREF="jobs.html">jobs</A> | <A HREF="hof.html">hof</A> ]</FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>Trademarks belong to whoever trademarked them. Comments belong to whoever typed them. Everything else &copy; 1997-99 Overandover.net. Dashdot is served hot by KoldFusion 4.5 from Gibson Mainframe Co.</FONT><BR>
+<A HREF="about.html"><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion" VSPACE=6></A>
+</CENTER></TD></TR></TABLE>
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../hamstershuffle/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="return ringRandom('')">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Dashdot is site 10 of 12 |
+<A HREF="../snapster/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER><P>
+</BODY></HTML>

@@ -1,0 +1,26 @@
+<FONT FACE="Arial, Helvetica" SIZE=5 COLOR="#1B5FE2"><B>Toy Search</B></FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var F = "<FONT FACE=\"Arial, Helvetica\" SIZE=2>", q = qs("q");
+document.write("<FORM NAME=\"s\" ACTION=\"" + P + "search.html\" METHOD=GET><TABLE BORDER=0 CELLPADDING=6 BGCOLOR=\"#99CCFF\"><TR><TD>" + F + "<B>Search for:</B> <INPUT TYPE=text NAME=\"q\" SIZE=28 VALUE=\"" + esc(q) + "\"> <INPUT TYPE=submit VALUE=\"Search\"></FONT></TD></TR></TABLE></FORM>");
+if (q.replace(/\s/g, "") != "") {
+  var words = q.toLowerCase().split(" "), hits = new Array();
+  for (var i = 0; i < T.length; i++) {
+    var t = T[i], cn = "";
+    for (var k = 0; k < CATS.length; k++) if (CATS[k][0] == t[3]) cn = CATS[k][1];
+    var hay = (t[1] + " " + t[2] + " " + cn + " " + t[8] + " " + t[11] + " " + t[0]).toLowerCase(), ok = true;
+    for (var w = 0; w < words.length; w++) if (words[w] != "" && hay.indexOf(words[w]) == -1) ok = false;
+    if (ok) hits[hits.length] = t;
+  }
+  document.write(F + "<B>" + hits.length + "</B> toy" + (hits.length == 1 ? "" : "s") + " found for <B>" + esc(q) + "</B>.</FONT><BR><BR>");
+  if (hits.length == 0) {
+    document.write(F + "Sprocket looked everywhere, even under the couch. Try another word, use the <A HREF=\"" + P + "giftfinder.html\">Gift Finder</A>, ");
+    document.write("or look for <A HREF=\"" + P + "../ubid/search.html?q=" + escape(q) + "\">\"" + esc(q) + "\" at uBid</A> or <A HREF=\"" + P + "../orinoco/search.html?index=blended&keywords=" + escape(q) + "\">Orinoco.com</A>.</FONT>");
+  }
+  document.write(toyRows(hits));
+} else {
+  document.write(F + "Popular searches: ");
+  var pop = new Array("robot", "doll", "dinosaur", "scooter", "puzzle", "owl", "y2k", "learning");
+  for (var i = 0; i < pop.length; i++) document.write("<A HREF=\"" + P + "search.html?q=" + pop[i] + "\">" + pop[i] + "</A>" + (i < pop.length - 1 ? ", " : "."));
+  document.write("</FONT>");
+}
+</SCRIPT>

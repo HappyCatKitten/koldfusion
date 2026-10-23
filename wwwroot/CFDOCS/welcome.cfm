@@ -37,6 +37,7 @@
 			<B>Fun Stuff</B><BR>
 			&nbsp;&nbsp;<A HREF="/cool/index.cfm">Cool Stuff You Can Do</A> <IMG SRC="/images/new.gif" WIDTH=44 HEIGHT=22 ALIGN=ABSMIDDLE><BR>
 			&nbsp;&nbsp;<A HREF="/demos/index.cfm">Demo Gallery</A> (CFML from around the web)<BR>
+			&nbsp;&nbsp;<A HREF="/web1999/index.html">The 1999 Web</A> (twelve retro sites) <IMG SRC="/images/new.gif" WIDTH=44 HEIGHT=22 ALIGN=ABSMIDDLE><BR>
 			&nbsp;&nbsp;<A HREF="/CFDOCS/expeval/ExprCalc.cfm">Expression Evaluator</A><BR><BR>
 			<B>Online Resources</B><BR>
 			&nbsp;&nbsp;<A HREF="/CFDOCS/forums.cfm">Support Forums</A><BR>

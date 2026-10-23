@@ -1,0 +1,96 @@
+<HTML>
+<HEAD>
+<TITLE>GeoHoods Build-a-Page</TITLE>
+<META NAME="GENERATOR" CONTENT="GeoHoods Portal Server 3.1">
+<SCRIPT LANGUAGE="JavaScript" SRC="ghdata.js"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript" SRC="builder.js"></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000CC" VLINK="#551A8B" onLoad="initBuilder(); bgChanged(); clipChanged();">
+<CENTER>
+<TABLE WIDTH=600 BORDER=0 CELLSPACING=0 CELLPADDING=0><TR>
+<TD VALIGN=MIDDLE><A HREF="index.html"><IMG SRC="images/gh_logo.gif" WIDTH=300 HEIGHT=54 BORDER=0 ALT="GeoHoods"></A></TD>
+<TD ALIGN=RIGHT VALIGN=BOTTOM NOWRAP><FONT FACE="Arial, Helvetica" SIZE=2><A HREF="neighborhoods.html">Neighborhoods</A> - <A HREF="search.html">Search</A> - <A HREF="help.html">Help</A></FONT></TD></TR></TABLE>
+<HR SIZE=1 WIDTH=600 NOSHADE>
+<TABLE BGCOLOR="#EEEEEE" WIDTH=600 CELLPADDING=3 CELLSPACING=0 BORDER=0><TR><TD><FONT FACE="Arial, Helvetica" SIZE=2>&nbsp;<B>Welcome, Homesteader!</B> - <A HREF="filemanager.html">[Member Login]</A></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2><A HREF="join.html">Get a free home page</A></FONT> <A HREF="join.html"><IMG SRC="images/arrow.gif" WIDTH=9 HEIGHT=9 BORDER=0 ALT="" HSPACE=4></A></TD></TR></TABLE>
+<P><FONT FACE="Arial" SIZE=5><B>Build-a-Page</B></FONT><BR><FONT FACE="Arial, Helvetica" SIZE=2>Fill in the form, press <B>Preview</B> to see your page, and press <B>Move In!</B> when you love it. No HTML required (but you can use it if you know some).</FONT></P>
+<FORM NAME="builder" onSubmit="return false;">
+<TABLE WIDTH=600 BORDER=0 CELLPADDING=4 CELLSPACING=0>
+<TR><TD COLSPAN=2 BGCOLOR="#003399"><FONT FACE="Arial" COLOR="#FFFFFF"><B>1. Your Address</B></FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Neighborhood:</FONT></TD><TD><SELECT NAME="hood" onChange="hoodChanged(); findVacant();"><OPTION>Loading...</SELECT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Suburb:</FONT></TD><TD><SELECT NAME="suburb" onChange="findVacant();"><OPTION>Loading...</SELECT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Address number:</FONT></TD><TD><INPUT TYPE="text" NAME="num" SIZE=6 MAXLENGTH=4> <INPUT TYPE="button" VALUE="Find a vacant lot" onClick="findVacant();"> <INPUT TYPE="button" VALUE="Is it free?" onClick="if (checkAddr()) alert('Good news: that address is vacant!');"></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Member name:</FONT></TD><TD><INPUT TYPE="text" NAME="member" SIZE=20> <FONT FACE="Arial" SIZE=1>(letters and numbers, like StarGrrl77)</FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>E-mail:</FONT></TD><TD><INPUT TYPE="text" NAME="email" SIZE=30></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#003399"><FONT FACE="Arial" COLOR="#FFFFFF"><B>2. The Look</B></FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Template:</FONT></TD><TD><SELECT NAME="template" onChange="bgChanged();"><OPTION>Loading...</SELECT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD VALIGN=TOP><FONT FACE="Arial" SIZE=2>Background:</FONT></TD><TD><SELECT NAME="bg" onChange="bgChanged();"><OPTION>Loading...</SELECT><BR><TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0><TR><TD><IMG NAME="bgprev" SRC="images/stars_bg.gif" WIDTH=96 HEIGHT=48></TD></TR></TABLE></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Text color:</FONT></TD><TD><SELECT NAME="textcolorsel" onChange="this.form.textcolor.value = this.options[this.selectedIndex].value;"><OPTION VALUE="">(template color)
+<OPTION VALUE="#000000">Black
+<OPTION VALUE="#FFFFFF">White
+<OPTION VALUE="#FF0000">Red
+<OPTION VALUE="#FFFF00">Yellow
+<OPTION VALUE="#00FF00">Lime
+<OPTION VALUE="#00FFFF">Aqua
+<OPTION VALUE="#FF00FF">Hot Pink
+<OPTION VALUE="#000080">Navy
+<OPTION VALUE="#800080">Purple
+<OPTION VALUE="#FF9900">Orange
+<OPTION VALUE="#C0C0C0">Silver
+</SELECT> <INPUT TYPE="text" NAME="textcolor" SIZE=8></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Link color:</FONT></TD><TD><SELECT NAME="linkcolorsel" onChange="this.form.linkcolor.value = this.options[this.selectedIndex].value;"><OPTION VALUE="">(template color)
+<OPTION VALUE="#000000">Black
+<OPTION VALUE="#FFFFFF">White
+<OPTION VALUE="#FF0000">Red
+<OPTION VALUE="#FFFF00">Yellow
+<OPTION VALUE="#00FF00">Lime
+<OPTION VALUE="#00FFFF">Aqua
+<OPTION VALUE="#FF00FF">Hot Pink
+<OPTION VALUE="#000080">Navy
+<OPTION VALUE="#800080">Purple
+<OPTION VALUE="#FF9900">Orange
+<OPTION VALUE="#C0C0C0">Silver
+</SELECT> <INPUT TYPE="text" NAME="linkcolor" SIZE=8></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Font:</FONT></TD><TD><SELECT NAME="face"><OPTION VALUE="">(template font)
+<OPTION VALUE="Comic Sans MS">Comic Sans MS
+<OPTION VALUE="Arial, Helvetica">Arial
+<OPTION VALUE="Times New Roman">Times New Roman
+<OPTION VALUE="Courier New">Courier New
+<OPTION VALUE="Verdana">Verdana
+<OPTION VALUE="Impact">Impact
+<OPTION VALUE="Georgia">Georgia
+</SELECT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD VALIGN=TOP><FONT FACE="Arial" SIZE=2>Picture:</FONT></TD><TD><SELECT NAME="clip" onChange="clipChanged();"><OPTION>Loading...</SELECT><BR><IMG NAME="clipprev" SRC="images/dancing_baby.gif"></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Music:</FONT></TD><TD><SELECT NAME="midi"><OPTION>Loading...</SELECT> <INPUT TYPE="button" VALUE="Listen" onClick="var m = this.form.midi.options[this.form.midi.selectedIndex].value; if (m != '') window.open('midi/' + m + '.mid', 'midiwin', 'width=200,height=100');"></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#003399"><FONT FACE="Arial" COLOR="#FFFFFF"><B>3. Your Words</B></FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Page title:</FONT></TD><TD><INPUT TYPE="text" NAME="title" SIZE=40></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Big headline:</FONT></TD><TD><INPUT TYPE="text" NAME="headline" SIZE=40 VALUE="Welcome To My Home Page!"></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Scrolling text:</FONT></TD><TD><INPUT TYPE="checkbox" NAME="marquee" CHECKED> <INPUT TYPE="text" NAME="marqueetext" SIZE=35 VALUE="Thanks for visiting!!! Sign my guestbook!!!"></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD VALIGN=TOP><FONT FACE="Arial" SIZE=2>About you:<BR><FONT SIZE=1>(HTML is OK)</FONT></FONT></TD><TD><TEXTAREA NAME="about" ROWS=6 COLS=45 WRAP=VIRTUAL>Hi! This is my brand new home page. I like computers, music and my cat. More stuff coming soon!</TEXTAREA></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD VALIGN=TOP><FONT FACE="Arial" SIZE=2>Favorite links:</FONT></TD><TD><FONT FACE="Arial" SIZE=1>
+Name <INPUT TYPE="text" NAME="linkname1" SIZE=15 VALUE="GeoHoods"> URL <INPUT TYPE="text" NAME="linkurl1" SIZE=22 VALUE="../../../index.html"><BR>
+Name <INPUT TYPE="text" NAME="linkname2" SIZE=15 VALUE="Hamster Shuffle"> URL <INPUT TYPE="text" NAME="linkurl2" SIZE=22 VALUE="../../../../hamstershuffle/index.html"><BR>
+Name <INPUT TYPE="text" NAME="linkname3" SIZE=15> URL <INPUT TYPE="text" NAME="linkurl3" SIZE=22 VALUE="http://"></FONT></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#003399"><FONT FACE="Arial" COLOR="#FFFFFF"><B>4. Extras</B></FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Counter:</FONT></TD><TD><SELECT NAME="counter"><OPTION VALUE="digit">Classic<OPTION VALUE="led">Green LED<OPTION VALUE="odo">Odometer<OPTION VALUE="">No counter</SELECT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Arial" SIZE=2>Also add:</FONT></TD><TD><FONT FACE="Arial" SIZE=2><INPUT TYPE="checkbox" NAME="guestbook" CHECKED> Guestbook button &nbsp; <INPUT TYPE="checkbox" NAME="construction"> Under construction sign</FONT></TD></TR>
+<TR><TD COLSPAN=2 ALIGN=CENTER BGCOLOR="#EEEEEE"><INPUT TYPE="button" VALUE="Preview My Page" onClick="previewPage();"> <INPUT TYPE="button" VALUE="Show Me The HTML" onClick="showSource();"> <INPUT TYPE="button" VALUE="Move In!" onClick="moveIn();"></TD></TR>
+</TABLE>
+<A NAME="source"></A>
+<P><FONT FACE="Arial" SIZE=2><B>Your page's HTML</B> - save this as <TT>index.html</TT> and upload it with the <A HREF="filemanager.html">File Manager</A>:</FONT><BR>
+<TEXTAREA NAME="source" ROWS=12 COLS=70 WRAP=OFF></TEXTAREA></P>
+</FORM>
+<NOSCRIPT><P><B>Build-a-Page needs JavaScript.</B> Please turn it on in your browser preferences, or use the
+<A HREF="help.html">Advanced HTML instructions</A>.</P></NOSCRIPT>
+<P></P><HR SIZE=1 WIDTH=600 NOSHADE>
+<FONT FACE="Arial, Helvetica" SIZE=1>Copyright &copy; 1994-1999 GeoHoods Inc. All rights reserved.<BR>
+<A HREF="help.html">Help</A> - <A HREF="guidelines.html">Terms of Service</A> - <A HREF="guidelines.html#content">Content Guidelines</A> - <A HREF="news.html">Press &amp; News</A> - <A HREF="addons/index.html">Add-Ons</A></FONT>
+<P><CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">
+<A HREF="../petz/index.html">&lt;&lt; Prev</A> |
+<A HREF="../yowza/index.html" onClick="var s=new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","dashdot","snapster","cnm"); location.href='../'+s[Math.floor(Math.random()*s.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> |
+<A HREF="../hamstershuffle/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE></CENTER></P>
+<P><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion"></P>
+</CENTER>
+</BODY>
+</HTML>

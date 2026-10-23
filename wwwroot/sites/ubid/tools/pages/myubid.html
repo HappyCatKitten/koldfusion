@@ -1,0 +1,61 @@
+<FONT FACE="Arial, Helvetica" SIZE=5><B>My uBid</B></FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+function sect(t, anchor) { return "<A NAME=\"" + anchor + "\"></A><TABLE WIDTH=\"100%\" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR=\"#CCCCFF\"><FONT FACE=\"Arial, Helvetica\" SIZE=3><B>" + t + "</B></FONT></TD></TR></TABLE>"; }
+var me = userId();
+if (me == "") {
+  document.write("<FONT SIZE=3>Please <A HREF=\"" + P + "signin.html?next=myubid.html\"><B>sign in</B></A> to see the items you're bidding on, the items you've won and the items you're selling.</FONT><BR><BR>");
+  document.write("<FONT SIZE=2>Not a member? <A HREF=\"" + P + "register.html\">Register, it's free!</A></FONT>");
+} else {
+  document.write("<FONT SIZE=3>Hello, <B>" + userLink(me) + "</B>!</FONT> <FONT SIZE=2>(<A HREF=\"" + P + "index.html\" onClick=\"return signOut()\">sign out</A>)</FONT><BR><BR>");
+  var t = now(), bids = myBids(), seen = "", bidding = new Array(), won = new Array(), lost = new Array();
+  for (var i = 0; i < bids.length; i++) {
+    if (bids[i][3] != "" && bids[i][3] != me) continue;
+    if (seen.indexOf("," + bids[i][0] + ",") != -1) continue;
+    seen += "," + bids[i][0] + ",";
+    var it = findItem(bids[i][0]);
+    if (!it) continue;
+    var A = auction(it, t);
+    // which run of the auction was this bid in?
+    var mineNow = (bids[i][2] >= A.start && bids[i][2] < A.end);
+    if (mineNow && A.live) bidding[bidding.length] = new Array(it, A, bids[i][1]);
+    else if (mineNow && !A.live) { if (A.highMine && A.winner != "") won[won.length] = new Array(it, A, bids[i][1]); else lost[lost.length] = new Array(it, A, bids[i][1]); }
+    else {
+      // the bid was in an earlier run: replay that run to see who won
+      var B = auction(it, bids[i][2] + 1);
+      var C = auction(it, B.end + 1);
+      if (C.highMine && C.winner != "") won[won.length] = new Array(it, C, bids[i][1]); else lost[lost.length] = new Array(it, C, bids[i][1]);
+    }
+  }
+  var h = sect("Items I'm Bidding On", "bidding") + "<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=0 WIDTH=\"100%\">";
+  h += "<TR BGCOLOR=\"#EFEFEF\"><TD><FONT SIZE=2><B>Item</B></FONT></TD><TD ALIGN=RIGHT><FONT SIZE=2><B>Current</B></FONT></TD><TD ALIGN=RIGHT><FONT SIZE=2><B>My max</B></FONT></TD><TD><FONT SIZE=2><B>Status</B></FONT></TD><TD ALIGN=RIGHT><FONT SIZE=2><B>Time left</B></FONT></TD></TR>";
+  if (bidding.length == 0) h += "<TR><TD COLSPAN=5><FONT SIZE=2><I>You aren't bidding on anything right now. <A HREF=\"" + P + "featured.html\">Find something!</A></I></FONT></TD></TR>";
+  for (var i = 0; i < bidding.length; i++) {
+    var r = bidding[i];
+    h += "<TR><TD><FONT SIZE=2><A HREF=\"" + itemURL(r[0]) + "\">" + esc(r[0][1]) + "</A></FONT></TD><TD ALIGN=RIGHT><FONT SIZE=2>" + money(r[1].price) + "</FONT></TD><TD ALIGN=RIGHT><FONT SIZE=2>" + money(r[2]) + "</FONT></TD>";
+    h += "<TD><FONT SIZE=2>" + (r[1].highMine ? "<FONT COLOR=\"#009900\"><B>High bidder</B></FONT>" : "<FONT COLOR=\"#CC0000\"><B>Outbid</B></FONT> <A HREF=\"" + itemURL(r[0]) + "#bid\">bid again</A>") + "</FONT></TD>";
+    h += "<TD ALIGN=RIGHT><FONT SIZE=2>" + timeLeft(r[1].end - t) + "</FONT></TD></TR>";
+  }
+  h += "</TABLE><BR>" + sect("Items I've Won", "won") + "<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=0 WIDTH=\"100%\">";
+  if (won.length == 0) h += "<TR><TD><FONT SIZE=2><I>Nothing yet. Patience, grasshopper.</I></FONT></TD></TR>";
+  for (var i = 0; i < won.length; i++) {
+    var r = won[i];
+    h += "<TR><TD><FONT SIZE=2><B><A HREF=\"" + itemURL(r[0]) + "\">" + esc(r[0][1]) + "</A></B> won for <B>" + money(r[1].price) + "</B> on " + longTime(r[1].end) + ". Seller: " + userLink(r[0][3]) + " &nbsp; <A HREF=\"" + P + "feedback.html?to=" + r[0][3] + "&item=" + r[0][0] + "\">Leave feedback</A></FONT></TD></TR>";
+  }
+  h += "</TABLE><BR>";
+  if (lost.length) {
+    h += sect("Items I Didn't Win", "lost") + "<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=0 WIDTH=\"100%\">";
+    for (var i = 0; i < lost.length; i++) h += "<TR><TD><FONT SIZE=2><A HREF=\"" + itemURL(lost[i][0]) + "\">" + esc(lost[i][0][1]) + "</A> -- " + (lost[i][1].winner != "" ? "won by " + esc(lost[i][1].winner) + " for " + money(lost[i][1].price) : "did not sell") + "</FONT></TD></TR>";
+    h += "</TABLE><BR>";
+  }
+  var selling = pick("seller", me, false), sold = pick("seller", me, true);
+  h += sect("Items I'm Selling", "selling");
+  h += listTable(sortRows(selling, "end"), "live");
+  if (sold.length) h += "<BR><FONT FACE=\"Arial, Helvetica\" SIZE=2><B>Recently closed</B></FONT>" + listTable(sortRows(sold, "ended"), "ended");
+  h += "<FONT SIZE=2><A HREF=\"" + P + "sell.html\">Sell another item</A></FONT><BR><BR>";
+  h += sect("My Feedback", "feedback") + "<FONT SIZE=2>Your feedback rating is <B>" + scoreOf(me) + "</B>" + starImg(scoreOf(me)) + ". ";
+  h += findUser(me) ? "<A HREF=\"" + P + "member/" + me + ".html\">Read what other members say about you</A>." : "Win or sell something and the compliments will start rolling in.";
+  h += " <A HREF=\"" + P + "feedback.html\">Go to the Feedback Forum</A>.</FONT>";
+  document.write(h);
+}
+</SCRIPT>
+<NOSCRIPT>My uBid requires JavaScript.</NOSCRIPT>

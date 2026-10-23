@@ -1,0 +1,101 @@
+<HTML>
+<HEAD>
+<TITLE>My Yowza!</TITLE>
+<META NAME="description" CONTENT="Yowza! - a hand-sorted guide to the World Wide Web.">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000CC" VLINK="#551A8B" ALINK="#FF0000">
+<TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=0>
+<TR><TD WIDTH="1%"><A HREF="index.html"><IMG SRC="images/yowza_sm.gif" ALT="Yowza!" BORDER=0 WIDTH=147 HEIGHT=31></A></TD>
+<TD><TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="100%"><TR>
+<TD VALIGN=BOTTOM><FONT FACE=arial SIZE=-1><A HREF="my.html">Personalize</A></FONT></TD>
+<TD ALIGN=RIGHT VALIGN=BOTTOM><FONT FACE=arial SIZE=-1><A HREF="help.html">Help</A> - <A HREF="mail.html">Check Email</A></FONT></TD>
+</TR></TABLE><HR SIZE=1 NOSHADE></TD></TR></TABLE>
+<TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=3>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=-1><A HREF="index.html">Home</A> &gt; </FONT></TD></TR>
+<TR><TD WIDTH="80%" BGCOLOR="#A0B8C8"><NOBR><B><FONT FACE="arial,helvetica">My Yowza!</FONT></B></NOBR></TD></TR>
+</TABLE>
+<P>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function getCookie(n) {
+  var all = document.cookie.split('; ');
+  for (var i = 0; i < all.length; i++) if (all[i].indexOf(n + '=') == 0) return unescape(all[i].substring(n.length + 1));
+  return '';
+}
+function h(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function save() {
+  var f = document.mf, mods = '';
+  if (f.nick.value == '') { alert('Please choose a nickname. Anything but "Webmaster".'); return false; }
+  for (var i = 0; i < f.mod.length; i++) if (f.mod[i].checked) mods += f.mod[i].value;
+  var exp = new Date(); exp.setTime(exp.getTime() + 365 * 24 * 3600 * 1000);
+  document.cookie = 'myyz=' + escape(f.nick.value + '|' + f.zip.value + '|' + mods + '|' + f.color.options[f.color.selectedIndex].value) + '; expires=' + exp.toGMTString() + '; path=/';
+  location.reload();
+  return false;
+}
+function signOut() { document.cookie = 'myyz=; path=/'; location.reload(); }
+var me = getCookie('myyz');
+if (me == '') {
+  document.write('<TABLE WIDTH=600 BORDER=0 CELLPADDING=4><TR><TD><FONT FACE=arial SIZE=-1><B>Welcome to My Yowza!</B> - your own personal front page of the Web. Pick the things you care about and we will put them all on one page, just for you. Free! (We just like you.)</FONT></TD></TR></TABLE>');
+  document.write('<FORM NAME="mf" onSubmit="return save();"><TABLE WIDTH=600 BORDER=0 CELLPADDING=4 CELLSPACING=0>');
+  document.write('<TR><TD BGCOLOR="#A0B8C8" COLSPAN=2><FONT FACE=arial><B>Set up your page</B></FONT></TD></TR>');
+  document.write('<TR><TD ALIGN=RIGHT><FONT SIZE=-1><B>Nickname:</B></FONT></TD><TD><INPUT NAME=nick SIZE=20 MAXLENGTH=20></TD></TR>');
+  document.write('<TR><TD ALIGN=RIGHT><FONT SIZE=-1><B>Zip code:</B></FONT></TD><TD><INPUT NAME=zip SIZE=5 MAXLENGTH=5> <FONT SIZE=-1>(for your weather)</FONT></TD></TR>');
+  document.write('<TR><TD ALIGN=RIGHT VALIGN=TOP><FONT SIZE=-1><B>Show me:</B></FONT></TD><TD><FONT SIZE=-1>');
+  var mods = new Array('W','Weather','S','Stock Quotes','N','Headlines','H','Horoscope','Y','Y2K Countdown','C','Cool Site of the Day');
+  for (var i = 0; i < mods.length; i += 2) document.write('<INPUT TYPE=checkbox NAME=mod VALUE="' + mods[i] + '" CHECKED> ' + mods[i + 1] + '<BR>');
+  document.write('</FONT></TD></TR><TR><TD ALIGN=RIGHT><FONT SIZE=-1><B>Page color:</B></FONT></TD><TD><SELECT NAME=color><OPTION VALUE="FFFFCC">Classic Cream<OPTION VALUE="CCFFCC">Mint<OPTION VALUE="CCCCFF">Periwinkle<OPTION VALUE="FFCCFF">Bubblegum<OPTION VALUE="DCDCDC">Corporate Gray</SELECT></TD></TR>');
+  document.write('<TR><TD></TD><TD><INPUT TYPE=submit VALUE="Create My Page"></TD></TR></TABLE></FORM>');
+  document.write('<P><FONT SIZE=-1>My Yowza! remembers you with a cookie. A cookie is a small text file your browser keeps. It does not contain chocolate chips.</FONT>');
+} else {
+  var f = me.split('|'), nick = f[0], zip = f[1], mods = f[2], col = f[3];
+  var d = new Date();
+  var days = new Array('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
+  document.write('<TABLE WIDTH=600 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#' + col + '"><TR><TD><FONT FACE=arial SIZE=+1><B>' + h(nick) + "'s Yowza!</B></FONT><BR><FONT SIZE=-1>" + days[d.getDay()] + ' - <A HREF="#" onClick="signOut(); return false;">Start over</A></FONT></TD></TR></TABLE><P>');
+  document.write('<TABLE WIDTH=600 BORDER=0 CELLPADDING=4 CELLSPACING=4><TR><TD VALIGN=TOP WIDTH="50%">');
+  if (mods.indexOf('W') >= 0) {
+    var sky = new Array('Sunny','Partly cloudy','Drizzle','Foggy','Windy','Mostly modem-colored');
+    var t = 40 + (parseInt(zip) || 12345) % 45;
+    document.write('<TABLE WIDTH="100%" BORDER=0 CELLPADDING=2><TR><TD BGCOLOR="#A0B8C8"><FONT FACE=arial SIZE=-1><B>Weather for ' + (zip == '' ? 'Anytown' : h(zip)) + '</B></FONT></TD></TR><TR><TD><FONT SIZE=-1>Today: ' + sky[d.getDate() % sky.length] + ', high ' + t + '&deg;F<BR>Tomorrow: ' + sky[(d.getDate() + 1) % sky.length] + ', high ' + (t + 3) + '&deg;F</FONT></TD></TR></TABLE><P>');
+  }
+  if (mods.indexOf('S') >= 0) {
+    var tick = new Array('ORIN','Orinoco.com','UBID','uBid','PETZ','Petz.com','ETOY','eToyz','GEOH','GeoHoods','KOLD','Gibson Mainframe');
+    document.write('<TABLE WIDTH="100%" BORDER=0 CELLPADDING=2><TR><TD BGCOLOR="#A0B8C8" COLSPAN=3><FONT FACE=arial SIZE=-1><B>Stock Quotes</B></FONT></TD></TR>');
+    for (var i = 0; i < tick.length; i += 2) {
+      var px = 20 + Math.floor(Math.random() * 300), ch = Math.floor(Math.random() * 40) - 12;
+      document.write('<TR><TD><FONT SIZE=-1><A HREF="services/stocks.html">' + tick[i] + '</A></FONT></TD><TD ALIGN=RIGHT><FONT SIZE=-1>' + px + ' ' + (Math.floor(Math.random() * 8)) + '/8</FONT></TD><TD ALIGN=RIGHT><FONT SIZE=-1 COLOR="' + (ch < 0 ? '#CC0000' : '#009900') + '">' + (ch < 0 ? '' : '+') + ch + '</FONT></TD></TR>');
+    }
+    document.write('</TABLE><FONT SIZE=-2>Quotes delayed by at least 20 minutes, possibly 20 years.</FONT><P>');
+  }
+  document.write('</TD><TD VALIGN=TOP WIDTH="50%">');
+  if (mods.indexOf('N') >= 0) document.write('<TABLE WIDTH="100%" BORDER=0 CELLPADDING=2><TR><TD BGCOLOR="#A0B8C8"><FONT FACE=arial SIZE=-1><B>Headlines</B></FONT></TD></TR><TR><TD><FONT SIZE=-1>&#183; <A HREF="../cnm/index.html">Banks say they are 99.9% ready for Y2K</A><BR>&#183; <A HREF="../cnm/index.html">Mars probe lost; engineers blame inches</A><BR>&#183; <A HREF="../dashdot/index.html">Nerds argue about it at length</A></FONT></TD></TR></TABLE><P>');
+  if (mods.indexOf('H') >= 0) {
+    var sc = new Array('A stranger will sign your guestbook.','Avoid chat rooms after midnight.','Your modem will connect at 53.3K. Rejoice.','Someone will forward you a chain letter. Do not send it to ten friends.','You will find exactly the category you need on the first try.','Today is a good day to defragment.');
+    document.write('<TABLE WIDTH="100%" BORDER=0 CELLPADDING=2><TR><TD BGCOLOR="#A0B8C8"><FONT FACE=arial SIZE=-1><B>Horoscope</B></FONT></TD></TR><TR><TD><FONT SIZE=-1>' + sc[(d.getDate() + nick.length) % sc.length] + '</FONT></TD></TR></TABLE><P>');
+  }
+  if (mods.indexOf('Y') >= 0) {
+    var y2k = new Date(2000, 0, 1), d99 = new Date(1999, d.getMonth(), d.getDate()), left = Math.ceil((y2k.getTime() - d99.getTime()) / 86400000);
+    document.write('<TABLE WIDTH="100%" BORDER=0 CELLPADDING=2><TR><TD BGCOLOR="#A0B8C8"><FONT FACE=arial SIZE=-1><B>Y2K Countdown</B></FONT></TD></TR><TR><TD><FONT SIZE=-1>' + (left > 0 ? '<B>' + left + '</B> days until the year 2000. Have you checked your VCR?' : 'The year 2000 came and went. Your toaster survived. You may now take down the bunker.') + '</FONT></TD></TR></TABLE><P>');
+  }
+  if (mods.indexOf('C') >= 0) document.write('<TABLE WIDTH="100%" BORDER=0 CELLPADDING=2><TR><TD BGCOLOR="#A0B8C8"><FONT FACE=arial SIZE=-1><B>Cool Site of the Day</B></FONT></TD></TR><TR><TD><FONT SIZE=-1><A HREF="random.html">Spin the wheel</A> or see <A HREF="cool.html">What\'s Cool</A>.</FONT></TD></TR></TABLE>');
+  document.write('</TD></TR></TABLE>');
+}
+// -->
+</SCRIPT>
+<NOSCRIPT>My Yowza! needs JavaScript and cookies turned on.</NOSCRIPT>
+<P><HR SIZE=0>
+<CENTER><FONT SIZE=-1><I>Copyright &copy; 1994-99 Yowza! Inc. All Rights Reserved.</I> -
+<A HREF="info.html">Company Information</A> -
+<A HREF="suggest.html">Suggest a Site</A> -
+<A HREF="help.html">FAQ</A></FONT></CENTER>
+
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../cnm/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="var r=new Array('yowza','altavisor','askreeves','orinoco','ubid','etoyz','petz','geohoods','hamstershuffle','dashdot','snapster','cnm'); location.href='../'+r[Math.floor(Math.random()*r.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Yowza! is site 1 of 12 |
+<A HREF="../altavisor/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER>
+</BODY>
+</HTML>

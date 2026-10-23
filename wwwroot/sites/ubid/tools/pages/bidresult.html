@@ -1,0 +1,24 @@
+<SCRIPT LANGUAGE="JavaScript">
+var it = findItem(qs("item"));
+if (!it) {
+  document.write("<FONT SIZE=3>Item not found.</FONT>");
+} else {
+  var A = auction(it, now());
+  if (A.highMine && A.live) {
+    document.write("<TABLE BORDER=0 CELLPADDING=8 WIDTH=\"100%\"><TR><TD BGCOLOR=\"#CCFFCC\"><FONT FACE=\"Arial, Helvetica\" SIZE=5><B>You are the current high bidder!</B></FONT></TD></TR></TABLE><BR>");
+    document.write("<FONT SIZE=3>Congratulations, <B>" + esc(userId()) + "</B>. You are the high bidder on <A HREF=\"" + itemURL(it) + "\"><B>" + esc(it[1]) + "</B></A>.<BR><BR>");
+    document.write("The current bid is <B>" + money(A.price) + "</B>. Your maximum bid is <B>" + money(A.highMax) + "</B>.");
+    if (it[5] > 0 && !A.reserveMet) document.write(" <FONT COLOR=\"#CC0000\">However, the seller's reserve price has not been met yet.</FONT>");
+    document.write("<BR><BR>The auction ends <B>" + longTime(A.end) + "</B> (" + timeLeft(A.end - now()) + " from now). ");
+    document.write("Somebody might still outbid you -- snipers love the last few minutes -- so keep an eye on <A HREF=\"" + P + "myubid.html\">My uBid</A>.</FONT>");
+  } else if (A.live) {
+    document.write("<TABLE BORDER=0 CELLPADDING=8 WIDTH=\"100%\"><TR><TD BGCOLOR=\"#FFCCCC\"><FONT FACE=\"Arial, Helvetica\" SIZE=5><B>You have been outbid.</B></FONT></TD></TR></TABLE><BR>");
+    document.write("<FONT SIZE=3>Another bidder placed a higher maximum bid earlier, and their proxy bid automatically topped yours. ");
+    document.write("The current bid on <A HREF=\"" + itemURL(it) + "\"><B>" + esc(it[1]) + "</B></A> is now <B>" + money(A.price) + "</B>.<BR><BR>");
+    document.write("<A HREF=\"" + itemURL(it) + "#bid\">Bid again</A> (minimum " + money(A.minBid) + ") or <A HREF=\"" + P + "category/" + it[2] + ".html\">look for something similar</A>.</FONT>");
+  } else {
+    document.write("<FONT SIZE=3>This auction has ended. <A HREF=\"" + itemURL(it) + "\">See the result</A>.</FONT>");
+  }
+}
+</SCRIPT>
+<NOSCRIPT>Bidding requires JavaScript.</NOSCRIPT>

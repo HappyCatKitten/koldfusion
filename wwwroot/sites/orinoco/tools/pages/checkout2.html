@@ -1,0 +1,62 @@
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%"><TR>
+<TD><FONT FACE="verdana,arial,helvetica" SIZE=+1><B>Checkout: Shipping &amp; Payment</B></FONT></TD>
+<TD ALIGN=RIGHT><FONT FACE="verdana,arial,helvetica" SIZE=-2>1. ADDRESS &gt; <B><FONT COLOR="#CC6600">2. SHIPPING &amp; PAYMENT</FONT></B> &gt; 3. PLACE ORDER</FONT></TD></TR></TABLE><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var a = addrGet();
+if (!userGet()) location.href = P + "signin.html?next=checkout.html";
+else if (cartCount() == 0) location.href = P + "cart.html";
+else if (!a) location.href = P + "checkout.html";
+// the Luhn "mod 10" test every 1999 shopping cart ran before bothering the bank
+function luhn(num) {
+  var sum = 0, alt = false;
+  for (var i = num.length - 1; i >= 0; i--) {
+    var d = parseInt(num.charAt(i));
+    if (alt) { d *= 2; if (d > 9) d -= 9; }
+    sum += d; alt = !alt;
+  }
+  return sum % 10 == 0;
+}
+function savePay() {
+  var f = document.forms["pay"];
+  var m = 0;
+  for (var i = 0; i < f.ship.length; i++) if (f.ship[i].checked) m = i;
+  var type = f.cardtype.options[f.cardtype.selectedIndex].text, last4 = "";
+  if (f.phone.checked) {
+    type = "Card by telephone";
+  } else if (type.indexOf("Gift") == 0) {
+    var gc = f.cardnum.value.replace(/[^A-Za-z0-9]/g, "");
+    if (gc.length < 8) { alert("Please enter the 8 to 16 letters and numbers printed on your gift certificate."); return false; }
+    last4 = gc.substring(gc.length - 4);
+  } else {
+    var num = f.cardnum.value.replace(/[^0-9]/g, "");
+    if (num.length < 13 || num.length > 16 || !luhn(num)) {
+      alert("That card number doesn't look right. Please check it and try again.\n\n(This is a pretend store: the test number 4111 1111 1111 1111 always works, and nothing is ever charged.)");
+      return false;
+    }
+    last4 = num.substring(num.length - 4);
+  }
+  a[6] = "" + m; a[7] = type; a[8] = last4; a[9] = f.giftwrap.checked ? "1" : "0";
+  addrSet(a);
+  location.href = P + "checkout3.html";
+  return false;
+}
+var F = "<FONT FACE=\"verdana,arial,helvetica\" SIZE=-1>";
+var n = cartCount(), cur = (a && a[6] != "") ? parseInt(a[6]) : 0;
+document.write("<FORM NAME=\"pay\" onSubmit=\"return savePay()\">");
+document.write("<TABLE BORDER=0 CELLPADDING=2 CELLSPACING=0 WIDTH=\"100%\"><TR><TD BGCOLOR=\"#CCCC99\">" + F + "<B>&nbsp;Choose a shipping speed</B> (" + n + " item" + (n == 1 ? "" : "s") + ")</FONT></TD></TR></TABLE>" + F);
+for (var i = 0; i < SHIP.length; i++) {
+  document.write("<INPUT TYPE=radio NAME=\"ship\" VALUE=\"" + i + "\"" + (i == cur ? " CHECKED" : "") + "> " + SHIP[i][0] + ": <B>" + money(shipCost(i, n)) + "</B><BR>");
+}
+document.write("<INPUT TYPE=checkbox NAME=\"giftwrap\"" + (a && a[9] == "1" ? " CHECKED" : "") + "> Gift-wrap my order in tasteful river-blue paper ($2.49 per item)</FONT><BR><BR>");
+document.write("<TABLE BORDER=0 CELLPADDING=2 CELLSPACING=0 WIDTH=\"100%\"><TR><TD BGCOLOR=\"#CCCC99\">" + F + "<B>&nbsp;How would you like to pay?</B></FONT></TD></TR></TABLE>");
+document.write("<TABLE BORDER=0 CELLPADDING=3><TR><TD>" + F + "Card type:</FONT></TD><TD><SELECT NAME=\"cardtype\"><OPTION>Visa<OPTION>MasterCard<OPTION>American Express<OPTION>Discover<OPTION>Gift Certificate</SELECT></TD></TR>");
+document.write("<TR><TD>" + F + "Card number:</FONT></TD><TD><INPUT TYPE=text NAME=\"cardnum\" SIZE=22 MAXLENGTH=24></TD></TR>");
+var mo = "", yr = "";
+for (var i = 1; i <= 12; i++) mo += "<OPTION>" + (i < 10 ? "0" : "") + i;
+for (var i = 1999; i <= 2006; i++) yr += "<OPTION>" + i;
+document.write("<TR><TD>" + F + "Expires:</FONT></TD><TD><SELECT NAME=\"expm\">" + mo + "</SELECT> <SELECT NAME=\"expy\">" + yr + "</SELECT></TD></TR></TABLE>");
+document.write(F + "<INPUT TYPE=checkbox NAME=\"phone\"> I'd rather not type my card number on the Internet. I'll phone it in after I place my order.</FONT><BR><BR>");
+document.write("<INPUT TYPE=image SRC=\"" + P + "images/btn_continue.gif\" WIDTH=78 HEIGHT=19 BORDER=0 ALT=\"Continue\"></FORM>");
+</SCRIPT>
+<FONT FACE="verdana,arial,helvetica" SIZE=-2><IMG SRC="{P}images/lock.gif" WIDTH=20 HEIGHT=24 ALIGN=LEFT><B>This is a parody store.</B> Nothing is charged and no card numbers
+are kept: we check the digits, then remember only the type and last four. Test card: 4111 1111 1111 1111.</FONT><BR CLEAR=ALL>

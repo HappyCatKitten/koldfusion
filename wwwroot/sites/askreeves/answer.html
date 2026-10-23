@@ -1,0 +1,220 @@
+<HTML>
+<HEAD>
+<TITLE>Ask Reeves: Answers</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#666666" ALINK="#CC0000">
+<SCRIPT LANGUAGE="JavaScript" SRC="rs_data.js"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function getArg(name) {
+  var q = location.search.substring(1).split('&');
+  for (var i = 0; i < q.length; i++) {
+    var kv = q[i].split('=');
+    if (kv[0] == name && kv.length > 1) return unescape(kv[1].replace(/\+/g, ' '));
+  }
+  return '';
+}
+function h(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function getCookie(n) {
+  var all = document.cookie.split('; ');
+  for (var i = 0; i < all.length; i++) if (all[i].indexOf(n + '=') == 0) return unescape(all[i].substring(n.length + 1));
+  return '';
+}
+
+var STOP = ' a an and are as at be by can could do does for from get how i if in into is it me my of on or our please some tell that the there this to was what when where which who why will with would you your find information about out any good best should there their them they want need know ';
+var FIX = new Object();   // Reeves' spell checker: common 1999 typos
+FIX['teh'] = 'the'; FIX['recieve'] = 'receive'; FIX['hampster'] = 'hamster'; FIX['hampsters'] = 'hamsters'; FIX['pictres'] = 'pictures';
+FIX['computor'] = 'computer'; FIX['definately'] = 'definitely'; FIX['interent'] = 'internet'; FIX['millenium'] = 'millennium';
+FIX['y2k'] = 'y2k'; FIX['webpage'] = 'web page'; FIX['homepage'] = 'home page'; FIX['dawg'] = 'dog'; FIX['kitty'] = 'cat';
+function stem(w) {
+  if (w.length > 4 && w.substring(w.length - 3) == 'ies') return w.substring(0, w.length - 3) + 'y';
+  if (w.length > 3 && w.charAt(w.length - 1) == 's' && w.charAt(w.length - 2) != 's') return w.substring(0, w.length - 1);
+  return w;
+}
+function tokens(s) {
+  var raw = s.toLowerCase().replace(/[^a-z0-9' ]/g, ' ').split(' '), out = new Array();
+  for (var i = 0; i < raw.length; i++) {
+    var w = raw[i].replace(/'s$/, '').replace(/'/g, '');
+    if (w == '') continue;
+    out[out.length] = w;
+  }
+  return out;
+}
+function content(ws) {
+  var out = new Array();
+  for (var i = 0; i < ws.length; i++) if (STOP.indexOf(' ' + ws[i] + ' ') < 0) out[out.length] = ws[i];
+  return out;
+}
+function bag(s) { var t = tokens(s), b = ' '; for (var i = 0; i < t.length; i++) b += stem(t[i]) + ' '; return b; }
+function inBag(b, w) { return b.indexOf(' ' + stem(w) + ' ') >= 0; }
+function label(o) { return o.split('=')[0]; }
+function optRule(o) { var k = o.indexOf('='); return k < 0 ? '' : o.substring(k + 1); }
+
+var ask = getArg('ask'), spell = getArg('spell'), fixed = '';
+if (spell == 'on') {
+  var t = ask.split(' '), changed = false;
+  for (var i = 0; i < t.length; i++) { var k = t[i].toLowerCase().replace(/[^a-z0-9]/g, ''); if (FIX[k] != null && FIX[k] != k) { t[i] = FIX[k]; changed = true; } }
+  if (changed) { fixed = ask; ask = t.join(' '); }
+}
+var words = content(tokens(ask));
+if (words.length == 0) { var all = tokens(ask); for (var i = 0; i < all.length; i++) if (all[i].length > 2) words[words.length] = all[i]; }
+
+// score every question in the database
+var found = new Array();
+for (var i = 0; i < Q.length; i++) {
+  var slots = Q[i][3].split('^'), kw = bag(Q[i][4] + ' ' + Q[i][2]), score = 0, picks = new Array();
+  for (var s = 0; s < slots.length; s++) {
+    var opts = slots[s].split('~'), best = 0, bestScore = 0;
+    for (var o = 0; o < opts.length; o++) {
+      var lb = bag(label(opts[o])), sc = 0;
+      for (var w = 0; w < words.length; w++) if (inBag(lb, words[w])) sc++;
+      if (sc > bestScore) { bestScore = sc; best = o; }
+    }
+    picks[s] = best;
+    score += bestScore * 3;
+  }
+  for (var w = 0; w < words.length; w++) if (inBag(kw, words[w])) score++;
+  if (score > 0) found[found.length] = new Array(score, i, picks);
+}
+found.sort(function (a, b) { return b[0] - a[0]; });
+if (found.length > 5) found = found.slice(0, 5);
+if (found.length > 1 && found[0][0] >= 4) { var cut = new Array(); for (var i = 0; i < found.length; i++) if (found[i][0] >= 2) cut[cut.length] = found[i]; found = cut; }
+
+// remember the question for the keyhole page (this browser only)
+if (ask != '') {
+  var mine = getCookie('rsasked'), list = mine == '' ? new Array() : mine.split('^');
+  list[list.length] = ask.substring(0, 120);
+  while (list.length > 10) list = list.slice(1);
+  var exp = new Date(); exp.setTime(exp.getTime() + 7 * 24 * 3600 * 1000);
+  document.cookie = 'rsasked=' + escape(list.join('^')) + '; expires=' + exp.toGMTString() + '; path=/';
+}
+
+function fill(rule, sel) {
+  for (var k = 0; k < sel.length; k++) rule = rule.split('{' + k + '}').join(sel[k]);
+  return rule;
+}
+function resolve(rule, sel, id) {
+  var kind = rule.substring(0, rule.indexOf(':')), arg = rule.substring(rule.indexOf(':') + 1);
+  if (rule == 'ans') return 'ans/' + id + '.html?a=' + escape(sel[0] || '') + '&b=' + escape(sel[1] || '');
+  arg = fill(arg, sel);
+  if (kind == 'yz') return '../yowza/dir/' + arg + '/index.html';
+  if (kind == 'yzs') return '../yowza/search.html?p=' + escape(arg);
+  if (kind == 'av') return '../altavisor/results.html?q=' + escape(arg);
+  if (kind == 'avimg') return '../altavisor/results.html?stype=simage&q=' + escape(arg);
+  if (kind == 'site') return '../' + arg + '/index.html';
+  if (kind == 'web') return '../altavisor/web/' + arg + '/index.html';
+  if (kind == 'url') return arg;
+  return '../altavisor/results.html?q=' + escape(arg);
+}
+// the Ask! button next to each question
+function go(n) {
+  var f = document.forms['qf' + n], qi = parseInt(f.qi.value), sel = new Array(), rule = '';
+  if (qi < 0) {   // one of Reeves' improvised questions
+    var v = f.s0.options[f.s0.selectedIndex].text;
+    location.href = resolve(f.rule.value, new Array(v), '');
+    return false;
+  }
+  var slots = Q[qi][3].split('^');
+  for (var s = 0; s < slots.length; s++) {
+    var o = slots[s].split('~')[f['s' + s].selectedIndex];
+    sel[s] = label(o);
+    if (rule == '' && optRule(o) != '') rule = optRule(o);
+  }
+  if (rule == '') rule = Q[qi][5];
+  if (rule == 'opt') rule = 'av:' + sel.join(' ');
+  location.href = resolve(rule, sel, Q[qi][0]);
+  return false;
+}
+function questionHtml(n, qi, picks) {
+  var text = Q[qi][2], slots = Q[qi][3].split('^');
+  var out = '<FORM NAME="qf' + n + '" onSubmit="return go(' + n + ')"><INPUT TYPE=hidden NAME=qi VALUE="' + qi + '"><TABLE WIDTH=620 BORDER=0 CELLSPACING=0 CELLPADDING=4><TR><TD VALIGN=TOP WIDTH=46><INPUT TYPE=image SRC="images/ask.gif" WIDTH=36 HEIGHT=23 BORDER=0 ALT="Ask!"></TD><TD><FONT FACE="Arial, Helvetica" SIZE=2>';
+  for (var s = 0; s < slots.length; s++) {
+    var opts = slots[s].split('~'), sel = '<SELECT NAME="s' + s + '">';
+    for (var o = 0; o < opts.length; o++) sel += '<OPTION' + (o == picks[s] ? ' SELECTED' : '') + '>' + h(label(opts[o]));
+    sel += '</SELECT>';
+    text = text.split('[' + s + ']').join('\u0001' + s + '\u0001');
+    slots[s] = sel;
+  }
+  var parts = text.split('\u0001');
+  for (var p = 0; p < parts.length; p++) out += (p % 2 == 1) ? slots[parseInt(parts[p])] : h(parts[p]);
+  return out + '</FONT></TD></TR></TABLE></FORM>';
+}
+function improvised(n, pattern, rule) {
+  var sel = '<SELECT NAME="s0">';
+  for (var w = 0; w < words.length && w < 8; w++) sel += '<OPTION>' + h(words[w]);
+  if (words.length > 1) sel += '<OPTION SELECTED>' + h(words.join(' '));
+  sel += '</SELECT>';
+  return '<FORM NAME="qf' + n + '" onSubmit="return go(' + n + ')"><INPUT TYPE=hidden NAME=qi VALUE="-1"><INPUT TYPE=hidden NAME=rule VALUE="' + rule + '"><TABLE WIDTH=620 BORDER=0 CELLSPACING=0 CELLPADDING=4><TR><TD VALIGN=TOP WIDTH=46><INPUT TYPE=image SRC="images/ask.gif" WIDTH=36 HEIGHT=23 BORDER=0 ALT="Ask!"></TD><TD><FONT FACE="Arial, Helvetica" SIZE=2>' + h(pattern).replace('[]', sel) + '</FONT></TD></TR></TABLE></FORM>';
+}
+// -->
+</SCRIPT>
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 BGCOLOR="#666699" WIDTH=620><TR>
+<TD HEIGHT=20>&nbsp;&nbsp;<FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFCC"><B>
+<A HREF="index.html"><FONT COLOR="#FFFFCC">HOME</FONT></A> &nbsp;|&nbsp;
+<A HREF="about.html"><FONT COLOR="#FFFFCC">ABOUT REEVES</FONT></A> &nbsp;|&nbsp;
+<A HREF="about.html#help"><FONT COLOR="#FFFFCC">HELP</FONT></A> &nbsp;|&nbsp;
+<A HREF="peek.html"><FONT COLOR="#FFFFCC">PEEK THROUGH THE KEYHOLE</FONT></A> &nbsp;|&nbsp;
+<A HREF="channels/kids.html"><FONT COLOR="#FFFFCC">REEVES FOR KIDS</FONT></A></B></FONT></TD></TR></TABLE>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var quip = ask == '' ? 'Good day. You did not ask anything, but I have prepared a few questions you might enjoy:'
+         : (found.length > 0 ? QUIPS[Math.floor(Math.random() * QUIPS.length)] : NOMATCH[Math.floor(Math.random() * NOMATCH.length)]);
+function qIndex(id) { for (var i = 0; i < Q.length; i++) if (Q[i][0] == id) return i; return 0; }
+if (ask == '') { found = new Array(); var picks = new Array(0, 0); found[0] = new Array(1, qIndex('y2k_ready'), picks); found[1] = new Array(1, qIndex('dancing_hamsters'), picks); found[2] = new Array(1, qIndex('bored'), picks); }
+document.write('<TABLE WIDTH=620 BORDER=0 CELLSPACING=0 CELLPADDING=6 BGCOLOR="#FFFFCC"><TR><TD VALIGN=TOP WIDTH=70><IMG SRC="images/reeves_sm.gif" WIDTH=60 HEIGHT=70 ALT="Reeves"></TD><TD VALIGN=TOP>');
+if (ask != '') document.write('<FONT FACE="Arial, Helvetica" SIZE=2>You asked: <B>' + h(ask) + '</B>' + (fixed != '' ? ' <FONT SIZE=1>(I took the liberty of correcting your spelling of &quot;' + h(fixed) + '&quot;.)</FONT>' : '') + '</FONT><P>');
+document.write('<FONT FACE="Times New Roman, Times" SIZE=3><I>' + quip + '</I></FONT></TD></TR></TABLE>');
+var n = 0;
+for (var i = 0; i < found.length; i++) document.write(questionHtml(n++, found[i][1], found[i][2]));
+if (words.length > 0 && found.length < 4) {
+  document.write(improvised(n++, 'Where can I find an encyclopedia-style page about []?', 'av:{0}'));
+  document.write(improvised(n++, 'What does the Yowza! directory list under []?', 'yzs:{0}'));
+  if (found.length < 2) document.write(improvised(n++, 'Where can I see pictures of []?', 'avimg:{0}'));
+}
+// the "metasearch" section
+if (words.length > 0) {
+  var kw = words.join(' ');
+  document.write('<P><TABLE WIDTH=620 BORDER=0 CELLSPACING=0 CELLPADDING=4 BGCOLOR="#CCCC99"><TR><TD><FONT FACE="Arial, Helvetica" SIZE=2><B>You may also find my search results useful:</B></FONT></TD></TR></TABLE>');
+  document.write('<FORM NAME="meta" onSubmit="location.href = this.eng.options[this.eng.selectedIndex].value; return false;"><TABLE WIDTH=620 BORDER=0 CELLPADDING=4><TR><TD><FONT FACE="Arial, Helvetica" SIZE=2>');
+  document.write('I sent a footman round to ask my colleagues about <B>' + h(kw) + '</B>. See what <SELECT NAME=eng>');
+  document.write('<OPTION VALUE="../altavisor/results.html?q=' + escape(kw) + '">AltaVisor found on the Web');
+  document.write('<OPTION VALUE="../yowza/search.html?p=' + escape(kw) + '">Yowza! has in its directory');
+  document.write('<OPTION VALUE="../altavisor/results.html?stype=simage&q=' + escape(kw) + '">AltaVisor found in pictures');
+  document.write('<OPTION VALUE="../cnm/index.html">CNM has in the news');
+  document.write('<OPTION VALUE="../dashdot/index.html">the nerds at Dashdot think');
+  document.write('</SELECT> <INPUT TYPE=image SRC="images/ask.gif" WIDTH=36 HEIGHT=23 BORDER=0 ALT="Ask!" ALIGN=ABSMIDDLE></FONT></TD></TR></TABLE></FORM>');
+}
+// -->
+</SCRIPT>
+<NOSCRIPT><P><FONT FACE="Arial, Helvetica" SIZE=2>I am terribly sorry, but I can only read your question with JavaScript switched on.
+In the meantime, may I suggest one of the <A HREF="channels/popular.html">popular questions</A>?</FONT></NOSCRIPT>
+<P><FORM NAME="again" METHOD=GET ACTION="answer.html">
+<TABLE WIDTH=620 BORDER=0 CELLSPACING=0 CELLPADDING=4 BGCOLOR="#FFFFCC"><TR><TD><FONT FACE="Arial, Helvetica" SIZE=2><B>Ask another question:</B></FONT><BR>
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=2 BGCOLOR="#999966"><TR><TD><INPUT TYPE=text NAME=ask SIZE=50></TD></TR></TABLE></TD>
+<TD VALIGN=BOTTOM><INPUT TYPE=image SRC="images/ask.gif" WIDTH=36 HEIGHT=23 BORDER=0 ALT="Ask!"><INPUT TYPE=hidden NAME=spell VALUE=on></TD></TR></TABLE></FORM>
+<TABLE WIDTH=620 BORDER=0 CELLSPACING=0 CELLPADDING=0 BGCOLOR="#666699"><TR><TD><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFCC">&nbsp;&nbsp;<B>PICK A TOPIC:</B></FONT></TD></TR></TABLE>
+<TABLE WIDTH=620 BORDER=0 CELLSPACING=0 CELLPADDING=3 BGCOLOR="#CCCC99"><TR>
+<TD NOWRAP><FONT COLOR="#CC0000" SIZE=3><B>&#149;</B></FONT><FONT FACE="Arial, Helvetica" SIZE=1><B><A HREF="channels/popular.html">POPULAR QUESTIONS</A></B></FONT>&nbsp;</TD>
+<TD NOWRAP><FONT COLOR="#CC0000" SIZE=3><B>&#149;</B></FONT><FONT FACE="Arial, Helvetica" SIZE=1><B><A HREF="channels/shopping.html">SHOPPING</A></B></FONT>&nbsp;</TD>
+<TD NOWRAP><FONT COLOR="#CC0000" SIZE=3><B>&#149;</B></FONT><FONT FACE="Arial, Helvetica" SIZE=1><B><A HREF="channels/health.html">HEALTH</A></B></FONT>&nbsp;</TD>
+<TD NOWRAP><FONT COLOR="#CC0000" SIZE=3><B>&#149;</B></FONT><FONT FACE="Arial, Helvetica" SIZE=1><B><A HREF="channels/travel.html">TRAVEL</A></B></FONT>&nbsp;</TD>
+<TD NOWRAP><FONT COLOR="#CC0000" SIZE=3><B>&#149;</B></FONT><FONT FACE="Arial, Helvetica" SIZE=1><B><A HREF="channels/entertainment.html">ENTERTAINMENT</A></B></FONT>&nbsp;</TD>
+<TD NOWRAP><FONT COLOR="#CC0000" SIZE=3><B>&#149;</B></FONT><FONT FACE="Arial, Helvetica" SIZE=1><B><A HREF="channels/computers.html">COMPUTERS</A></B></FONT>&nbsp;</TD>
+<TD NOWRAP><FONT COLOR="#CC0000" SIZE=3><B>&#149;</B></FONT><FONT FACE="Arial, Helvetica" SIZE=1><B><A HREF="channels/kids.html">KIDS</A></B></FONT>&nbsp;</TD>
+</TR></TABLE>
+<TABLE WIDTH=620 BORDER=0 CELLSPACING=0 CELLPADDING=4><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="about.html">About Reeves</A> | <A HREF="about.html#help">Help</A> | <A HREF="about.html#privacy">Privacy</A> |
+<A HREF="peek.html">Peek Through the Keyhole</A> | <A HREF="../altavisor/index.html">AltaVisor</A> | <A HREF="../yowza/index.html">Yowza!</A><BR>
+Copyright &copy; 1996-99 Ask Reeves, Inc. All rights reserved. Reeves is a butler; he is not a doctor, lawyer or stockbroker.</FONT></TD></TR></TABLE>
+
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../altavisor/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="var r=new Array('yowza','altavisor','askreeves','orinoco','ubid','etoyz','petz','geohoods','hamstershuffle','dashdot','snapster','cnm'); location.href='../'+r[Math.floor(Math.random()*r.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Ask Reeves is site 3 of 12 |
+<A HREF="../orinoco/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER>
+</BODY>
+</HTML>

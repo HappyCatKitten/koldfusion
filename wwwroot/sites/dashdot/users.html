@@ -1,0 +1,182 @@
+<HTML><HEAD><TITLE>Dashdot | Users</TITLE>
+<SCRIPT LANGUAGE="JavaScript"><!--
+
+function getCookie(n) {
+  var c = document.cookie.split("; ");
+  for (var i = 0; i < c.length; i++) {
+    var p = c[i].indexOf("=");
+    if (p > 0 && c[i].substring(0, p) == n) return unescape(c[i].substring(p + 1));
+  }
+  return "";
+}
+function setCookie(n, v, days) {
+  var e = "";
+  if (days) { var d = new Date(); d.setTime(d.getTime() + days * 86400000); e = "; expires=" + d.toGMTString(); }
+  document.cookie = n + "=" + escape(v) + e + "; path=/";
+}
+function delCookie(n) { document.cookie = n + "=; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/"; }
+function qs(n) {
+  var q = location.search.substring(1).split("&");
+  for (var i = 0; i < q.length; i++) {
+    var p = q[i].indexOf("=");
+    if (p > 0 && q[i].substring(0, p) == n) return unescape(q[i].substring(p + 1).replace(/\+/g, " "));
+  }
+  return "";
+}
+function htmlEsc(s) {
+  s = "" + s;
+  s = s.replace(/&/g, "&amp;"); s = s.replace(/</g, "&lt;"); s = s.replace(/>/g, "&gt;"); s = s.replace(/"/g, "&quot;");
+  return s;
+}
+
+function ringRandom(p) {
+  var s = new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","snapster","cnm");
+  var n = Math.floor(Math.random() * s.length);
+  location.href = p + "../" + s[n] + "/" + "index.html";
+  return false;
+}
+
+function ddLogin(f) {
+  var n = f.unickname.value;
+  if (n == "") { alert("Please enter a nickname. Even Anonymous Cowards have to type something."); return false; }
+  if (f.upasswd.value == "") { alert("Please enter your password. (We won't look at it. We don't even keep it.)"); return false; }
+  setCookie("dd_user", n, 30);
+  if (getCookie("dd_points") == "") {
+    setCookie("dd_points", "5", 3);
+    alert("Welcome back, " + n + "!\n\nYou have been randomly selected to moderate.\nYou have 5 moderator points; they expire in 3 days.\nUse them wisely: look for the Moderate menus under each comment.");
+  }
+  location.reload();
+  return false;
+}
+function ddLogout() { delCookie("dd_user"); location.reload(); }
+function loginBox(root) {
+  var u = getCookie("dd_user");
+  if (u != "") {
+    var p = getCookie("dd_points"); if (p == "") p = "0";
+    document.write('<B>Welcome back, ' + htmlEsc(u) + '!</B><BR>Karma: Positive<BR>Moderator points: <B>' + p + '</B><P>');
+    document.write('[ <A HREF="' + root + 'preferences.html">preferences</A> | <A HREF="javascript:ddLogout()">logout</A> ]');
+  } else {
+    document.write('<FORM ACTION="' + root + 'users.html" METHOD="get" onSubmit="return ddLogin(this)">');
+    document.write('<B>Nickname:</B><BR><INPUT TYPE="text" NAME="unickname" SIZE=18><BR><B>Password:</B><BR>');
+    document.write('<INPUT TYPE="password" NAME="upasswd" SIZE=18><BR><INPUT TYPE="submit" VALUE="userlogin"></FORM>');
+    document.write('No account? <A HREF="' + root + 'users.html">Make one</A>. It\'s free, and it lets you pick your comment threshold, keep your nickname, and moderate when the dice say so.');
+  }
+}
+
+function newUser(f) {
+  if (f.newnick.value == "") { alert("Pick a nickname. 'Anonymous Coward' is taken."); return false; }
+  if (f.newnick.value.toLowerCase().indexOf("anonymous") >= 0) { alert("Nice try."); return false; }
+  if (f.email.value.indexOf("@") < 1) { alert("That doesn't look like an e-mail address."); return false; }
+  setCookie("dd_user", f.newnick.value, 30);
+  return true;
+}
+
+//--></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#000000" TEXT="#000000" LINK="#006666" VLINK="#000000">
+<CENTER><A HREF="../orinoco/index.html"><IMG SRC="images/banner_orinoco.gif" WIDTH=468 HEIGHT=60 BORDER=0 ALT="Orinoco.com"></A></CENTER><P>
+<TABLE BGCOLOR="#FFFFFF" CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH="99%" ALIGN=CENTER><TR>
+<TD VALIGN=TOP ALIGN=LEFT><A HREF="index.html"><IMG SRC="images/title.gif" WIDTH=300 HEIGHT=72 BORDER=0 ALT="Welcome to Dashdot"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_y2k.html"><IMG SRC="images/topicy2k.gif" BORDER=0 ALT="Y2K"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_hardware.html"><IMG SRC="images/topichardware.gif" BORDER=0 ALT="Hardware"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_patents.html"><IMG SRC="images/topicpatents.gif" BORDER=0 ALT="Patents"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_linix.html"><IMG SRC="images/topiclinix.gif" BORDER=0 ALT="Linix"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_games.html"><IMG SRC="images/topicgames.gif" BORDER=0 ALT="Games"></A></TD>
+</TR></TABLE>
+<TABLE WIDTH="99%" ALIGN=CENTER CELLPADDING=8 CELLSPACING=0 BORDER=0 BGCOLOR="#FFFFFF"><TR>
+<TD VALIGN=TOP><FONT FACE="arial,helvetica" COLOR="#000000">
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Login / Create an Account</B></FONT></TD></TR></TABLE>
+<P>
+<TABLE WIDTH="100%" BORDER=0 CELLPADDING=4><TR><TD VALIGN=TOP WIDTH="50%"><FONT SIZE=2>
+<B>Existing users</B><P>
+<SCRIPT LANGUAGE="JavaScript"><!--
+loginBox("");
+//--></SCRIPT>
+<NOSCRIPT>Logging in needs JavaScript. It's 1999; turn it on.</NOSCRIPT>
+</FONT></TD><TD VALIGN=TOP><FONT SIZE=2>
+<B>New users</B><P>
+<FORM NAME="newuser" ACTION="newuser.html" METHOD="get" onSubmit="return newUser(this)">
+Nickname:<BR><INPUT TYPE="text" NAME="newnick" SIZE=20 MAXLENGTH=20><BR>
+E-mail address:<BR><INPUT TYPE="text" NAME="email" SIZE=20><BR>
+<FONT SIZE=1>(Your password will be mailed to this address. We promise not to sell it. Probably.)</FONT><BR>
+<INPUT TYPE="submit" VALUE="Create Account">
+</FORM></FONT></TD></TR></TABLE>
+<P><B>Some of our regulars</B><UL><LI><A HREF="users/anthropologeek.html">Anthropologeek</A> <FONT SIZE=2>(#44444, 15 comments)</FONT>
+<LI><A HREF="users/biobob.html">BioBob</A> <FONT SIZE=2>(#26601, 16 comments)</FONT>
+<LI><A HREF="users/bytebandit.html">ByteBandit</A> <FONT SIZE=2>(#32768, 9 comments)</FONT>
+<LI><A HREF="users/clamshellcarl.html">ClamshellCarl</A> <FONT SIZE=2>(#38220, 9 comments)</FONT>
+<LI><A HREF="users/cmdrgrits.html">CmdrGrits</A> <FONT SIZE=2>(#1, 12 comments)</FONT>
+<LI><A HREF="users/coffeecoder.html">CoffeeCoder</A> <FONT SIZE=2>(#16161, 12 comments)</FONT>
+<LI><A HREF="users/courtwatcher.html">CourtWatcher</A> <FONT SIZE=2>(#9999, 12 comments)</FONT>
+<LI><A HREF="users/crufty.html">crufty</A> <FONT SIZE=2>(#2525, 9 comments)</FONT>
+<LI><A HREF="users/cyber_wombat.html">cyber_wombat</A> <FONT SIZE=2>(#11011, 10 comments)</FONT>
+<LI><A HREF="users/daemondiva.html">DaemonDiva</A> <FONT SIZE=2>(#14641, 13 comments)</FONT>
+<LI><A HREF="users/daytraderdan.html">DayTraderDan</A> <FONT SIZE=2>(#41871, 8 comments)</FONT>
+<LI><A HREF="users/domaindave.html">DomainDave</A> <FONT SIZE=2>(#27272, 13 comments)</FONT>
+<LI><A HREF="users/dormroom_dj.html">dormroom_dj</A> <FONT SIZE=2>(#40112, 8 comments)</FONT>
+<LI><A HREF="users/fidofan.html">FidoFan</A> <FONT SIZE=2>(#46464, 12 comments)</FONT>
+<LI><A HREF="users/frostbyte.html">frostbyte</A> <FONT SIZE=2>(#4120, 10 comments)</FONT>
+<LI><A HREF="users/geckoguy.html">GeckoGuy</A> <FONT SIZE=2>(#15550, 14 comments)</FONT>
+<LI><A HREF="users/gnuisance.html">Gnuisance</A> <FONT SIZE=2>(#1024, 18 comments)</FONT>
+<LI><A HREF="users/grumpygreybeard.html">GrumpyGreybeard</A> <FONT SIZE=2>(#101, 13 comments)</FONT>
+<LI><A HREF="users/hemlock.html">Hemlock</A> <FONT SIZE=2>(#2, 7 comments)</FONT>
+<LI><A HREF="users/hexhead.html">HexHead</A> <FONT SIZE=2>(#3456, 16 comments)</FONT>
+<LI><A HREF="users/jamie_k.html">jamie_k</A> <FONT SIZE=2>(#7, 3 comments)</FONT>
+<LI><A HREF="users/javajunkie.html">JavaJunkie</A> <FONT SIZE=2>(#24601, 15 comments)</FONT>
+<LI><A HREF="users/kernel_kid.html">kernel_kid</A> <FONT SIZE=2>(#30217, 8 comments)</FONT>
+<LI><A HREF="users/kludge_king.html">kludge_king</A> <FONT SIZE=2>(#3030, 12 comments)</FONT>
+<LI><A HREF="users/ladybug_lisp.html">ladybug_lisp</A> <FONT SIZE=2>(#7070, 14 comments)</FONT>
+<LI><A HREF="users/lawgeek.html">LawGeek</A> <FONT SIZE=2>(#1987, 11 comments)</FONT>
+<LI><A HREF="users/linixdvd.html">Linixdvd</A> <FONT SIZE=2>(#33303, 13 comments)</FONT>
+<LI><A HREF="users/lowearthlarry.html">LowEarthLarry</A> <FONT SIZE=2>(#8008, 17 comments)</FONT>
+<LI><A HREF="users/markupmarcy.html">MarkupMarcy</A> <FONT SIZE=2>(#18181, 16 comments)</FONT>
+<LI><A HREF="users/mediamaven.html">MediaMaven</A> <FONT SIZE=2>(#21212, 13 comments)</FONT>
+<LI><A HREF="users/modem_mike.html">modem_mike</A> <FONT SIZE=2>(#28800, 13 comments)</FONT>
+<LI><A HREF="users/mp3_maniac.html">mp3_maniac</A> <FONT SIZE=2>(#42424, 15 comments)</FONT>
+<LI><A HREF="users/navnerd.html">NavNerd</A> <FONT SIZE=2>(#23023, 15 comments)</FONT>
+<LI><A HREF="users/nervous_ned.html">Nervous Ned</A> <FONT SIZE=2>(#43210, 13 comments)</FONT>
+<LI><A HREF="users/nodeninja.html">NodeNinja</A> <FONT SIZE=2>(#29180, 7 comments)</FONT>
+<LI><A HREF="users/nullpointer.html">NullPointer</A> <FONT SIZE=2>(#1337, 6 comments)</FONT>
+<LI><A HREF="users/overclocked_otter.html">overclocked_otter</A> <FONT SIZE=2>(#13377, 13 comments)</FONT>
+<LI><A HREF="users/paranoidpolly.html">ParanoidPolly</A> <FONT SIZE=2>(#31337, 9 comments)</FONT>
+<LI><A HREF="users/perl_monger_mo.html">perl_monger_mo</A> <FONT SIZE=2>(#2048, 16 comments)</FONT>
+<LI><A HREF="users/pitchfork_pete.html">pitchfork_pete</A> <FONT SIZE=2>(#777, 13 comments)</FONT>
+<LI><A HREF="users/pixelfish.html">Pixelfish</A> <FONT SIZE=2>(#12, 2 comments)</FONT>
+<LI><A HREF="users/polarpenguin.html">PolarPenguin</A> <FONT SIZE=2>(#20000, 14 comments)</FONT>
+<LI><A HREF="users/prior_art_pete.html">Prior Art Pete</A> <FONT SIZE=2>(#2201, 11 comments)</FONT>
+<LI><A HREF="users/q_bert.html">q_bert</A> <FONT SIZE=2>(#36963, 14 comments)</FONT>
+<LI><A HREF="users/railgunrhonda.html">RailgunRhonda</A> <FONT SIZE=2>(#19990, 9 comments)</FONT>
+<LI><A HREF="users/retroraccoon.html">RetroRaccoon</A> <FONT SIZE=2>(#9011, 21 comments)</FONT>
+<LI><A HREF="users/rocketrandy.html">RocketRandy</A> <FONT SIZE=2>(#6610, 13 comments)</FONT>
+<LI><A HREF="users/rotundo.html">Rotundo</A> <FONT SIZE=2>(#3, 3 comments)</FONT>
+<LI><A HREF="users/rtfm_ralph.html">RTFM_Ralph</A> <FONT SIZE=2>(#8080, 8 comments)</FONT>
+<LI><A HREF="users/shell_shocked.html">shell_shocked</A> <FONT SIZE=2>(#6502, 7 comments)</FONT>
+<LI><A HREF="users/shoppersheila.html">ShopperSheila</A> <FONT SIZE=2>(#45454, 13 comments)</FONT>
+<LI><A HREF="users/speculatron.html">Speculatron</A> <FONT SIZE=2>(#17840, 15 comments)</FONT>
+<LI><A HREF="users/spudgun.html">SpudGun</A> <FONT SIZE=2>(#39393, 10 comments)</FONT>
+<LI><A HREF="users/stargazersue.html">StargazerSue</A> <FONT SIZE=2>(#12121, 12 comments)</FONT>
+<LI><A HREF="users/stylussam.html">StylusSam</A> <FONT SIZE=2>(#35035, 12 comments)</FONT>
+<LI><A HREF="users/sysadmin_steve.html">sysadmin_steve</A> <FONT SIZE=2>(#552, 14 comments)</FONT>
+<LI><A HREF="users/tux_tamer.html">Tux_Tamer</A> <FONT SIZE=2>(#5150, 10 comments)</FONT>
+<LI><A HREF="users/upgradeuma.html">UpgradeUma</A> <FONT SIZE=2>(#37373, 8 comments)</FONT>
+<LI><A HREF="users/webweaver.html">WebWeaver</A> <FONT SIZE=2>(#4404, 18 comments)</FONT>
+<LI><A HREF="users/windowmaniac.html">WindowManiac</A> <FONT SIZE=2>(#22053, 13 comments)</FONT>
+</UL></FONT></TD></TR></TABLE>
+<TABLE BGCOLOR="#FFFFFF" WIDTH="99%" ALIGN=CENTER BORDER=0 CELLPADDING=4 CELLSPACING=0><TR><TD>
+<TABLE WIDTH="100%" BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD BGCOLOR="#006666"><IMG SRC="images/pix.gif" WIDTH=1 HEIGHT=4 ALT=""></TD></TR></TABLE>
+<CENTER><FORM ACTION="search.html" METHOD="get"><FONT FACE="arial,helvetica" SIZE=2><INPUT TYPE="text" NAME="query" SIZE=20> <INPUT TYPE="submit" VALUE="Search"></FONT></FORM>
+<FONT FACE="arial,helvetica" SIZE=2><I>Real programmers count from zero. Real sysadmins count backups.</I></FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>[ <A HREF="index.html">home</A> | <A HREF="awards.html">awards</A> | <A HREF="supporters.html">supporters</A> | <A HREF="grits.html">grits' homepage</A> | <A HREF="submit.html">contribute story</A> | <A HREF="older.html">older articles</A> | <A HREF="overandover.html">overandover.net</A> | <A HREF="advertising.html">advertising</A> | <A HREF="polls.html">past polls</A> | <A HREF="topics.html">topics</A> | <A HREF="about.html">about</A> | <A HREF="jobs.html">jobs</A> | <A HREF="hof.html">hof</A> ]</FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>Trademarks belong to whoever trademarked them. Comments belong to whoever typed them. Everything else &copy; 1997-99 Overandover.net. Dashdot is served hot by KoldFusion 4.5 from Gibson Mainframe Co.</FONT><BR>
+<A HREF="about.html"><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion" VSPACE=6></A>
+</CENTER></TD></TR></TABLE>
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../hamstershuffle/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="return ringRandom('')">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Dashdot is site 10 of 12 |
+<A HREF="../snapster/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER><P>
+</BODY></HTML>

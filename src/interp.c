@@ -337,10 +337,12 @@ Template *template_get(RState *rs, const char *path, KfError **perr) {
 }
 
 /* ================================================================ paths */
+const char *kf_docroot(void) { return t_rs && t_rs->docroot ? t_rs->docroot : G.webroot; }
+
 static char *apply_mapping(const char *logical) {
-    /* longest matching logical path in the Mappings key; "/" -> webroot */
+    /* longest matching logical path in the Mappings key; "/" -> this site's web root */
     Query *q = reg_list(cfg_key("Mappings"), 0, 1);
-    const char *best_l = "/", *best_d = G.webroot;
+    const char *best_l = "/", *best_d = kf_docroot();
     size_t best_len = 1;
     for (int r = 0; r < q->nrows; r++) {
         const char *l = v_tostr(query_get(q, 0, r));
@@ -658,7 +660,9 @@ void render_debug(RState *rs, Ctx *c) {
 static const char *find_up(const char *dir, const char *name) {
     /* walk from dir up to (and including) the web root */
     char *d = kstrdup(dir);
-    size_t rootlen = strlen(G.webroot);
+    const char *root = kf_docroot();
+    if (strncmp(dir, root, strlen(root))) root = G.webroot;   /* shared /CFIDE pages on a virtual site */
+    size_t rootlen = strlen(root);
     for (;;) {
         char *p = kf_path_join(d, name);
         if (access(p, R_OK) == 0) return p;
@@ -831,7 +835,7 @@ int run_request(RState *rs, const char *tplpath) {
                     char *site = cfg(REG_SERVER, "SiteWideErrorHandler", "");
                     if (site && *site && !rs->in_error_handler) {
                         Ctx tmp = *c;
-                        tmp.tagdir = G.webroot;
+                        tmp.tagdir = kf_docroot();
                         const char *p = resolve_template_path(&tmp, site, 0);
                         if (!rs->cferror) rs->cferror = struct_new();
                         Struct *h = struct_new();

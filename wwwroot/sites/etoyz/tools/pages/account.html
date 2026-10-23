@@ -1,0 +1,25 @@
+<FONT FACE="Arial, Helvetica" SIZE=5 COLOR="#1B5FE2"><B>my eToyz</B></FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var F = "<FONT FACE=\"Arial, Helvetica\" SIZE=2>", u = userGet();
+function bar(t, col) { return "<TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 WIDTH=\"100%\"><TR><TD BGCOLOR=\"" + col + "\"><FONT FACE=\"Arial, Helvetica\" SIZE=2 COLOR=\"#FFFFFF\"><B>" + t + "</B></FONT></TD></TR></TABLE>"; }
+if (!u) {
+  document.write(F + "Please <A HREF=\"" + P + "signin.html?next=account.html\"><B>sign in</B></A> to see your orders and your wish list.</FONT>");
+} else {
+  document.write("<IMG SRC=\"" + P + "images/sprocket_small.gif\" WIDTH=55 HEIGHT=65 ALIGN=LEFT>" + F + "<FONT SIZE=3>Hi, <B>" + esc(u[0]) + "</B>!</FONT><BR>Signed in as " + esc(u[1]) + ". <A HREF=\"" + P + "index.html\" onClick=\"return signOut()\">Sign out</A></FONT><BR CLEAR=ALL><BR>");
+  var o = ordersGet(), shown = 0, h = bar("Your orders", "#E21B1B");
+  for (var i = 0; i < o.length; i++) {
+    if (o[i][5] != u[1]) continue;
+    shown++;
+    var age = ((new Date()).getTime() - parseInt(o[i][1])) / 3600000;
+    var st = age < 2 ? "Elves are packing it" : (age < 48 ? "Shipped! On a truck with a big red bow" : "Delivered. Let the playing begin!");
+    h += F + "<P><B>Order " + esc(o[i][0]) + "</B> -- " + money(parseInt(o[i][4])) + " -- <FONT COLOR=\"#1BA84A\"><B>" + st + "</B></FONT><BR>";
+    var its = o[i][2].split(",");
+    for (var k = 0; k < its.length; k++) { var p = its[k].split(":"), t = findToy(p[0]); if (t) h += "&nbsp; " + p[1] + " x <A HREF=\"" + toyURL(t) + "\">" + esc(t[1]) + "</A><BR>"; }
+    h += "</P></FONT>";
+  }
+  if (!shown) h += F + "No orders yet. <A HREF=\"" + P + "top10.html\">The Top 10</A> is a fine place to start.</FONT><BR>";
+  var w = wishGet(u[1]);
+  h += "<BR>" + bar("Your wish list", "#1B5FE2") + F + "You have <B>" + w.length + "</B> toy" + (w.length == 1 ? "" : "s") + " on <A HREF=\"" + P + "wishlist.html\">your wish list</A>.</FONT><BR>";
+  document.write(h);
+}
+</SCRIPT>

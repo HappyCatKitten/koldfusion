@@ -198,6 +198,16 @@
 
   <hr class="rainbow">
 
+  <h2 id="web1999"><img src="assets/bullet_blue.gif" alt="">The 1999 Web <img src="assets/new.gif" width="44" height="22" alt="New!" style="width:44px;height:22px"></h2>
+  <p>Twelve web sites from the class of 1999, re-imagined as loving parodies and served by KoldFusion, each at its own
+  address like an IIS virtual site (<code>http://yowza.localhost:8500/</code>). Over 2,300 static pages with search, shopping
+  carts, proxy bidding, threaded comments and moderation all done the 1999 way: cookies and
+  <code>document.write()</code>. Every name, story, product and graphic is invented. Start at
+  <code>http://localhost:8500/web1999/</code>.</p>
+  <div class="gallery" id="gallery99"></div>
+
+  <hr class="rainbow">
+
   <h2><img src="assets/bullet_blue.gif" alt="">Everything in the Administrator works</h2>
   <div class="panels">
     <div class="panel"><h3>server</h3><ul>
@@ -273,6 +283,7 @@
     <tr><td>Language Reference pages, each with a runnable example</td><td>314</td></tr>
     <tr><td>Vintage CFML scripts in the Demo Gallery (from Rosetta Code, GitHub&hellip;)</td><td>60 (51 run as-is)</td></tr>
     <tr><td>Example applications (intranet, HR app, parks browser, widgets)</td><td>5</td></tr>
+    <tr><td>Retro 1999 web sites / static pages in them / GeoHoods homesteaders</td><td>12 / ~2,350 / 251</td></tr>
     <tr><td>Animated GIFs drawn from scratch for this project</td><td>too many</td></tr>
     <tr><td>Java applets required</td><td>0 &mdash; CFGRID, CFTREE and CFSLIDER render as HTML</td></tr>
   </table>
@@ -365,8 +376,24 @@ Original code under the MIT licence; the Demo Gallery keeps each script's own li
     ['install', 'KoldFusion Installation Test', 'Congratulations! Six green checks.'],
     ['login', 'KoldFusion Administrator Login', 'The login page, complete with swoosh.']
   ];
-  var g = document.getElementById('gallery');
-  shots.forEach(function (s) {
+  var shots99 = [
+    ['w99_web1999', 'The 1999 Web Ring', 'The ring hub: twelve sites, one starfield.'],
+    ['w99_yowza', 'Yowza!', 'A hand-built directory: 124 categories, 352 invented sites, the sunglasses icon.'],
+    ['w99_altavisor', 'AltaVisor', 'A search engine whose spider really crawled the other sites: 2,271 pages indexed.'],
+    ['w99_askreeves', 'Ask Reeves', 'Ask a question in plain English. Your butler will see to it.'],
+    ['w99_orinoco', 'Orinoco.com', "Earth's biggest bookstore: 148 invented books, cart, checkout and 1-Click."],
+    ['w99_ubid', 'uBid', '197 auctions with live countdowns, proxy bidding and feedback stars.'],
+    ['w99_etoyz', 'eToyz', 'Shop by age, gift finder, wish lists. Order by Dec. 20!'],
+    ['w99_petz', 'Petz.com', "Because pets can't drive. You save more than we make."],
+    ['w99_geohoods', 'GeoHoods', '251 member homepages in 15 neighborhoods, plus a page builder.'],
+    ['w99_hamstershuffle', 'The Hamster Shuffle', '356 dancing critters. Turn your speakers up.'],
+    ['w99_dashdot', 'Dashdot', 'News for nerds: threaded comments, moderation, Anonymous Coward.'],
+    ['w99_snapster', 'Snapster', 'Search, download, chat. Legal department pending.'],
+    ['w99_cnm', 'CNM Interactive', 'December 20, 1999: 81 stories and a live Y2K countdown.']
+  ];
+  function fill(id, list) {
+  var g = document.getElementById(id);
+  list.forEach(function (s) {
     var w = document.createElement('div');
     w.className = 'win'; w.tabIndex = 0; w.setAttribute('role', 'button'); w.setAttribute('aria-label', 'Enlarge: ' + s[1]);
     w.innerHTML = '<div class="title"><span>' + s[1] + '</span><span class="x"><i>_</i><i>&#9633;</i><i>x</i></span></div>' +
@@ -381,6 +408,9 @@ Original code under the MIT licence; the Demo Gallery keeps each script's own li
     w.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
     g.appendChild(w);
   });
+  }
+  fill('gallery', shots);
+  fill('gallery99', shots99);
   var lb = document.getElementById('lightbox');
   function close() { lb.classList.remove('open'); }
   document.getElementById('lbClose').onclick = close;

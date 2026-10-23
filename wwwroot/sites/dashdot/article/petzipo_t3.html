@@ -1,0 +1,266 @@
+<HTML><HEAD><TITLE>Dashdot | Petz.com IPO Soars Despite Losing Money on Every Sale</TITLE>
+<SCRIPT LANGUAGE="JavaScript"><!--
+
+function getCookie(n) {
+  var c = document.cookie.split("; ");
+  for (var i = 0; i < c.length; i++) {
+    var p = c[i].indexOf("=");
+    if (p > 0 && c[i].substring(0, p) == n) return unescape(c[i].substring(p + 1));
+  }
+  return "";
+}
+function setCookie(n, v, days) {
+  var e = "";
+  if (days) { var d = new Date(); d.setTime(d.getTime() + days * 86400000); e = "; expires=" + d.toGMTString(); }
+  document.cookie = n + "=" + escape(v) + e + "; path=/";
+}
+function delCookie(n) { document.cookie = n + "=; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/"; }
+function qs(n) {
+  var q = location.search.substring(1).split("&");
+  for (var i = 0; i < q.length; i++) {
+    var p = q[i].indexOf("=");
+    if (p > 0 && q[i].substring(0, p) == n) return unescape(q[i].substring(p + 1).replace(/\+/g, " "));
+  }
+  return "";
+}
+function htmlEsc(s) {
+  s = "" + s;
+  s = s.replace(/&/g, "&amp;"); s = s.replace(/</g, "&lt;"); s = s.replace(/>/g, "&gt;"); s = s.replace(/"/g, "&quot;");
+  return s;
+}
+
+function ringRandom(p) {
+  var s = new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","snapster","cnm");
+  var n = Math.floor(Math.random() * s.length);
+  location.href = p + "../" + s[n] + "/" + "index.html";
+  return false;
+}
+
+function ddLogin(f) {
+  var n = f.unickname.value;
+  if (n == "") { alert("Please enter a nickname. Even Anonymous Cowards have to type something."); return false; }
+  if (f.upasswd.value == "") { alert("Please enter your password. (We won't look at it. We don't even keep it.)"); return false; }
+  setCookie("dd_user", n, 30);
+  if (getCookie("dd_points") == "") {
+    setCookie("dd_points", "5", 3);
+    alert("Welcome back, " + n + "!\n\nYou have been randomly selected to moderate.\nYou have 5 moderator points; they expire in 3 days.\nUse them wisely: look for the Moderate menus under each comment.");
+  }
+  location.reload();
+  return false;
+}
+function ddLogout() { delCookie("dd_user"); location.reload(); }
+function loginBox(root) {
+  var u = getCookie("dd_user");
+  if (u != "") {
+    var p = getCookie("dd_points"); if (p == "") p = "0";
+    document.write('<B>Welcome back, ' + htmlEsc(u) + '!</B><BR>Karma: Positive<BR>Moderator points: <B>' + p + '</B><P>');
+    document.write('[ <A HREF="' + root + 'preferences.html">preferences</A> | <A HREF="javascript:ddLogout()">logout</A> ]');
+  } else {
+    document.write('<FORM ACTION="' + root + 'users.html" METHOD="get" onSubmit="return ddLogin(this)">');
+    document.write('<B>Nickname:</B><BR><INPUT TYPE="text" NAME="unickname" SIZE=18><BR><B>Password:</B><BR>');
+    document.write('<INPUT TYPE="password" NAME="upasswd" SIZE=18><BR><INPUT TYPE="submit" VALUE="userlogin"></FORM>');
+    document.write('No account? <A HREF="' + root + 'users.html">Make one</A>. It\'s free, and it lets you pick your comment threshold, keep your nickname, and moderate when the dice say so.');
+  }
+}
+
+var MODPTS = 0;
+if (getCookie("dd_user") != "") { MODPTS = parseInt("0" + getCookie("dd_points"), 10); }
+var MODS = getCookie("dd_mods");
+function S(c, b, r) {
+  var d = 0, rr = r;
+  if (MODS != "") {
+    var a = MODS.split("|");
+    for (var i = 0; i < a.length; i++) {
+      var f = a[i].split(":");
+      if (f[0] == SID && f[1] == "" + c) { d += parseInt(f[2], 10); rr = f[3]; }
+    }
+  }
+  var s = b + d; if (s > 5) s = 5; if (s < -1) s = -1;
+  document.write("(Score:" + s + (rr != "" ? ", " + rr : "") + ")");
+}
+function M(c) {
+  if (MODPTS <= 0) return;
+  document.write(' | <SELECT NAME="m' + c + '"><OPTION VALUE="">Moderate</OPTION>' +
+    '<OPTION VALUE="-1:Offtopic">Offtopic</OPTION><OPTION VALUE="-1:Flamebait">Flamebait</OPTION>' +
+    '<OPTION VALUE="-1:Troll">Troll</OPTION><OPTION VALUE="-1:Redundant">Redundant</OPTION>' +
+    '<OPTION VALUE="1:Insightful">Insightful</OPTION><OPTION VALUE="1:Interesting">Interesting</OPTION>' +
+    '<OPTION VALUE="1:Informative">Informative</OPTION><OPTION VALUE="1:Funny">Funny</OPTION>' +
+    '<OPTION VALUE="-1:Overrated">Overrated</OPTION><OPTION VALUE="1:Underrated">Underrated</OPTION></SELECT>');
+}
+function modButton() {
+  if (MODPTS > 0) {
+    document.write('<CENTER><TABLE BORDER=0 CELLPADDING=4 BGCOLOR="#CCCCCC"><TR><TD ALIGN=CENTER><FONT SIZE=2>' +
+      'You have <B>' + MODPTS + '</B> moderator point(s). Pick reasons from the menus above, then ' +
+      '<INPUT TYPE="button" VALUE="Moderate" onClick="doMod()"></FONT></TD></TR></TABLE></CENTER>');
+  }
+}
+function doMod() {
+  var f = document.forms["mod"];
+  var list = new Array();
+  for (var i = 0; i < f.elements.length; i++) {
+    var e = f.elements[i];
+    if (e.name && e.name.charAt(0) == "m" && e.options) {
+      var v = e.options[e.selectedIndex].value;
+      if (v != "") list[list.length] = SID + ":" + e.name.substring(1) + ":" + v;
+    }
+  }
+  if (list.length == 0) { alert("You didn't pick any moderations. Choose a reason from a comment's Moderate menu first."); return; }
+  if (list.length > MODPTS) { alert("You only have " + MODPTS + " moderator point(s) left, but you picked " + list.length + "."); return; }
+  var m = getCookie("dd_mods");
+  for (var j = 0; j < list.length; j++) m += (m == "" ? "" : "|") + list[j];
+  while (m.length > 3000) m = m.substring(m.indexOf("|") + 1);
+  setCookie("dd_mods", m, 30);
+  setCookie("dd_points", "" + (MODPTS - list.length), 3);
+  location.href = ROOT + "moderated.html?n=" + list.length + "&sid=" + SID;
+}
+function mine() {
+  var raw = getCookie("dd_posts_" + SID);
+  if (raw == "") return;
+  var recs = raw.split("~#~");
+  document.write('<A NAME="mine"></A><P><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#006666"><FONT SIZE=2 COLOR="#FFFFFF"><B>Your comments</B> (saved in your browser until the next cron run weaves them into the thread)</FONT></TD></TR></TABLE>');
+  for (var i = 0; i < recs.length; i++) {
+    var f = recs[i].split("~|~");
+    if (f.length < 6) continue;
+    var sc = (f[1] == "Anonymous Coward") ? 0 : 1;
+    document.write('<TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC">' +
+      '<FONT SIZE=3 COLOR="#000000"><B>' + htmlEsc(f[2]) + '</B></FONT> (Score:' + sc + ')<BR><FONT SIZE=2>by ' +
+      (f[1] == "Anonymous Coward" ? "Anonymous Coward" : '<B>' + htmlEsc(f[1]) + '</B>') + ' on ' + htmlEsc(f[4]) +
+      (f[0] != "0" ? ' (reply to <A HREF="#' + f[0] + '">#' + f[0] + '</A>)' : '') + '</FONT></TD></TR>' +
+      '<TR><TD><FONT SIZE=2>' + f[3] + '</FONT></TD></TR></TABLE><P>');
+  }
+}
+
+var SID = "petzipo"; var ROOT = "../";
+
+function changeT(f) {
+  var t = f.threshold.options[f.threshold.selectedIndex].value;
+  var m = f.mode.options[f.mode.selectedIndex].value;
+  var o = f.order.options[f.order.selectedIndex].value;
+  if (m == "flat" || m == "thread") alert("Flat and Threaded modes are coming in Dash 0.4. Until then, enjoy Nested.");
+  if (m == "nocomment") { location.href = "../index.html"; return false; }
+  if (o != "0") alert("Sorting is handled by a cron job that is currently on fire. Showing oldest first.");
+  location.href = SID + (t == "1" ? "" : "_t" + (t == "-1" ? "m1" : t)) + ".html";
+  return false;
+}
+
+//--></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#000000" TEXT="#000000" LINK="#006666" VLINK="#000000">
+<CENTER><A HREF="../advertising.html"><IMG SRC="../images/banner_kf.gif" WIDTH=468 HEIGHT=60 BORDER=0 ALT="KoldFusion 4.5 from Gibson Mainframe Co."></A></CENTER><P>
+<TABLE BGCOLOR="#FFFFFF" CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH="99%" ALIGN=CENTER><TR>
+<TD VALIGN=TOP ALIGN=LEFT><A HREF="../index.html"><IMG SRC="../images/title.gif" WIDTH=300 HEIGHT=72 BORDER=0 ALT="Welcome to Dashdot"></A></TD>
+</TR></TABLE>
+<TABLE WIDTH="99%" ALIGN=CENTER CELLPADDING=8 CELLSPACING=0 BORDER=0 BGCOLOR="#FFFFFF"><TR>
+<TD VALIGN=TOP><FONT FACE="arial,helvetica" COLOR="#000000">
+<A NAME="top"></A><TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="../images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Petz.com IPO Soars Despite Losing Money on Every Sale</B></FONT></TD></TR></TABLE>
+<A HREF="../topic_money.html"><IMG SRC="../images/topicmoney.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Money"></A>
+<B>Posted by <A HREF="../users/cmdrgrits.html">CmdrGrits</A> on Saturday October 16, @01:00PM EDT</B><BR>
+<FONT SIZE=2><B>from the we'll-make-it-up-in-volume dept.</B></FONT><BR>
+<A HREF="../users/daytraderdan.html">DayTraderDan</A> writes <I>"Online pet store <A HREF="../../petz/index.html">Petz.com</A>, whose sock puppet mascot has become oddly famous, went public today and closed up 85%. According to the S-1, the company sells 40-pound bags of dog food for less than the cost of shipping them. When asked about the business model, a spokesperson said: 'Eyeballs.'"</I> I'm not saying it's a bubble. I'm saying I just saw a sock puppet with a market cap larger than my town.<BR CLEAR=ALL>
+<P><TABLE WIDTH="100%" BORDER=0 CELLSPACING=0 CELLPADDING=0>
+<TR><TD BGCOLOR="#006666" ALIGN=CENTER><FONT SIZE=2 COLOR="#FFFFFF"><B>Petz.com IPO Soars Despite Losing Money on Every Sale</B> | <A HREF="../users.html"><FONT COLOR="#FFFFFF">Login/Create an Account</FONT></A> | <A HREF="#top"><FONT COLOR="#FFFFFF">Top</FONT></A> | <B>45</B> comments | <A HREF="../search.html?query=petzipo"><FONT COLOR="#FFFFFF">Search Discussion</FONT></A></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC" ALIGN=CENTER><FORM NAME="ctl" onSubmit="return changeT(this)"><FONT SIZE=2>
+Threshold: <SELECT NAME="threshold"><OPTION VALUE="-1">-1: 45 comments
+<OPTION VALUE="0">0: 44 comments
+<OPTION VALUE="1">1: 35 comments
+<OPTION VALUE="2">2: 23 comments
+<OPTION VALUE="3" SELECTED>3: 11 comments
+<OPTION VALUE="4">4: 4 comments
+<OPTION VALUE="5">5: 3 comments
+</SELECT>
+<SELECT NAME="mode"><OPTION VALUE="nested" SELECTED>Nested<OPTION VALUE="flat">Flat<OPTION VALUE="thread">Threaded<OPTION VALUE="nocomment">No Comments</SELECT>
+<SELECT NAME="order"><OPTION VALUE="0" SELECTED>Oldest First<OPTION VALUE="1">Newest First<OPTION VALUE="2">Highest Scores First</SELECT>
+<INPUT TYPE="submit" VALUE="Change"> <INPUT TYPE="button" VALUE="Reply" onClick="location.href='../reply.html?sid=petzipo'">
+</FONT></FORM></TD></TR>
+<TR><TD BGCOLOR="#006666" ALIGN=CENTER><FONT SIZE=2 COLOR="#FFFFFF">The fine print: the following comments belong to whoever typed them. Dashdot takes no responsibility for them, and frankly, neither do most of the people who typed them.</FONT></TD></TR></TABLE><P>
+<FORM NAME="mod" onSubmit="return false">
+<UL>
+<LI><FONT SIZE=2><A HREF="petzipo_tm1.html#1">FP</A> by Anonymous Coward (Score:0)</FONT>
+<UL>
+<A NAME="5"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:FP</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(5,4,"Interesting")</SCRIPT><NOSCRIPT>(Score:4, Interesting)</NOSCRIPT><BR>by <A HREF="../users/modem_mike.html">modem_mike</A> on Saturday October 16, @01:33PM EDT (<A HREF="#5">#5</A>)<BR>(<A HREF="../users/modem_mike.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Funny, I had the exact opposite experience. Ymmv, I guess.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=petzipo&amp;pid=5">Reply to This</A> | <A HREF="#1">Parent</A><SCRIPT LANGUAGE="JavaScript">M(5)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+<P>
+<LI><FONT SIZE=2><A HREF="petzipo_tm1.html#2">We'll make it up in volume</A> by Speculatron (Score:1)</FONT>
+<UL>
+<A NAME="3"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:We'll make it up in volume</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(3,3,"Interesting")</SCRIPT><NOSCRIPT>(Score:3, Interesting)</NOSCRIPT><BR>by <A HREF="../users/hexhead.html">HexHead</A> on Saturday October 16, @01:13PM EDT (<A HREF="#3">#3</A>)<BR>(<A HREF="../users/hexhead.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>This. A thousand times this.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=petzipo&amp;pid=3">Reply to This</A> | <A HREF="#2">Parent</A><SCRIPT LANGUAGE="JavaScript">M(3)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+<P>
+<A NAME="11"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>I bought some</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(11,5,"Interesting")</SCRIPT><NOSCRIPT>(Score:5, Interesting)</NOSCRIPT><BR>by <A HREF="../users/fidofan.html">FidoFan</A> on Saturday October 16, @02:42PM EDT (<A HREF="#11">#11</A>)<BR>(<A HREF="../users/fidofan.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>I bought 100 shares at the open. I'm either a genius or I'm going to be eating the dog food. Check back in a year.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=petzipo&amp;pid=11">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(11)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<P>
+<A NAME="22"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Does it run Linix?</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(22,3,"Funny")</SCRIPT><NOSCRIPT>(Score:3, Funny)</NOSCRIPT><BR>by <A HREF="../users/sysadmin_steve.html">sysadmin_steve</A> on Saturday October 16, @04:24PM EDT (<A HREF="#22">#22</A>)<BR>(<A HREF="../users/sysadmin_steve.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>But does it run Linix?</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=petzipo&amp;pid=22">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(22)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<P>
+<LI><FONT SIZE=2><A HREF="petzipo_tm1.html#23">lol</A> by CmdrGrits (Score:2)</FONT>
+<UL>
+<A NAME="25"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:lol</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(25,5,"Funny")</SCRIPT><NOSCRIPT>(Score:5, Funny)</NOSCRIPT><BR>by <A HREF="../users/cmdrgrits.html">CmdrGrits</A> on Saturday October 16, @04:54PM EDT (<A HREF="#25">#25</A>)<BR>(<A HREF="../users/cmdrgrits.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Hey, at least it's not Portals.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=petzipo&amp;pid=25">Reply to This</A> | <A HREF="#23">Parent</A><SCRIPT LANGUAGE="JavaScript">M(25)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<LI><FONT SIZE=2><A HREF="petzipo_tm1.html#27">Re:lol</A> by frostbyte (Score:2)</FONT>
+<UL>
+<LI><FONT SIZE=2><A HREF="petzipo_tm1.html#34">Re:lol</A> by RailgunRhonda (Score:2)</FONT>
+<UL>
+<LI><FONT SIZE=2><A HREF="petzipo_tm1.html#35">Re:lol</A> by MediaMaven (Score:0)</FONT>
+<UL>
+<A NAME="39"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:lol</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(39,3,"Insightful")</SCRIPT><NOSCRIPT>(Score:3, Insightful)</NOSCRIPT><BR>by <A HREF="../users/linixdvd.html">Linixdvd</A> on Saturday October 16, @07:18PM EDT (<A HREF="#39">#39</A>)<BR>(<A HREF="../users/linixdvd.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>The parent's point stands, though: it depends entirely on the use case.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=petzipo&amp;pid=39">Reply to This</A> | <A HREF="#35">Parent</A><SCRIPT LANGUAGE="JavaScript">M(39)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="40"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:lol</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(40,3,"Funny")</SCRIPT><NOSCRIPT>(Score:3, Funny)</NOSCRIPT><BR>by <A HREF="../users/kludge_king.html">kludge_king</A> on Saturday October 16, @07:33PM EDT (<A HREF="#40">#40</A>)<BR>(<A HREF="../users/kludge_king.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>You're both wrong, and I'm going to explain why in a post that's way too long for anyone to read. Paragraph one: ...</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=petzipo&amp;pid=40">Reply to This</A> | <A HREF="#39">Parent</A><SCRIPT LANGUAGE="JavaScript">M(40)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+</UL>
+<A NAME="36"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:lol</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(36,3,"Interesting")</SCRIPT><NOSCRIPT>(Score:3, Interesting)</NOSCRIPT><BR>by <A HREF="../users/ladybug_lisp.html">ladybug_lisp</A> on Saturday October 16, @06:36PM EDT (<A HREF="#36">#36</A>)<BR>(<A HREF="../users/ladybug_lisp.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Did you even read the parent post? He said the opposite.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=petzipo&amp;pid=36">Reply to This</A> | <A HREF="#34">Parent</A><SCRIPT LANGUAGE="JavaScript">M(36)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<UL>
+<A NAME="41"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:lol</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(41,3,"Interesting")</SCRIPT><NOSCRIPT>(Score:3, Interesting)</NOSCRIPT><BR>by <A HREF="../users/lawgeek.html">LawGeek</A> on Saturday October 16, @07:49PM EDT (<A HREF="#41">#41</A>)<BR>(<A HREF="../users/lawgeek.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>This. A thousand times this.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=petzipo&amp;pid=41">Reply to This</A> | <A HREF="#36">Parent</A><SCRIPT LANGUAGE="JavaScript">M(41)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+<A NAME="42"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Re:lol</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(42,3,"Interesting")</SCRIPT><NOSCRIPT>(Score:3, Interesting)</NOSCRIPT><BR>by <A HREF="../users/hexhead.html">HexHead</A> on Saturday October 16, @07:54PM EDT (<A HREF="#42">#42</A>)<BR>(<A HREF="../users/hexhead.html">User Info</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>Thanks for posting this. I learned something today, which is rare for a comment section.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=petzipo&amp;pid=42">Reply to This</A> | <A HREF="#34">Parent</A><SCRIPT LANGUAGE="JavaScript">M(42)</SCRIPT> ]</FONT></TD></TR></TABLE>
+</UL>
+</UL>
+</UL>
+</UL>
+<P>
+<A NAME="24"></A><TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3 COLOR="#000000"><B>Sock puppet</B></FONT> <FONT FACE="arial,helvetica" SIZE=2><SCRIPT LANGUAGE="JavaScript">S(24,5,"Funny")</SCRIPT><NOSCRIPT>(Score:5, Funny)</NOSCRIPT><BR>by Anonymous Coward on Saturday October 16, @04:43PM EDT (<A HREF="#24">#24</A>)</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>I'd buy the sock puppet. Just the puppet. Not the stock.</FONT></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2>[ <A HREF="../reply.html?sid=petzipo&amp;pid=24">Reply to This</A><SCRIPT LANGUAGE="JavaScript">M(24)</SCRIPT> ]</FONT></TD></TR></TABLE>
+<P>
+</UL>
+<P><FONT SIZE=2><B>34</B> replies beneath your current threshold. <A HREF="petzipo_tm1.html">Show them all</A> (threshold -1).</FONT>
+<SCRIPT LANGUAGE="JavaScript"><!--
+mine();
+modButton();
+//--></SCRIPT>
+</FORM>
+</FONT></TD></TR></TABLE>
+<TABLE BGCOLOR="#FFFFFF" WIDTH="99%" ALIGN=CENTER BORDER=0 CELLPADDING=4 CELLSPACING=0><TR><TD>
+<TABLE WIDTH="100%" BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD BGCOLOR="#006666"><IMG SRC="../images/pix.gif" WIDTH=1 HEIGHT=4 ALT=""></TD></TR></TABLE>
+<CENTER><FORM ACTION="../search.html" METHOD="get"><FONT FACE="arial,helvetica" SIZE=2><INPUT TYPE="text" NAME="query" SIZE=20> <INPUT TYPE="submit" VALUE="Search"></FONT></FORM>
+<FONT FACE="arial,helvetica" SIZE=2><I>Never trust a computer you can't throw out a window.</I></FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>[ <A HREF="../index.html">home</A> | <A HREF="../awards.html">awards</A> | <A HREF="../supporters.html">supporters</A> | <A HREF="../grits.html">grits' homepage</A> | <A HREF="../submit.html">contribute story</A> | <A HREF="../older.html">older articles</A> | <A HREF="../overandover.html">overandover.net</A> | <A HREF="../advertising.html">advertising</A> | <A HREF="../polls.html">past polls</A> | <A HREF="../topics.html">topics</A> | <A HREF="../about.html">about</A> | <A HREF="../jobs.html">jobs</A> | <A HREF="../hof.html">hof</A> ]</FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>Trademarks belong to whoever trademarked them. Comments belong to whoever typed them. Everything else &copy; 1997-99 Overandover.net. Dashdot is served hot by KoldFusion 4.5 from Gibson Mainframe Co.</FONT><BR>
+<A HREF="../about.html"><IMG SRC="../images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion" VSPACE=6></A>
+</CENTER></TD></TR></TABLE>
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../../hamstershuffle/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../../web1999/index.html" onClick="return ringRandom('../')">Random</A> |
+<B><A HREF="../../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Dashdot is site 10 of 12 |
+<A HREF="../../snapster/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER><P>
+</BODY></HTML>

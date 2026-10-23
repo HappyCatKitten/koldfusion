@@ -1,0 +1,118 @@
+<HTML><HEAD><TITLE>Dashdot | Meta-Moderation</TITLE>
+<SCRIPT LANGUAGE="JavaScript"><!--
+
+function getCookie(n) {
+  var c = document.cookie.split("; ");
+  for (var i = 0; i < c.length; i++) {
+    var p = c[i].indexOf("=");
+    if (p > 0 && c[i].substring(0, p) == n) return unescape(c[i].substring(p + 1));
+  }
+  return "";
+}
+function setCookie(n, v, days) {
+  var e = "";
+  if (days) { var d = new Date(); d.setTime(d.getTime() + days * 86400000); e = "; expires=" + d.toGMTString(); }
+  document.cookie = n + "=" + escape(v) + e + "; path=/";
+}
+function delCookie(n) { document.cookie = n + "=; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/"; }
+function qs(n) {
+  var q = location.search.substring(1).split("&");
+  for (var i = 0; i < q.length; i++) {
+    var p = q[i].indexOf("=");
+    if (p > 0 && q[i].substring(0, p) == n) return unescape(q[i].substring(p + 1).replace(/\+/g, " "));
+  }
+  return "";
+}
+function htmlEsc(s) {
+  s = "" + s;
+  s = s.replace(/&/g, "&amp;"); s = s.replace(/</g, "&lt;"); s = s.replace(/>/g, "&gt;"); s = s.replace(/"/g, "&quot;");
+  return s;
+}
+
+function ringRandom(p) {
+  var s = new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","snapster","cnm");
+  var n = Math.floor(Math.random() * s.length);
+  location.href = p + "../" + s[n] + "/" + "index.html";
+  return false;
+}
+
+function ddLogin(f) {
+  var n = f.unickname.value;
+  if (n == "") { alert("Please enter a nickname. Even Anonymous Cowards have to type something."); return false; }
+  if (f.upasswd.value == "") { alert("Please enter your password. (We won't look at it. We don't even keep it.)"); return false; }
+  setCookie("dd_user", n, 30);
+  if (getCookie("dd_points") == "") {
+    setCookie("dd_points", "5", 3);
+    alert("Welcome back, " + n + "!\n\nYou have been randomly selected to moderate.\nYou have 5 moderator points; they expire in 3 days.\nUse them wisely: look for the Moderate menus under each comment.");
+  }
+  location.reload();
+  return false;
+}
+function ddLogout() { delCookie("dd_user"); location.reload(); }
+function loginBox(root) {
+  var u = getCookie("dd_user");
+  if (u != "") {
+    var p = getCookie("dd_points"); if (p == "") p = "0";
+    document.write('<B>Welcome back, ' + htmlEsc(u) + '!</B><BR>Karma: Positive<BR>Moderator points: <B>' + p + '</B><P>');
+    document.write('[ <A HREF="' + root + 'preferences.html">preferences</A> | <A HREF="javascript:ddLogout()">logout</A> ]');
+  } else {
+    document.write('<FORM ACTION="' + root + 'users.html" METHOD="get" onSubmit="return ddLogin(this)">');
+    document.write('<B>Nickname:</B><BR><INPUT TYPE="text" NAME="unickname" SIZE=18><BR><B>Password:</B><BR>');
+    document.write('<INPUT TYPE="password" NAME="upasswd" SIZE=18><BR><INPUT TYPE="submit" VALUE="userlogin"></FORM>');
+    document.write('No account? <A HREF="' + root + 'users.html">Make one</A>. It\'s free, and it lets you pick your comment threshold, keep your nickname, and moderate when the dice say so.');
+  }
+}
+
+function metaDone(f) {
+  var fair = 0, unfair = 0;
+  for (var i = 0; i < f.elements.length; i++) {
+    var e = f.elements[i];
+    if (e.type == "radio" && e.checked) { if (e.value == "1") fair++; if (e.value == "-1") unfair++; }
+  }
+  alert("Thanks! You found " + fair + " moderation(s) fair and " + unfair + " unfair.\n\nThe moderators in question will be notified by a sternly worded cron job.");
+  location.href = "index.html";
+  return false;
+}
+
+//--></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#000000" TEXT="#000000" LINK="#006666" VLINK="#000000">
+<CENTER><A HREF="../orinoco/index.html"><IMG SRC="images/banner_orinoco.gif" WIDTH=468 HEIGHT=60 BORDER=0 ALT="Orinoco.com"></A></CENTER><P>
+<TABLE BGCOLOR="#FFFFFF" CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH="99%" ALIGN=CENTER><TR>
+<TD VALIGN=TOP ALIGN=LEFT><A HREF="index.html"><IMG SRC="images/title.gif" WIDTH=300 HEIGHT=72 BORDER=0 ALT="Welcome to Dashdot"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_y2k.html"><IMG SRC="images/topicy2k.gif" BORDER=0 ALT="Y2K"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_hardware.html"><IMG SRC="images/topichardware.gif" BORDER=0 ALT="Hardware"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_patents.html"><IMG SRC="images/topicpatents.gif" BORDER=0 ALT="Patents"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_linix.html"><IMG SRC="images/topiclinix.gif" BORDER=0 ALT="Linix"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_games.html"><IMG SRC="images/topicgames.gif" BORDER=0 ALT="Games"></A></TD>
+</TR></TABLE>
+<TABLE WIDTH="99%" ALIGN=CENTER CELLPADDING=8 CELLSPACING=0 BORDER=0 BGCOLOR="#FFFFFF"><TR>
+<TD VALIGN=TOP><FONT FACE="arial,helvetica" COLOR="#000000">
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Meta-Moderation</B></FONT></TD></TR></TABLE>
+<P><FONT SIZE=2><P>Who watches the watchers? You do. Below are eight recent moderations. Tell us whether each one was fair.</FONT><FORM NAME="mm" onSubmit="return metaDone(this)"><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=2><TR><TD VALIGN=TOP BGCOLOR="#CCCCCC"><FONT SIZE=2><B>Re:I bought some</B><BR>moderated <B>Funny</B></FONT></TD><TD VALIGN=TOP><FONT SIZE=2>You must be new here.<BR><A HREF="article/petzipo.html#16">context</A></FONT></TD><TD VALIGN=TOP NOWRAP><FONT SIZE=2><INPUT TYPE="radio" NAME="mm0" VALUE="1">Fair<BR><INPUT TYPE="radio" NAME="mm0" VALUE="0" CHECKED>Unsure<BR><INPUT TYPE="radio" NAME="mm0" VALUE="-1">Unfair</FONT></TD></TR>
+<TR><TD VALIGN=TOP BGCOLOR="#CCCCCC"><FONT SIZE=2><B>Meh</B><BR>moderated <B>Flamebait</B></FONT></TD><TD VALIGN=TOP><FONT SIZE=2>Meh. Wake me up when it's open source.<BR><A HREF="article/marsprobe.html#32">context</A></FONT></TD><TD VALIGN=TOP NOWRAP><FONT SIZE=2><INPUT TYPE="radio" NAME="mm1" VALUE="1">Fair<BR><INPUT TYPE="radio" NAME="mm1" VALUE="0" CHECKED>Unsure<BR><INPUT TYPE="radio" NAME="mm1" VALUE="-1">Unfair</FONT></TD></TR>
+<TR><TD VALIGN=TOP BGCOLOR="#CCCCCC"><FONT SIZE=2><B>Re:FP</B><BR>moderated <B>Offtopic</B></FONT></TD><TD VALIGN=TOP><FONT SIZE=2>Don't feed the trolls.<BR><A HREF="article/marsprobe.html#6">context</A></FONT></TD><TD VALIGN=TOP NOWRAP><FONT SIZE=2><INPUT TYPE="radio" NAME="mm2" VALUE="1">Fair<BR><INPUT TYPE="radio" NAME="mm2" VALUE="0" CHECKED>Unsure<BR><INPUT TYPE="radio" NAME="mm2" VALUE="-1">Unfair</FONT></TD></TR>
+<TR><TD VALIGN=TOP BGCOLOR="#CCCCCC"><FONT SIZE=2><B>Jam day won't work</B><BR>moderated <B>Insightful</B></FONT></TD><TD VALIGN=TOP><FONT SIZE=2>Adding keywords to your sig just trains their filters on noise. Real traffic analysis doesn't care about words anyway, it cares about who talks to whom.<BR><A HREF="article/earwig.html#2">context</A></FONT></TD><TD VALIGN=TOP NOWRAP><FONT SIZE=2><INPUT TYPE="radio" NAME="mm3" VALUE="1">Fair<BR><INPUT TYPE="radio" NAME="mm3" VALUE="0" CHECKED>Unsure<BR><INPUT TYPE="radio" NAME="mm3" VALUE="-1">Unfair</FONT></TD></TR>
+<TR><TD VALIGN=TOP BGCOLOR="#CCCCCC"><FONT SIZE=2><B>Re:USB support finally</B><BR>moderated <B>Interesting</B></FONT></TD><TD VALIGN=TOP><FONT SIZE=2>Funny, I had the exact opposite experience. Ymmv, I guess.<BR><A HREF="article/kernel2322.html#4">context</A></FONT></TD><TD VALIGN=TOP NOWRAP><FONT SIZE=2><INPUT TYPE="radio" NAME="mm4" VALUE="1">Fair<BR><INPUT TYPE="radio" NAME="mm4" VALUE="0" CHECKED>Unsure<BR><INPUT TYPE="radio" NAME="mm4" VALUE="-1">Unfair</FONT></TD></TR>
+<TR><TD VALIGN=TOP BGCOLOR="#CCCCCC"><FONT SIZE=2><B>Re:50K a month?</B><BR>moderated <B>Funny</B></FONT></TD><TD VALIGN=TOP><FONT SIZE=2>You're both wrong, and I'm going to explain why in a post that's way too long for anyone to read. Paragraph one: ...<BR><A HREF="article/frondvii.html#5">context</A></FONT></TD><TD VALIGN=TOP NOWRAP><FONT SIZE=2><INPUT TYPE="radio" NAME="mm5" VALUE="1">Fair<BR><INPUT TYPE="radio" NAME="mm5" VALUE="0" CHECKED>Unsure<BR><INPUT TYPE="radio" NAME="mm5" VALUE="-1">Unfair</FONT></TD></TR>
+<TR><TD VALIGN=TOP BGCOLOR="#CCCCCC"><FONT SIZE=2><B>Interesting, but...</B><BR>moderated <B>Insightful</B></FONT></TD><TD VALIGN=TOP><FONT SIZE=2>This is interesting, but I think the article misses the bigger picture. Technology like this only matters when it gets cheap enough for ordinary people. Until then it's a toy for people who read Dashdot. Which, admittedly, is us.<BR><A HREF="article/crapware.html#29">context</A></FONT></TD><TD VALIGN=TOP NOWRAP><FONT SIZE=2><INPUT TYPE="radio" NAME="mm6" VALUE="1">Fair<BR><INPUT TYPE="radio" NAME="mm6" VALUE="0" CHECKED>Unsure<BR><INPUT TYPE="radio" NAME="mm6" VALUE="-1">Unfair</FONT></TD></TR>
+<TR><TD VALIGN=TOP BGCOLOR="#CCCCCC"><FONT SIZE=2><B>Re:FP</B><BR>moderated <B>Funny</B></FONT></TD><TD VALIGN=TOP><FONT SIZE=2>Says the guy posting at 3am on a Tuesday.<BR><A HREF="article/petzipo.html#15">context</A></FONT></TD><TD VALIGN=TOP NOWRAP><FONT SIZE=2><INPUT TYPE="radio" NAME="mm7" VALUE="1">Fair<BR><INPUT TYPE="radio" NAME="mm7" VALUE="0" CHECKED>Unsure<BR><INPUT TYPE="radio" NAME="mm7" VALUE="-1">Unfair</FONT></TD></TR>
+</TABLE><INPUT TYPE="submit" VALUE="Meta-Moderate"></FORM></FONT></TD></TR></TABLE>
+<TABLE BGCOLOR="#FFFFFF" WIDTH="99%" ALIGN=CENTER BORDER=0 CELLPADDING=4 CELLSPACING=0><TR><TD>
+<TABLE WIDTH="100%" BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD BGCOLOR="#006666"><IMG SRC="images/pix.gif" WIDTH=1 HEIGHT=4 ALT=""></TD></TR></TABLE>
+<CENTER><FORM ACTION="search.html" METHOD="get"><FONT FACE="arial,helvetica" SIZE=2><INPUT TYPE="text" NAME="query" SIZE=20> <INPUT TYPE="submit" VALUE="Search"></FONT></FORM>
+<FONT FACE="arial,helvetica" SIZE=2><I>The year 2000 is just 1999 with better marketing.</I></FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>[ <A HREF="index.html">home</A> | <A HREF="awards.html">awards</A> | <A HREF="supporters.html">supporters</A> | <A HREF="grits.html">grits' homepage</A> | <A HREF="submit.html">contribute story</A> | <A HREF="older.html">older articles</A> | <A HREF="overandover.html">overandover.net</A> | <A HREF="advertising.html">advertising</A> | <A HREF="polls.html">past polls</A> | <A HREF="topics.html">topics</A> | <A HREF="about.html">about</A> | <A HREF="jobs.html">jobs</A> | <A HREF="hof.html">hof</A> ]</FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>Trademarks belong to whoever trademarked them. Comments belong to whoever typed them. Everything else &copy; 1997-99 Overandover.net. Dashdot is served hot by KoldFusion 4.5 from Gibson Mainframe Co.</FONT><BR>
+<A HREF="about.html"><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion" VSPACE=6></A>
+</CENTER></TD></TR></TABLE>
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../hamstershuffle/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="return ringRandom('')">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Dashdot is site 10 of 12 |
+<A HREF="../snapster/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER><P>
+</BODY></HTML>

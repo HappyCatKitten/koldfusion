@@ -1,0 +1,60 @@
+<HTML>
+<HEAD>
+<TITLE>Yowza! - Thank You</TITLE>
+<META NAME="description" CONTENT="Yowza! - a hand-sorted guide to the World Wide Web.">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000CC" VLINK="#551A8B" ALINK="#FF0000">
+<TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=0>
+<TR><TD WIDTH="1%"><A HREF="index.html"><IMG SRC="images/yowza_sm.gif" ALT="Yowza!" BORDER=0 WIDTH=147 HEIGHT=31></A></TD>
+<TD><TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="100%"><TR>
+<TD VALIGN=BOTTOM><FONT FACE=arial SIZE=-1><A HREF="my.html">Personalize</A></FONT></TD>
+<TD ALIGN=RIGHT VALIGN=BOTTOM><FONT FACE=arial SIZE=-1><A HREF="help.html">Help</A> - <A HREF="mail.html">Check Email</A></FONT></TD>
+</TR></TABLE><HR SIZE=1 NOSHADE></TD></TR></TABLE>
+<TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=3>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=-1><A HREF="index.html">Home</A> &gt; <A HREF="suggest.html">Suggest a Site</A> &gt; </FONT></TD></TR>
+<TR><TD WIDTH="80%" BGCOLOR="#A0B8C8"><NOBR><B><FONT FACE="arial,helvetica">Thank You!</FONT></B></NOBR></TD></TR>
+</TABLE>
+<P>
+<TABLE WIDTH=600 BORDER=0><TR><TD><FONT FACE=arial SIZE=-1>
+<B>Your suggestion has been added to the Yowza! moderation queue.</B> One of our surfers will look at it as soon as
+they finish the cold pizza and the 48,000 suggestions ahead of yours. If the site is accepted it will appear in
+the directory within a few weeks. If it is not, please do not take it personally. Unless it was the hamster page again.
+</FONT></TD></TR></TABLE>
+<P><TABLE WIDTH=600 BORDER=0 CELLPADDING=3 CELLSPACING=1 BGCOLOR="#000000">
+<TR BGCOLOR="#A0B8C8"><TD><FONT FACE=arial SIZE=-1><B>#</B></FONT></TD><TD><FONT FACE=arial SIZE=-1><B>Your suggestion</B></FONT></TD><TD><FONT FACE=arial SIZE=-1><B>Category</B></FONT></TD><TD><FONT FACE=arial SIZE=-1><B>Status</B></FONT></TD></TR>
+<SCRIPT LANGUAGE="JavaScript" SRC="yz_index.js"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function h(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+var all = document.cookie.split('; '), q = new Array();
+for (var i = 0; i < all.length; i++) if (all[i].indexOf('yzqueue=') == 0) { var v = unescape(all[i].substring(8)); if (v != '') q = v.split('^'); }
+var stat = new Array('Waiting for a surfer', 'Waiting for a surfer', 'Surfer is on a coffee break', 'Being read (slowly)', 'Under review by a senior surfer', 'Surfer is laughing (good sign?)');
+if (q.length == 0) document.write('<TR BGCOLOR="#FFFFFF"><TD COLSPAN=4><FONT SIZE=-1>Your queue is empty. (Cookies must be turned on for Yowza! to remember your suggestions.)</FONT></TD></TR>');
+for (var i = q.length - 1; i >= 0; i--) {
+  var f = q[i].split('~');
+  var age = Math.floor(((new Date()).getTime() - parseInt(f[4])) / 60000);
+  var st = stat[Math.min(stat.length - 1, Math.floor(age / 7))];
+  document.write('<TR BGCOLOR="#FFFFFF"><TD><FONT SIZE=-1>' + (48213 + i * 977) + '</FONT></TD><TD><FONT SIZE=-1><B>' + h(unescape(f[1])) + '</B><BR>' + h(unescape(f[2])) + '<BR><I>' + h(unescape(f[3])) + '</I></FONT></TD><TD><FONT SIZE=-1><A HREF="dir/' + unescape(f[0]) + '/index.html">' + h(T[unescape(f[0])] || unescape(f[0])) + '</A></FONT></TD><TD><FONT SIZE=-1 COLOR="#CC0000">' + st + '</FONT></TD></TR>');
+}
+// -->
+</SCRIPT>
+</TABLE>
+<P><FONT FACE=arial SIZE=-1><A HREF="suggest.html">Suggest another site</A> - <A HREF="index.html">Back to Yowza!</A> -
+<A HREF="#" onClick="document.cookie='yzqueue=; path=/'; location.reload(); return false;">Withdraw all my suggestions</A></FONT>
+<P><HR SIZE=0>
+<CENTER><FONT SIZE=-1><I>Copyright &copy; 1994-99 Yowza! Inc. All Rights Reserved.</I> -
+<A HREF="info.html">Company Information</A> -
+<A HREF="suggest.html">Suggest a Site</A> -
+<A HREF="help.html">FAQ</A></FONT></CENTER>
+
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../cnm/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="var r=new Array('yowza','altavisor','askreeves','orinoco','ubid','etoyz','petz','geohoods','hamstershuffle','dashdot','snapster','cnm'); location.href='../'+r[Math.floor(Math.random()*r.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Yowza! is site 1 of 12 |
+<A HREF="../altavisor/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER>
+</BODY>
+</HTML>

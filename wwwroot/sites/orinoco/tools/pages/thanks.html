@@ -1,0 +1,23 @@
+<SCRIPT LANGUAGE="JavaScript">
+var F = "<FONT FACE=\"verdana,arial,helvetica\" SIZE=-1>";
+var no = qs("order"), o = ordersGet(), mine = null;
+for (var i = 0; i < o.length; i++) if (o[i][0] == no) mine = o[i];
+var u = userGet();
+if (!mine) {
+  document.write("<FONT FACE=\"verdana,arial,helvetica\" SIZE=+1><B>Hmm.</B></FONT><BR><BR>" + F + "We couldn't find that order. Perhaps it was cancelled? Check <A HREF=\"" + P + "account.html\">Your Account</A>.</FONT>");
+} else {
+  document.write("<FONT FACE=\"verdana,arial,helvetica\" SIZE=+1 COLOR=\"#CC6600\"><B>Thank you for shopping at Orinoco.com!</B></FONT><BR><BR>");
+  if (qs("oneclick") == "1") document.write("<TABLE BORDER=0 CELLPADDING=6 BGCOLOR=\"#C9DDF2\" WIDTH=\"100%\"><TR><TD>" + F + "<IMG SRC=\"" + P + "images/finger.gif\" WIDTH=16 HEIGHT=16> <B>Ordered with 1-Click.</B> That was it -- no forms, no fuss. Changed your mind? You have 90 minutes to cancel in <A HREF=\"" + P + "account.html\">Your Account</A>.</FONT></TD></TR></TABLE><BR>");
+  document.write(F + "Your order number is <B>" + esc(no) + "</B>. A confirmation will be sent to <B>" + esc(u ? u[1] : "your e-mail address") + "</B> as soon as our mail server finishes its nap.<BR><BR>");
+  var its = mine[2].split(",");
+  document.write("<TABLE BORDER=0 CELLPADDING=3>");
+  for (var k = 0; k < its.length; k++) {
+    var p = its[k].split(":"), it = findItem(p[0]);
+    if (it) document.write("<TR><TD><IMG SRC=\"" + coverURL(it) + "\"></TD><TD>" + F + p[1] + " x <A HREF=\"" + itemURL(it) + "\"><B>" + esc(it[1]) + "</B></A><BR>" + esc(it[7]) + "</FONT></TD></TR>");
+  }
+  document.write("</TABLE><BR>Order total: <B>" + money(parseInt(mine[4])) + "</B>, via " + SHIP[parseInt(mine[3])][0] + ".<BR><BR>");
+  document.write("You can check on this order any time in <A HREF=\"" + P + "account.html\">Your Account</A>. ");
+  document.write("And while you wait, why not <A HREF=\"" + P + "hot100.html\">browse the Hot 100</A>?</FONT>");
+}
+</SCRIPT>
+<NOSCRIPT>Thank you for your order!</NOSCRIPT>

@@ -1,0 +1,46 @@
+<HTML>
+<HEAD>
+<TITLE>Tell a Friend about the Hamster Shuffle</TITLE>
+<META NAME="GENERATOR" CONTENT="Microsoft FrontDoor Page 3.0">
+<META NAME="KEYWORDS" CONTENT="hamster, hamsters, dance, shuffle, dancing hamsters, funny, cute">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#551A8B">
+<CENTER><P><IMG SRC="images/trio.gif" WIDTH=144 HEIGHT=48></P>
+<H1><FONT FACE="Arial Black, Arial" COLOR="#0066FF">Tell A Friend!</FONT></H1>
+<P><FONT FACE="Arial" SIZE=2>Spread the shuffle! Fill this in and we will open an e-mail to your friend for you.</FONT></P>
+<TABLE BORDER=3 CELLPADDING=8 BGCOLOR="#E6F7FF"><TR><TD>
+<FORM NAME="friend" ACTION="thanks.html" METHOD="GET" onSubmit="return tell();">
+<INPUT TYPE="hidden" NAME="form" VALUE="friend">
+<FONT FACE="Arial" SIZE=2>Your name: <INPUT TYPE="text" NAME="from" SIZE=25><BR>
+Your friend's e-mail: <INPUT TYPE="text" NAME="to" SIZE=25><BR>
+Message:<BR><TEXTAREA NAME="msg" ROWS=4 COLS=40 WRAP=VIRTUAL>Dancing hamsters. That is it. That is the whole website. Turn your speakers up!</TEXTAREA><BR>
+<INPUT TYPE="submit" VALUE="Send it!"></FONT>
+</FORM></TD></TR></TABLE>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function tell() {
+  var f = document.forms["friend"];
+  if (f.to.value.indexOf("@") < 0) { alert("Please type your friend's e-mail address!"); return false; }
+  var url = location.href.substring(0, location.href.lastIndexOf("/") + 1) + "index.html";
+  var body = f.msg.value + "\n\n" + url + "\n\n-- " + f.from.value;
+  location.href = "mailto:" + f.to.value + "?subject=" + escape("You HAVE to see this") + "&body=" + escape(body);
+  setTimeout("location.href = 'thanks.html?form=friend'", 1500);
+  return false;
+}
+//-->
+</SCRIPT>
+<P><FONT FACE="Arial" SIZE=2>No JavaScript? Just <A HREF="mailto:?subject=You%20HAVE%20to%20see%20this&amp;body=Dancing%20hamsters.%20Turn%20your%20speakers%20up!">click here to e-mail a friend</A>.</FONT></P>
+<P><IMG SRC="images/mouse.gif" WIDTH=48 HEIGHT=60> <IMG SRC="images/guinea.gif" WIDTH=64 HEIGHT=56> <IMG SRC="images/mouse.gif" WIDTH=48 HEIGHT=60></P></CENTER>
+<P><CENTER><FONT FACE="Arial" SIZE=2>
+<A HREF="index.html">Dance Floor</A> | <A HREF="dancers.html">Meet the Dancers</A> | <A HREF="fanclub.html">Fan Club</A> | <A HREF="tellafriend.html">Tell a Friend</A> | <A HREF="remix.html">Turbo Remix</A> | <A HREF="merch.html">Merchandise</A> | <A HREF="help.html">Help!</A>
+</FONT></CENTER></P>
+<P><CENTER><FONT FACE="Arial" SIZE=1>This page hosted by <A HREF="../geohoods/index.html">GeoHoods</A>. <A HREF="../geohoods/join.html">Get your own Free Home Page</A></FONT></CENTER></P>
+<P><CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">
+<A HREF="../geohoods/index.html">&lt;&lt; Prev</A> |
+<A HREF="../yowza/index.html" onClick="var s=new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","dashdot","snapster","cnm"); location.href='../'+s[Math.floor(Math.random()*s.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> |
+<A HREF="../dashdot/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE></CENTER></P>
+
+</BODY>
+</HTML>

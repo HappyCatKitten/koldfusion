@@ -1,0 +1,35 @@
+<FONT FACE="Arial, Helvetica" SIZE=5><B>Search</B></FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var q = qs("q"), seller = qs("seller").toLowerCase(), done = qs("completed") != "", sort = qs("sort");
+if (sort == "") sort = "end";
+function sel(v, label) { return "<OPTION VALUE=\"" + v + "\"" + (sort == v ? " SELECTED" : "") + ">" + label; }
+var h = "<FORM NAME=\"s\" ACTION=\"" + P + "search.html\" METHOD=GET><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR=\"#CCCCFF\" WIDTH=\"100%\"><TR><TD>";
+h += "<FONT FACE=\"Arial, Helvetica\" SIZE=2><B>Find items:</B> <INPUT TYPE=text NAME=\"q\" SIZE=28 VALUE=\"" + esc(q) + "\"> ";
+h += "<SELECT NAME=\"sort\">" + sel("end", "ending first") + sel("price", "highest prices") + sel("new", "newly listed") + "</SELECT> ";
+h += "<INPUT TYPE=checkbox NAME=\"completed\" VALUE=\"1\"" + (done ? " CHECKED" : "") + "> completed auctions ";
+h += "<INPUT TYPE=submit VALUE=\"Search\"></FONT></TD></TR></TABLE></FORM>";
+document.write(h);
+if (q != "" || seller != "") {
+  var rows = seller != "" ? pick("seller", seller, done) : pick("search", q, done);
+  if (done && sort == "end") sort = "ended";
+  rows = sortRows(rows, sort);
+  document.write("<FONT SIZE=2><B>" + rows.length + "</B> " + (done ? "completed " : "") + "item" + (rows.length == 1 ? "" : "s") + " found for <B>" + esc(seller != "" ? "seller " + seller : q) + "</B>.");
+  if (!done) document.write(" <A HREF=\"" + P + "search.html?q=" + escape(q) + "&seller=" + escape(seller) + "&completed=1\">Search completed auctions</A> to see what things sold for.");
+  document.write("</FONT><BR><BR>" + listTable(rows, done ? "ended" : "live"));
+  if (rows.length == 0 && q != "") {
+    document.write("<BR><FONT SIZE=2>No luck? Try a shorter word, or look for <A HREF=\"" + P + "../orinoco/search.html?index=blended&keywords=" + escape(q) + "\">\"" + esc(q) + "\" at Orinoco.com</A> ");
+    document.write("or <A HREF=\"" + P + "../etoyz/search.html?q=" + escape(q) + "\">at eToyz</A>.</FONT>");
+  }
+} else {
+  document.write("<FONT SIZE=2>Search titles and descriptions of every item for sale. Popular searches this week: ");
+  var pop = new Array("furby", "beanie", "pokemon", "y2k", "zip", "palm", "lunchbox", "pez");
+  for (var i = 0; i < pop.length; i++) document.write("<A HREF=\"" + P + "search.html?q=" + pop[i] + "\">" + pop[i] + "</A>" + (i < pop.length - 1 ? ", " : "."));
+  document.write("</FONT>");
+}
+</SCRIPT>
+<A NAME="seller"></A><BR><BR>
+<FORM NAME="bys" ACTION="search.html" METHOD=GET><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#EFEFEF"><TR><TD>
+<FONT FACE="Arial, Helvetica" SIZE=2><B>Search by seller:</B> User ID <INPUT TYPE=text NAME="seller" SIZE=16> <INPUT TYPE=submit VALUE="Search"></FONT></TD></TR></TABLE></FORM>
+<A NAME="completed"></A>
+<FORM NAME="byc" ACTION="search.html" METHOD=GET><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#EFEFEF"><TR><TD>
+<FONT FACE="Arial, Helvetica" SIZE=2><B>Search completed auctions:</B> <INPUT TYPE=text NAME="q" SIZE=20><INPUT TYPE=hidden NAME="completed" VALUE="1"> <INPUT TYPE=submit VALUE="Search"></FONT></TD></TR></TABLE></FORM>

@@ -1,0 +1,39 @@
+<IMG SRC="{P}images/h_giftfinder.gif" WIDTH=200 HEIGHT=26 ALT="Gift Finder"><BR>
+<FONT FACE="Arial, Helvetica" SIZE=2>Tell us a little about the lucky kid, and Sprocket will find the perfect present.</FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var F = "<FONT FACE=\"Arial, Helvetica\" SIZE=2>";
+var age = qs("age"), price = qs("price"), forwho = qs("for"), cat = qs("cat");
+if (price == "") price = "0";
+if (forwho == "") forwho = "a";
+var h = "<FORM NAME=\"gift\" ACTION=\"" + P + "giftfinder.html\" METHOD=GET><TABLE BORDER=0 CELLPADDING=6 CELLSPACING=0 BGCOLOR=\"#FFF0D0\"><TR>";
+var ao = "";
+for (var i = 0; i < AGES.length; i++) ao += "<OPTION VALUE=\"" + AGES[i][0] + "\"" + (AGES[i][0] == age ? " SELECTED" : "") + ">" + AGES[i][1].replace("&amp;", "&");
+h += "<TD VALIGN=TOP>" + F + "<B>Age</B><BR><SELECT NAME=\"age\">" + ao + "</SELECT></FONT></TD>";
+var pr = new Array("any price", "under $10", "$10 - $25", "$25 - $50", "$50 and up"), po = "";
+for (var i = 0; i < pr.length; i++) po += "<OPTION VALUE=\"" + i + "\"" + (price == "" + i ? " SELECTED" : "") + ">" + pr[i];
+h += "<TD VALIGN=TOP>" + F + "<B>Price</B><BR><SELECT NAME=\"price\">" + po + "</SELECT></FONT></TD>";
+h += "<TD VALIGN=TOP>" + F + "<B>For a</B><BR><INPUT TYPE=radio NAME=\"for\" VALUE=\"b\"" + (forwho == "b" ? " CHECKED" : "") + ">boy <INPUT TYPE=radio NAME=\"for\" VALUE=\"g\"" + (forwho == "g" ? " CHECKED" : "") + ">girl <INPUT TYPE=radio NAME=\"for\" VALUE=\"a\"" + (forwho == "a" ? " CHECKED" : "") + ">either</FONT></TD>";
+var co = "<OPTION VALUE=\"\">any kind of toy";
+for (var i = 0; i < CATS.length; i++) co += "<OPTION VALUE=\"" + CATS[i][0] + "\"" + (CATS[i][0] == cat ? " SELECTED" : "") + ">" + CATS[i][1].replace("&amp;", "&");
+h += "<TD VALIGN=TOP>" + F + "<B>Kind of toy</B><BR><SELECT NAME=\"cat\">" + co + "</SELECT></FONT></TD>";
+h += "<TD VALIGN=BOTTOM><INPUT TYPE=image SRC=\"" + P + "images/btn_find.gif\" WIDTH=90 HEIGHT=26 BORDER=0 ALT=\"Find Gifts!\"></TD></TR></TABLE></FORM>";
+document.write(h);
+if (age != "") {
+  var lo = 0, hi = 99999999, A = null;
+  if (price == "1") hi = 999; else if (price == "2") { lo = 1000; hi = 2500; } else if (price == "3") { lo = 2500; hi = 5000; } else if (price == "4") lo = 5000;
+  for (var i = 0; i < AGES.length; i++) if (AGES[i][0] == age) A = AGES[i];
+  var hits = new Array();
+  for (var i = 0; i < T.length; i++) {
+    var t = T[i];
+    if (A && (t[4] > A[3] || t[5] < A[2])) continue;
+    if (t[6] < lo || t[6] > hi) continue;
+    if (forwho != "a" && t[7] != "a" && t[7] != forwho) continue;
+    if (cat != "" && t[3] != cat) continue;
+    hits[hits.length] = t;
+  }
+  document.write(F + "<FONT SIZE=3><B>Sprocket found " + hits.length + " gift" + (hits.length == 1 ? "" : "s") + "</B></FONT> for " + (forwho == "b" ? "a boy" : (forwho == "g" ? "a girl" : "a kid")) + " aged " + (A ? A[1] : "?") + (price != "0" ? ", " + pr[parseInt(price)] : "") + ". Most popular first.</FONT><BR><BR>");
+  if (hits.length == 0) document.write(F + "Hmm, nothing fits. Try a different price range, or <A HREF=\"" + P + "top10.html\">peek at the Top 10</A>.</FONT>");
+  document.write(toyRows(hits));
+}
+</SCRIPT>
+<NOSCRIPT>The Gift Finder needs JavaScript. Try <A HREF="{P}ages.html">shopping by age</A>.</NOSCRIPT>

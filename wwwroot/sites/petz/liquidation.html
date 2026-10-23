@@ -1,0 +1,172 @@
+<HTML>
+<HEAD>
+<TITLE>Petz.com : Everything Must Go</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<STYLE TYPE="text/css">
+<!--
+.editorialtitle { font-family: Verdana, Arial, Helvetica; font-size: 11px; font-weight: bold; color: #000000 }
+.editorialsubhead { font-family: Verdana, Arial, Helvetica; font-size: 10px; font-style: italic; color: #666633 }
+.ticker { background-color: #000000; color: #33FF33; font-family: Courier New, Courier; font-size: 12px; font-weight: bold; border: 0px }
+-->
+</STYLE>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+// ---- category tab rollovers (document.images swaps)
+var tabNames = new Array("home", "dogs", "cats", "fish", "birds", "ferrets", "reptiles", "smallpets");
+var tabOn = new Array();
+var tabOff = new Array();
+if (document.images) {
+  for (var i = 0; i < tabNames.length; i++) {
+    tabOn[tabNames[i]] = new Image();
+    tabOn[tabNames[i]]["src"] = "images/tab_" + tabNames[i] + "_on" + ".gif";
+    tabOff[tabNames[i]] = new Image();
+    tabOff[tabNames[i]]["src"] = "images/tab_" + tabNames[i] + ".gif";
+  }
+}
+function imgOn(n) {
+  if (document.images) document.images["t" + n]["src"] = tabOn[n]["src"];
+}
+function imgOff(n) {
+  if (document.images && n != curTab) document.images["t" + n]["src"] = tabOff[n]["src"];
+}
+// ---- search box
+function isBlank(s) {
+  if (s == null) return true;
+  for (var i = 0; i < s.length; i++) {
+    if (s.charAt(i) != " ") return false;
+  }
+  return true;
+}
+function checkSearch(f) {
+  if (isBlank(f.q.value)) {
+    alert("Please type something to search for.\nTry 'litter', 'hamster' or 'loss'.");
+    f.q.focus();
+    return false;
+  }
+  return true;
+}
+// ---- newsletter
+function checkNews(f) {
+  var e = f.email.value;
+  if (e.indexOf("@") < 1 || e.indexOf(".") < 0) {
+    alert("Please enter an e-mail address like argyle@petz.com");
+    return false;
+  }
+  alert("Thanks! You are now subscribed to The Petz Weekly Wag.\n(Nothing was actually sent anywhere. Our mail server is a beagle.)");
+  return false;
+}
+// ---- 1999 Web Ring random hop
+var ringSites = new Array("yowza", "altavisor", "askreeves", "orinoco", "ubid", "etoyz", "petz",
+  "geohoods", "hamstershuffle", "dashdot", "snapster", "cnm");
+function ringRandom() {
+  var n = Math.floor(Math.random() * ringSites.length);
+  var u = "../" + ringSites[n] + "/" + "index.html";
+  window.location = u;
+  return false;
+}
+//-->
+</SCRIPT>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+// ---- November 2000: the ticker finally learns the other direction
+var tkNow = 7;   // in sixteenths: 7/16
+function tkFmt16(e) {
+  if (e <= 0) return "0";
+  var f = new Array("", "1/16", "1/8", "3/16", "1/4", "5/16", "3/8", "7/16");
+  return "0 " + f[e];
+}
+function tkTick() {
+  if (document.forms["ticker"]) {
+    if (tkNow > 0) {
+      tkNow = tkNow - 1;
+      document.forms["ticker"].px.value = tkFmt16(tkNow);
+      var d = 1396 - tkNow;
+      var num = d % 16;
+      var den = 16;
+      while (num > 0 && num % 2 == 0) { num = num / 2; den = den / 2; }
+      document.forms["ticker"].chg.value = "-" + Math.floor(d / 16) + (num > 0 ? " " + num + "/" + den : "");
+      setTimeout("tkTick()", 3000);
+    } else {
+      document.forms["ticker"].px.value = "DELISTED";
+      document.forms["ticker"].chg.value = "R.I.P.";
+    }
+  }
+}
+function tkStart() {
+  setTimeout("tkTick()", 3000);
+}
+//-->
+</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var curTab = "home";
+//-->
+</SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" BACKGROUND="images/spine.gif" MARGINHEIGHT=0 MARGINWIDTH=0 LEFTMARGIN=0 TOPMARGIN=0 TEXT="#000000" LINK="#000000" ALINK="#FF0033" VLINK="#000000" onLoad="tkStart();">
+<TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=770>
+<TR><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=232 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=446 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=86 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=6 HEIGHT=1 BORDER=0></TD></TR>
+<TR><TD BGCOLOR="#99CC33" VALIGN=TOP><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=4 BORDER=0><BR><IMG SRC="images/dot_clear.gif" WIDTH=2 HEIGHT=1 BORDER=0><A HREF="index.html"><IMG SRC="images/logo.gif" WIDTH=230 HEIGHT=66 BORDER=0 ALT="Petz.com - Because pets can't drive!"></A></TD>
+<TD BGCOLOR="#99CC33" ALIGN=CENTER VALIGN=MIDDLE><FORM NAME="ticker" onSubmit="return false"><TABLE BORDER=0 CELLPADDING=2 CELLSPACING=0 BGCOLOR="#000000"><TR><TD><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">&nbsp;<B>PETZ</B> (NASDAQ: PETZ)</FONT></TD><TD><INPUT TYPE=TEXT NAME="px" VALUE="0 7/16" SIZE=8 CLASS="ticker"></TD><TD><IMG SRC="images/down_arrow.gif" WIDTH=11 HEIGHT=11 BORDER=0 ALT=""></TD><TD><INPUT TYPE=TEXT NAME="chg" VALUE="-86 13/16" SIZE=9 CLASS="ticker"></TD></TR><TR><TD COLSPAN=4 ALIGN=CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#99CC33">Trading halted. Mostly.</FONT></TD></TR></TABLE></FORM></TD>
+<TD BGCOLOR="#99CC33" VALIGN=TOP><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=4 BORDER=0><BR><A HREF="cart.html"><IMG SRC="images/btn_cart.gif" WIDTH=86 HEIGHT=20 BORDER=0 ALT="Shopping Cart"></A><BR><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=4 BORDER=0><BR><A HREF="myaccount.html"><IMG SRC="images/btn_account.gif" WIDTH=86 HEIGHT=20 BORDER=0 ALT="My Account"></A><BR><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=4 BORDER=0><BR><A HREF="help.html"><IMG SRC="images/btn_help.gif" WIDTH=86 HEIGHT=20 BORDER=0 ALT="Help"></A></TD><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=72 BORDER=0></TD></TR>
+<TR><TD BGCOLOR="#99CC33" COLSPAN=4 VALIGN=BOTTOM><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0><TR><TD VALIGN=BOTTOM><A HREF="dogs.html" onMouseOver="imgOn('dogs')" onMouseOut="imgOff('dogs')"><IMG NAME="tdogs" SRC="images/tab_dogs.gif" WIDTH=55 HEIGHT=60 BORDER=0 ALT="Dogs"></A><A HREF="cats.html" onMouseOver="imgOn('cats')" onMouseOut="imgOff('cats')"><IMG NAME="tcats" SRC="images/tab_cats.gif" WIDTH=52 HEIGHT=60 BORDER=0 ALT="Cats"></A><A HREF="fish.html" onMouseOver="imgOn('fish')" onMouseOut="imgOff('fish')"><IMG NAME="tfish" SRC="images/tab_fish.gif" WIDTH=50 HEIGHT=60 BORDER=0 ALT="Fish"></A><A HREF="birds.html" onMouseOver="imgOn('birds')" onMouseOut="imgOff('birds')"><IMG NAME="tbirds" SRC="images/tab_birds.gif" WIDTH=60 HEIGHT=60 BORDER=0 ALT="Birds"></A><A HREF="ferrets.html" onMouseOver="imgOn('ferrets')" onMouseOut="imgOff('ferrets')"><IMG NAME="tferrets" SRC="images/tab_ferrets.gif" WIDTH=66 HEIGHT=60 BORDER=0 ALT="Ferrets"></A><A HREF="reptiles.html" onMouseOver="imgOn('reptiles')" onMouseOut="imgOff('reptiles')"><IMG NAME="treptiles" SRC="images/tab_reptiles.gif" WIDTH=69 HEIGHT=60 BORDER=0 ALT="Reptiles"></A><A HREF="smallpets.html" onMouseOver="imgOn('smallpets')" onMouseOut="imgOff('smallpets')"><IMG NAME="tsmallpets" SRC="images/tab_smallpets.gif" WIDTH=87 HEIGHT=60 BORDER=0 ALT="Small Pets"></A></TD><TD VALIGN=BOTTOM><A HREF="index.html" onMouseOver="imgOn('home')" onMouseOut="imgOff('home')"><IMG NAME="thome" SRC="images/tab_home_on.gif" WIDTH=59 HEIGHT=20 BORDER=0 ALT="Home"></A></TD></TR></TABLE></TD></TR>
+<TR><TD BGCOLOR="#000000" COLSPAN=4><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=770><TR><TD><IMG SRC="images/title_liquidation.gif" WIDTH=150 HEIGHT=28 BORDER=0 ALT=""></TD><TD WIDTH=611><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=1 BORDER=0></TD><TD VALIGN=BOTTOM><IMG SRC="images/corner.gif" WIDTH=9 HEIGHT=11 BORDER=0 ALT=""></TD></TR></TABLE></TD></TR>
+</TABLE><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=770><TR><TD BGCOLOR="#FFFFCC" VALIGN=TOP WIDTH=170><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=170>
+<TR><TD ALIGN=RIGHT><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=8 BORDER=0><BR><FORM NAME="search" ACTION="search.html" METHOD="GET" onSubmit="return checkSearch(this)"><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 BGCOLOR="#CCCC99"><TR><TD BGCOLOR="#FFFFCC"><IMG SRC="images/search_side.gif" WIDTH=16 HEIGHT=36 BORDER=0 ALT=""></TD><TD BGCOLOR="#CCCC99"><IMG SRC="images/find.gif" WIDTH=20 HEIGHT=10 BORDER=0 ALT="find"><IMG SRC="images/dot_clear.gif" WIDTH=2 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#CCCC99"><INPUT TYPE=TEXT NAME="q" SIZE=9 MAXLENGTH=100><IMG SRC="images/dot_clear.gif" WIDTH=2 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#CCCC99"><INPUT TYPE=IMAGE NAME="go" SRC="images/go.gif" WIDTH=20 HEIGHT=20 BORDER=0><IMG SRC="images/dot_clear.gif" WIDTH=2 HEIGHT=1 BORDER=0></TD></TR></TABLE></FORM></TD></TR>
+<TR><TD><TABLE CELLSPACING=2 CELLPADDING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=12 HEIGHT=1 BORDER=0></TD><TD><IMG SRC="images/todays_features.gif" WIDTH=135 HEIGHT=15 BORDER=0 ALT="Today's Features"></TD></TR></TABLE>
+<TABLE CELLSPACING=2 CELLPADDING=0 BORDER=0>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="feature_1.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Puppy Love, Online</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Is your pug ready for e-dating?</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="feature_2.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Is Your Cat Y2K Ready?</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Stock up on litter before the clocks roll</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="feature_3.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>The 56k Hamster</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>One rodent, one wheel, one tiny ISP</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="superbowl.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Our Super Bowl Ad</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Thirty seconds, two million dollars, one sock</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="mascot.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Meet Argyle</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>The sock that launched a thousand shipments</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="advice.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Ask the Vet</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Dr. Woofington answers your letters</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="advice_5.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Sock Thieves</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Why does my ferret do that?</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="investor.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Investor Relations</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Our stock only goes up. Ask anyone.</I></FONT></TD></TR></TABLE></TD></TR>
+</TABLE><BR>
+<CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Shop by pet:</B><BR><A HREF="dogs.html">Dogs</A> &middot; <A HREF="cats.html">Cats</A> &middot; <A HREF="fish.html">Fish</A> &middot; <A HREF="birds.html">Birds</A> &middot; <A HREF="ferrets.html">Ferrets</A> &middot; <A HREF="reptiles.html">Reptiles</A> &middot; <A HREF="smallpets.html">Small Pets</A></FONT></CENTER><BR>
+</TD></TR></TABLE></TD><TD WIDTH=14><IMG SRC="images/dot_clear.gif" WIDTH=14 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP WIDTH=586><IMG SRC="images/dot_clear.gif" WIDTH=586 HEIGHT=10 BORDER=0><BR>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>November 7, 2000</B></FONT><BR>
+<IMG SRC="images/liq_banner.gif" WIDTH=415 HEIGHT=80 BORDER=0 ALT="Everything must go, including us"><BR><BR>
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=586><TR><TD VALIGN=TOP>
+<IMG SRC="images/hdr_letter.gif" WIDTH=300 HEIGHT=20 BORDER=0 ALT="A letter from Argyle"><BR>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=2>Dear friends,<BR><BR>Today Petz.com is closing its doors. I want you to hear it from me, a sock, before you hear it from the evening news, a newspaper, or a man in a suit holding a clipboard in our lobby. (He's very nice. He's counting the chairs.)<BR><BR>We had a good run. We shipped you kibble, litter, crickets and hamster wheels. We shipped every one of them for less than it cost us, which in hindsight was the problem. We sang at the Super Bowl. We rang a bell. I was a parade balloon for one glorious Thanksgiving.<BR><BR>To our customers: thank you. To our pets: we're sorry about the packing peanuts. To our investors: we are also sorry, but you did read the business plan, including step 2.<BR><BR>I'll be fine. I'm a sock. There is always a drawer somewhere.<BR><BR>Love,<BR><B>Argyle</B><BR>(former spokes-sock)</FONT>
+</TD><TD WIDTH=10><IMG SRC="images/dot_clear.gif" WIDTH=10 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><IMG SRC="images/argyle_sad.gif" WIDTH=200 HEIGHT=220 BORDER=0 ALT="Argyle, will fetch for food"></TD></TR></TABLE><BR>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=2><B>Argyle is looking for work.</B> Experienced spokes-sock seeks new hand. Skills: lip-sync, national television, parade balloon, singing to vehicles, remaining upbeat on a falling stock. Will relocate. Will fetch. References available from a Fresno laundromat.</FONT><BR><BR>
+<IMG SRC="images/hdr_inventory.gif" WIDTH=300 HEIGHT=20 BORDER=0 ALT="Remaining inventory, 90% off"><BR>
+<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=0 WIDTH=586>
+<TR BGCOLOR="#000000"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>Item</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>Was</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>Now</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>Left</B></FONT></TD></TR>
+<TR BGCOLOR="#FFFFFF"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Hearty Chunks Dog Food, 40 lb Bag</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$18.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$1.90</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>4100</FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Retractable Leash, 26 ft</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$11.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$1.20</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>212</FONT></TD></TR>
+<TR BGCOLOR="#FFFFFF"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Ocean Medley Cat Food, 24 Cans</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$9.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$1.00</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>1730</FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Laser Pointer 2000 with Millennium Mode</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$4.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$0.50</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>88</FONT></TD></TR>
+<TR BGCOLOR="#FFFFFF"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Tropical Flake Food, 2 oz</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$1.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$0.20</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>940</FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Moatsworth Aquarium Castle</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$4.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$0.50</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>12</FONT></TD></TR>
+<TR BGCOLOR="#FFFFFF"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Talking Bird Training Cassette</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$4.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$0.50</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>655</FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Slinky Sleeper Ferret Hammock</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$7.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$0.80</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>7</FONT></TD></TR>
+<TR BGCOLOR="#FFFFFF"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Ferret-Proof Sock Safe</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$6.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$0.70</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>3002</FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Live Crickets, 500 Count</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$6.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$0.70</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>41</FONT></TD></TR>
+<TR BGCOLOR="#FFFFFF"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Spin Cycle 8-inch Hamster Wheel</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$5.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$0.60</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>77</FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Bunny Bungalow Wooden Hutch</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$34.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$3.50</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>19</FONT></TD></TR>
+<TR BGCOLOR="#FFFFFF"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Argyle 'Pets Can't Drive' Coffee Mug</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$4.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$0.50</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>4100</FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Argyle plush puppets (unsold)</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$9.99</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$0.99</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>38,000</FONT></TD></TR>
+<TR><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Ergonomic mesh office chairs</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$740.00</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$40.00</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>296</FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Foosball table, lightly used (heavily)</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><S>$1,200.00</S></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CC0000"><B>$15.00</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>1</FONT></TD></TR>
+</TABLE><BR>
+<IMG SRC="images/btn_soldout.gif" WIDTH=110 HEIGHT=24 BORDER=0 ALT="Repossessed"> <FONT FACE="Verdana, Arial, Helvetica" SIZE=1><I>Our shopping cart has been repossessed. All sales final. All sales, in fact, are final.</I></FONT><BR><BR>
+<IMG SRC="images/hdr_faq.gif" WIDTH=300 HEIGHT=20 BORDER=0 ALT="What happens now?"><BR>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=2><B>What about my order?</B> Orders placed before today will be shipped. At a loss. For old times' sake.<BR><BR><B>What about my stock?</B> Please see the ticker above. Try not to watch it for too long.<BR><BR><B>What about Argyle?</B> Argyle has received several offers, including a car insurance company, a sock drawer in Ohio and a very nice family in Fresno. He is weighing his options. He weighs two ounces.</FONT>
+<BR><BR><IMG SRC="images/stamp.gif" WIDTH=150 HEIGHT=40 BORDER=0 ALT="Liquidated">
+</TD></TR></TABLE>
+
+<TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=770><TR><TD WIDTH=170 BGCOLOR="#FFFFCC"><IMG SRC="images/dot_clear.gif" WIDTH=170 HEIGHT=1 BORDER=0></TD><TD ALIGN=CENTER>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1><BR><BR><A HREF="help.html">Help</A> | <A HREF="help.html#contact">Contact Us</A> | <A HREF="about.html">About Us</A> | <A HREF="about.html#jobs">Jobs</A> | <A HREF="help.html#terms">Terms of Use</A> | <A HREF="about.html#associates">Associates</A> | <A HREF="help.html#guarantee">Our Guarantee</A><BR><BR>Copyright &copy; 1998-2000 Petz.com, Inc. (in liquidation). All rights reserved, briefly.<BR><BR></FONT>
+<CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../etoyz/index.html">&lt;&lt; Prev</A> | <A HREF="../../web1999/index.html" onClick="return ringRandom()">Random</A> | <B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Petz.com is site 7 of 12 | <A HREF="../geohoods/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE></CENTER>
+<BR><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion"><BR><BR>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

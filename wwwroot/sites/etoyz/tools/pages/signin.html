@@ -1,0 +1,39 @@
+<FONT FACE="Arial, Helvetica" SIZE=5 COLOR="#1B5FE2"><B>Sign in to eToyz</B></FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var next = qs("next");
+if (next == "" || next.indexOf(":") != -1 || next.charAt(0) == "/") next = "account.html";
+function go(name, email) { setCookie("etoyz_user", name + "|" + email, 30); location.href = P + next; }
+function doSignin() {
+  var f = document.forms["si"], email = f.email.value.toLowerCase().replace(/\s/g, "");
+  var a = findAccount(email);
+  if (!a) { alert("We don't have an account for " + email + ". New here? Fill in the form on the right!"); return false; }
+  if (a[2] != pwHash(f.pass.value)) { alert("Oops, wrong password. Try again!"); f.pass.value = ""; return false; }
+  go(a[1], a[0]);
+  return false;
+}
+function doRegister() {
+  var f = document.forms["reg"], email = f.email.value.toLowerCase().replace(/\s/g, "");
+  var name = f.fullname.value.replace(/[|;]/g, "").replace(/^\s+|\s+$/g, "");
+  if (email.indexOf("@") < 1 || email.indexOf(".") == -1) { alert("Please enter a real e-mail address."); return false; }
+  if (findAccount(email)) { alert("There's already an account for " + email + ". Please sign in on the left."); return false; }
+  if (name == "") { alert("What's your name?"); return false; }
+  if (f.pw1.value.length < 4 || f.pw1.value != f.pw2.value) { alert("Please type the same password (4 or more characters) twice."); return false; }
+  var s = getCookie("etoyz_reg");
+  setCookie("etoyz_reg", (s == "" ? "" : s + ";") + email + "|" + name + "|" + pwHash(f.pw1.value), 365);
+  go(name, email);
+  return false;
+}
+// came here to add something to a wish list?  finish that after signing in
+if (next.indexOf("wishlist.html?add=") == 0) document.write("<TABLE BORDER=0 CELLPADDING=6 BGCOLOR=\"#FFFFED\" WIDTH=\"100%\"><TR><TD><FONT FACE=\"Arial, Helvetica\" SIZE=2>Sign in and we'll put that toy right on your wish list.</FONT></TD></TR></TABLE><BR>");
+</SCRIPT>
+<TABLE BORDER=0 CELLPADDING=8 CELLSPACING=0 WIDTH="100%"><TR>
+<TD VALIGN=TOP BGCOLOR="#99CCFF" WIDTH="50%"><FONT FACE="Arial, Helvetica" SIZE=3><B>I've been here before</B></FONT><BR>
+<FORM NAME="si" onSubmit="return doSignin()"><FONT FACE="Arial, Helvetica" SIZE=2>E-mail:<BR><INPUT TYPE=text NAME="email" SIZE=24><BR>
+Password:<BR><INPUT TYPE=password NAME="pass" SIZE=24><BR><BR><INPUT TYPE=submit VALUE="Sign in"></FONT></FORM>
+<FONT FACE="Arial, Helvetica" SIZE=1>Demo account: demo@etoyz.com / toybox</FONT></TD>
+<TD WIDTH=10></TD>
+<TD VALIGN=TOP BGCOLOR="#FFD21B"><FONT FACE="Arial, Helvetica" SIZE=3><B>I'm new to eToyz</B></FONT><BR>
+<FORM NAME="reg" onSubmit="return doRegister()"><FONT FACE="Arial, Helvetica" SIZE=2>Your name:<BR><INPUT TYPE=text NAME="fullname" SIZE=24><BR>
+E-mail:<BR><INPUT TYPE=text NAME="email" SIZE=24><BR>Choose a password:<BR><INPUT TYPE=password NAME="pw1" SIZE=24><BR>
+Type it again:<BR><INPUT TYPE=password NAME="pw2" SIZE=24><BR><BR><INPUT TYPE=submit VALUE="Create my account"></FONT></FORM></TD>
+</TR></TABLE>

@@ -194,6 +194,7 @@ typedef struct RState {
     const char *locale;
     const char *validation_errors;   /* <LI> list from hidden-field form validation */
     int in_txn;                    /* CFTRANSACTION depth */
+    const char *docroot;           /* this request's web root (virtual site or G.webroot) */
     Struct *txn;                   /* db directory -> snapshot directory */
     char lockmode_server, lockmode_app, lockmode_session;   /* 'n'one, 'f'ull, 'r'eadlock */
 } RState;
@@ -413,6 +414,7 @@ struct HttpReq {
     char *content_type;
     double started_ms;
     int internal;
+    const char *docroot;
 };
 int  http_serve(void);
 int  http_client(const char *method, const char *url, Struct *hdrs, const char *body, size_t bodylen,
@@ -420,6 +422,7 @@ int  http_client(const char *method, const char *url, Struct *hdrs, const char *
                  Buf *resp_body, int *status, char **status_line, Struct **resp_headers, char *err, size_t errlen);
 char *http_date(time_t t);
 const char *mime_type_for(const char *path);
+const char *kf_docroot(void);                  /* current request's web root */
 
 /* ---------- mail.c */
 int  mail_spool(Struct *msg, char *err, size_t el);   /* from,to,cc,bcc,subject,body,type,server,port,timeout,headers(struct),attachments(array) */

@@ -1,0 +1,12 @@
+<SCRIPT LANGUAGE="JavaScript">
+var it = findItem(qs("id"));
+if (!it) document.write("<FONT SIZE=3>Hmm, we couldn't find that listing. <A HREF=\"" + P + "sell.html\">Try again</A>?</FONT>");
+else {
+  var A = auction(it, now());
+  document.write("<TABLE BORDER=0 CELLPADDING=8 WIDTH=\"100%\"><TR><TD BGCOLOR=\"#CCFFCC\"><FONT FACE=\"Arial, Helvetica\" SIZE=5><B>Congratulations! Your item is listed.</B></FONT></TD></TR></TABLE><BR>");
+  document.write("<TABLE BORDER=0 CELLPADDING=4><TR><TD><IMG SRC=\"" + thumbURL(it) + "\" WIDTH=80 HEIGHT=60></TD><TD><FONT SIZE=3><A HREF=\"" + itemURL(it) + "\"><B>" + esc(it[1]) + "</B></A><BR>");
+  document.write("<FONT SIZE=2>Item #" + esc(it[0]) + " in " + catName(it[2]) + "<BR>Minimum bid " + money(it[4]) + (it[5] ? ", reserve " + money(it[5]) : "") + "<BR>Ends " + longTime(A.end) + "</FONT></FONT></TD></TR></TABLE><BR>");
+  document.write("<FONT SIZE=2>Your insertion fee of $0.25 has been added to your account. When the auction ends, uBid will e-mail you and the high bidder. ");
+  document.write("Keep an eye on bids in <A HREF=\"" + P + "myubid.html#selling\">My uBid</A>, or <A HREF=\"" + P + "sell.html\">sell another item</A>.</FONT>");
+}
+</SCRIPT>

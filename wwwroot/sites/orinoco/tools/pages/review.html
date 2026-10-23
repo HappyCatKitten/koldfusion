@@ -1,0 +1,32 @@
+<SCRIPT LANGUAGE="JavaScript">
+var F = "<FONT FACE=\"verdana,arial,helvetica\" SIZE=-1>";
+var code = qs("code"), it = findItem(code);
+function strip(s) { return s.replace(/[;\^]/g, ",").replace(/[\r\n]+/g, " "); }
+function saveReview() {
+  var f = document.forms["rev"];
+  var st = f.stars.selectedIndex;
+  if (st == 0) { alert("Please choose a star rating."); return false; }
+  if (f.title.value.replace(/\s/g, "") == "" || f.text.value.length < 20) { alert("Please give your review a title and at least a sentence or two."); return false; }
+  var who = f.who.value.replace(/\s/g, "") == "" ? "A reader" : f.who.value;
+  var r = code + "^" + (6 - st) + "^" + strip(f.title.value).substring(0, 60) + "^" + strip(f.text.value).substring(0, 400) + "^" + strip(who).substring(0, 40);
+  var old = getCookie("orinoco_rev"), list = (old == "" ? new Array() : old.split(";")), out = new Array(r);
+  for (var i = 0; i < list.length && out.length < 3; i++) if (list[i].split("^")[0] != code) out[out.length] = list[i];
+  setCookie("orinoco_rev", out.join(";"), 365);
+  alert("Thanks! Your review has been posted. (Our editors read every one, usually with snacks.)");
+  location.href = itemURL(it) + "#reviews";
+  return false;
+}
+if (!it) {
+  document.write(F + "Please choose an item to review first: <A HREF=\"" + P + "hot100.html\">browse the Hot 100</A>.</FONT>");
+} else {
+  document.write("<FONT FACE=\"verdana,arial,helvetica\" SIZE=+1><B>Write an Online Review</B></FONT><BR><BR>");
+  document.write("<IMG SRC=\"" + coverURL(it) + "\" ALIGN=LEFT HSPACE=6>" + F + "<B><A HREF=\"" + itemURL(it) + "\">" + esc(it[1]) + "</A></B><BR>" + esc(it[2]) + "</FONT><BR CLEAR=ALL><BR>");
+  document.write("<FORM NAME=\"rev\" onSubmit=\"return saveReview()\">" + F);
+  document.write("<B>Rate it:</B> <SELECT NAME=\"stars\"><OPTION>-- choose --<OPTION>5 stars: Loved it!<OPTION>4 stars: Liked it<OPTION>3 stars: It was OK<OPTION>2 stars: Didn't like it<OPTION>1 star: Hated it</SELECT><BR><BR>");
+  document.write("<B>Title of your review:</B><BR><INPUT TYPE=text NAME=\"title\" SIZE=40 MAXLENGTH=60><BR><BR>");
+  document.write("<B>Your review:</B> <FONT SIZE=-2>(about 400 characters fit on our index cards)</FONT><BR><TEXTAREA NAME=\"text\" ROWS=6 COLS=50 WRAP=VIRTUAL></TEXTAREA><BR><BR>");
+  document.write("<B>Your name and town:</B><BR><INPUT TYPE=text NAME=\"who\" SIZE=40 VALUE=\"" + (userGet() ? esc(userGet()[0]) : "") + "\"><BR><BR>");
+  document.write("<INPUT TYPE=submit VALUE=\"Post my review\"></FONT></FORM>");
+  document.write("<FONT FACE=\"verdana,arial,helvetica\" SIZE=-2>Reviews should be about the item. Please do not include phone numbers, prices, or spoilers about who the butler was.</FONT>");
+}
+</SCRIPT>

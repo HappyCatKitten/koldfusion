@@ -1,0 +1,280 @@
+<HTML>
+<HEAD>
+<TITLE>AltaVisor: Simple Query</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000099" VLINK="#663366" ALINK="#FF0000">
+<SCRIPT LANGUAGE="JavaScript" SRC="av_index.js?v=1792754736"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function getArg(name) {
+  var q = location.search.substring(1).split('&');
+  for (var i = 0; i < q.length; i++) {
+    var kv = q[i].split('=');
+    if (kv[0] == name && kv.length > 1) return unescape(kv[1].replace(/\+/g, ' '));
+  }
+  return '';
+}
+function h(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+var STOP = ' a an and are as at be by can could do does for from get how i in into is it me my of on or our please some tell that the there this to was what when where which who why will with would you your find information info about ';
+var QWORDS = /^(who|what|where|when|why|how|which|can|could|is|are|do|does|did|should|will)\b/i;
+var MONTHS = new Array('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec');
+function norm(s) { return ' ' + s.toLowerCase().replace(/[^a-z0-9'\*]+/g, ' ') + ' '; }
+function hasWord(hay, w) {
+  if (w.charAt(w.length - 1) == '*') return hay.indexOf(' ' + w.substring(0, w.length - 1)) >= 0;
+  return hay.indexOf(' ' + w + ' ') >= 0 || hay.indexOf(' ' + w + 's ') >= 0 || (w.length > 3 && w.charAt(w.length - 1) == 's' && hay.indexOf(' ' + w.substring(0, w.length - 1) + ' ') >= 0);
+}
+function Term(w, req, neg, field) { this.w = w; this.req = req; this.neg = neg; this.field = field; }
+// simple query: words, +required, -excluded, "phrases", host: title: url: fields, wildcards*
+function parseSimple(q, natural) {
+  var t = new Array(), re = /([+\-]?)(host:|domain:|title:|url:)?("([^"]*)"|[^\s"]+)/gi, m;
+  while ((m = re.exec(q)) != null) {
+    var sign = m[1], field = (m[2] || '').toLowerCase().replace('domain:', 'host:'), text = m[4] != null && m[4] != '' ? m[4] : m[3];
+    if (field == 'host:') { t[t.length] = new Term(text.toLowerCase(), sign != '-', sign == '-', 'host'); continue; }
+    var phrase = m[4] != null && m[4] != '';
+    var ws = norm(text).split(' ');
+    for (var i = 0; i < ws.length; i++) {
+      var w = ws[i];
+      if (w == '' || (natural && STOP.indexOf(' ' + w + ' ') >= 0 && !phrase && sign == '')) continue;
+      t[t.length] = new Term(w, sign == '+' || phrase || field != '', sign == '-', field.replace(':', ''));
+    }
+  }
+  return t;
+}
+// advanced query: a AND b, a OR b, AND NOT, NEAR (treated as AND); groups separated by OR
+function parseBool(q) {
+  var groups = q.split(/\s+OR\s+/), out = new Array();
+  for (var g = 0; g < groups.length; g++) {
+    var toks = groups[g].replace(/[()]/g, ' ').split(/\s+/), t = new Array(), neg = false;
+    for (var i = 0; i < toks.length; i++) {
+      var k = toks[i];
+      if (k == '' || k == 'AND' || k == 'NEAR' || k == 'and' || k == 'near') continue;
+      if (k == 'NOT' || k == 'not') { neg = true; continue; }
+      var ws = norm(k).split(' ');
+      for (var j = 0; j < ws.length; j++) if (ws[j] != '') t[t.length] = new Term(ws[j], !neg, neg, '');
+      neg = false;
+    }
+    out[out.length] = t;
+  }
+  return out;
+}
+function Doc(s, i) {
+  var f = s.split('|');
+  this.i = i; this.url = f[0]; this.disp = f[1]; this.title = f[2]; this.sum = f[3]; this.words = ' ' + f[4] + ' ';
+  this.kb = f[5]; this.date = f[6]; this.lang = f[7]; this.imgs = f[8]; this.media = f[9];
+  this.host = this.disp.split('/')[0];
+  this.tn = norm(this.title); this.un = norm(this.disp);
+}
+var DF = new Object();
+function idf(w) {
+  if (DF[w] == null) {
+    var n = 0;
+    for (var j = 0; j < D.length; j++) { var f = D[j].split('|'); if (hasWord(' ' + f[4] + ' ', w) || hasWord(norm(f[2]), w)) n++; }
+    DF[w] = n;
+  }
+  return Math.log((D.length + 1) / (DF[w] + 1)) + 0.5;
+}
+function scoreDoc(d, terms) {
+  var score = 0, matched = 0, pos = 0, sumIdf = 0;
+  for (var i = 0; i < terms.length; i++) {
+    var t = terms[i], hit;
+    if (t.field == 'host') hit = d.host.indexOf(t.w) >= 0;
+    else if (t.field == 'title') hit = hasWord(d.tn, t.w);
+    else if (t.field == 'url') hit = hasWord(d.un, t.w) || d.disp.toLowerCase().indexOf(t.w) >= 0;
+    else {
+      var inT = hasWord(d.tn, t.w), inW = hasWord(d.words, t.w), inU = hasWord(d.un, t.w);
+      hit = inT || inW || inU;
+      if (!t.neg) { var wt = idf(t.w); sumIdf += wt; score += wt * ((inT ? 15 : 0) + (inW ? 4 : 0) + (inU ? 3 : 0)); }
+    }
+    if (t.neg) { if (hit) return -1; continue; }
+    pos++;
+    if (hit) matched++; else if (t.req) return -1;
+    if (hit && t.field != '') score += 5;
+  }
+  if (pos == 0) return terms.length > 0 ? 1 : -1;
+  if (matched == 0) return -1;
+  if (matched == pos) score += 3 * sumIdf + 5;
+  if (d.url.indexOf('index.html') == d.url.length - 10) score += 2;
+  return score;
+}
+function fmtDate(s) { return s.substring(6, 8) + '-' + MONTHS[parseInt(s.substring(4, 6), 10) - 1] + '-' + s.substring(2, 4); }
+function bold(text, terms) {
+  var out = h(text);
+  for (var i = 0; i < terms.length; i++) {
+    var w = terms[i].w.replace(/\*$/, '');
+    if (terms[i].neg || terms[i].field == 'host' || w.length < 2) continue;
+    out = out.replace(new RegExp('(^|[^a-zA-Z0-9])(' + w.replace(/[^a-z0-9]/g, '.') + '[a-z]*)', 'gi'), '$1<B>$2</B>');
+  }
+  return out;
+}
+
+var q = getArg('q'), kl = getArg('kl') || 'XX', stype = getArg('stype') || 'stext', pg = getArg('pg') || 'q';
+var stq = parseInt(getArg('stq')) || 0, d0 = getArg('d0'), d1 = getArg('d1'), rk = getArg('r');
+var natural = pg != 'aq' && (QWORDS.test(q) || /\?\s*$/.test(q));
+var groups = pg == 'aq' ? parseBool(q) : new Array(parseSimple(q, natural));
+var rterms = rk != '' ? parseSimple(rk, false) : new Array();
+var allTerms = new Array();
+for (var g = 0; g < groups.length; g++) allTerms = allTerms.concat(groups[g]);
+function cvtDate(s) { var p = s.split(/[\/\-]/); if (p.length != 3) return ''; var y = parseInt(p[2], 10); if (y < 100) y += 1900; return '' + y + (p[1].length < 2 ? '0' : '') + p[1] + (p[0].length < 2 ? '0' : '') + p[0]; }
+var D0 = d0 != '' ? cvtDate(d0) : '', D1 = d1 != '' ? cvtDate(d1) : '';
+var hits = new Array(), searched = 0;
+if (allTerms.length > 0) {
+  for (var i = 0; i < D.length; i++) {
+    var d = new Doc(D[i], i);
+    searched++;
+    if (kl != 'XX' && d.lang != kl) continue;
+    if (D0 != '' && d.date < D0) continue;
+    if (D1 != '' && d.date > D1) continue;
+    var best = -1;
+    for (var g = 0; g < groups.length; g++) { var s = scoreDoc(d, groups[g]); if (s > best) best = s; }
+    if (best < 0) continue;
+    if (rterms.length > 0) { var rs = scoreDoc(d, rterms); if (rs > 0) best += rs * 3; }
+    d.score = best;
+    hits[hits.length] = d;
+  }
+  hits.sort(function (a, b) { return b.score != a.score ? b.score - a.score : (a.url < b.url ? -1 : 1); });
+}
+function wordCounts() {
+  var out = '', seen = ' ';
+  for (var i = 0; i < allTerms.length; i++) {
+    var t = allTerms[i];
+    if (t.field != '' || seen.indexOf(' ' + t.w + ' ') >= 0) continue;
+    seen += t.w + ' ';
+    idf(t.w);
+    out += (out == '' ? '' : ', ') + h(t.w) + ':' + DF[t.w];
+  }
+  return out;
+}
+function link(start) {
+  return 'results.html?pg=' + pg + '&stype=' + stype + '&kl=' + kl + '&q=' + escape(q) + (rk != '' ? '&r=' + escape(rk) : '') + (d0 != '' ? '&d0=' + escape(d0) : '') + (d1 != '' ? '&d1=' + escape(d1) : '') + '&stq=' + start;
+}
+function pager(total, per) {
+  if (total <= per) return '';
+  var cur = Math.floor(stq / per), last = Math.ceil(total / per) - 1, out = '<P><FONT FACE=arial SIZE=-1><B>Result Pages:</B> ';
+  if (cur > 0) out += '<A HREF="' + link((cur - 1) * per) + '">[&lt;&lt; Prev]</A> ';
+  var from = Math.max(0, cur - 9), to = Math.min(last, from + 19);
+  for (var p = from; p <= to; p++) out += (p == cur ? '<B>' + (p + 1) + '</B> ' : '<A HREF="' + link(p * per) + '">' + (p + 1) + '</A> ');
+  if (cur < last) out += '<A HREF="' + link((cur + 1) * per) + '">[Next &gt;&gt;]</A>';
+  return out + '</FONT>';
+}
+// -->
+</SCRIPT>
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=600>
+<TR VALIGN=BOTTOM><TD><A HREF="index.html"><IMG SRC="images/av_logo_sm.gif" WIDTH=300 HEIGHT=38 BORDER=0 ALT="AltaVisor"></A></TD>
+<TD ALIGN=RIGHT><FONT SIZE=-1><A HREF="help.html">Help</A> - <A HREF="advanced.html">Advanced</A> - <A HREF="translate.html">Translate</A></FONT></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#003399"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=2></TD></TR></TABLE>
+<TABLE BORDER=0 BGCOLOR="#FFCC66" WIDTH=600 CELLSPACING=0 CELLPADDING=4><TR><TD>
+<FORM NAME=mfrm METHOD=GET ACTION="results.html"><INPUT TYPE=hidden NAME=pg VALUE=q>
+<FONT SIZE=-1><B>Search</B> <SELECT NAME=kl><OPTION VALUE=XX SELECTED>any language
+<OPTION VALUE=zh>Chinese
+<OPTION VALUE=cs>Czech
+<OPTION VALUE=da>Danish
+<OPTION VALUE=nl>Dutch
+<OPTION VALUE=en>English
+<OPTION VALUE=fi>Finnish
+<OPTION VALUE=fr>French
+<OPTION VALUE=de>German
+<OPTION VALUE=el>Greek
+<OPTION VALUE=it>Italian
+<OPTION VALUE=ja>Japanese
+<OPTION VALUE=ko>Korean
+<OPTION VALUE=no>Norwegian
+<OPTION VALUE=xp>Pig Latin
+<OPTION VALUE=pl>Polish
+<OPTION VALUE=pt>Portuguese
+<OPTION VALUE=ru>Russian
+<OPTION VALUE=es>Spanish
+<OPTION VALUE=sv>Swedish
+</SELECT> <B>for</B></FONT><BR>
+<INPUT NAME=q SIZE=50 MAXLENGTH=800 VALUE=""> <INPUT TYPE=image SRC="images/av_search.gif" WIDTH=66 HEIGHT=23 BORDER=0 ALT="Search" ALIGN=ABSMIDDLE>
+</FORM></TD></TR></TABLE>
+<TABLE WIDTH=600 BORDER=0 CELLSPACING=0 CELLPADDING=0><TR><TD BGCOLOR="#003399"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=2></TD></TR></TABLE>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+document.mfrm.q.value = q;
+for (var i = 0; i < document.mfrm.kl.options.length; i++) if (document.mfrm.kl.options[i].value == kl) document.mfrm.kl.selectedIndex = i;
+var per = 10;
+if (allTerms.length == 0) {
+  document.write('<P><FONT FACE=arial>Type a few words or a question in the box above, then press <B>Search</B>. AltaVisor will look through all ' + NPAGES + ' pages its spider has read.</FONT>');
+} else if (stype == 'simage') {
+  var seen = ' ', imgs = new Array();
+  for (var i = 0; i < hits.length && imgs.length < 60; i++) {
+    if (hits[i].imgs == '') continue;
+    var li = hits[i].imgs.split(';');
+    for (var j = 0; j < li.length; j++) { var f = li[j].split('~'); if (seen.indexOf(' ' + f[0] + ' ') >= 0) continue; seen += f[0] + ' '; imgs[imgs.length] = new Array(f[0], f[1], f[2], f[3], hits[i]); }
+  }
+  document.write('<P><FONT FACE=arial SIZE=-1><B>AV Picture Finder found ' + imgs.length + ' pictures</B> on pages about <B>' + h(q) + '</B>.</FONT><P><TABLE BORDER=0 CELLPADDING=6 CELLSPACING=0 WIDTH=600><TR>');
+  for (var i = 0; i < imgs.length; i++) {
+    var w = parseInt(imgs[i][2]) || 60, ht = parseInt(imgs[i][3]) || 60, sc = Math.min(1, 120 / w, 90 / ht);
+    if (i > 0 && i % 4 == 0) document.write('</TR><TR>');
+    document.write('<TD ALIGN=CENTER VALIGN=BOTTOM WIDTH=150><A HREF="' + imgs[i][4].url + '"><IMG SRC="' + imgs[i][0] + '" WIDTH=' + Math.round(w * sc) + ' HEIGHT=' + Math.round(ht * sc) + ' BORDER=1 ALT="' + h(imgs[i][1]) + '"></A><BR><FONT SIZE=-2>' + h(imgs[i][1] != '' ? imgs[i][1] : imgs[i][0].split('/').pop()) + '<BR><FONT COLOR="#808080">' + h(imgs[i][4].host) + '</FONT></FONT></TD>');
+  }
+  document.write('</TR></TABLE>');
+  if (imgs.length == 0) document.write('<P>No pictures found. Try <A HREF="results.html?stype=simage&q=hamster">hamster</A>, <A HREF="results.html?stype=simage&q=logo">logo</A> or <A HREF="results.html?stype=simage&q=new">new</A>.');
+} else if (stype == 'saudio' || stype == 'svideo') {
+  var exts = stype == 'saudio' ? ' mid midi wav mp3 au ra aif ' : ' mpg mpeg mov avi qt rm ', n = 0;
+  document.write('<P><FONT FACE=arial SIZE=-1><B>AV ' + (stype == 'saudio' ? 'Sound' : 'Video') + ' Finder</B></FONT><UL>');
+  var all = q.toLowerCase().indexOf('mid') >= 0 || q.toLowerCase().indexOf('sound') >= 0 || q.toLowerCase().indexOf('music') >= 0;
+  var pool = all ? D : null;
+  var list = new Array();
+  if (pool) { for (var i = 0; i < D.length; i++) list[list.length] = new Doc(D[i], i); } else list = hits;
+  for (var i = 0; i < list.length && n < 50; i++) {
+    if (list[i].media == '') continue;
+    var li = list[i].media.split(';');
+    for (var j = 0; j < li.length; j++) {
+      var f = li[j].split('~'), ext = f[0].split('.').pop().toLowerCase();
+      if (exts.indexOf(' ' + ext + ' ') < 0) continue;
+      document.write('<LI><A HREF="' + f[0] + '">' + h(f[1] != '' ? f[1] : f[0].split('/').pop()) + '</A> <FONT SIZE=-1>(' + ext.toUpperCase() + ') on <A HREF="' + list[i].url + '">' + h(list[i].title) + '</A></FONT>');
+      n++;
+    }
+  }
+  document.write('</UL>');
+  if (n == 0) document.write('<P>No ' + (stype == 'saudio' ? 'sound clips' : 'video clips') + ' found for <B>' + h(q) + '</B>.' + (stype == 'svideo' ? ' Video on the Web is still mostly a 40-second postage stamp that takes an hour to download. Try again in 2005.' : ' Try searching for <A HREF="results.html?stype=saudio&q=midi">midi</A>.'));
+} else {
+  document.write('<P><TABLE WIDTH=600 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD><FONT FACE=arial SIZE=-1>');
+  if (natural) document.write('<TABLE WIDTH="100%" BGCOLOR="#FFFFCC" BORDER=0 CELLPADDING=4><TR><TD><FONT FACE=arial SIZE=-1><B>AltaVisor knows someone who can answer that.</B> Ask our friend the butler: <A HREF="../askreeves/answer.html?ask=' + escape(q) + '">' + h(q) + '</A></FONT></TD></TR></TABLE><P>');
+  document.write('<B>AltaVisor found ' + hits.length + ' Web page' + (hits.length == 1 ? '' : 's') + ' for you.</B>');
+  if (hits.length > 0) document.write(' <A HREF="advanced.html?q=' + escape(q) + '">Refine your search</A>');
+  document.write('<BR><FONT COLOR="#808080">Word count: ' + wordCounts() + '</FONT>');
+  if (kl != 'XX') document.write(' &middot; <FONT COLOR="#808080">only pages in ' + h(document.mfrm.kl.options[document.mfrm.kl.selectedIndex].text) + '</FONT>');
+  document.write('</FONT></TD></TR></TABLE><P>');
+  if (hits.length == 0) {
+    document.write('<FONT FACE=arial SIZE=-1>No documents match the query. Some suggestions:<UL><LI>Check the spelling of your words.<LI>Use fewer words, or remove the + and - signs.<LI>Choose <B>any language</B> from the menu.<LI>Browse the <A HREF="../yowza/search.html?p=' + escape(q) + '">Yowza! directory</A> instead.<LI>Ask <A HREF="../askreeves/answer.html?ask=' + escape(q) + '">Reeves</A>, who has never once admitted defeat.</UL></FONT>');
+  }
+  document.write('<DL>');
+  for (var i = stq; i < Math.min(hits.length, stq + per); i++) {
+    var d = hits[i];
+    document.write('<DT><B>' + (i + 1) + '. <A HREF="' + d.url + '">' + h(d.title) + '</A></B>');
+    document.write('<DD><FONT SIZE=-1>' + bold(d.sum, allTerms) + (d.sum.length >= 195 ? '...' : '') + '<BR>');
+    document.write('<FONT COLOR="#808080">URL: ' + h(d.disp) + '</FONT><BR>');
+    document.write('<FONT COLOR="#808080">Last modified ' + fmtDate(d.date) + ' - page size ' + d.kb + 'K - in ' + LANGS[d.lang] + '</FONT> [ <A HREF="translate.html?u=' + escape(d.url) + '">Translate</A> ]<BR>');
+    document.write('<A HREF="results.html?q=host:' + escape(d.host) + '">More pages from this site</A></FONT><P>');
+  }
+  document.write('</DL>' + pager(hits.length, per));
+}
+// -->
+</SCRIPT>
+<NOSCRIPT><P><B>AltaVisor's search engine runs in your browser and needs JavaScript.</B>
+Until you switch it on, try one of <A HREF="popular.html">this week's top searches</A>.</NOSCRIPT>
+<P><TABLE WIDTH=600 BORDER=0 CELLPADDING=4><TR><TD BGCOLOR="#FFCC66"><FONT SIZE=-1 FACE=arial>
+<B>Also try:</B> <A HREF="javascript:location.href='../yowza/search.html?p='+escape(q)">Yowza! directory</A> -
+<A HREF="javascript:location.href='../askreeves/answer.html?ask='+escape(q)">Ask Reeves</A> -
+<A HREF="javascript:location.href='results.html?stype=simage&q='+escape(q)">Pictures</A> -
+<A HREF="javascript:location.href='results.html?stype=saudio&q='+escape(q)">Sounds</A></FONT></TD></TR></TABLE>
+<P><CENTER><TABLE WIDTH=600 BORDER=0 CELLSPACING=0 CELLPADDING=0><TR><TD BGCOLOR="#003399"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=2></TD></TR></TABLE>
+<FONT SIZE=-1><A HREF="about.html">About AltaVisor</A> | <A HREF="help.html">Help</A> | <A HREF="addurl.html">Add/Remove URL</A> |
+<A HREF="crawl.html">Crawler Report</A> | <A HREF="popular.html">Top Searches</A> | <A HREF="translate.html">Translate</A><BR>
+<A HREF="about.html#legal">Disclaimer</A> | <A HREF="about.html#privacy">Privacy Policy</A><BR>
+Copyright &copy; 1999 AltaVisor Company. All rights reserved.</FONT></CENTER>
+
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../yowza/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="var r=new Array('yowza','altavisor','askreeves','orinoco','ubid','etoyz','petz','geohoods','hamstershuffle','dashdot','snapster','cnm'); location.href='../'+r[Math.floor(Math.random()*r.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; AltaVisor is site 2 of 12 |
+<A HREF="../askreeves/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER>
+</BODY>
+</HTML>

@@ -1,0 +1,64 @@
+<HTML>
+<HEAD>
+<TITLE>Yowza! Mail</TITLE>
+<META NAME="description" CONTENT="Yowza! - a hand-sorted guide to the World Wide Web.">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000CC" VLINK="#551A8B" ALINK="#FF0000">
+<TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=0>
+<TR><TD WIDTH="1%"><A HREF="index.html"><IMG SRC="images/yowza_sm.gif" ALT="Yowza!" BORDER=0 WIDTH=147 HEIGHT=31></A></TD>
+<TD><TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="100%"><TR>
+<TD VALIGN=BOTTOM><FONT FACE=arial SIZE=-1><A HREF="my.html">Personalize</A></FONT></TD>
+<TD ALIGN=RIGHT VALIGN=BOTTOM><FONT FACE=arial SIZE=-1><A HREF="help.html">Help</A> - <A HREF="mail.html">Check Email</A></FONT></TD>
+</TR></TABLE><HR SIZE=1 NOSHADE></TD></TR></TABLE>
+<TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=3>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=-1><A HREF="index.html">Home</A> &gt; </FONT></TD></TR>
+<TR><TD WIDTH="80%" BGCOLOR="#A0B8C8"><NOBR><B><FONT FACE="arial,helvetica">Yowza! Mail</FONT></B></NOBR></TD></TR>
+</TABLE>
+<P>
+<TABLE WIDTH=600 BORDER=0 CELLPADDING=3><TR>
+<TD><FONT FACE=arial SIZE=-1><B>Inbox</B> (3 new) - <A HREF="#read" onClick="alert('Your message has been composed. Sadly it has nowhere to go: the Yowza! Mail servers are busy upgrading to 1999-compliant date handling.'); return false;">Compose</A> -
+<A HREF="#" onClick="alert('Addresses: Aunt Margie, Dave, and 1,402 people who forward chain letters.'); return false;">Addresses</A> - <A HREF="help.html">Help</A></FONT></TD>
+<TD ALIGN=RIGHT><FONT SIZE=-1>Storage used: 5.9 MB of 6 MB</FONT></TD></TR></TABLE>
+<FORM NAME="inbox"><TABLE WIDTH=600 BORDER=0 CELLPADDING=3 CELLSPACING=1 BGCOLOR="#999999">
+<TR BGCOLOR="#A0B8C8"><TD></TD><TD><FONT FACE=arial SIZE=-1><B>Sender</B></FONT></TD><TD><FONT FACE=arial SIZE=-1><B>Subject</B></FONT></TD><TD><FONT FACE=arial SIZE=-1><B>Date</B></FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><INPUT TYPE=checkbox NAME=sel></TD><TD><FONT SIZE=-1>Yowza! Mail Team</FONT></TD><TD><FONT SIZE=-1><A HREF="#read" onClick="showMsg(0)"><B>Welcome to Yowza! Mail!</B></A></FONT></TD><TD><FONT SIZE=-1>Oct 12</FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><INPUT TYPE=checkbox NAME=sel></TD><TD><FONT SIZE=-1>Aunt Margie</FONT></TD><TD><FONT SIZE=-1><A HREF="#read" onClick="showMsg(1)"><B>FW: FW: FW: FW: Free Cookie Recipe!!!</B></A></FONT></TD><TD><FONT SIZE=-1>Oct 11</FONT></TD></TR>
+<TR BGCOLOR="#FFFFCC"><TD><INPUT TYPE=checkbox NAME=sel></TD><TD><FONT SIZE=-1>IT Department</FONT></TD><TD><FONT SIZE=-1><A HREF="#read" onClick="showMsg(2)"><B>Y2K: Please test your computer</B></A></FONT></TD><TD><FONT SIZE=-1>Oct 11</FONT></TD></TR>
+<TR BGCOLOR="#FFFFFF"><TD><INPUT TYPE=checkbox NAME=sel></TD><TD><FONT SIZE=-1>The Webring Registry</FONT></TD><TD><FONT SIZE=-1><A HREF="#read" onClick="showMsg(3)">Your site has been added to the Unicorn Webring</A></FONT></TD><TD><FONT SIZE=-1>Oct 10</FONT></TD></TR>
+<TR BGCOLOR="#FFFFFF"><TD><INPUT TYPE=checkbox NAME=sel></TD><TD><FONT SIZE=-1>Make Money Fast</FONT></TD><TD><FONT SIZE=-1><A HREF="#read" onClick="showMsg(4)">$$$ EARN $50,000 FROM HOME $$$</A></FONT></TD><TD><FONT SIZE=-1>Oct 09</FONT></TD></TR>
+<TR BGCOLOR="#FFFFFF"><TD><INPUT TYPE=checkbox NAME=sel></TD><TD><FONT SIZE=-1>Dave</FONT></TD><TD><FONT SIZE=-1><A HREF="#read" onClick="showMsg(5)">re: did you see the hamsters</A></FONT></TD><TD><FONT SIZE=-1>Oct 08</FONT></TD></TR>
+</TABLE>
+<P><A NAME="read"></A><TEXTAREA NAME=body ROWS=6 COLS=70 WRAP=virtual>Click a subject to read the message.</TEXTAREA><BR>
+<INPUT TYPE=button VALUE="Delete" onClick="alert('Deleted. (It will be back. They always come back.)')">
+<INPUT TYPE=button VALUE="Forward to 10 Friends" onClick="alert('Please do not.')">
+</FORM>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var M = new Array('Congratulations on your new free email account! You now have six whole megabytes of storage, which is enough for roughly 4,000 messages or one picture of your cousin\'s wedding. Tip: your address is easy to remember and impossible to spell.',
+'>>>>> A woman ate a cookie at a department store cafe and asked for the recipe. They charged her TWO HUNDRED FIFTY DOLLARS!!! So she is sending it to EVERYONE for free. Forward this to ten friends!!! (Recipe: butter, sugar, flour, chips. Bake.)',
+'All staff: before December 31st, please set your computer clock to 11:58 PM on 12/31/1999 and watch it for two minutes. If anything catches fire, please notify IT. Do not do this on the server.',
+'Thank you for joining! Please paste the ring navigation code at the bottom of your page within 7 days or your site will be removed from the ring. The unicorns are watching.',
+'Dear Friend, This is not spam. This is a ONE TIME opportunity. All you need is a fax machine, a dream and a list of everyone you have ever met. Reply REMOVE to be removed (you will not be removed).',
+'dude. DUDE. go to the hamster shuffle site and turn your speakers up. i have been watching for 40 minutes. send help.');
+function showMsg(i) { document.inbox.body.value = M[i]; }
+// -->
+</SCRIPT>
+<P><IMG SRC="images/ad_mail.gif" WIDTH=468 HEIGHT=60 ALT="Get your free Yowza! Mail">
+<P><FONT SIZE=-2>*For life means the life of the account, which ends if you do not log in for 30 days.</FONT>
+<P><HR SIZE=0>
+<CENTER><FONT SIZE=-1><I>Copyright &copy; 1994-99 Yowza! Inc. All Rights Reserved.</I> -
+<A HREF="info.html">Company Information</A> -
+<A HREF="suggest.html">Suggest a Site</A> -
+<A HREF="help.html">FAQ</A></FONT></CENTER>
+
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../cnm/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="var r=new Array('yowza','altavisor','askreeves','orinoco','ubid','etoyz','petz','geohoods','hamstershuffle','dashdot','snapster','cnm'); location.href='../'+r[Math.floor(Math.random()*r.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Yowza! is site 1 of 12 |
+<A HREF="../altavisor/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER>
+</BODY>
+</HTML>

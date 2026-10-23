@@ -1,0 +1,87 @@
+<HTML>
+<HEAD>
+<TITLE>AltaVisor: Add/Remove URL</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000099" VLINK="#663366" ALINK="#FF0000">
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=600>
+<TR VALIGN=BOTTOM><TD><A HREF="index.html"><IMG SRC="images/av_logo_sm.gif" WIDTH=300 HEIGHT=38 BORDER=0 ALT="AltaVisor"></A></TD>
+<TD ALIGN=RIGHT><FONT SIZE=-1><A HREF="help.html">Help</A> - <A HREF="advanced.html">Advanced</A> - <A HREF="translate.html">Translate</A></FONT></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#003399"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=2></TD></TR></TABLE>
+<TABLE BORDER=0 BGCOLOR="#FFCC66" WIDTH=600 CELLSPACING=0 CELLPADDING=4><TR><TD>
+<FORM NAME=mfrm METHOD=GET ACTION="results.html"><INPUT TYPE=hidden NAME=pg VALUE=q>
+<FONT SIZE=-1><B>Search</B> <SELECT NAME=kl><OPTION VALUE=XX SELECTED>any language
+<OPTION VALUE=zh>Chinese
+<OPTION VALUE=cs>Czech
+<OPTION VALUE=da>Danish
+<OPTION VALUE=nl>Dutch
+<OPTION VALUE=en>English
+<OPTION VALUE=fi>Finnish
+<OPTION VALUE=fr>French
+<OPTION VALUE=de>German
+<OPTION VALUE=el>Greek
+<OPTION VALUE=it>Italian
+<OPTION VALUE=ja>Japanese
+<OPTION VALUE=ko>Korean
+<OPTION VALUE=no>Norwegian
+<OPTION VALUE=xp>Pig Latin
+<OPTION VALUE=pl>Polish
+<OPTION VALUE=pt>Portuguese
+<OPTION VALUE=ru>Russian
+<OPTION VALUE=es>Spanish
+<OPTION VALUE=sv>Swedish
+</SELECT> <B>for</B></FONT><BR>
+<INPUT NAME=q SIZE=50 MAXLENGTH=800 VALUE=""> <INPUT TYPE=image SRC="images/av_search.gif" WIDTH=66 HEIGHT=23 BORDER=0 ALT="Search" ALIGN=ABSMIDDLE>
+</FORM></TD></TR></TABLE>
+<TABLE WIDTH=600 BORDER=0 CELLSPACING=0 CELLPADDING=0><TR><TD BGCOLOR="#003399"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=2></TD></TR></TABLE>
+<P><TABLE WIDTH=600 BORDER=0><TR><TD VALIGN=TOP><IMG SRC="images/skeeter.gif" WIDTH=64 HEIGHT=64 ALT="Skeeter"></TD>
+<TD><FONT FACE=arial SIZE=+1><B>Add or Remove a URL</B></FONT><BR><FONT FACE=arial SIZE=-1>
+Skeeter, our web spider, visits millions of pages on his own. If he has missed yours, type its address below and
+he will drop by. To remove a page that no longer exists, submit it the same way: Skeeter will notice it is gone
+and quietly take it out of the index. Please submit each page only once; Skeeter has a long memory and eight legs to count on.</FONT></TD></TR></TABLE>
+<FORM NAME=uf onSubmit="return addUrl();">
+<TABLE WIDTH=600 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#FFCC66">
+<TR><TD><FONT SIZE=-1><B>URL:</B></FONT> <INPUT NAME=url SIZE=50 VALUE="http://"> <INPUT TYPE=submit VALUE="Submit"></TD></TR>
+</TABLE></FORM>
+<P><DIV ID=prog></DIV>
+<FORM NAME=pf><TABLE BORDER=0 CELLPADDING=2><TR><TD><FONT SIZE=-1 FACE=arial>Skeeter's progress:</FONT></TD>
+<TD><INPUT NAME=bar SIZE=40 VALUE="" STYLE="font-family: monospace"></TD></TR>
+<TR><TD></TD><TD><INPUT NAME=msg SIZE=40 VALUE="Waiting for a URL..."></TD></TR></TABLE></FORM>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var steps = new Array('Looking up the host name...', 'Knocking on port 80...', 'Reading the page...', 'Ignoring the MIDI file...',
+  'Counting the blink tags...', 'Writing it all down...', 'Done! Your page will appear within two weeks.');
+var n = 0;
+function tick() {
+  n++;
+  var b = '';
+  for (var i = 0; i < n * 6 && i < 40; i++) b += '#';
+  document.pf.bar.value = b;
+  document.pf.msg.value = steps[Math.min(n - 1, steps.length - 1)];
+  if (n < steps.length) setTimeout('tick()', 700);
+}
+function addUrl() {
+  var u = document.uf.url.value;
+  if (u.indexOf('http://') != 0 || u.length < 12) { alert('Please enter a complete URL starting with http://'); return false; }
+  if (u.indexOf('https://') == 0) { alert('Skeeter cannot read secure pages. Nobody can. That is the point.'); return false; }
+  n = 0; tick();
+  return false;
+}
+// -->
+</SCRIPT>
+<P><CENTER><TABLE WIDTH=600 BORDER=0 CELLSPACING=0 CELLPADDING=0><TR><TD BGCOLOR="#003399"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=2></TD></TR></TABLE>
+<FONT SIZE=-1><A HREF="about.html">About AltaVisor</A> | <A HREF="help.html">Help</A> | <A HREF="addurl.html">Add/Remove URL</A> |
+<A HREF="crawl.html">Crawler Report</A> | <A HREF="popular.html">Top Searches</A> | <A HREF="translate.html">Translate</A><BR>
+<A HREF="about.html#legal">Disclaimer</A> | <A HREF="about.html#privacy">Privacy Policy</A><BR>
+Copyright &copy; 1999 AltaVisor Company. All rights reserved.</FONT></CENTER>
+
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../yowza/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="var r=new Array('yowza','altavisor','askreeves','orinoco','ubid','etoyz','petz','geohoods','hamstershuffle','dashdot','snapster','cnm'); location.href='../'+r[Math.floor(Math.random()*r.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; AltaVisor is site 2 of 12 |
+<A HREF="../askreeves/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER>
+</BODY>
+</HTML>

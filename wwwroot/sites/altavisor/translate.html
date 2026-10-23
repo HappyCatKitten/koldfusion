@@ -1,0 +1,140 @@
+<HTML>
+<HEAD>
+<TITLE>AltaVisor Translation with Parrot</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000099" VLINK="#663366" ALINK="#FF0000">
+<SCRIPT LANGUAGE="JavaScript" SRC="av_index.js?v=1792754736"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function getArg(name) {
+  var q = location.search.substring(1).split('&');
+  for (var i = 0; i < q.length; i++) {
+    var kv = q[i].split('=');
+    if (kv[0] == name && kv.length > 1) return unescape(kv[1].replace(/\+/g, ' '));
+  }
+  return '';
+}
+function h(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+function mapWords(s, map) {
+  return s.replace(/[A-Za-z']+/g, function (w) {
+    var k = w.toLowerCase(), r = map[k];
+    if (typeof r != 'string') return w;
+    if (w.charAt(0) != w.charAt(0).toLowerCase()) r = r.charAt(0).toUpperCase() + r.substring(1);
+    return r;
+  });
+}
+var PIRATE = { hello: 'ahoy', hi: 'ahoy', my: 'me', you: 'ye', your: 'yer', is: 'be', are: 'be', am: 'be', the: "th'", friend: 'matey', friends: 'mateys',
+  money: 'doubloons', computer: 'treasure chest', computers: 'treasure chests', internet: 'seven seas', web: 'seven seas', site: 'ship', page: 'map', pages: 'maps',
+  yes: 'aye', no: 'nay', stop: 'avast', look: 'spy', email: 'message in a bottle', welcome: 'welcome aboard', home: 'port', search: 'plunder', find: 'plunder', free: 'stolen' };
+var OLDE = { you: 'thou', your: 'thy', yours: 'thine', are: 'art', the: 'ye', is: 'be', has: 'hath', does: 'doth', do: 'dost', hello: 'hail', hi: 'well met',
+  computer: 'thinking engine', internet: 'great web of the realm', email: 'missive', page: 'scroll', pages: 'scrolls', site: 'manor', yes: 'aye', no: 'nay',
+  very: 'most', cool: 'wondrous', free: 'without coin', before: 'ere', often: 'oft', over: "o'er", it: "'tis", maybe: 'perchance' };
+var VALLEY = { very: 'totally', good: 'awesome', great: 'way cool', bad: 'grody', said: 'was all', really: 'like, really', interesting: 'whatever',
+  hello: 'hey', excellent: 'all that', boring: 'so lame', information: 'stuff', many: 'like a gazillion' };
+function pig(s) {
+  return s.replace(/[A-Za-z]+/g, function (w) {
+    var cap = w.charAt(0) != w.charAt(0).toLowerCase(), lw = w.toLowerCase(), m = lw.match(/^[^aeiou]+/);
+    var r = m == null ? lw + 'way' : (m[0].length == lw.length ? lw + 'ay' : lw.substring(m[0].length) + m[0] + 'ay');
+    return cap ? r.charAt(0).toUpperCase() + r.substring(1) : r;
+  });
+}
+function leet(s) {
+  var a = 'aeiotsAEIOTS', b = '43107543107$';
+  var out = '';
+  for (var i = 0; i < s.length; i++) { var k = a.indexOf(s.charAt(i)); out += k >= 0 ? b.charAt(k) : (i % 3 == 0 ? s.charAt(i).toUpperCase() : s.charAt(i)); }
+  return out + ' d00d!';
+}
+function translate(s, lp) {
+  if (lp == 'en_xp') return pig(s);
+  if (lp == 'en_pi') return mapWords(s, PIRATE).replace(/ing\b/g, "in'").replace(/\.(\s|$)/g, ', arr!$1');
+  if (lp == 'en_ol') return 'Verily, ' + mapWords(s, OLDE).replace(/\.(\s|$)/g, ', forsooth.$1');
+  if (lp == 'en_va') return 'Like, ' + mapWords(s, VALLEY).replace(/, /g, ', like, ').replace(/\.(\s|$)/g, '. Totally.$1');
+  if (lp == 'en_le') return leet(s);
+  return s;
+}
+// -->
+</SCRIPT>
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=600>
+<TR VALIGN=BOTTOM><TD><A HREF="index.html"><IMG SRC="images/av_logo_sm.gif" WIDTH=300 HEIGHT=38 BORDER=0 ALT="AltaVisor"></A></TD>
+<TD ALIGN=RIGHT><FONT SIZE=-1><A HREF="help.html">Help</A> - <A HREF="advanced.html">Advanced</A> - <A HREF="translate.html">Translate</A></FONT></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#003399"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=2></TD></TR></TABLE>
+<TABLE BORDER=0 BGCOLOR="#FFCC66" WIDTH=600 CELLSPACING=0 CELLPADDING=4><TR><TD>
+<FORM NAME=mfrm METHOD=GET ACTION="results.html"><INPUT TYPE=hidden NAME=pg VALUE=q>
+<FONT SIZE=-1><B>Search</B> <SELECT NAME=kl><OPTION VALUE=XX SELECTED>any language
+<OPTION VALUE=zh>Chinese
+<OPTION VALUE=cs>Czech
+<OPTION VALUE=da>Danish
+<OPTION VALUE=nl>Dutch
+<OPTION VALUE=en>English
+<OPTION VALUE=fi>Finnish
+<OPTION VALUE=fr>French
+<OPTION VALUE=de>German
+<OPTION VALUE=el>Greek
+<OPTION VALUE=it>Italian
+<OPTION VALUE=ja>Japanese
+<OPTION VALUE=ko>Korean
+<OPTION VALUE=no>Norwegian
+<OPTION VALUE=xp>Pig Latin
+<OPTION VALUE=pl>Polish
+<OPTION VALUE=pt>Portuguese
+<OPTION VALUE=ru>Russian
+<OPTION VALUE=es>Spanish
+<OPTION VALUE=sv>Swedish
+</SELECT> <B>for</B></FONT><BR>
+<INPUT NAME=q SIZE=50 MAXLENGTH=800 VALUE=""> <INPUT TYPE=image SRC="images/av_search.gif" WIDTH=66 HEIGHT=23 BORDER=0 ALT="Search" ALIGN=ABSMIDDLE>
+</FORM></TD></TR></TABLE>
+<TABLE WIDTH=600 BORDER=0 CELLSPACING=0 CELLPADDING=0><TR><TD BGCOLOR="#003399"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=2></TD></TR></TABLE>
+<P><TABLE WIDTH=600 BORDER=0 CELLPADDING=0><TR>
+<TD VALIGN=TOP><IMG SRC="images/sponsor_parrot.gif" WIDTH=120 HEIGHT=60 ALT="Parrot"></TD>
+<TD VALIGN=TOP><FONT FACE=arial SIZE=+1><B>AltaVisor Translation with Parrot</B></FONT><BR>
+<FONT FACE=arial SIZE=-1>Parrot repeats anything you say, only in a different language. He is very proud of it.
+Machine translation is not perfect; Parrot is a bird.</FONT></TD></TR></TABLE>
+<FORM NAME=tf onSubmit="doText(); return false;">
+<TABLE WIDTH=600 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#FFCC66">
+<TR><TD><FONT SIZE=-1><B>Translate this text:</B></FONT><BR><TEXTAREA NAME=src ROWS=4 COLS=60 WRAP=virtual>Welcome to my home page! Please sign my guestbook before you leave.</TEXTAREA></TD></TR>
+<TR><TD><SELECT NAME=lp><OPTION VALUE=en_xp>English to Pig Latin
+<OPTION VALUE=en_pi>English to Pirate
+<OPTION VALUE=en_ol>English to Olde English
+<OPTION VALUE=en_va>English to Valley
+<OPTION VALUE=en_le>English to H4x0r
+</SELECT> <INPUT TYPE=submit VALUE="Translate"></TD></TR>
+<TR><TD><FONT SIZE=-1><B>Parrot says:</B></FONT><BR><TEXTAREA NAME=dst ROWS=4 COLS=60 WRAP=virtual></TEXTAREA></TD></TR>
+</TABLE></FORM>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function lp() { return document.tf.lp.options[document.tf.lp.selectedIndex].value; }
+function doText() { document.tf.dst.value = translate(document.tf.src.value, lp()); }
+var u = getArg('u'), w = getArg('lp');
+if (w != '') for (var i = 0; i < document.tf.lp.options.length; i++) if (document.tf.lp.options[i].value == w) document.tf.lp.selectedIndex = i;
+if (u != '') {
+  var doc = null;
+  for (var i = 0; i < D.length; i++) { var f = D[i].split('|'); if (f[0] == u) doc = f; }
+  if (doc == null) document.write('<P>Parrot could not find that page in the index. Perhaps Skeeter has not crawled it yet.');
+  else {
+    document.write('<P><TABLE WIDTH=600 BORDER=0 CELLPADDING=4 CELLSPACING=0><TR><TD BGCOLOR="#003399"><FONT FACE=arial COLOR="#FFFFFF" SIZE=-1><B>Translated page: ' + h(doc[1]) + '</B></FONT></TD></TR>');
+    document.write('<TR><TD><FONT SIZE=-1>In ' + document.tf.lp.options[document.tf.lp.selectedIndex].text.replace('English to ', '') + ':</FONT><P><B>' + h(translate(doc[2], lp())) + '</B><BR>' + h(translate(doc[3], lp())) + '...');
+    document.write('<P><FONT SIZE=-1>Original: <A HREF="' + doc[0] + '">' + h(doc[2]) + '</A> - Another language: ');
+    for (var i = 0; i < document.tf.lp.options.length; i++) document.write('<A HREF="translate.html?u=' + escape(u) + '&lp=' + document.tf.lp.options[i].value + '">' + document.tf.lp.options[i].text.replace('English to ', '') + '</A> ');
+    document.write('</FONT></TD></TR></TABLE>');
+  }
+}
+// -->
+</SCRIPT>
+<P><CENTER><TABLE WIDTH=600 BORDER=0 CELLSPACING=0 CELLPADDING=0><TR><TD BGCOLOR="#003399"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=2></TD></TR></TABLE>
+<FONT SIZE=-1><A HREF="about.html">About AltaVisor</A> | <A HREF="help.html">Help</A> | <A HREF="addurl.html">Add/Remove URL</A> |
+<A HREF="crawl.html">Crawler Report</A> | <A HREF="popular.html">Top Searches</A> | <A HREF="translate.html">Translate</A><BR>
+<A HREF="about.html#legal">Disclaimer</A> | <A HREF="about.html#privacy">Privacy Policy</A><BR>
+Copyright &copy; 1999 AltaVisor Company. All rights reserved.</FONT></CENTER>
+
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../yowza/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="var r=new Array('yowza','altavisor','askreeves','orinoco','ubid','etoyz','petz','geohoods','hamstershuffle','dashdot','snapster','cnm'); location.href='../'+r[Math.floor(Math.random()*r.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; AltaVisor is site 2 of 12 |
+<A HREF="../askreeves/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER>
+</BODY>
+</HTML>

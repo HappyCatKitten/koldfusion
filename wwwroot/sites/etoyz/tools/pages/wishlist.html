@@ -1,0 +1,45 @@
+<IMG SRC="{P}images/heart.gif" WIDTH=18 HEIGHT=16> <FONT FACE="Arial, Helvetica" SIZE=5 COLOR="#1B5FE2"><B>Wish Lists</B></FONT><BR>
+<FONT FACE="Arial, Helvetica" SIZE=2>Make a list of the toys you're dreaming of, and let Grandma do the rest.</FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var F = "<FONT FACE=\"Arial, Helvetica\" SIZE=2>", u = userGet();
+function findList() {
+  var e = document.forms["find"].email.value.toLowerCase().replace(/\s/g, "");
+  location.href = P + "wishlist.html?for=" + escape(e);
+  return false;
+}
+// finish an "add to wish list" that needed a sign-in first
+if (qs("add") != "" && u && findToy(qs("add"))) wishAdd(qs("add"));
+var who = qs("for");
+if (who != "") {
+  var a = findAccount(who), w = wishGet(who);
+  document.write("<TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 WIDTH=\"100%\"><TR><TD BGCOLOR=\"#F078AA\">" + F + "<FONT COLOR=\"#FFFFFF\"><B>" + (a ? esc(a[1]) + "'s wish list" : "Wish list for " + esc(who)) + "</B></FONT></FONT></TD></TR></TABLE>");
+  if (!a) document.write(F + "We couldn't find a customer with that e-mail address on this computer.</FONT>");
+  else if (w.length == 0) document.write(F + esc(a[1].split(" ")[0]) + " hasn't wished for anything yet. A rare child indeed.</FONT>");
+  else {
+    var list = new Array();
+    for (var i = 0; i < w.length; i++) list[list.length] = findToy(w[i]);
+    document.write(toyRows(list));
+    document.write(F + "Buying one of these? Add it to your cart and we'll gift-wrap it on request.</FONT>");
+  }
+} else if (!u) {
+  document.write(F + "<A HREF=\"" + P + "signin.html?next=wishlist.html\"><B>Sign in</B></A> to start your own wish list. Every eToyz customer gets one.</FONT>");
+} else {
+  var added = findToy(qs("added"));
+  if (added) document.write("<TABLE BORDER=0 CELLPADDING=6 WIDTH=\"100%\" BGCOLOR=\"#FFFFED\"><TR><TD>" + F + "<B>" + esc(added[1]) + "</B> is on your wish list. Good choice!</FONT></TD></TR></TABLE><BR>");
+  var w = wishGet(u[1]);
+  document.write("<TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 WIDTH=\"100%\"><TR><TD BGCOLOR=\"#1B5FE2\">" + F + "<FONT COLOR=\"#FFFFFF\"><B>" + esc(u[0]) + "'s wish list</B></FONT></FONT></TD></TR></TABLE>");
+  if (w.length == 0) document.write(F + "Your wish list is empty. Click <B>Add to Wish List</B> on any toy.</FONT><BR>");
+  else {
+    var h = "<TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 WIDTH=\"100%\">";
+    for (var i = 0; i < w.length; i++) {
+      var t = findToy(w[i]);
+      h += "<TR BGCOLOR=\"" + (i % 2 ? "#FFFFED" : "#FFFFFF") + "\"><TD WIDTH=74><A HREF=\"" + toyURL(t) + "\"><IMG SRC=\"" + toyImg(t) + "\" WIDTH=70 HEIGHT=70 BORDER=0></A></TD><TD>" + F + "<A HREF=\"" + toyURL(t) + "\"><B>" + esc(t[1]) + "</B></A><BR>" + money(t[6]) + "<BR>";
+      h += "<A HREF=\"" + P + "cart.html\" onClick=\"return cartAdd('" + t[0] + "', 1)\">add to cart</A> | <A HREF=\"#\" onClick=\"return wishRemove('" + t[0] + "')\">remove</A></FONT></TD></TR>";
+    }
+    document.write(h + "</TABLE>");
+  }
+  document.write("<BR>" + F + "<B>Share it:</B> tell your family to visit eToyz and look up <B>" + esc(u[1]) + "</B> below. (In this parody your list lives in this browser, so they'll need to use your computer. Leave it on.)</FONT><BR>");
+}
+</SCRIPT>
+<BR><FORM NAME="find" onSubmit="return findList()"><TABLE BORDER=0 CELLPADDING=6 BGCOLOR="#FFD21B"><TR><TD><FONT FACE="Arial, Helvetica" SIZE=2>
+<B>Find someone's wish list:</B> e-mail address <INPUT TYPE=text NAME="email" SIZE=22> <INPUT TYPE=submit VALUE="Find"></FONT></TD></TR></TABLE></FORM>

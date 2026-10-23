@@ -194,24 +194,51 @@ static void install_defaults(void) {
     }
 }
 
+/* every kfroot/seed/<name>.sql is a data source: registered (as an Access
+ * DSN, description from a leading "-- DSN: ..." comment) and built the first
+ * time the server starts without kfroot/db/<name> */
+#include <dirent.h>
 static void seed_databases(void) {
-    const char *names[] = {"cfsnippets", "exampleapp", "btg", "cfexamples", "CompanyInfo", "demos", NULL};
-    for (int i = 0; names[i]; i++) {
-        char *dir = kf_path_join(kf_path_join(G.root, "db"), names[i]);
-        struct stat st;
-        if (stat(dir, &st) == 0) continue;
-        char *seed = kf_path_join(kf_path_join(G.root, "seed"), kprintf("%s.sql", names[i]));
+    char *seeddir = kf_path_join(G.root, "seed");
+    DIR *d = opendir(seeddir);
+    struct dirent *de;
+    while (d && (de = readdir(d))) {
+        size_t l = strlen(de->d_name);
+        if (l < 5 || strcmp(de->d_name + l - 4, ".sql")) continue;
+        char *name = kstrndup(de->d_name, l - 4);
         size_t len;
-        char *sql = kf_read_file(seed, &len);
+        char *sql = kf_read_file(kf_path_join(seeddir, de->d_name), &len);
         if (!sql) continue;
-        kf_mkdirs(dir);
-        char err[1024];
-        if (!sql_exec_script(dir, sql, err, sizeof err))
-            fprintf(stderr, "KoldFusion: seeding %s failed: %s\n", names[i], err);
-        else
-            fprintf(stderr, "  Created sample data source %s\n", names[i]);
+        char *k = cfg_key(kprintf("DataSources\\%s", name));
+        if (!reg_exists(k, NULL)) {
+            const char *desc = "Sample data source";
+            if (!strncmp(sql, "-- DSN:", 7)) desc = kf_trim(kstrndup(sql + 7, strcspn(sql + 7, "\n")));
+            reg_set(k, "Driver", "Microsoft Access Driver (*.mdb)", 0);
+            reg_set(k, "Kind", "ODBC", 0);
+            reg_set(k, "Database", name, 0);
+            reg_set(k, "Description", desc, 0);
+            reg_set(k, "Username", "", 0);
+            reg_set(k, "Password", kf_scramble(""), 0);
+            reg_set(k, "LoginTimeout", "30", 0);
+            reg_set(k, "MaintainConnections", "1", 0);
+            reg_set(k, "Disabled", "0", 0);
+            reg_set(k, "Restrict", "", 0);
+            reg_set(k, "PageTimeout", "600", 0);
+            reg_set(k, "BufferSize", "0", 0);
+        }
+        char *dir = kf_path_join(kf_path_join(G.root, "db"), name);
+        struct stat st;
+        if (stat(dir, &st) != 0) {
+            kf_mkdirs(dir);
+            char err[1024];
+            if (!sql_exec_script(dir, sql, err, sizeof err))
+                fprintf(stderr, "KoldFusion: seeding %s failed: %s\n", name, err);
+            else
+                fprintf(stderr, "  Created sample data source %s\n", name);
+        }
         free(sql);
     }
+    if (d) closedir(d);
 }
 
 static void init_server_scope(void) {

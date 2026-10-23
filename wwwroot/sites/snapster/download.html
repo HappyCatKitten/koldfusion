@@ -1,0 +1,184 @@
+<HTML>
+<HEAD>
+<TITLE>Download Snapster</TITLE>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var pre = new Array();
+function preload() {
+  if (!document.images) return;
+  for (var i = 0; i < preload.arguments.length; i++) {
+    pre[pre.length] = new Image();
+    pre[pre.length - 1].src = preload.arguments[i];
+  }
+}
+function sw(n, s) {
+  if (document.images && document.images[n]) document.images[n].src = s;
+}
+// -->
+</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var total = 1433, got = 0, busy = 0, waited = 0;
+function pad2(n) { return (n < 10 ? "0" : "") + n; }
+function startDl() {
+  if (busy) { alert("Easy there, cowboy. One download at a time."); return false; }
+  busy = 1; got = 0; waited = 0;
+  sw("dlmsg", "images/clear.gif");
+  document.dlg.file.value = "snapster20b5.exe from dl.snapster.com";
+  setTimeout("stepDl()", 300);
+  return false;
+}
+function stepDl() {
+  var rate = 90 + Math.floor(Math.random() * 70);
+  if (got >= total * 0.99 && waited < 8) {
+    waited++;
+    document.dlg.stat.value = "Saved: " + Math.floor(got) + " KB of " + total + " KB (the last 1% is the hardest)";
+    setTimeout("stepDl()", 300);
+    return;
+  }
+  got += rate / 4;
+  if (got > total) got = total;
+  var pct = Math.floor(got * 20 / total);
+  sw("dlbar", "images/bar_" + pad2(pct) + ".gif");
+  var left = Math.ceil((total - got) / rate);
+  document.dlg.stat.value = "Saved: " + Math.floor(got) + " KB of " + total + " KB (" + rate + ".0 KB/s)";
+  document.dlg.eta.value = "0:" + pad2(left) + " remaining";
+  if (got < total) { setTimeout("stepDl()", 250); return; }
+  document.dlg.eta.value = "Done.";
+  sw("dlmsg", "images/punchline.gif");
+  busy = 0;
+  setTimeout("alert('Download complete!\\n\\nJust kidding: this is a parody site. Nothing was downloaded,\\nnothing was installed, and your hard drive is exactly as full as before.')", 400);
+}
+// -->
+</SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#000000" BACKGROUND="images/bk.gif" TEXT="#000000" LINK="#000099" VLINK="#336699" ALINK="#FFCC00" onLoad="preload('images/left_whatis_on.gif', 'images/left_download_on.gif', 'images/left_advertise_on.gif', 'images/left_company_on.gif', 'images/left_groundzero_on.gif', 'images/left_artists_on.gif', 'images/left_press_on.gif', 'images/left_legal_on.gif', 'images/left_help_on.gif', 'images/left_terms_on.gif', 'images/btn_whatis_mo.gif', 'images/btn_company_mo.gif', 'images/btn_home_mo.gif', 'images/btn_download_mo.gif')">
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=566>
+  <TR>
+    <TD COLSPAN=2 BGCOLOR="#000000"><A HREF="index.html"><IMG SRC="images/logo.gif" WIDTH=273 HEIGHT=68 BORDER=0 ALT="Snapster"></A></TD>
+    <TD BGCOLOR="#000000">&nbsp;</TD>
+    <TD ROWSPAN=2 VALIGN=BOTTOM><IMG SRC="images/arrows.gif" WIDTH=174 HEIGHT=91 ALT=""></TD>
+    <TD ROWSPAN=4 VALIGN=TOP><IMG SRC="images/head_curve.gif" WIDTH=12 HEIGHT=121 ALT=""></TD>
+  </TR>
+  <TR>
+    <TD BGCOLOR="#666666"><A HREF="index.html" onMouseOver="sw('t_home','images/btn_home_mo.gif')" onMouseOut="sw('t_home','images/btn_home.gif')"><IMG SRC="images/btn_home.gif" WIDTH=150 HEIGHT=23 NAME="t_home" BORDER=0 ALT="home"></A></TD>
+    <TD BGCOLOR="#666666"><A HREF="whatis.html" onMouseOver="sw('t_whatis','images/btn_whatis_mo.gif')" onMouseOut="sw('t_whatis','images/btn_whatis.gif')"><IMG SRC="images/btn_whatis.gif" WIDTH=143 HEIGHT=23 NAME="t_whatis" BORDER=0 ALT="whatis"></A></TD>
+    <TD BGCOLOR="#666666"><A HREF="company.html" onMouseOver="sw('t_company','images/btn_company_mo.gif')" onMouseOut="sw('t_company','images/btn_company.gif')"><IMG SRC="images/btn_company.gif" WIDTH=87 HEIGHT=23 NAME="t_company" BORDER=0 ALT="company"></A></TD>
+  </TR>
+  <TR>
+    <TD><IMG SRC="images/available.gif" WIDTH=150 HEIGHT=20 ALT="available music:"></TD>
+    <TD COLSPAN=2>
+      <TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0>
+        <TR>
+          <TD ROWSPAN=3><IMG SRC="images/num_left.gif" WIDTH=1 HEIGHT=20></TD>
+          <TD><IMG SRC="images/num_top.gif" WIDTH=222 HEIGHT=3></TD>
+          <TD ROWSPAN=3><IMG SRC="images/num_right.gif" WIDTH=7 HEIGHT=20></TD>
+        </TR>
+        <TR>
+<!-- the "available music" counter -->
+          <TD BGCOLOR="#99CCCC" NOWRAP><IMG SRC="images/clear.gif" WIDTH=5 HEIGHT=12><IMG SRC="images/cnt_1.gif" WIDTH=8 HEIGHT=12 NAME="k0"><IMG SRC="images/cnt_comma.gif" WIDTH=4 HEIGHT=12 NAME="k1"><IMG SRC="images/cnt_2.gif" WIDTH=8 HEIGHT=12 NAME="k2"><IMG SRC="images/cnt_0.gif" WIDTH=8 HEIGHT=12 NAME="k3"><IMG SRC="images/cnt_7.gif" WIDTH=8 HEIGHT=12 NAME="k4"><IMG SRC="images/cnt_comma.gif" WIDTH=4 HEIGHT=12 NAME="k5"><IMG SRC="images/cnt_5.gif" WIDTH=8 HEIGHT=12 NAME="k6"><IMG SRC="images/cnt_5.gif" WIDTH=8 HEIGHT=12 NAME="k7"><IMG SRC="images/cnt_3.gif" WIDTH=8 HEIGHT=12 NAME="k8"><IMG SRC="images/cnt_songs.gif" WIDTH=60 HEIGHT=12></TD>
+        </TR>
+        <TR>
+          <TD><IMG SRC="images/num_bottom.gif" WIDTH=222 HEIGHT=5></TD>
+        </TR>
+      </TABLE>
+    </TD>
+    <TD BGCOLOR="#666666"><A HREF="download.html" onMouseOver="sw('dl','images/btn_download_mo.gif')" onMouseOut="sw('dl','images/btn_download.gif')"><IMG SRC="images/btn_download.gif" WIDTH=174 HEIGHT=20 NAME="dl" BORDER=0 ALT="Download"></A></TD>
+  </TR>
+  <TR>
+    <TD COLSPAN=4><IMG SRC="images/cap.gif" WIDTH=554 HEIGHT=10></TD>
+  </TR>
+  <TR>
+    <TD COLSPAN=4 VALIGN=TOP>
+      <TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=554>
+        <TR>
+          <TD VALIGN=TOP BGCOLOR="#999999" WIDTH=133>
+            <TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 BGCOLOR="#666666">
+            <TR><TD><A HREF="whatis.html" onMouseOver="sw('l_whatis','images/left_whatis_on.gif')" onMouseOut="sw('l_whatis','images/left_whatis.gif')"><IMG SRC="images/left_whatis.gif" WIDTH=133 HEIGHT=16 NAME="l_whatis" BORDER=0 ALT="whatis"></A></TD></TR>
+            <TR><TD><A HREF="download.html"><IMG SRC="images/left_download_on.gif" WIDTH=133 HEIGHT=16 BORDER=0 ALT="download"></A></TD></TR>
+            <TR><TD><A HREF="advertise.html" onMouseOver="sw('l_advertise','images/left_advertise_on.gif')" onMouseOut="sw('l_advertise','images/left_advertise.gif')"><IMG SRC="images/left_advertise.gif" WIDTH=133 HEIGHT=16 NAME="l_advertise" BORDER=0 ALT="advertise"></A></TD></TR>
+            <TR><TD><A HREF="company.html" onMouseOver="sw('l_company','images/left_company_on.gif')" onMouseOut="sw('l_company','images/left_company.gif')"><IMG SRC="images/left_company.gif" WIDTH=133 HEIGHT=16 NAME="l_company" BORDER=0 ALT="company"></A></TD></TR>
+            <TR><TD><A HREF="groundzero.html" onMouseOver="sw('l_groundzero','images/left_groundzero_on.gif')" onMouseOut="sw('l_groundzero','images/left_groundzero.gif')"><IMG SRC="images/left_groundzero.gif" WIDTH=133 HEIGHT=16 NAME="l_groundzero" BORDER=0 ALT="groundzero"></A></TD></TR>
+            <TR><TD><A HREF="artists.html" onMouseOver="sw('l_artists','images/left_artists_on.gif')" onMouseOut="sw('l_artists','images/left_artists.gif')"><IMG SRC="images/left_artists.gif" WIDTH=133 HEIGHT=16 NAME="l_artists" BORDER=0 ALT="artists"></A></TD></TR>
+            <TR><TD><A HREF="press.html" onMouseOver="sw('l_press','images/left_press_on.gif')" onMouseOut="sw('l_press','images/left_press.gif')"><IMG SRC="images/left_press.gif" WIDTH=133 HEIGHT=16 NAME="l_press" BORDER=0 ALT="press"></A></TD></TR>
+            <TR><TD><A HREF="legal.html" onMouseOver="sw('l_legal','images/left_legal_on.gif')" onMouseOut="sw('l_legal','images/left_legal.gif')"><IMG SRC="images/left_legal.gif" WIDTH=133 HEIGHT=16 NAME="l_legal" BORDER=0 ALT="legal"></A></TD></TR>
+            <TR><TD><IMG SRC="images/left_space.gif" WIDTH=133 HEIGHT=49></TD></TR>
+            <TR><TD><A HREF="help.html" onMouseOver="sw('l_help','images/left_help_on.gif')" onMouseOut="sw('l_help','images/left_help.gif')"><IMG SRC="images/left_help.gif" WIDTH=133 HEIGHT=16 NAME="l_help" BORDER=0 ALT="help"></A></TD></TR>
+            <TR><TD><A HREF="terms.html" onMouseOver="sw('l_terms','images/left_terms_on.gif')" onMouseOut="sw('l_terms','images/left_terms.gif')"><IMG SRC="images/left_terms.gif" WIDTH=133 HEIGHT=16 NAME="l_terms" BORDER=0 ALT="terms"></A></TD></TR>
+            <TR><TD><IMG SRC="images/left_bottom.gif" WIDTH=133 HEIGHT=13></TD></TR>
+            </TABLE>
+            <IMG SRC="images/clear.gif" WIDTH=133 HEIGHT=8><BR>
+            <CENTER><A HREF="groundzero.html#contest"><IMG SRC="images/sponsor.gif" WIDTH=120 HEIGHT=90 BORDER=0 ALT="RadioRhombus contest"></A></CENTER>
+          </TD>
+          <TD BGCOLOR="#777777" VALIGN=TOP WIDTH=1><IMG SRC="images/clear.gif" WIDTH=1 HEIGHT=1></TD>
+          <TD BGCOLOR="#4F4F4F" VALIGN=TOP WIDTH=1><IMG SRC="images/clear.gif" WIDTH=1 HEIGHT=1></TD>
+          <TD BGCOLOR="#CCCC99" VALIGN=TOP WIDTH=400>
+            <IMG SRC="images/clear.gif" WIDTH=399 HEIGHT=2><BR>
+            <TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=398>
+              <TR>
+                <TD VALIGN=TOP><IMG SRC="images/clear.gif" WIDTH=15 HEIGHT=15></TD>
+<!-- body text -->
+                <TD VALIGN=TOP>
+<P><IMG SRC="images/hdr_download.gif" WIDTH=380 HEIGHT=34 ALT="Download Snapster"></P><P><FONT FACE="Arial, Helvetica" SIZE=2><B><I>Snapster 2.0 Beta 5</I></B> for Windows 95/98/NT is here. It's free, it's small, and it is only a little bit beta.</FONT></P>
+                  <CENTER><A HREF="download.html" onClick="return startDl()" onMouseOver="sw('dn','images/download_now_mo.gif')" onMouseOut="sw('dn','images/download_now.gif')"><IMG SRC="images/download_now.gif" WIDTH=170 HEIGHT=44 BORDER=0 NAME="dn" ALT="Download Snapster NOW!"></A><BR>
+                  <FONT FACE="Arial, Helvetica" SIZE=1>snapster20b5.exe &middot; 1.4 MB &middot; about 7 minutes at 28.8</FONT></CENTER>
+                  <P><FORM NAME="dlg" onSubmit="return false">
+                  <TABLE BORDER=2 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#C0C0C0" WIDTH=360><TR><TD BGCOLOR="#000080"><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#FFFFFF"><B>File Download</B></FONT></TD></TR>
+                  <TR><TD><FONT FACE="Arial, Helvetica" SIZE=1>
+                  <INPUT TYPE=TEXT NAME="file" SIZE=40 VALUE="(click Download Snapster NOW! above)" onFocus="this.blur()"><BR>
+                  <IMG SRC="images/bar_00.gif" WIDTH=100 HEIGHT=11 NAME="dlbar"><BR>
+                  <INPUT TYPE=TEXT NAME="stat" SIZE=40 VALUE="Saved: 0 KB of 1433 KB" onFocus="this.blur()"><BR>
+                  <INPUT TYPE=TEXT NAME="eta" SIZE=20 VALUE="Estimated time: who knows" onFocus="this.blur()">
+                  <INPUT TYPE=BUTTON VALUE="Cancel" onClick="alert('You can\'t cancel. We\'re already best friends now.')">
+                  </FONT></TD></TR></TABLE></FORM>
+                  <IMG SRC="images/clear.gif" WIDTH=360 HEIGHT=40 NAME="dlmsg">
+                  <P><FONT FACE="Arial, Helvetica" SIZE=2><B>Installing:</B> double-click <TT>snapster20b5.exe</TT>, click Next about eleven times, choose your shared folder, tell us your line speed (honestly!), and you're in.</FONT></P><P><FONT FACE="Arial, Helvetica" SIZE=2><B>What's new in Beta 5:</B><BR>&middot; Hot List remembers your friends even after a crash<BR>&middot; Search results now sorted by ping, so the fastest strangers come first<BR>&middot; Fixed a bug where the turtle icon would spin forever<BR>&middot; Added a bug where the turtle icon spins a little bit<BR>&middot; "Remote user cancelled" now 12% more polite</FONT></P><A NAME="mac"></A><P><FONT FACE="Arial, Helvetica" SIZE=2><B>Macintosh:</B> Snaptosh is coming. A fellow named Tosh is writing it. In a garage. On a beige machine that he swears he will paint blue.<BR><B>Linux:</B> the source is in your heart. Compile it.</FONT></P><P><FONT FACE="Arial, Helvetica" SIZE=2>Or skip all that and <A HREF="client.html"><B>launch the Web Edition</B></A>.</FONT></P>
+                </TD>
+              </TR>
+            </TABLE>
+            <P>&nbsp;</P>
+          </TD>
+          <TD VALIGN=TOP WIDTH=19 BGCOLOR="#CCCC99"><IMG SRC="images/bodycurve.gif" WIDTH=20 HEIGHT=37></TD>
+        </TR>
+        <TR>
+          <TD VALIGN=TOP BGCOLOR="#999999" WIDTH=133>&nbsp;</TD>
+          <TD BGCOLOR="#777777" WIDTH=1><IMG SRC="images/clear.gif" WIDTH=1 HEIGHT=1></TD>
+          <TD BGCOLOR="#4F4F4F" WIDTH=1><IMG SRC="images/clear.gif" WIDTH=1 HEIGHT=1></TD>
+          <TD BGCOLOR="#CCCC99" WIDTH=400><CENTER><FONT SIZE="-2" FACE="Arial, Helvetica">Copyright 1999-2000 Snapster, Inc.<BR>All rights reserved. Snappy the Turtle is a registered turtle.</FONT><BR>&nbsp;</CENTER></TD>
+          <TD WIDTH=19 BGCOLOR="#CCCC99">&nbsp;</TD>
+        </TR>
+      </TABLE>
+    </TD>
+  </TR>
+  <TR>
+    <TD COLSPAN=4><IMG SRC="images/bottom.gif" WIDTH=554 HEIGHT=20></TD>
+    <TD>&nbsp;</TD>
+  </TR>
+</TABLE>
+<TABLE BORDER=0 WIDTH=566><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#999999">
+<A HREF="index.html"><FONT COLOR="#99CCCC">home</FONT></A> |
+<A HREF="client.html"><FONT COLOR="#99CCCC">launch the web client</FONT></A> |
+<A HREF="help.html"><FONT COLOR="#99CCCC">help</FONT></A> |
+<A HREF="terms.html"><FONT COLOR="#99CCCC">terms of use</FONT></A> |
+<A HREF="legal.html"><FONT COLOR="#99CCCC">copyright policy</FONT></A>
+</FONT>
+
+<SCRIPT LANGUAGE="JavaScript1.2">
+<!--
+function ringRandom() {
+  var list = new Array("../yowza/index.html", "../altavisor/index.html", "../askreeves/index.html", "../orinoco/index.html", "../ubid/index.html", "../etoyz/index.html", "../petz/index.html", "../geohoods/index.html", "../hamstershuffle/index.html", "../dashdot/index.html", "../snapster/index.html", "../cnm/index.html");
+  location.href = list[Math.floor(Math.random() * list.length)];
+  return false;
+}
+// -->
+</SCRIPT>
+<P><CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../dashdot/index.html"><FONT COLOR="#000080">&lt;&lt; Prev</FONT></A> <FONT COLOR="#000000">|</FONT> <A HREF="../../web1999/index.html" onClick="return ringRandom()"><FONT COLOR="#000080">Random</FONT></A> <FONT COLOR="#000000">|</FONT> <B><A HREF="../../web1999/index.html"><FONT COLOR="#000080">The 1999 Web Ring</FONT></A></B> <FONT COLOR="#000000">&middot; Snapster is site 11 of 12 |</FONT> <A HREF="../cnm/index.html"><FONT COLOR="#000080">Next &gt;&gt;</FONT></A>
+</FONT></TD></TR></TABLE></CENTER>
+
+<P><A HREF="../../web1999/index.html"><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion"></A>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

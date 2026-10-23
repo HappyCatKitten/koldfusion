@@ -1,0 +1,116 @@
+<HTML><HEAD><TITLE>Dashdot | User Info for BioBob</TITLE>
+<SCRIPT LANGUAGE="JavaScript"><!--
+
+function getCookie(n) {
+  var c = document.cookie.split("; ");
+  for (var i = 0; i < c.length; i++) {
+    var p = c[i].indexOf("=");
+    if (p > 0 && c[i].substring(0, p) == n) return unescape(c[i].substring(p + 1));
+  }
+  return "";
+}
+function setCookie(n, v, days) {
+  var e = "";
+  if (days) { var d = new Date(); d.setTime(d.getTime() + days * 86400000); e = "; expires=" + d.toGMTString(); }
+  document.cookie = n + "=" + escape(v) + e + "; path=/";
+}
+function delCookie(n) { document.cookie = n + "=; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/"; }
+function qs(n) {
+  var q = location.search.substring(1).split("&");
+  for (var i = 0; i < q.length; i++) {
+    var p = q[i].indexOf("=");
+    if (p > 0 && q[i].substring(0, p) == n) return unescape(q[i].substring(p + 1).replace(/\+/g, " "));
+  }
+  return "";
+}
+function htmlEsc(s) {
+  s = "" + s;
+  s = s.replace(/&/g, "&amp;"); s = s.replace(/</g, "&lt;"); s = s.replace(/>/g, "&gt;"); s = s.replace(/"/g, "&quot;");
+  return s;
+}
+
+function ringRandom(p) {
+  var s = new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","snapster","cnm");
+  var n = Math.floor(Math.random() * s.length);
+  location.href = p + "../" + s[n] + "/" + "index.html";
+  return false;
+}
+
+function ddLogin(f) {
+  var n = f.unickname.value;
+  if (n == "") { alert("Please enter a nickname. Even Anonymous Cowards have to type something."); return false; }
+  if (f.upasswd.value == "") { alert("Please enter your password. (We won't look at it. We don't even keep it.)"); return false; }
+  setCookie("dd_user", n, 30);
+  if (getCookie("dd_points") == "") {
+    setCookie("dd_points", "5", 3);
+    alert("Welcome back, " + n + "!\n\nYou have been randomly selected to moderate.\nYou have 5 moderator points; they expire in 3 days.\nUse them wisely: look for the Moderate menus under each comment.");
+  }
+  location.reload();
+  return false;
+}
+function ddLogout() { delCookie("dd_user"); location.reload(); }
+function loginBox(root) {
+  var u = getCookie("dd_user");
+  if (u != "") {
+    var p = getCookie("dd_points"); if (p == "") p = "0";
+    document.write('<B>Welcome back, ' + htmlEsc(u) + '!</B><BR>Karma: Positive<BR>Moderator points: <B>' + p + '</B><P>');
+    document.write('[ <A HREF="' + root + 'preferences.html">preferences</A> | <A HREF="javascript:ddLogout()">logout</A> ]');
+  } else {
+    document.write('<FORM ACTION="' + root + 'users.html" METHOD="get" onSubmit="return ddLogin(this)">');
+    document.write('<B>Nickname:</B><BR><INPUT TYPE="text" NAME="unickname" SIZE=18><BR><B>Password:</B><BR>');
+    document.write('<INPUT TYPE="password" NAME="upasswd" SIZE=18><BR><INPUT TYPE="submit" VALUE="userlogin"></FORM>');
+    document.write('No account? <A HREF="' + root + 'users.html">Make one</A>. It\'s free, and it lets you pick your comment threshold, keep your nickname, and moderate when the dice say so.');
+  }
+}
+
+//--></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#000000" TEXT="#000000" LINK="#006666" VLINK="#000000">
+<CENTER><A HREF="../advertising.html"><IMG SRC="../images/banner_kf.gif" WIDTH=468 HEIGHT=60 BORDER=0 ALT="KoldFusion 4.5 from Gibson Mainframe Co."></A></CENTER><P>
+<TABLE BGCOLOR="#FFFFFF" CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH="99%" ALIGN=CENTER><TR>
+<TD VALIGN=TOP ALIGN=LEFT><A HREF="../index.html"><IMG SRC="../images/title.gif" WIDTH=300 HEIGHT=72 BORDER=0 ALT="Welcome to Dashdot"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="../topic_y2k.html"><IMG SRC="../images/topicy2k.gif" BORDER=0 ALT="Y2K"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="../topic_hardware.html"><IMG SRC="../images/topichardware.gif" BORDER=0 ALT="Hardware"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="../topic_patents.html"><IMG SRC="../images/topicpatents.gif" BORDER=0 ALT="Patents"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="../topic_linix.html"><IMG SRC="../images/topiclinix.gif" BORDER=0 ALT="Linix"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="../topic_games.html"><IMG SRC="../images/topicgames.gif" BORDER=0 ALT="Games"></A></TD>
+</TR></TABLE>
+<TABLE WIDTH="99%" ALIGN=CENTER CELLPADDING=8 CELLSPACING=0 BORDER=0 BGCOLOR="#FFFFFF"><TR>
+<TD VALIGN=TOP><FONT FACE="arial,helvetica" COLOR="#000000">
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="../images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>User Info for BioBob (26601)</B></FONT></TD></TR></TABLE>
+<P><TABLE BORDER=0 CELLPADDING=3><TR><TD><FONT SIZE=2><B>User #</B></FONT></TD><TD><FONT SIZE=2>26601</FONT></TD></TR><TR><TD><FONT SIZE=2><B>Karma</B></FONT></TD><TD><FONT SIZE=2>Positive</FONT></TD></TR><TR><TD VALIGN=TOP><FONT SIZE=2><B>Bio</B></FONT></TD><TD><FONT SIZE=2>Lab tech. Llama wrangler.</FONT></TD></TR></TABLE><P><B>Stories BioBob posted or submitted:</B><UL><LI><A HREF="../article/kevlarthumb.html"><B>Researchers Grow Cloned Llama Named 'Tina'</B></A> <FONT SIZE=2>(10/14 13:20, 33 comments) posted by Hemlock</FONT>
+</UL><P><B>BioBob has posted 16 comments this week</B><UL><LI><A HREF="../article/y2kfridge.html#3">Re:Two-digit years in 1999?</A> <FONT SIZE=2>(Score:4) attached to <A HREF="../article/y2kfridge.html">Y2K Bug Found in Smart Refrigerator Firmware</A> posted on Monday October 18, @10:00AM</FONT>
+<LI><A HREF="../article/orinococlick.html#12">Re:Boycott</A> <FONT SIZE=2>(Score:4) attached to <A HREF="../article/orinococlick.html">Orinoco.com Granted Patent on Clicking</A> posted on Monday October 18, @09:21AM</FONT>
+<LI><A HREF="../article/sego_daydream.html#8">Re:The modem is the killer feature</A> <FONT SIZE=2>(Score:4) attached to <A HREF="../article/sego_daydream.html">Sego Daydream Sells 500,000 Units in Two Weeks</A> posted on Sunday October 17, @09:28PM</FONT>
+<LI><A HREF="../article/snapsterlaunch.html#36">Boring</A> <FONT SIZE=2>(Score:0) attached to <A HREF="../article/snapsterlaunch.html">College Student's MP3 Swapping Program Takes Off</A> posted on Sunday October 17, @04:22PM</FONT>
+<LI><A HREF="../article/snapsterlaunch.html#4">Re:The labels will sue</A> <FONT SIZE=2>(Score:4) attached to <A HREF="../article/snapsterlaunch.html">College Student's MP3 Swapping Program Takes Off</A> posted on Sunday October 17, @11:42AM</FONT>
+<LI><A HREF="../article/marsprobe.html#35">My experience</A> <FONT SIZE=2>(Score:3) attached to <A HREF="../article/marsprobe.html">Mars Weather Probe Lost Over Feet-vs-Furlongs Mixup</A> posted on Sunday October 17, @01:40AM</FONT>
+<LI><A HREF="../article/marsprobe.html#32">Meh</A> <FONT SIZE=2>(Score:0) attached to <A HREF="../article/marsprobe.html">Mars Weather Probe Lost Over Feet-vs-Furlongs Mixup</A> posted on Sunday October 17, @01:13AM</FONT>
+<LI><A HREF="../article/petzipo.html#43">Old news</A> <FONT SIZE=2>(Score:0) attached to <A HREF="../article/petzipo.html">Petz.com IPO Soars Despite Losing Money on Every Sale</A> posted on Saturday October 16, @08:02PM</FONT>
+<LI><A HREF="../article/descramble.html#1">I just want to watch my DVDs</A> <FONT SIZE=2>(Score:4) attached to <A HREF="../article/descramble.html">DVD Encryption Cracked by Norwegian Teens</A> posted on Saturday October 16, @04:22PM</FONT>
+<LI><A HREF="../article/crapware.html#7">Re:Real requirements</A> <FONT SIZE=2>(Score:1) attached to <A HREF="../article/crapware.html">Leaked: Portals 2000 Requires 64MB and a 300MHz CPU</A> posted on Saturday October 16, @10:46AM</FONT>
+<LI><A HREF="../article/greybeardinterview.html#39">Re:Jolt</A> <FONT SIZE=2>(Score:1) attached to <A HREF="../article/greybeardinterview.html">Interview: The Man Who Wrote the Payroll Code in 1974</A> posted on Friday October 15, @05:48PM</FONT>
+<LI><A HREF="../article/bsddaemon.html#18">Jolt</A> <FONT SIZE=2>(Score:0) attached to <A HREF="../article/bsddaemon.html">FreeDaemon 3.3 Released</A> posted on Friday October 15, @12:21AM</FONT>
+<LI><A HREF="../article/pearitop.html#11">Re:Hmm, not so sure</A> <FONT SIZE=2>(Score:2) attached to <A HREF="../article/pearitop.html">Pear Computer's iTop Laptop Now in Five Fruit Flavors</A> posted on Thursday October 14, @05:58PM</FONT>
+<LI><A HREF="../article/quackarena.html#4">Re: real world</A> <FONT SIZE=2>(Score:2) attached to <A HREF="../article/quackarena.html">Quack III Arena Demo Hits the Net</A> posted on Thursday October 14, @10:22AM</FONT>
+<LI><A HREF="../article/slashdottedeffect.html#30">Re:Mirror</A> <FONT SIZE=2>(Score:1) attached to <A HREF="../article/slashdottedeffect.html">Small Museum Web Server Survives Being Linked From Here</A> posted on Wednesday October 13, @11:39PM</FONT>
+<LI><A HREF="../article/slashdottedeffect.html#10">Meh</A> <FONT SIZE=2>(Score:-1) attached to <A HREF="../article/slashdottedeffect.html">Small Museum Web Server Survives Being Linked From Here</A> posted on Wednesday October 13, @08:13PM</FONT>
+</UL></FONT></TD></TR></TABLE>
+<TABLE BGCOLOR="#FFFFFF" WIDTH="99%" ALIGN=CENTER BORDER=0 CELLPADDING=4 CELLSPACING=0><TR><TD>
+<TABLE WIDTH="100%" BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD BGCOLOR="#006666"><IMG SRC="../images/pix.gif" WIDTH=1 HEIGHT=4 ALT=""></TD></TR></TABLE>
+<CENTER><FORM ACTION="../search.html" METHOD="get"><FONT FACE="arial,helvetica" SIZE=2><INPUT TYPE="text" NAME="query" SIZE=20> <INPUT TYPE="submit" VALUE="Search"></FONT></FORM>
+<FONT FACE="arial,helvetica" SIZE=2><I>There are 10 kinds of people: those who read Dashdot at work, and those who are lying.</I></FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>[ <A HREF="../index.html">home</A> | <A HREF="../awards.html">awards</A> | <A HREF="../supporters.html">supporters</A> | <A HREF="../grits.html">grits' homepage</A> | <A HREF="../submit.html">contribute story</A> | <A HREF="../older.html">older articles</A> | <A HREF="../overandover.html">overandover.net</A> | <A HREF="../advertising.html">advertising</A> | <A HREF="../polls.html">past polls</A> | <A HREF="../topics.html">topics</A> | <A HREF="../about.html">about</A> | <A HREF="../jobs.html">jobs</A> | <A HREF="../hof.html">hof</A> ]</FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>Trademarks belong to whoever trademarked them. Comments belong to whoever typed them. Everything else &copy; 1997-99 Overandover.net. Dashdot is served hot by KoldFusion 4.5 from Gibson Mainframe Co.</FONT><BR>
+<A HREF="../about.html"><IMG SRC="../images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion" VSPACE=6></A>
+</CENTER></TD></TR></TABLE>
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../../hamstershuffle/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../../web1999/index.html" onClick="return ringRandom('../')">Random</A> |
+<B><A HREF="../../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Dashdot is site 10 of 12 |
+<A HREF="../../snapster/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER><P>
+</BODY></HTML>

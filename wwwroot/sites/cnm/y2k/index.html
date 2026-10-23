@@ -1,0 +1,263 @@
+<HTML>
+<HEAD>
+<TITLE>CNM - Y2K Special Report: The Millennium Bug</TITLE>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<SCRIPT LANGUAGE="JavaScript"><!--
+// counts down to the next January 1 -- which, as far as this page is concerned, is always the year 2000
+function two(n) { return (n < 10 ? "0" : "") + n; }
+function cdParts() {
+  var now = new Date();
+  var target = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0);
+  var s = Math.floor((target.getTime() - now.getTime()) / 1000);
+  if (s < 0) s = 0;
+  var d = Math.floor(s / 86400); s = s - d * 86400;
+  var h = Math.floor(s / 3600); s = s - h * 3600;
+  var m = Math.floor(s / 60); s = s - m * 60;
+  return new Array(d, h, m, s);
+}
+function cdTick() {
+  var p = cdParts();
+  if (document.forms["countdown"]) {
+    document.forms["countdown"].clock.value = p[0] + " days " + two(p[1]) + ":" + two(p[2]) + ":" + two(p[3]);
+  }
+  setTimeout("cdTick()", 1000);
+}
+//--></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript"><!--
+var ledPics = new Array();
+var n;
+function ledPath(d) { return "../images/led_" + d + ".gif"; }
+for (n = 0; n < 10; n++) {
+  ledPics[n] = new Image();
+  ledPics[n].src = "" + ledPath(n);
+}
+function setDigits(prefix, value, count) {
+  var s = "" + value;
+  while (s.length < count) s = "0" + s;
+  var k;
+  for (k = 0; k < count; k++) {
+    var pic = ledPics[parseInt(s.charAt(k), 10)];
+    if (document.images[prefix + k].src != pic.src) document.images[prefix + k].src = "" + pic.src;
+  }
+}
+function bigTick() {
+  var p = cdParts();
+  setDigits("dd", p[0], 3);
+  setDigits("hh", p[1], 2);
+  setDigits("mm", p[2], 2);
+  setDigits("ss", p[3], 2);
+  setTimeout("bigTick()", 1000);
+}
+//--></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#003366" VLINK="#663366" ALINK="#CC0000" MARGINWIDTH=0 MARGINHEIGHT=0 LEFTMARGIN=0 TOPMARGIN=0 onLoad="bigTick()">
+<A NAME="top"></A>
+<TABLE WIDTH=770 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR>
+<TD WIDTH=167 VALIGN=BOTTOM><A HREF="../index.html"><IMG SRC="../images/logo.gif" WIDTH=167 HEIGHT=40 BORDER=0 ALT="CNM Interactive"></A></TD>
+<TD WIDTH=10><IMG SRC="../images/1.gif" WIDTH=10 HEIGHT=1 ALT=""></TD>
+<TD WIDTH=468 ALIGN=CENTER VALIGN=TOP><A HREF="../../snapster/index.html" TARGET="_top"><IMG SRC="../images/ad_snapster.gif" WIDTH=468 HEIGHT=60 BORDER=0 ALT="Snapster: share your music"></A></TD>
+<TD WIDTH=125 ALIGN=RIGHT VALIGN=BOTTOM><FORM ACTION="../search.html" METHOD=GET NAME="seek_top">
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Search</B></FONT><BR>
+<SELECT NAME="sites"><OPTION VALUE="CNM" SELECTED>CNM.com<OPTION VALUE="WEB">The Web</SELECT><BR>
+<INPUT TYPE=TEXT NAME="query" SIZE=8><INPUT TYPE=SUBMIT VALUE="Find">
+</FORM></TD>
+</TR>
+<TR><TD COLSPAN=4><IMG SRC="../images/1.gif" WIDTH=1 HEIGHT=4 ALT=""></TD></TR>
+</TABLE>
+<TABLE WIDTH=770 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR BGCOLOR="#666699">
+<TD WIDTH=125 VALIGN=MIDDLE><FORM NAME="cnmsites"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>
+<SELECT NAME="go" onChange="if (this.selectedIndex != 0) window.location = this.options[this.selectedIndex].value;">
+<OPTION VALUE="">CNM Sites<OPTION VALUE="../index.html">CNM<OPTION VALUE="../BUSINESS/index.html">CNMfn<OPTION VALUE="../SPORTS/index.html">CNM/SI<OPTION VALUE="../POLITICS/index.html">Politics<OPTION VALUE="../customnews.html">myCNM<OPTION VALUE="../y2k/index.html">Y2K Special<OPTION VALUE="../weather.html">Weather
+</SELECT></FONT></FORM></TD>
+<TD WIDTH=15><IMG SRC="../images/1.gif" WIDTH=15 HEIGHT=1 ALT=""></TD>
+<TD WIDTH=630 ALIGN=RIGHT VALIGN=MIDDLE><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><A HREF="../video.html"><FONT COLOR="#FFFFFF">Video</FONT></A>&nbsp;|&nbsp;<A HREF="../audio.html"><FONT COLOR="#FFFFFF">Audio</FONT></A>&nbsp;|&nbsp;<A HREF="../brief.html"><FONT COLOR="#FFFFFF">Headline News Brief</FONT></A>&nbsp;|&nbsp;<A HREF="../email.html"><FONT COLOR="#FFFFFF">Free E-mail</FONT></A>&nbsp;|&nbsp;<A HREF="../feedback.html"><FONT COLOR="#FFFFFF">Feedback</FONT></A>&nbsp;&nbsp;</FONT></TD>
+</TR>
+<TR>
+<TD WIDTH=125 BGCOLOR="#333366" HEIGHT=18>&nbsp;<IMG SRC="../images/newarrow.gif" WIDTH=11 HEIGHT=11 ALIGN=RIGHT HSPACE=3 ALT="*"><A HREF="../index.html"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>MAIN PAGE</B></FONT></A></TD>
+<TD WIDTH=15>&nbsp;</TD>
+<TD WIDTH=630><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><A HREF="../almanac.html">December 20, 1999</A> -- Updated 3:52 p.m. EST (2052 GMT)</FONT></TD>
+</TR>
+</TABLE>
+<TABLE WIDTH=770 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR>
+<TD WIDTH=125 VALIGN=TOP BGCOLOR="#CCCCFF"><TABLE WIDTH=125 BORDER=0 CELLPADDING=2 CELLSPACING=0>
+<TR><TD BGCOLOR="#CCCCFF"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>
+&nbsp;<A HREF="../WORLD/index.html">WORLD</A><BR>
+&nbsp;<A HREF="../US/index.html">U.S.</A><BR>
+&nbsp;<A HREF="../WEATHER/index.html">WEATHER</A><BR>
+&nbsp;<A HREF="../BUSINESS/index.html">BUSINESS</A><BR>
+&nbsp;<A HREF="../SPORTS/index.html">SPORTS</A><BR>
+&nbsp;<A HREF="../TECH/index.html">SCI-TECH</A><BR>
+&nbsp;<A HREF="../SHOWBIZ/index.html">ENTERTAINMENT</A><BR>
+&nbsp;<A HREF="../POLITICS/index.html">POLITICS</A><BR>
+&nbsp;<A HREF="../LAW/index.html">LAW</A><BR>
+&nbsp;<A HREF="../HEALTH/index.html">HEALTH</A><BR>
+&nbsp;<A HREF="../TRAVEL/index.html">TRAVEL</A><BR>
+&nbsp;<A HREF="../FOOD/index.html">FOOD</A><BR>
+&nbsp;<A HREF="../STYLE/index.html">STYLE</A><BR>
+&nbsp;<A HREF="../indepth.html">IN-DEPTH</A><BR>
+&nbsp;<A HREF="../local.html">LOCAL</A><BR>
+</B><HR SIZE=1 WIDTH="90%" NOSHADE>
+&nbsp;<A HREF="../customnews.html">Custom News</A><BR>
+&nbsp;<A HREF="../brief.html">Headline News brief</A><BR>
+&nbsp;<A HREF="../quiz.html">news quiz</A><BR>
+&nbsp;<A HREF="../almanac.html">daily almanac</A><BR><BR>
+</FONT></TD></TR>
+<TR BGCOLOR="#666699"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>&nbsp;MULTIMEDIA:</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCFF"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>
+&nbsp;<A HREF="../video.html">video</A><BR>
+&nbsp;<A HREF="../audio.html">audio</A><BR>
+&nbsp;<A HREF="../y2k/index.html">Y2K countdown</A><BR>
+&nbsp;<A HREF="../weather.html">weather maps</A><BR><BR>
+</FONT></TD></TR>
+</TABLE>
+<TABLE WIDTH=125 BORDER=0 CELLPADDING=2 CELLSPACING=0 BGCOLOR="#CCCCFF">
+<TR BGCOLOR="#666699"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>&nbsp;E-MAIL:</B></FONT></TD></TR>
+<TR><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Subscribe to one of our <A HREF="../customnews.html">news e-mail lists</A>.<BR>Enter your address:</FONT>
+<FORM NAME="emailform" ACTION="../customnews.html" METHOD=GET><INPUT TYPE=TEXT NAME="email" SIZE=10>&nbsp;<INPUT TYPE=SUBMIT VALUE="Go"></FORM></TD></TR>
+<TR BGCOLOR="#666699"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>&nbsp;DISCUSSION:</B></FONT></TD></TR>
+<TR><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>
+&nbsp;<A HREF="../quickvote.html">QuickVote</A><BR>
+&nbsp;<A HREF="../quickvote_archive.html">past votes</A><BR>
+&nbsp;<A HREF="../feedback.html">feedback</A><BR><BR>
+</FONT></TD></TR>
+<TR BGCOLOR="#666699"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>&nbsp;CNM WEB SITES:</B></FONT></TD></TR>
+<TR><TD>
+<MAP NAME="cnmwebsites">
+<AREA SHAPE="rect" COORDS="0,0,63,19" HREF="../customnews.html" ALT="myCNM">
+<AREA SHAPE="rect" COORDS="64,0,120,19" HREF="../SPORTS/index.html" ALT="CNM/SI">
+<AREA SHAPE="rect" COORDS="0,20,63,39" HREF="../POLITICS/index.html" ALT="Politics">
+<AREA SHAPE="rect" COORDS="64,20,120,39" HREF="../BUSINESS/index.html" ALT="CNMfn">
+</MAP>
+<IMG SRC="../images/websites.gif" WIDTH=121 HEIGHT=40 BORDER=0 USEMAP="#cnmwebsites" ALT="CNM Web sites">
+</TD></TR>
+<TR><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>
+&nbsp;<A HREF="../y2k/index.html">Y2K Special</A><BR>
+&nbsp;<A HREF="../indepth.html">In-Depth</A><BR>
+&nbsp;<A HREF="../local.html">Local news</A><BR><BR>
+</FONT></TD></TR>
+</TABLE></TD>
+<TD WIDTH=15><IMG SRC="../images/1.gif" WIDTH=15 HEIGHT=1 ALT=""></TD>
+<TD WIDTH=630 VALIGN=TOP><BR>
+<IMG SRC="../images/sec_y2k.gif" WIDTH=470 HEIGHT=40 BORDER=0 ALT="Y2K Special Report"><BR>
+<IMG SRC="../images/y2k_banner.gif" WIDTH=630 HEIGHT=80 ALT="Y2K: The Millennium Bug"><BR>
+<TABLE WIDTH=630 BORDER=0 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#000000"><TR>
+<TD ALIGN=CENTER><A HREF="index.html"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>Y2K HOME</B></FONT></A></TD>
+<TD ALIGN=CENTER><A HREF="ready.html"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFCC00"><B>ARE YOU READY?</B></FONT></A></TD>
+<TD ALIGN=CENTER><A HREF="bugwatch.html"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFCC00"><B>BUG WATCH</B></FONT></A></TD>
+<TD ALIGN=CENTER><A HREF="celebrations.html"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFCC00"><B>MILLENNIUM CELEBRATIONS</B></FONT></A></TD>
+</TR></TABLE><BR>
+<TABLE BORDER=0 CELLPADDING=8 CELLSPACING=0 BGCOLOR="#100000" WIDTH=630><TR><TD ALIGN=CENTER>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=2 COLOR="#FFCC00"><B>COUNTDOWN TO THE YEAR 2000</B></FONT><BR><BR>
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR><TD><IMG NAME="dd0" SRC="../images/led_0.gif" WIDTH=22 HEIGHT=34 ALT="0"><IMG NAME="dd1" SRC="../images/led_0.gif" WIDTH=22 HEIGHT=34 ALT="0"><IMG NAME="dd2" SRC="../images/led_0.gif" WIDTH=22 HEIGHT=34 ALT="0"></TD><TD><IMG SRC="../images/led_colon.gif" WIDTH=22 HEIGHT=34 ALT=":"></TD><TD><IMG NAME="hh0" SRC="../images/led_0.gif" WIDTH=22 HEIGHT=34 ALT="0"><IMG NAME="hh1" SRC="../images/led_0.gif" WIDTH=22 HEIGHT=34 ALT="0"></TD><TD><IMG SRC="../images/led_colon.gif" WIDTH=22 HEIGHT=34 ALT=":"></TD><TD><IMG NAME="mm0" SRC="../images/led_0.gif" WIDTH=22 HEIGHT=34 ALT="0"><IMG NAME="mm1" SRC="../images/led_0.gif" WIDTH=22 HEIGHT=34 ALT="0"></TD><TD><IMG SRC="../images/led_colon.gif" WIDTH=22 HEIGHT=34 ALT=":"></TD><TD><IMG NAME="ss0" SRC="../images/led_0.gif" WIDTH=22 HEIGHT=34 ALT="0"><IMG NAME="ss1" SRC="../images/led_0.gif" WIDTH=22 HEIGHT=34 ALT="0"></TD></TR>
+<TR><TD ALIGN=CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">DAYS</FONT></TD><TD></TD><TD ALIGN=CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">HOURS</FONT></TD><TD></TD>
+<TD ALIGN=CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">MINUTES</FONT></TD><TD></TD><TD ALIGN=CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">SECONDS</FONT></TD></TR>
+</TABLE>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#CCCCCC">Based on your computer's clock -- which, let's be honest, is part of the problem.</FONT>
+</TD></TR></TABLE><BR>
+<TABLE WIDTH=630 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR>
+<TD WIDTH=380 VALIGN=TOP><FONT FACE="Arial, Helvetica" SIZE=2>
+<B>What is the Y2K bug?</B><BR>
+For decades, programmers saved precious memory by storing years as two digits: 99 for 1999. When the calendar
+turns, many computers will read 00 as 1900. The results could range from nothing at all to a coffee maker
+that believes it is the McKinley administration.<BR><BR>
+<B>Will anything happen?</B><BR>
+Governments and companies have spent billions testing and fixing their systems. Most experts expect scattered,
+minor glitches. A few expect more. Nobody expects the toaster to care.<BR><BR>
+<B>What should I do?</B><BR>
+Officials recommend the same preparations you would make for a winter storm: a few days of food and water,
+flashlights, batteries and some cash. Then, they suggest, try to enjoy the party.
+<A HREF="ready.html">Take our readiness checklist</A>.</FONT>
+<P><FONT FACE="Arial, Helvetica" SIZE=2><B>Y2K stories:</B><UL>
+<LI><A HREF="../1999/US/12/20/y2k.drill/index.html">Utilities stage final Y2K rehearsal as countdown enters last 12 days</A> <FONT SIZE=1 COLOR="#666666">(Dec. 20)</FONT>
+<LI><A HREF="../1999/WORLD/12/20/marisol.dateline/index.html">Marisol Islands move date line again to claim first millennium sunrise</A> <FONT SIZE=1 COLOR="#666666">(Dec. 20)</FONT>
+<LI><A HREF="../1999/US/12/20/beans.stockpile/index.html">Man's 4,000-can bean stockpile fills garage, basement, guest room</A> <FONT SIZE=1 COLOR="#666666">(Dec. 20)</FONT>
+<LI><A HREF="../1999/TECH/12/20/bug.fixers/index.html">Retired COBOL programmers called back for last-minute Y2K fixes</A> <FONT SIZE=1 COLOR="#666666">(Dec. 20)</FONT>
+<LI><A HREF="../1999/HEALTH/12/19/y2k.anxiety/index.html">Doctors report rise in 'Y2K anxiety' as New Year approaches</A> <FONT SIZE=1 COLOR="#666666">(Dec. 19)</FONT>
+<LI><A HREF="../1999/TRAVEL/12/19/airlines.newyear/index.html">Airlines cut New Year's Eve flights as travelers stay grounded</A> <FONT SIZE=1 COLOR="#666666">(Dec. 19)</FONT>
+<LI><A HREF="../1999/FOOD/12/18/pantry.gourmet/index.html">Y2K pantry gourmet: chefs turn emergency canned goods into feasts</A> <FONT SIZE=1 COLOR="#666666">(Dec. 18)</FONT>
+<LI><A HREF="../1999/BUSINESS/12/17/dow.record/index.html">Dow ends week at record as investors shrug off Y2K jitters</A> <FONT SIZE=1 COLOR="#666666">(Dec. 17)</FONT>
+<LI><A HREF="../1999/US/12/15/town.clock/index.html">Town clock fails Y2K test, will be fixed with a ladder</A> <FONT SIZE=1 COLOR="#666666">(Dec. 15)</FONT>
+<LI><A HREF="../1999/SPORTS/12/14/curling.millennium/index.html">Curling team plans to throw first stone of the millennium</A> <FONT SIZE=1 COLOR="#666666">(Dec. 14)</FONT>
+<LI><A HREF="../1999/POLITICS/12/13/budget.y2k/index.html">Congress passes budget before deadline, cites 'computers'</A> <FONT SIZE=1 COLOR="#666666">(Dec. 13)</FONT>
+<LI><A HREF="../1999/US/12/12/bunker.tour/index.html">Y2K bunker tours become unlikely holiday attraction</A> <FONT SIZE=1 COLOR="#666666">(Dec. 12)</FONT>
+<LI><A HREF="../1999/STYLE/12/09/y2k.fashion/index.html">Survivalist chic: Y2K-ready fashion hits the racks</A> <FONT SIZE=1 COLOR="#666666">(Dec. 9)</FONT>
+<LI><A HREF="../1999/SHOWBIZ/12/08/millennium.concerts/index.html">Stars line up for New Year's Eve concerts -- and ask for Y2K clauses</A> <FONT SIZE=1 COLOR="#666666">(Dec. 8)</FONT>
+<LI><A HREF="../1999/WORLD/12/08/tavai.bug/index.html">Tavai declares itself Y2K-ready -- by abolishing computers</A> <FONT SIZE=1 COLOR="#666666">(Dec. 8)</FONT>
+<LI><A HREF="../1999/SPORTS/12/07/golf.y2k/index.html">Golf tour reschedules January event over Y2K worries</A> <FONT SIZE=1 COLOR="#666666">(Dec. 7)</FONT>
+<LI><A HREF="../1999/LAW/12/07/y2k.lawsuits/index.html">Lawyers line up for wave of Y2K lawsuits</A> <FONT SIZE=1 COLOR="#666666">(Dec. 7)</FONT>
+<LI><A HREF="../1999/US/12/06/cash.atm/index.html">Banks stock ATMs with extra cash as customers hedge Y2K bets</A> <FONT SIZE=1 COLOR="#666666">(Dec. 6)</FONT>
+<LI><A HREF="../1999/FOOD/12/06/cartrocket.groceries/index.html">Online grocers promise to deliver -- but not on New Year's Eve</A> <FONT SIZE=1 COLOR="#666666">(Dec. 6)</FONT>
+<LI><A HREF="../1999/WORLD/12/03/sandovar.lottery/index.html">Sandovar millennium lottery creates 2,000 winners</A> <FONT SIZE=1 COLOR="#666666">(Dec. 3)</FONT>
+<LI><A HREF="../1999/BUSINESS/12/03/generator.boom/index.html">Generator makers can't keep up with Y2K demand</A> <FONT SIZE=1 COLOR="#666666">(Dec. 3)</FONT>
+<LI><A HREF="../1999/LAW/12/02/parking.meter/index.html">Town forgives parking tickets issued by 'confused' meters</A> <FONT SIZE=1 COLOR="#666666">(Dec. 2)</FONT>
+</UL>
+<B>Millennium stories:</B><UL>
+<LI><A HREF="../1999/WORLD/12/18/vellmark.canal/index.html">Vellmark prepares to take control of famous canal</A> <FONT SIZE=1 COLOR="#666666">(Dec. 18)</FONT>
+<LI><A HREF="../1999/US/12/18/time.capsule/index.html">Town buries time capsule -- including a floppy disk nobody will be able to read</A> <FONT SIZE=1 COLOR="#666666">(Dec. 18)</FONT>
+<LI><A HREF="../1999/STYLE/12/17/silver.lame/index.html">Silver lam&#233; and space-age sparkle rule millennium party fashion</A> <FONT SIZE=1 COLOR="#666666">(Dec. 17)</FONT>
+<LI><A HREF="../1999/WEATHER/12/17/millennium.forecast/index.html">Early New Year's Eve forecast: mild for most, frosty in the Northeast</A> <FONT SIZE=1 COLOR="#666666">(Dec. 17)</FONT>
+<LI><A HREF="../1999/WORLD/12/16/bruskia.cake/index.html">Lower Bruskia bakes record-breaking millennium cake</A> <FONT SIZE=1 COLOR="#666666">(Dec. 16)</FONT>
+<LI><A HREF="../1999/TRAVEL/12/16/first.light.tours/index.html">'First light' millennium tours sell out -- in four different countries</A> <FONT SIZE=1 COLOR="#666666">(Dec. 16)</FONT>
+<LI><A HREF="../1999/FOOD/12/14/champagne.shortage/index.html">Champagne shortage? Not really, say wine merchants</A> <FONT SIZE=1 COLOR="#666666">(Dec. 14)</FONT>
+<LI><A HREF="../1999/TRAVEL/12/12/cruise.millennium/index.html">Millennium cruise passengers will cross date line twice -- and celebrate twice</A> <FONT SIZE=1 COLOR="#666666">(Dec. 12)</FONT>
+<LI><A HREF="../1999/WORLD/12/11/eurobubble.opens/index.html">Millennium Bubble opens to mixed reviews</A> <FONT SIZE=1 COLOR="#666666">(Dec. 11)</FONT>
+<LI><A HREF="../1999/US/12/09/celebrate.twice/index.html">Town splits on whether to celebrate millennium this year or next</A> <FONT SIZE=1 COLOR="#666666">(Dec. 9)</FONT>
+<LI><A HREF="../1999/STYLE/12/01/body.glitter/index.html">Body glitter: the sparkle that never goes away</A> <FONT SIZE=1 COLOR="#666666">(Dec. 1)</FONT>
+</UL></FONT>
+</TD>
+<TD WIDTH=10>&nbsp;</TD>
+<TD WIDTH=240 VALIGN=TOP>
+<TABLE WIDTH="240" BORDER=0 CELLPADDING=2 CELLSPACING=0><TR><TD WIDTH=5 BGCOLOR="#FF6600">&nbsp;</TD><TD BGCOLOR="#666666" NOWRAP><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#FFFFFF"><B>&nbsp;THE BUG IN BRIEF</B></FONT></TD></TR></TABLE>
+<TABLE WIDTH=240 BORDER=0 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#EEEEEE"><TR><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>
+<B>Y2K BY THE NUMBERS</B><BR><BR>
+<B>99.6%</B> of systems passed Monday's final drill<BR><BR>
+<B>$14,000</B> spent on one Minnesota town's Y2K report<BR><BR>
+<B>4,000</B> cans of beans in one Kansas guest room<BR><BR>
+<B>900</B> D-cell batteries owned by one anxious Connecticut man<BR><BR>
+<B>1</B> government computer in the Kingdom of Tavai (now unplugged)<BR><BR>
+<B>0</B> horses affected
+</FONT></TD></TR></TABLE><BR>
+<TABLE WIDTH="240" BORDER=0 CELLPADDING=2 CELLSPACING=0><TR><TD WIDTH=5 BGCOLOR="#FF6600">&nbsp;</TD><TD BGCOLOR="#666666" NOWRAP><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#FFFFFF"><B>&nbsp;INSIDE THIS REPORT</B></FONT></TD></TR></TABLE>
+<TABLE WIDTH=240 BORDER=0 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#EEEEEE"><TR><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>
+&#149; <A HREF="ready.html">Are you ready? Take the checklist</A><BR>
+&#149; <A HREF="bugwatch.html">Bug Watch: country-by-country status</A><BR>
+&#149; <A HREF="celebrations.html">Where midnight strikes first</A><BR>
+&#149; <A HREF="../quickvote.html">QuickVote: How will you spend Dec. 31?</A><BR>
+&#149; <A HREF="../search.html?query=y2k">Search CNM for Y2K</A>
+</FONT></TD></TR></TABLE>
+</TD></TR></TABLE>
+
+</TD>
+</TR>
+</TABLE>
+<TABLE WIDTH=770 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR><TD WIDTH=125 BGCOLOR="#CCCCFF" VALIGN=TOP><IMG SRC="../images/1.gif" WIDTH=125 HEIGHT=1 ALT=""></TD><TD WIDTH=15>&nbsp;</TD>
+<TD WIDTH=630>
+<HR NOSHADE SIZE=1>
+<CENTER><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="#top">Back to the top</A><BR><BR>
+&copy; 1999 Cable News Mobile. All Rights Reserved.<BR>
+<A HREF="../terms.html">The fine print under which we let you read any of this</A>.
+<A HREF="../privacy.html">What we do (and mostly don't do) with your cookies</A>.<BR>
+<A HREF="../feedback.html">Write to CNM</A> | <A HREF="../index.html">CNM.com main page</A> | <A HREF="../search.html">Search</A><BR><BR>
+<A HREF="../index.html"><IMG SRC="../images/logo_small.gif" WIDTH=84 HEIGHT=20 BORDER=0 ALT="CNM" ALIGN=MIDDLE></A>
+&nbsp;<IMG SRC="../images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion" ALIGN=MIDDLE>
+</FONT></CENTER><BR>
+<SCRIPT LANGUAGE="JavaScript1.2"><!--
+function ringRandom() {
+  var list = new Array("../../yowza/index.html","../../altavisor/index.html","../../askreeves/index.html","../../orinoco/index.html","../../ubid/index.html","../../etoyz/index.html","../../petz/index.html","../../geohoods/index.html","../../hamstershuffle/index.html","../../dashdot/index.html","../../snapster/index.html","../../cnm/index.html");
+  window.location = list[Math.floor(Math.random() * list.length)];
+  return false;
+}
+//--></SCRIPT>
+<CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../../snapster/index.html">&lt;&lt; Prev</A> | <A HREF="../../../web1999/index.html" onClick="return ringRandom();">Random</A> | <B><A HREF="../../../web1999/index.html">The 1999 Web Ring</A></B> &middot; CNM Interactive is site 12 of 12 | <A HREF="../../yowza/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE></CENTER>
+<BR>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

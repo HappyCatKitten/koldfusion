@@ -1,0 +1,56 @@
+<SCRIPT LANGUAGE="JavaScript">
+var F = "<FONT FACE=\"verdana,arial,helvetica\" SIZE=-1>";
+var kw = qs("keywords"), index = qs("index");
+if (index == "") index = "blended";
+var NAMES = new Array();
+NAMES["blended"] = "All Products"; NAMES["books"] = "Books"; NAMES["music"] = "Popular Music"; NAMES["video"] = "Video";
+NAMES["toys"] = "Toys &amp; Games"; NAMES["auctions"] = "Auctions";
+function subjName(code) {
+  for (var i = 0; i < SUBJECTS.length; i++) if (SUBJECTS[i][0] == code) return SUBJECTS[i][1];
+  return code;
+}
+var opts = "", keys = new Array("blended", "books", "music", "video", "toys", "auctions");
+for (var i = 0; i < keys.length; i++) opts += "<OPTION VALUE=\"" + keys[i] + "\"" + (keys[i] == index ? " SELECTED" : "") + ">" + NAMES[keys[i]];
+document.write("<FORM NAME=\"big\" ACTION=\"" + P + "search.html\" METHOD=GET><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR=\"#EEEECC\" WIDTH=\"100%\"><TR><TD>" + F + "<B>Search</B> <SELECT NAME=\"index\">" + opts + "</SELECT> ");
+document.write("for <INPUT TYPE=text NAME=\"keywords\" SIZE=28 VALUE=\"" + esc(kw) + "\"> <INPUT TYPE=image SRC=\"" + P + "images/go.gif\" WIDTH=21 HEIGHT=21 BORDER=0 ALIGN=ABSMIDDLE ALT=\"Go!\"></FONT></TD></TR></TABLE></FORM>");
+if (kw.replace(/\s/g, "") != "") {
+  if (index == "toys") {
+    document.write(F + "Our toy shelf is a little bare. Try <A HREF=\"" + P + "../etoyz/search.html?q=" + escape(kw) + "\"><B>" + esc(kw) + "</B> at eToyz</A>, our neighbors down the river.</FONT>");
+  } else if (index == "auctions") {
+    document.write(F + "Orinoco.com Auctions are run by uBid: see <A HREF=\"" + P + "../ubid/search.html?q=" + escape(kw) + "\"><B>" + esc(kw) + "</B> at uBid</A>.</FONT>");
+  } else {
+    var words = kw.toLowerCase().split(" "), hits = new Array();
+    for (var i = 0; i < ITEMS.length; i++) {
+      var it = ITEMS[i];
+      if (index == "books" && it[8] != "book") continue;
+      if (index == "music" && it[8] != "music") continue;
+      if (index == "video" && it[8] != "video") continue;
+      var hay = (it[1] + " " + it[2] + " " + subjName(it[5]) + " " + it[6] + " " + it[0]).toLowerCase(), ok = true;
+      for (var w = 0; w < words.length; w++) if (words[w] != "" && hay.indexOf(words[w]) == -1) ok = false;
+      if (ok) hits[hits.length] = it;
+    }
+    document.write("<FONT FACE=\"verdana,arial,helvetica\" SIZE=-1><B>" + NAMES[index] + "</B> search results for <B>" + esc(kw) + "</B>: ");
+    document.write(hits.length == 0 ? "no matches.</FONT><BR><BR>" : hits.length + " match" + (hits.length == 1 ? "" : "es") + ".</FONT><BR><BR>");
+    if (hits.length == 0) {
+      document.write(F + "Try fewer words, check your spelling, or browse the <A HREF=\"" + P + "hot100.html\">Hot 100</A>. ");
+      document.write("You could also look for <A HREF=\"" + P + "../ubid/search.html?q=" + escape(kw) + "\">\"" + esc(kw) + "\" at uBid</A> or <A HREF=\"" + P + "../etoyz/search.html?q=" + escape(kw) + "\">at eToyz</A>.</FONT>");
+    }
+    document.write("<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=0>");
+    for (var i = 0; i < hits.length && i < 50; i++) {
+      var it = hits[i];
+      document.write("<TR><TD VALIGN=TOP><A HREF=\"" + itemURL(it) + "\"><IMG SRC=\"" + coverURL(it) + "\" BORDER=0></A></TD><TD VALIGN=TOP>" + F);
+      document.write("<B>" + (i + 1) + ". <A HREF=\"" + itemURL(it) + "\">" + esc(it[1]) + "</A></B><BR>" + (it[8] == "book" ? "by " : "") + esc(it[2]) + "<BR>");
+      document.write("<FONT SIZE=-2>" + it[6] + "; " + esc(subjName(it[5])) + "</FONT><BR>Our Price: <B><FONT COLOR=\"#990000\">" + money(it[3]) + "</FONT></B>");
+      if (it[4] > it[3]) document.write(" <FONT SIZE=-2>(You save " + money(it[4] - it[3]) + ")</FONT>");
+      document.write(" <A HREF=\"" + P + "cart.html\" onClick=\"return cartAdd('" + it[0] + "', 1)\"><FONT SIZE=-2>Add to cart</FONT></A></FONT></TD></TR>");
+    }
+    document.write("</TABLE>");
+  }
+} else {
+  document.write(F + "Type a title, an author, an artist or a subject and click <B>Go!</B> For example: ");
+  var ex = new Array("y2k", "penelope pike", "cookbook", "bryston", "mystery", "dvd");
+  for (var i = 0; i < ex.length; i++) document.write("<A HREF=\"" + P + "search.html?index=blended&keywords=" + escape(ex[i]) + "\">" + ex[i] + "</A>" + (i < ex.length - 1 ? ", " : "."));
+  document.write("</FONT>");
+}
+</SCRIPT>
+<NOSCRIPT>Searching requires JavaScript. Try <A HREF="{P}books.html">browsing by subject</A> instead.</NOSCRIPT>

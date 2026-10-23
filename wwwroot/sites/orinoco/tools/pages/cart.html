@@ -1,0 +1,52 @@
+<FONT FACE="verdana,arial,helvetica" SIZE=+1><B>Shopping Cart</B></FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+function updateCart() {
+  var f = document.forms["cart"], c = cartGet();
+  for (var i = 0; i < c.length; i++) {
+    var q = parseInt(f.elements["q" + i].value);
+    if (isNaN(q) || q < 0) q = 0;
+    if (q > 99) q = 99;
+    c[i][1] = q;
+  }
+  cartSet(c);
+  location.href = P + "cart.html";
+  return false;
+}
+function cartDelete(i) {
+  var c = cartGet();
+  c[i][1] = 0;
+  cartSet(c);
+  location.href = P + "cart.html";
+  return false;
+}
+var added = qs("added");
+if (added != "" && findItem(added)) {
+  var it = findItem(added);
+  document.write("<TABLE BORDER=0 CELLPADDING=6 CELLSPACING=0 WIDTH=\"100%\" BGCOLOR=\"#FFFFE0\"><TR><TD><IMG SRC=\"" + coverURL(it) + "\" ALIGN=LEFT HSPACE=6>");
+  document.write("<FONT FACE=\"verdana,arial,helvetica\" SIZE=-1><B>Added to your Shopping Cart:</B><BR><A HREF=\"" + itemURL(it) + "\">" + esc(it[1]) + "</A><BR>" + money(it[3]) + "</FONT><BR CLEAR=ALL></TD></TR></TABLE><BR>");
+}
+var c = cartGet();
+if (c.length == 0) {
+  document.write("<FONT FACE=\"verdana,arial,helvetica\" SIZE=-1>Your Shopping Cart is empty. Give it something to do! ");
+  document.write("Browse our <A HREF=\"" + P + "hot100.html\">Hot 100</A>, or <A HREF=\"" + P + "search.html\">search</A> for something specific.</FONT>");
+} else {
+  document.write("<FORM NAME=\"cart\" onSubmit=\"return updateCart()\">");
+  document.write("<CENTER><A HREF=\"" + P + "checkout.html\" onClick=\"return checkoutStart()\"><IMG SRC=\"" + P + "images/btn_checkout.gif\" WIDTH=150 HEIGHT=19 BORDER=0 ALT=\"Proceed to Checkout\"></A></CENTER><BR>");
+  document.write("<TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 WIDTH=\"100%\">");
+  document.write("<TR BGCOLOR=\"#CCCC99\"><TD><FONT FACE=\"verdana,arial,helvetica\" SIZE=-2><B>Qty</B></FONT></TD><TD><FONT FACE=\"verdana,arial,helvetica\" SIZE=-2><B>Items to buy now</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE=\"verdana,arial,helvetica\" SIZE=-2><B>Price</B></FONT></TD></TR>");
+  for (var i = 0; i < c.length; i++) {
+    var it = findItem(c[i][0]);
+    document.write("<TR BGCOLOR=\"" + (i % 2 ? "#F4F4E8" : "#FFFFFF") + "\"><TD VALIGN=TOP><INPUT TYPE=text NAME=\"q" + i + "\" VALUE=\"" + c[i][1] + "\" SIZE=2 MAXLENGTH=2></TD>");
+    document.write("<TD VALIGN=TOP><FONT FACE=\"verdana,arial,helvetica\" SIZE=-1><A HREF=\"" + itemURL(it) + "\"><B>" + esc(it[1]) + "</B></A><BR>");
+    document.write("<FONT SIZE=-2>" + esc(it[2]) + "; " + it[6] + "<BR>" + esc(it[7]) + "<BR><A HREF=\"#\" onClick=\"return cartDelete(" + i + ")\">Delete</A> | <A HREF=\"#\" onClick=\"cartDelete(" + i + "); return wishAdd('" + it[0] + "')\">Move to Wish List</A></FONT></FONT></TD>");
+    document.write("<TD VALIGN=TOP ALIGN=RIGHT><FONT FACE=\"verdana,arial,helvetica\" SIZE=-1>" + money(it[3]) + (c[i][1] > 1 ? "<BR><FONT SIZE=-2>x " + c[i][1] + " = " + money(it[3] * c[i][1]) + "</FONT>" : "") + "</FONT></TD></TR>");
+  }
+  document.write("<TR><TD></TD><TD ALIGN=RIGHT><FONT FACE=\"verdana,arial,helvetica\" SIZE=-1><B>Subtotal:</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE=\"verdana,arial,helvetica\" SIZE=-1 COLOR=\"#990000\"><B>" + money(cartTotal(c)) + "</B></FONT></TD></TR>");
+  document.write("</TABLE><FONT FACE=\"verdana,arial,helvetica\" SIZE=-2>To remove an item, set its quantity to 0 and click Update.</FONT> ");
+  document.write("<INPUT TYPE=image SRC=\"" + P + "images/btn_update.gif\" WIDTH=63 HEIGHT=20 BORDER=0 ALIGN=ABSMIDDLE ALT=\"Update\"></FORM>");
+  document.write("<CENTER><A HREF=\"" + P + "checkout.html\" onClick=\"return checkoutStart()\"><IMG SRC=\"" + P + "images/btn_checkout.gif\" WIDTH=150 HEIGHT=19 BORDER=0 ALT=\"Proceed to Checkout\"></A></CENTER>");
+}
+</SCRIPT>
+<NOSCRIPT><B>Our Shopping Cart needs JavaScript.</B> Please switch it on in your browser's preferences, or upgrade to a 4.0 browser.</NOSCRIPT>
+<BR><BR><FONT FACE="verdana,arial,helvetica" SIZE=-2>The price and availability of items at Orinoco.com are subject to change. The Shopping Cart is a temporary
+place to store a list of your items and reflects each item's most recent price. Items stay in your cart for 30 days.</FONT>

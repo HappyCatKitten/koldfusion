@@ -367,7 +367,10 @@ static const char *apply_zoom(const char *body, size_t len, size_t *outlen) {
         "<style type=\"text/css\">html{zoom:%d%%}</style>"
         "<script type=\"text/javascript\">(function(z){var o=window.open,r=window.resizeTo;"
         "window.open=function(u,n,f){if(f)f=String(f).replace(/(width|height)=(\\d+)/gi,function(m,k,v){return k+'='+Math.round(v*z)});"
-        "return o.call(window,u,n,f)};if(r)window.resizeTo=function(w,h){return r.call(window,Math.round(w*z),Math.round(h*z))}})(%g);</script>",
+        "return o.call(window,u,n,f)};if(r)window.resizeTo=function(w,h){return r.call(window,Math.round(w*z),Math.round(h*z))};"
+        /* a BODY BACKGROUND tile is painted on the canvas, which the zoom doesn't reach: give it an explicit size */
+        "document.addEventListener('DOMContentLoaded',function(){var b=document.body,m=b&&getComputedStyle(b).backgroundImage.match(/^url\\(\"?(.*?)\"?\\)$/);"
+        "if(!m||b.style.backgroundSize)return;var i=new Image();i.onload=function(){b.style.backgroundSize=i.width+'px '+i.height+'px'};i.src=m[1]})})(%g);</script>",
         zoom, zoom / 100.0);
     size_t at = head ? (size_t)(head - body) : 0;
     Buf b; buf_init(&b);
@@ -560,6 +563,7 @@ static void load_debug_settings(RState *rs) {
 void kf_handle_cfml(int fd, HttpReq *req, const char *script_name, const char *filepath) {
     RState *rs = kmalloc(sizeof(RState));
     rs->http = req;
+    rs->docroot = req->docroot ? req->docroot : G.webroot;
     rs->arena = g_arena;
     rs->status = 200;
     rs->start_ms = kf_time_ms();
@@ -673,6 +677,21 @@ static void access_log(HttpReq *req, int status) {
 
 typedef struct Conn { int fd; struct sockaddr_storage addr; } Conn;
 
+/* "yowza.localhost" (or www.yowza.localhost) -> wwwroot/sites/yowza if it exists */
+static const char *site_root(const char *host) {
+    if (!host) return G.webroot;
+    size_t hl = strlen(host);
+    if (hl <= 10 || kf_stricmp(host + hl - 10, ".localhost")) return G.webroot;
+    const char *end = host + hl - 10, *start = end;
+    while (start > host && start[-1] != '.') start--;
+    char *name = kf_lower(kstrndup(start, end - start));
+    for (char *p = name; *p; p++) if (!isalnum((unsigned char)*p) && *p != '-' && *p != '_') return G.webroot;
+    char *dir = kf_path_join(kf_path_join(G.webroot, "sites"), name);
+    struct stat st;
+    if (stat(dir, &st) == 0 && S_ISDIR(st.st_mode)) return dir;
+    return G.webroot;
+}
+
 static void *conn_thread(void *arg) {
     Conn *cn = arg;
     int fd = cn->fd;
@@ -696,11 +715,39 @@ static void *conn_thread(void *arg) {
     else if (rc == -3) simple_response(fd, 413, "Request Entity Too Large", "The request body is too large.");
     if (rc) goto out;
 
+    /* virtual sites, IIS-style: http://<name>.localhost/ serves wwwroot/sites/<name>/ */
+    const char *docroot = site_root(req->server_name);
     /* map URL to file */
     char *upath = kf_urldecode(req->path, strlen(req->path));
     if (strstr(upath, "..") || upath[0] != '/') { simple_response(fd, 403, "Forbidden", "Access denied."); goto out; }
-    char *fpath = kf_path_join(G.webroot, upath);
+    char *fpath = kf_path_join(docroot, upath);
+    /* every site shares /CFIDE (cfform.js, the Administrator) and the stock /images */
+    if (docroot != G.webroot && access(fpath, F_OK) != 0 &&
+        (!kf_strnicmp(upath, "/CFIDE/", 7) || !kf_strnicmp(upath, "/images/", 8)))
+        fpath = kf_path_join(G.webroot, upath);
     struct stat st;
+    /* the static 1999-Web sites link to each other with relative paths ("../orinoco/index.html"), which on a virtual
+       host land on /orinoco/...: send those to the other site's host, and anything else only the main site has
+       (/web1999/) to the main host */
+    if (docroot != G.webroot && stat(fpath, &st) != 0 && !kf_resolve_ci(fpath)) {
+        const char *seg = upath + 1, *sl = strchr(seg, '/');
+        char *name = kf_lower(sl ? kstrndup(seg, sl - seg) : kstrdup(seg));
+        char *other = kf_path_join(kf_path_join(G.webroot, "sites"), name);
+        char *main_path = kf_path_join(G.webroot, upath);
+        char *loc = NULL;
+        if (*name && stat(other, &st) == 0 && S_ISDIR(st.st_mode))
+            loc = kprintf("http://%s.localhost:%d/%s", name, G.port, sl ? sl + 1 : "");
+        else if (stat(main_path, &st) == 0 || kf_resolve_ci(main_path))
+            loc = kprintf("http://localhost:%d%s", G.port, req->path);
+        if (loc) {
+            if (req->query) loc = kprintf("%s?%s", loc, req->query);
+            char *hdr = kprintf("HTTP/1.0 302 Object Moved\r\nServer: %s\r\nLocation: %s\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+                                SERVER_SOFTWARE, loc);
+            write_all(fd, hdr, strlen(hdr));
+            access_log(req, 302);
+            goto out;
+        }
+    }
     int status = 200;
     if (stat(fpath, &st) != 0) { char *ci = kf_resolve_ci(fpath); if (ci) fpath = ci; }
     if (stat(fpath, &st) == 0 && S_ISDIR(st.st_mode)) {
@@ -734,6 +781,7 @@ static void *conn_thread(void *arg) {
         sem_wait(&req_sem);
         G.queued_requests--;
         pthread_mutex_lock(&stats_mu); G.active_requests++; G.requests_served++; pthread_mutex_unlock(&stats_mu);
+        req->docroot = docroot;
         kf_handle_cfml(fd, req, upath, fpath);
         pthread_mutex_lock(&stats_mu); G.active_requests--; pthread_mutex_unlock(&stats_mu);
         sem_post(&req_sem);
@@ -831,6 +879,8 @@ int http_client(const char *method, const char *url, Struct *hdrs, const char *b
         return 0;
     }
     const char *chost = proxy && *proxy ? proxy : host;
+    size_t chl = strlen(chost);
+    if (!kf_stricmp(chost, "localhost") || (chl > 10 && !kf_stricmp(chost + chl - 10, ".localhost"))) chost = "127.0.0.1";
     int cport = proxy && *proxy ? (proxyport ? proxyport : 80) : port;
     struct addrinfo hints = {0}, *res;
     hints.ai_socktype = SOCK_STREAM;
@@ -906,13 +956,18 @@ int kf_run_cli(const char *file, const char *query) {
     const char *abs = realpath(file, rp) ? rp : file;
     const char *rel = abs;
     if (!strncmp(abs, G.webroot, strlen(G.webroot))) rel = abs + strlen(G.webroot);
+    const char *sites = kf_path_join(G.webroot, "sites/");
+    if (!strncmp(abs, sites, strlen(sites))) {
+        const char *nm = abs + strlen(sites), *sl = strchr(nm, '/');
+        if (sl) { req->docroot = kstrndup(abs, sl - abs); rel = sl; req->server_name = kprintf("%.*s.localhost", (int)(sl - nm), nm); }
+    }
     req->path = kstrdup(rel);
     req->uri = kstrdup(rel);
     req->query = query ? kstrdup(query) : NULL;
     req->version = "HTTP/1.0";
     req->headers = struct_new();
     req->remote_addr = "127.0.0.1";
-    req->server_name = "localhost";
+    if (!req->server_name) req->server_name = "localhost";
     req->server_port = G.port;
     sem_init(&req_sem, 0, 1);
     kf_handle_cfml(1, req, rel, abs);

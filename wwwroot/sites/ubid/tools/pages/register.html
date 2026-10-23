@@ -1,0 +1,38 @@
+<FONT FACE="Arial, Helvetica" SIZE=5><B>uBid Registration</B></FONT><BR>
+<FONT SIZE=2>Registration is free and takes about as long as a 28.8 modem takes to download a JPEG. Once registered you can bid, sell and leave feedback.</FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+function doRegister() {
+  var f = document.forms["reg"];
+  var id = f.userid.value.toLowerCase().replace(/\s/g, "");
+  if (!id.match(/^[a-z0-9_]{3,20}$/)) { alert("Your User ID must be 3 to 20 letters, numbers or underscores (no spaces). For example: furby_fan_2000"); return false; }
+  if (findUser(id) || findAccount(id)) { alert("Sorry, the User ID \"" + id + "\" is already taken. How about \"" + id + "99\"?"); return false; }
+  if (f.email.value.indexOf("@") < 1) { alert("Please enter a valid e-mail address. We'll send your winning-bid notices there."); return false; }
+  if (f.pw1.value.length < 4) { alert("Please choose a password of at least 4 characters."); return false; }
+  if (f.pw1.value != f.pw2.value) { alert("The passwords do not match."); return false; }
+  if (!f.agree.checked) { alert("Please check the box to agree to the uBid User Agreement."); return false; }
+  var s = getCookie("ubid_reg");
+  setCookie("ubid_reg", (s == "" ? "" : s + ";") + id + "|" + f.email.value.replace(/[|;]/g, "") + "|" + pwHash(f.pw1.value) + "|" + f.fullname.value.replace(/[|;]/g, ""), 365);
+  signIn(id);
+  alert("Welcome to uBid, " + id + "! You are registered and signed in. Happy bidding!");
+  location.href = P + "myubid.html";
+  return false;
+}
+</SCRIPT>
+<FORM NAME="reg" onSubmit="return doRegister()">
+<TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#EFEFEF">
+<TR><TD><FONT SIZE=2><B>E-mail address</B></FONT></TD><TD><INPUT TYPE=text NAME="email" SIZE=30></TD></TR>
+<TR><TD><FONT SIZE=2><B>Choose a User ID</B></FONT></TD><TD><INPUT TYPE=text NAME="userid" SIZE=20 MAXLENGTH=20> <FONT SIZE=1>this is what other members will see</FONT></TD></TR>
+<TR><TD><FONT SIZE=2><B>Password</B></FONT></TD><TD><INPUT TYPE=password NAME="pw1" SIZE=20></TD></TR>
+<TR><TD><FONT SIZE=2><B>Password again</B></FONT></TD><TD><INPUT TYPE=password NAME="pw2" SIZE=20></TD></TR>
+<TR><TD><FONT SIZE=2>Full name (optional)</FONT></TD><TD><INPUT TYPE=text NAME="fullname" SIZE=30></TD></TR>
+<TR><TD VALIGN=TOP><FONT SIZE=2><B>User Agreement</B></FONT></TD><TD><TEXTAREA ROWS=5 COLS=50 WRAP=VIRTUAL>uBid USER AGREEMENT (the short version)
+1. If you win it, you pay for it.
+2. If you sell it, you ship it.
+3. Describe things honestly. "Mint" means mint. "Haunted" means haunted.
+4. No bidding on your own items, no matter how lonely they look.
+5. Be nice in the Feedback Forum. Your mother might be reading.
+6. uBid is a venue. We never touch the merchandise, which is a relief, given the haunted jar.</TEXTAREA><BR>
+<INPUT TYPE=checkbox NAME="agree"> <FONT SIZE=2>I have read the User Agreement and I solemnly swear to pay for what I win.</FONT></TD></TR>
+<TR><TD></TD><TD><INPUT TYPE=submit VALUE="Register now"></TD></TR>
+</TABLE></FORM>
+<FONT SIZE=2>Already registered? <A HREF="{P}signin.html">Sign in</A>. Just looking? Try the demo account <TT>beaniebaron</TT> / <TT>bidbid</TT>.</FONT>

@@ -1,0 +1,231 @@
+<HTML>
+<HEAD>
+<TITLE>Snapster v2.0 BETA 5 - Chat</TITLE>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+// ---- Snapster Web Edition common code (JavaScript 1.2) ----
+function sw(n, s) {
+  if (document.images && document.images[n]) document.images[n].src = s;
+}
+function getArg(name) {
+  var q = location.search, i, parts, kv;
+  if (q.length < 2) return "";
+  parts = q.substring(1).split("&");
+  for (i = 0; i < parts.length; i++) {
+    kv = parts[i].split("=");
+    if (kv[0] == name && kv.length > 1) return unescape(kv[1].split("+").join(" "));
+  }
+  return "";
+}
+function getCookie(name) {
+  var c = "; " + document.cookie, p = "; " + name + "=", i = c.indexOf(p), j;
+  if (i == -1) return "";
+  j = c.indexOf(";", i + p.length);
+  if (j == -1) j = c.length;
+  return unescape(c.substring(i + p.length, j));
+}
+function setCookie(name, value, days) {
+  var exp = new Date();
+  exp.setTime(exp.getTime() + days * 86400000);
+  document.cookie = name + "=" + escape(value) + "; expires=" + exp.toGMTString();
+}
+function getSelected(f) {
+  var ids = new Array(), old = getCookie("snapdl"), i, e, n = 0;
+  if (old != "") ids = old.split(".");
+  for (i = 0; i < f.elements.length; i++) {
+    e = f.elements[i];
+    if (e.type == "checkbox" && e.checked && e.value != "") {
+      var dup = false;
+      for (var j = 0; j < ids.length; j++) if (ids[j] == e.value) dup = true;
+      if (!dup) { ids[ids.length] = e.value; n++; }
+    }
+  }
+  if (n == 0) {
+    alert("Select at least one song first.\nSnappy can't read minds. Yet. (Beta 6.)");
+    return false;
+  }
+  while (ids.length > 30) ids = ids.slice(1);
+  setCookie("snapdl", ids.join("."), 7);
+  location.href = "transfer.html";
+  return false;
+}
+function selAll(f, on) {
+  for (var i = 0; i < f.elements.length; i++)
+    if (f.elements[i].type == "checkbox") f.elements[i].checked = on;
+}
+function menu(m) {
+  if (m == "file") alert("File\n\nNew Window... (disabled)\nExit (please don't, we're bonding)");
+  else if (m == "actions") alert("Actions\n\nShare MP3s: ON\nAuto-reconnect: ON\nPretend to have a T3: OFF (thank you)");
+  else alert("Snapster v2.0 BETA 5 (Web Edition)\n\n(c) 1999-2000 Snapster, Inc.\nTurtle by Snappy.");
+}
+function winBtn(b) {
+  if (b == "min") alert("Snapster has been minimized to the system tray.\n(Not really. This is a web page.)");
+  else alert("Snapster is already as big as it gets.\nTry a 17-inch monitor.");
+}
+function commas(n) {
+  var s = "" + n, out = "";
+  while (s.length > 3) { out = "," + s.substring(s.length - 3) + out; s = s.substring(0, s.length - 3); }
+  return s + out;
+}
+function mmss(sec) {
+  var m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+  return m + ":" + (s < 10 ? "0" : "") + s;
+}
+// -->
+</SCRIPT>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var ME = "snapfan_99";
+var CH = new Array();
+CH["Lobby"] = new Array("Welcome to Snapster! Be nice. No flooding. Snappy is watching.", ["Snappy_Bot", "DormRoomDJ", "glitterpen_jen", "DialUpDiva4eva", "b0rk_b0rk", "newbie_ned", "daytrader_dan", "Furbee_Hacker", "snapfan_99"], ["*** Now talking in #Lobby", "*** Topic is: Welcome to Snapster! Be nice. No flooding. Snappy is watching.", "<Snappy_Bot> Welcome to #Lobby! Type /help for help. Type /hlep for nothing.", "<glitterpen_jen> hi everyone!!! :)", "<DialUpDiva4eva> HI JEN!!!!!", "<b0rk_b0rk> caps lock is cruise control for cool", "<DialUpDiva4eva> sorry my kid brother changed something", "<newbie_ned> how do i download the internet", "<DormRoomDJ> ned you need a bigger hard drive. at least 10 GB", "<newbie_ned> i have 2.1 GB is that enough", "<daytrader_dan> sold my SNAPPY puts. bought SNAPPY calls. this chat is my office now", "*** Furbee_Hacker has joined #Lobby", "<Furbee_Hacker> my furbee learned to say \"buffer underrun\". proud parent moment"], ["<glitterpen_jen> anyone else's download stuck at 99%?", "<b0rk_b0rk> the last 1% is the hardest. like a marathon", "<newbie_ned> ok i deleted windows to make room, brb", "*** newbie_ned has quit (Connection reset by peer)", "<DormRoomDJ> rip ned", "<DialUpDiva4eva> my mom needs the phone in 5 min. GET ALL THE SONGS", "<daytrader_dan> anyone know if Y2K affects mp3s? asking for my portfolio", "<Snappy_Bot> Reminder: Snapster does not condone deleting Windows.", "<Furbee_Hacker> furbee says \"me love T1\". me too furbee. me too", "*** DialUpDiva4eva has quit (Mom picked up the phone)", "<glitterpen_jen> she had 3 min left :(", "<b0rk_b0rk> F5 F5 F5 F5", "<DormRoomDJ> pro tip: rename your mp3s so your RA doesn't notice. i call mine \"Calculus Notes\"", "<glitterpen_jen> my calculus notes have a sick bassline", "*** newbie_ned has joined #Lobby", "<newbie_ned> windows is back. it says \"press any key\". where is the any key", "<Snappy_Bot> Snappy says: snap snap! (that means hi)"]);
+CH["Rock"] = new Array("Rock talk. Flannel optional. Air guitar mandatory.", ["xXdarkangelXx", "nu_metal_nate", "ftp_phil", "llama_whipper", "quake_clan_leader", "snapfan_99"], ["*** Now talking in #Rock", "*** Topic is: Rock talk. Flannel optional. Air guitar mandatory.", "<nu_metal_nate> Limp Noodle Theory live = best concert of my LIFE", "<xXdarkangelXx> they played Red Cap of Rage for 14 minutes", "<ftp_phil> 13 of those minutes were the singer adjusting his hat", "<llama_whipper> anybody have Shiny Metallic Things - Napkin of Doom at 192?", "<quake_clan_leader> you can't. they emailed everyone. personally. with a lawyer", "<xXdarkangelXx> i got a letter. it was on very nice paper"], ["<nu_metal_nate> nu-metal is just metal that owns a skateboard", "<ftp_phil> flannel is back. flannel never left. flannel is eternal", "<llama_whipper> playing it really loud on my mp3 player right now", "<xXdarkangelXx> Fade to Beige is the saddest song ever written. about a wall", "*** quake_clan_leader has quit (rocket jump)", "<nu_metal_nate> my mom says drop D is \"just a phase\". MOM IT IS A TUNING", "<ftp_phil> just downloaded a 22 minute jam band track by accident. still going", "<llama_whipper> lol its the tuning jam. thats the whole song", "<xXdarkangelXx> rock is not dead. it is just buffering", "*** quake_clan_leader has joined #Rock", "<quake_clan_leader> back. what did i miss", "<nu_metal_nate> nothing. we are still waiting for the guitar solo to download"]);
+CH["Hip-Hop"] = new Array("Shouts to the sysops. Two-way pagers welcome.", ["DormRoomDJ", "mp3kid99", "pentium3_paul", "pogs_champion", "MC_fan_2000", "snapfan_99"], ["*** Now talking in #Hip-Hop", "*** Topic is: Shouts to the sysops. Two-way pagers welcome.", "<DormRoomDJ> MC Dial-Up dropped a new one. \"Shout Out to My Sysop\". instant classic", "<pentium3_paul> his flow is 56 kbps but it feels like 128", "<mp3kid99> Lil' Pager - Pager Code 143 is my whole personality", "<pogs_champion> what does 143 mean", "<mp3kid99> I. LOVE. YOU. (in pager)", "<pogs_champion> oh. ok. 143 to you too i guess"], ["<MC_fan_2000> who got that Bling Bling Calculator at 160", "<DormRoomDJ> check my share. alphabetized. color coded. no RA can stop me", "<pentium3_paul> just got a two-way pager. i have nobody to page. paging myself", "<pogs_champion> 143 paul", "<pentium3_paul> 143 pogs", "<mp3kid99> \"Straight Outta Cul-de-sac\" is so real. my street ends in a circle", "<MC_fan_2000> anyone going to the open mic at the food court saturday", "<DormRoomDJ> only if they let me bring my 2 turntables and my 1 microphone and my 3 extension cords", "*** pogs_champion has quit (slammed)", "<pentium3_paul> he got slammed. respect", "<mp3kid99> throw your hands up!", "<MC_fan_2000> ...and then put them back down, per the song"]);
+CH["Electronica"] = new Array("Big beat, techno, trip-hop. BPM > 120 please.", ["b0rk_b0rk", "BigBeatBen", "RedPillBluePill", "[phreak]0ut", "trip_hop_tina", "snapfan_99"], ["*** Now talking in #Electronica", "*** Topic is: Big beat, techno, trip-hop. BPM > 120 please.", "<BigBeatBen> Captain Bigbeat & the Vinyl Squad - The Bassline Is a Lie. the bassline is NOT a lie", "<b0rk_b0rk> it IS a lie that is the point ben", "<trip_hop_tina> anything under 90 bpm in here or am i in the wrong room", "<[phreak]0ut> DJ Dialtone sampled my actual modem. i want royalties", "<RedPillBluePill> there is no modem"], ["<trip_hop_tina> Bristol Fog Machine makes me want to stare out a rainy window in a nice coat", "<b0rk_b0rk> glowsticks: ordered. 500 of them. dorm room will look like a submarine", "<BigBeatBen> breaks for breakfast. beats for brunch. bass for lunch", "<[phreak]0ut> fun fact: \"Handshake (56K Mix)\" is just 6 minutes of BEEEE-KSSHHHH", "<RedPillBluePill> i know kung fu. and also how to set up a playlist", "<trip_hop_tina> Porthole Mood - Sad Robot Lounge at 3am is a spiritual experience", "*** b0rk_b0rk has quit (Ping timeout)", "<BigBeatBen> ping timeout. the most electronic way to leave", "<[phreak]0ut> Y2K Bug Collective - Midnight Rollover is exactly 10 minutes so you can time it", "*** b0rk_b0rk has joined #Electronica", "<b0rk_b0rk> my roommate unplugged the router to charge his keychain pet"]);
+CH["Ska"] = new Array("Pick it up! Checkered shoes at the door.", ["ska_dad_mike", "sk8rkev", "kazoo_kid", "checkered_shoes", "snapfan_99"], ["*** Now talking in #Ska", "*** Topic is: Pick it up! Checkered shoes at the door.", "<ska_dad_mike> third wave never died. it just went to work at a bank", "<kazoo_kid> The Upstroke Accountants - Spreadsheet Skank. finally ska for professionals", "<sk8rkev> is a kazoo a horn section", "<kazoo_kid> it is if you believe"], ["<ska_dad_mike> picking it up", "<checkered_shoes> picking it up", "<kazoo_kid> picking it up", "<sk8rkev> putting it down (my mom said so)", "<ska_dad_mike> Checkerboard Tuxedo Revue opened for a swing band last night. it was a suspender riot", "<kazoo_kid> they had 9 trombones. on a stage built for 2", "<checkered_shoes> Trombone Emergency is about that exact night", "*** sk8rkev has quit (Mom picked up the phone)", "<ska_dad_mike> every time", "<kazoo_kid> RIP kev. pick it up kev. wherever you are"]);
+CH["Swing"] = new Array("Jump, jive and wail. Khakis encouraged.", ["swinggirl76", "daytrader_dan", "IEisBetter", "bondi_blue_betty", "snapfan_99"], ["*** Now talking in #Swing", "*** Topic is: Jump, jive and wail. Khakis encouraged.", "<swinggirl76> anyone have The Cherry Lounge Hepcats - Khakis Commercial Blues?", "<IEisBetter> it is literally 2 min 38 sec of dancing in pants", "<daytrader_dan> Swing Shift Mortgage Brokers are the only band my broker likes", "<bondi_blue_betty> my zoot suit is on layaway, just like the song"], ["<swinggirl76> lindy hop lessons thursday at the rec center. bring a partner or a sturdy chair", "<daytrader_dan> \"Hep to the Interest Rate\" is about a fixed 30-year. very moving", "<IEisBetter> my browser renders swing music 4% faster", "<bondi_blue_betty> my computer is translucent and so is my love for big bands", "<swinggirl76> anybody got 160 kbps of Martini Emergency, the 128 has a skip", "<daytrader_dan> buy low, swing high", "*** IEisBetter has quit (Illegal operation)", "<bondi_blue_betty> his browser performed an illegal operation and will be shut down", "<swinggirl76> daddy-o down"]);
+CH["Y2K"] = new Array("Y2K happened. Nothing happened. Bob is still in the bunker.", ["y2k_bunker_bob", "keychainpet_ghost", "paperclip_fan", "FrondPilotPete", "snapfan_99"], ["*** Now talking in #Y2K", "*** Topic is: Y2K happened. Nothing happened. Bob is still in the bunker.", "<y2k_bunker_bob> day 296 in the bunker. 312 cans of beans left. 1 copy of Canned Goods Stomp", "<FrondPilotPete> bob it is october. the computers are fine", "<paperclip_fan> It looks like you're still preparing for the apocalypse. Would you like help?", "<y2k_bunker_bob> yes paperclip. yes i would"], ["<keychainpet_ghost> my keychain pet died at 11:59 on new years eve. so SOMETHING happened", "<FrondPilotPete> my VCR still blinks 12:00. but now it is a 2000-compliant 12:00", "<y2k_bunker_bob> what if the bug is just running late. like a train", "<paperclip_fan> It looks like you're waiting for a bug. Would you like to save your work?", "<y2k_bunker_bob> 2001 is the REAL millennium. i read it on a newsgroup. staying put", "*** y2k_bunker_bob has quit (going to the bunker)", "<FrondPilotPete> he will be back in 5 min. the bunker has no outlet", "*** y2k_bunker_bob has joined #Y2K", "<y2k_bunker_bob> the bunker has no outlet"]);
+CH["Help"] = new Array("Snapster help channel. Read the FAQ first, please, we beg you.", ["Snappy_Bot", "Helper_Hank", "newbie_ned", "geohoods_gwen", "snapfan_99"], ["*** Now talking in #Help", "*** Topic is: Snapster help channel. Read the FAQ first, please, we beg you.", "<newbie_ned> my download says \"Remote user cancelled\" what did i do", "<Helper_Hank> nothing ned. they cancelled. it is in the name", "<newbie_ned> should i call them", "<Helper_Hank> please do not call them"], ["<geohoods_gwen> how do i put a snapster link on my homepage? it is in the Area 51 neighborhood", "<Helper_Hank> just link to the download page. also add a guestbook, legally required in 1999", "<newbie_ned> what does \"Firewalled\" mean", "<Helper_Hank> it means your computer has trust issues", "<Snappy_Bot> FAQ: www dot snapster dot com slash help. Or click the Help tab. Or ask Hank.", "<newbie_ned> hank are you a robot", "<Helper_Hank> i am a sophomore", "<geohoods_gwen> my hit counter says 000014. 13 of them are me", "<Helper_Hank> that is a very normal hit counter"]);
+var chan = getArg("channel");
+if (chan.charAt(0) == "#") chan = chan.substring(1);
+if (!CH[chan]) chan = "Lobby";
+var C = CH[chan], next = 0;
+function addLine(s) {
+  var t = document.forms["chat"].log;
+  t.value += s + "\n";
+  if (t.scrollHeight) t.scrollTop = t.scrollHeight;
+}
+function more() {
+  if (next < C[3].length) {
+    addLine(C[3][next++]);
+    setTimeout("more()", 2500 + Math.floor(Math.random() * 3500));
+  }
+}
+function startChat() {
+  var t = document.forms["chat"].log;
+  if (chan != "Lobby") t.value = C[2].join("\n") + "\n";
+  addLine("*** " + ME + " has joined #" + chan);
+  setTimeout("more()", 2000);
+}
+function send(f) {
+  var s = f.say.value, low = s.toLowerCase();
+  if (s == "") return false;
+  f.say.value = "";
+  if (low.indexOf("/join ") == 0) {
+    var j = s.substring(6);
+    if (j.charAt(0) == "#") j = j.substring(1);
+    if (CH[j]) { location.href = "chat.html?channel=" + j; return false; }
+    addLine("*** No such channel: #" + j);
+    return false;
+  }
+  if (low.indexOf("/me ") == 0) { addLine("* " + ME + " " + s.substring(4)); return false; }
+  if (low == "/help") { addLine("*** Commands: /join #channel, /me action, /help, /part"); return false; }
+  if (low == "/part" || low == "/quit") { addLine("*** " + ME + " has left #" + chan); location.href = "client.html"; return false; }
+  addLine("<" + ME + "> " + s);
+  if (low.indexOf("snappy") != -1) setTimeout("addLine('<Snappy_Bot> snap snap! (that means hi)')", 1500);
+  else if (low.indexOf("a/s/l") != -1) setTimeout("addLine('<Snappy_Bot> Please do not ask a/s/l. Snappy is 3, male, and from a tank.')", 1500);
+  return false;
+}
+function writeHeader() {
+  document.write("<FONT FACE=\"Arial, Helvetica\" SIZE=2 COLOR=\"#FFFFFF\"><B>#" + chan + "</B></FONT> " +
+    "<FONT FACE=\"Arial, Helvetica\" SIZE=1 COLOR=\"#999999\">" + C[0] + "</FONT>");
+}
+function writeUsers() {
+  var u = C[1], out = "<SELECT NAME=\"who\" SIZE=16 onChange=\"whois(this)\">";
+  for (var i = 0; i < u.length; i++) out += "<OPTION>" + u[i];
+  document.write(out + "</SELECT>");
+}
+function whois(s) {
+  var u = s.options[s.selectedIndex].text;
+  if (u == ME) alert("That's you! Looking good.");
+  else alert("Whois " + u + ":\nConnection: who knows\nIdle: 0 sec\nSharing: plenty\n\n(Add them from the Hot List tab.)");
+}
+// -->
+</SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#008080" TEXT="#CCCCCC" LINK="#99CCCC" VLINK="#99CCCC" ALINK="#FFFFFF" onLoad="startChat()">
+<CENTER>
+<P><TABLE BORDER=2 CELLPADDING=0 CELLSPACING=0 BGCOLOR="#C0C0C0" WIDTH=644><TR><TD>
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=640>
+<TR>
+  <TD BGCOLOR="#000080" WIDTH=584><IMG SRC="images/titlebar.gif" WIDTH=584 HEIGHT=18 ALT="Snapster v2.0 BETA 5"></TD>
+  <TD BGCOLOR="#1084D0" ALIGN=RIGHT NOWRAP><A HREF="javascript:winBtn('min')"><IMG SRC="images/win_min.gif" WIDTH=16 HEIGHT=14 BORDER=0 ALT="_"></A><A HREF="javascript:winBtn('max')"><IMG SRC="images/win_max.gif" WIDTH=16 HEIGHT=14 BORDER=0 ALT="[]"></A><IMG SRC="images/clear.gif" WIDTH=2 HEIGHT=14><A HREF="index.html"><IMG SRC="images/win_close.gif" WIDTH=16 HEIGHT=14 BORDER=0 ALT="X"></A><IMG SRC="images/clear.gif" WIDTH=2 HEIGHT=14></TD>
+</TR>
+<TR><TD COLSPAN=2 BGCOLOR="#C0C0C0"><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">&nbsp;
+  <A HREF="javascript:menu('file')"><FONT COLOR="#000000"><U>F</U>ile</FONT></A> &nbsp;
+  <A HREF="javascript:menu('actions')"><FONT COLOR="#000000"><U>A</U>ctions</FONT></A> &nbsp;
+  <A HREF="javascript:menu('help')"><FONT COLOR="#000000"><U>H</U>elp</FONT></A></FONT></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#1A1A1A">
+  <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=640><TR>
+  <TD><A HREF="client.html" onMouseOver="sw('tb_home','images/tab_home_mo.gif')" onMouseOut="sw('tb_home','images/tab_home.gif')"><IMG SRC="images/tab_home.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_home" ALT="Home"></A></TD>
+  <TD><A HREF="chat.html"><IMG SRC="images/tab_chat_on.gif" WIDTH=70 HEIGHT=50 BORDER=0 ALT="Chat"></A></TD>
+  <TD><A HREF="library.html" onMouseOver="sw('tb_library','images/tab_library_mo.gif')" onMouseOut="sw('tb_library','images/tab_library.gif')"><IMG SRC="images/tab_library.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_library" ALT="Library"></A></TD>
+  <TD><A HREF="search.html" onMouseOver="sw('tb_search','images/tab_search_mo.gif')" onMouseOut="sw('tb_search','images/tab_search.gif')"><IMG SRC="images/tab_search.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_search" ALT="Search"></A></TD>
+  <TD><A HREF="hotlist.html" onMouseOver="sw('tb_hotlist','images/tab_hotlist_mo.gif')" onMouseOut="sw('tb_hotlist','images/tab_hotlist.gif')"><IMG SRC="images/tab_hotlist.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_hotlist" ALT="Hot List"></A></TD>
+  <TD><A HREF="transfer.html" onMouseOver="sw('tb_transfer','images/tab_transfer_mo.gif')" onMouseOut="sw('tb_transfer','images/tab_transfer.gif')"><IMG SRC="images/tab_transfer.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_transfer" ALT="Transfer"></A></TD>
+  <TD><A HREF="discover.html" onMouseOver="sw('tb_discover','images/tab_discover_mo.gif')" onMouseOut="sw('tb_discover','images/tab_discover.gif')"><IMG SRC="images/tab_discover.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_discover" ALT="Discover"></A></TD>
+  <TD><A HREF="help.html" onMouseOver="sw('tb_help','images/tab_help_mo.gif')" onMouseOut="sw('tb_help','images/tab_help.gif')"><IMG SRC="images/tab_help.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_help" ALT="Help"></A></TD>
+  <TD ALIGN=RIGHT WIDTH=80><A HREF="index.html"><IMG SRC="images/snappy_48.gif" WIDTH=48 HEIGHT=48 BORDER=0 ALT="snapster.com" HSPACE=6></A></TD>
+  </TR></TABLE>
+</TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#3A3A3A" HEIGHT=360 VALIGN=TOP>
+<TABLE BORDER=0 CELLPADDING=8 CELLSPACING=0 WIDTH=640><TR><TD VALIGN=TOP>
+<FORM NAME="chat" onSubmit="return send(this)">
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=620><TR>
+<TD VALIGN=TOP WIDTH=110><TABLE BORDER=0 CELLPADDING=1 CELLSPACING=0 BGCOLOR="#666666" WIDTH="100%"><TR><TD><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#2A2A2A" WIDTH="100%"><TR><TD BGCOLOR="#555555"><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#FFFFFF"><B>Channels</B></FONT></TD></TR><TR><TD><TABLE BORDER=0 CELLPADDING=1 CELLSPACING=0 WIDTH="100%"><TR><TD NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1><A HREF="chat.html?channel=Lobby">#Lobby</A></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#999999">36</FONT></TD></TR><TR><TD NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1><A HREF="chat.html?channel=Rock">#Rock</A></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#999999">25</FONT></TD></TR><TR><TD NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1><A HREF="chat.html?channel=Hip-Hop">#Hip-Hop</A></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#999999">26</FONT></TD></TR><TR><TD NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1><A HREF="chat.html?channel=Electronica">#Electronica</A></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#999999">27</FONT></TD></TR><TR><TD NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1><A HREF="chat.html?channel=Ska">#Ska</A></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#999999">24</FONT></TD></TR><TR><TD NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1><A HREF="chat.html?channel=Swing">#Swing</A></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#999999">25</FONT></TD></TR><TR><TD NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1><A HREF="chat.html?channel=Y2K">#Y2K</A></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#999999">26</FONT></TD></TR><TR><TD NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1><A HREF="chat.html?channel=Help">#Help</A></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#999999">27</FONT></TD></TR></TABLE><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#999999"><P>Type <B>/join #name</B> to switch, <B>/me</B> to emote.</FONT></TD></TR></TABLE></TD></TR></TABLE></TD><TD WIDTH=8>&nbsp;</TD>
+<TD VALIGN=TOP>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+writeHeader();
+// -->
+</SCRIPT><BR>
+<TEXTAREA NAME="log" ROWS=18 COLS=46 WRAP=VIRTUAL>*** Now talking in #Lobby
+*** Topic is: Welcome to Snapster! Be nice. No flooding. Snappy is watching.
+&lt;Snappy_Bot&gt; Welcome to #Lobby! Type /help for help. Type /hlep for nothing.
+&lt;glitterpen_jen&gt; hi everyone!!! :)
+&lt;DialUpDiva4eva&gt; HI JEN!!!!!
+&lt;b0rk_b0rk&gt; caps lock is cruise control for cool
+&lt;DialUpDiva4eva&gt; sorry my kid brother changed something
+&lt;newbie_ned&gt; how do i download the internet
+&lt;DormRoomDJ&gt; ned you need a bigger hard drive. at least 10 GB
+&lt;newbie_ned&gt; i have 2.1 GB is that enough
+&lt;daytrader_dan&gt; sold my SNAPPY puts. bought SNAPPY calls. this chat is my office now
+*** Furbee_Hacker has joined #Lobby
+&lt;Furbee_Hacker&gt; my furbee learned to say &quot;buffer underrun&quot;. proud parent moment
+</TEXTAREA><BR>
+<INPUT TYPE=TEXT NAME="say" SIZE=38> <INPUT TYPE=SUBMIT VALUE="Send">
+</TD><TD WIDTH=8>&nbsp;</TD>
+<TD VALIGN=TOP><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>Users</B></FONT><BR>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+writeUsers();
+// -->
+</SCRIPT>
+</TD></TR></TABLE>
+</FORM>
+</TD></TR></TABLE>
+</TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#C0C0C0">
+  <TABLE BORDER=1 CELLPADDING=1 CELLSPACING=0 WIDTH=640><TR><TD><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">Online (snapfan_99): Sharing 18 songs. Currently 8,412 users (1,207,553 songs) available.</FONT></TD><TD WIDTH=60 ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">11:52 PM</FONT></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+</TD></TR></TABLE>
+<P><FONT FACE="Arial, Helvetica" SIZE=1>This is <B>Snapster Web Edition</B>, a pretend client. Back to <A HREF="index.html"><FONT COLOR="#FFFFFF">snapster.com</FONT></A>.</FONT>
+</CENTER>
+
+<SCRIPT LANGUAGE="JavaScript1.2">
+<!--
+function ringRandom() {
+  var list = new Array("../yowza/index.html", "../altavisor/index.html", "../askreeves/index.html", "../orinoco/index.html", "../ubid/index.html", "../etoyz/index.html", "../petz/index.html", "../geohoods/index.html", "../hamstershuffle/index.html", "../dashdot/index.html", "../snapster/index.html", "../cnm/index.html");
+  location.href = list[Math.floor(Math.random() * list.length)];
+  return false;
+}
+// -->
+</SCRIPT>
+<P><CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../dashdot/index.html"><FONT COLOR="#000080">&lt;&lt; Prev</FONT></A> <FONT COLOR="#000000">|</FONT> <A HREF="../../web1999/index.html" onClick="return ringRandom()"><FONT COLOR="#000080">Random</FONT></A> <FONT COLOR="#000000">|</FONT> <B><A HREF="../../web1999/index.html"><FONT COLOR="#000080">The 1999 Web Ring</FONT></A></B> <FONT COLOR="#000000">&middot; Snapster is site 11 of 12 |</FONT> <A HREF="../cnm/index.html"><FONT COLOR="#000080">Next &gt;&gt;</FONT></A>
+</FONT></TD></TR></TABLE></CENTER>
+
+</BODY>
+</HTML>

@@ -1,0 +1,105 @@
+<HTML>
+<HEAD>
+<TITLE>GeoHoods File Manager</TITLE>
+<META NAME="GENERATOR" CONTENT="GeoHoods Portal Server 3.1">
+<SCRIPT LANGUAGE="JavaScript" SRC="ghdata.js"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript" SRC="builder.js"></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000CC" VLINK="#551A8B">
+<CENTER>
+<TABLE WIDTH=600 BORDER=0 CELLSPACING=0 CELLPADDING=0><TR>
+<TD VALIGN=MIDDLE><A HREF="index.html"><IMG SRC="images/gh_logo.gif" WIDTH=300 HEIGHT=54 BORDER=0 ALT="GeoHoods"></A></TD>
+<TD ALIGN=RIGHT VALIGN=BOTTOM NOWRAP><FONT FACE="Arial, Helvetica" SIZE=2><A HREF="neighborhoods.html">Neighborhoods</A> - <A HREF="search.html">Search</A> - <A HREF="help.html">Help</A></FONT></TD></TR></TABLE>
+<HR SIZE=1 WIDTH=600 NOSHADE>
+<TABLE BGCOLOR="#EEEEEE" WIDTH=600 CELLPADDING=3 CELLSPACING=0 BORDER=0><TR><TD><FONT FACE="Arial, Helvetica" SIZE=2>&nbsp;<B>Welcome, Homesteader!</B> - <A HREF="filemanager.html">[Member Login]</A></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2><A HREF="join.html">Get a free home page</A></FONT> <A HREF="join.html"><IMG SRC="images/arrow.gif" WIDTH=9 HEIGHT=9 BORDER=0 ALT="" HSPACE=4></A></TD></TR></TABLE>
+<P><FONT FACE="Arial" SIZE=5><B>File Manager</B></FONT></P>
+<FONT FACE="Arial, Helvetica" SIZE=2>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var member = getParam("member");
+var me = null;
+for (var i = 0; i < ghPages.length; i++)
+  if (member != "" && ghPages[i][2].toLowerCase() == member.toLowerCase()) me = ghPages[i];
+function editFile(name) {
+  var f = document.forms["editor"];
+  f.filename.value = name;
+  f.code.value = "Loading " + name + " ...";
+  document.getElementById("loaderframe").src = me[0] + name;
+  location.hash = "editor";
+}
+function loaded() {
+  if (me == null) return;
+  var f = document.forms["editor"];
+  if (f.filename.value == "") return;
+  var d = null;
+  try { d = window.frames["loader"].document; } catch (e) { d = null; }
+  if (d && d.documentElement) f.code.value = "<HTML>\n" + d.documentElement.innerHTML + "\n</HTML>";
+  else f.code.value = "<!-- The EZ Editor could not open this file from here. Try the View link. -->";
+}
+function saveFile() {
+  alert("Saved " + document.forms["editor"].filename.value + "!\n\nOur servers are very busy today, so it may take " +
+        "up to 15 minutes before the changes show up on your page.");
+}
+function previewFile() {
+  writePreview(document.forms["editor"].code.value, me[0]);
+}
+if (member == "") {
+  document.write("<P>Please log in to manage your files.</P>");
+  document.write("<FORM NAME=\"lf\" onSubmit=\"location.href='filemanager.html?member=' + escape(document.forms['lf'].m.value); return false;\">" +
+    "<TABLE BORDER=0 BGCOLOR=\"#EEFFEE\" CELLPADDING=6><TR><TD><FONT FACE=Arial SIZE=2>Member name:</FONT></TD><TD><INPUT TYPE=text NAME=m SIZE=20></TD></TR>" +
+    "<TR><TD><FONT FACE=Arial SIZE=2>Password:</FONT></TD><TD><INPUT TYPE=password NAME=pw SIZE=20></TD></TR>" +
+    "<TR><TD></TD><TD><INPUT TYPE=submit VALUE=\"Login\"></TD></TR></TABLE></FORM>");
+  document.write("<P><FONT SIZE=1>Psst: try one of our homesteaders, like <A HREF=\"filemanager.html?member=" +
+    escape(ghPages[7][2]) + "\">" + esc(ghPages[7][2]) + "</A>. (The password check is broken today. Don't tell anyone.)</FONT></P>");
+} else if (me == null) {
+  document.write("<P>Welcome, <B>" + esc(member) + "</B>! Your account was created, but you have not moved in yet.</P>");
+  document.write("<P>Your directory is empty. <A HREF=\"build.html\">Build your page now</A> and come back to upload it.</P>");
+  document.write("<P><B>Space used:</B> 0 KB of 11 MB</P>");
+} else {
+  var files = me[8].split(";");
+  var total = 0;
+  document.write("<P>Welcome back, <B>" + esc(me[2]) + "</B>! Your home page is <B><A HREF=\"" + me[0] + "index.html\">" +
+                 "geohoods.com/" + me[0] + "</A></B></P>");
+  document.write("<TABLE WIDTH=600 BORDER=1 CELLPADDING=4 CELLSPACING=0><TR BGCOLOR=\"#003399\"><TH><FONT COLOR=white FACE=Arial SIZE=2>File</FONT></TH>" +
+                 "<TH><FONT COLOR=white FACE=Arial SIZE=2>Size</FONT></TH><TH><FONT COLOR=white FACE=Arial SIZE=2>Actions</FONT></TH></TR>");
+  for (var i = 0; i < files.length; i++) {
+    var nm = files[i].split(":")[0], sz = parseInt(files[i].split(":")[1], 10);
+    total += sz;
+    document.write("<TR BGCOLOR=\"" + (i % 2 ? "#FFFFFF" : "#FFFFCC") + "\"><TD><FONT FACE=Arial SIZE=2>" +
+                   "<IMG SRC=\"images/ball_blue.gif\" WIDTH=14 HEIGHT=14> " + nm + "</FONT></TD><TD ALIGN=right><FONT FACE=Arial SIZE=2>" +
+                   Math.ceil(sz / 1024) + " KB</FONT></TD><TD><FONT FACE=Arial SIZE=2><A HREF=\"" + me[0] + nm + "\" TARGET=\"_blank\">View</A> | " +
+                   "<A HREF=\"javascript:editFile('" + nm + "')\">Edit</A> | <A HREF=\"javascript:alert('Rename is disabled during Y2K testing.')\">Rename</A> | " +
+                   "<A HREF=\"javascript:if (confirm('Really delete " + nm + "?')) alert('Just kidding. We never delete anything.')\">Delete</A></FONT></TD></TR>");
+  }
+  document.write("</TABLE>");
+  document.write("<P><B>Space used:</B> " + Math.ceil(total / 1024) + " KB of 11 MB (" + (Math.round(total / 115343.36 * 10) / 10) + "%)</P>");
+}
+// -->
+</SCRIPT>
+<NOSCRIPT><P>The File Manager needs JavaScript.</P></NOSCRIPT>
+<P><B>Upload files</B> (up to 5 at a time):</P>
+<FORM NAME="up" onSubmit="alert('Upload complete! (Your files will appear after the next server sync.)'); return false;">
+<INPUT TYPE="file" NAME="f1" SIZE=30><BR><INPUT TYPE="file" NAME="f2" SIZE=30><BR><INPUT TYPE="submit" VALUE="Upload Files">
+</FORM>
+<A NAME="editor"></A>
+<FORM NAME="editor" onSubmit="return false;">
+<P><B>EZ Editor</B> - editing <INPUT TYPE="text" NAME="filename" SIZE=20 VALUE=""><BR>
+<TEXTAREA NAME="code" ROWS=14 COLS=72 WRAP=OFF></TEXTAREA><BR>
+<INPUT TYPE="button" VALUE="Save" onClick="saveFile();"> <INPUT TYPE="button" VALUE="Preview" onClick="if (me) previewFile();">
+<INPUT TYPE="reset" VALUE="Undo All Changes"></P>
+</FORM>
+<IFRAME NAME="loader" ID="loaderframe" SRC="images/index.html" WIDTH=1 HEIGHT=1 FRAMEBORDER=0 onLoad="loaded();"></IFRAME>
+</FONT>
+<P></P><HR SIZE=1 WIDTH=600 NOSHADE>
+<FONT FACE="Arial, Helvetica" SIZE=1>Copyright &copy; 1994-1999 GeoHoods Inc. All rights reserved.<BR>
+<A HREF="help.html">Help</A> - <A HREF="guidelines.html">Terms of Service</A> - <A HREF="guidelines.html#content">Content Guidelines</A> - <A HREF="news.html">Press &amp; News</A> - <A HREF="addons/index.html">Add-Ons</A></FONT>
+<P><CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">
+<A HREF="../petz/index.html">&lt;&lt; Prev</A> |
+<A HREF="../yowza/index.html" onClick="var s=new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","dashdot","snapster","cnm"); location.href='../'+s[Math.floor(Math.random()*s.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> |
+<A HREF="../hamstershuffle/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE></CENTER></P>
+<P><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion"></P>
+</CENTER>
+</BODY>
+</HTML>

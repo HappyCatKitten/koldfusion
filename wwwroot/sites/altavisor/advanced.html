@@ -1,0 +1,105 @@
+<HTML>
+<HEAD>
+<TITLE>AltaVisor: Advanced Search</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000099" VLINK="#663366" ALINK="#FF0000">
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=600>
+<TR VALIGN=BOTTOM><TD><A HREF="index.html"><IMG SRC="images/av_logo_sm.gif" WIDTH=300 HEIGHT=38 BORDER=0 ALT="AltaVisor"></A></TD>
+<TD ALIGN=RIGHT><FONT SIZE=-1><A HREF="help.html">Help</A> - <A HREF="advanced.html">Advanced</A> - <A HREF="translate.html">Translate</A></FONT></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#003399"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=2></TD></TR></TABLE>
+<TABLE BORDER=0 BGCOLOR="#FFCC66" WIDTH=600 CELLSPACING=0 CELLPADDING=4><TR><TD>
+<FORM NAME=mfrm METHOD=GET ACTION="results.html"><INPUT TYPE=hidden NAME=pg VALUE=q>
+<FONT SIZE=-1><B>Search</B> <SELECT NAME=kl><OPTION VALUE=XX SELECTED>any language
+<OPTION VALUE=zh>Chinese
+<OPTION VALUE=cs>Czech
+<OPTION VALUE=da>Danish
+<OPTION VALUE=nl>Dutch
+<OPTION VALUE=en>English
+<OPTION VALUE=fi>Finnish
+<OPTION VALUE=fr>French
+<OPTION VALUE=de>German
+<OPTION VALUE=el>Greek
+<OPTION VALUE=it>Italian
+<OPTION VALUE=ja>Japanese
+<OPTION VALUE=ko>Korean
+<OPTION VALUE=no>Norwegian
+<OPTION VALUE=xp>Pig Latin
+<OPTION VALUE=pl>Polish
+<OPTION VALUE=pt>Portuguese
+<OPTION VALUE=ru>Russian
+<OPTION VALUE=es>Spanish
+<OPTION VALUE=sv>Swedish
+</SELECT> <B>for</B></FONT><BR>
+<INPUT NAME=q SIZE=50 MAXLENGTH=800 VALUE=""> <INPUT TYPE=image SRC="images/av_search.gif" WIDTH=66 HEIGHT=23 BORDER=0 ALT="Search" ALIGN=ABSMIDDLE>
+</FORM></TD></TR></TABLE>
+<TABLE WIDTH=600 BORDER=0 CELLSPACING=0 CELLPADDING=0><TR><TD BGCOLOR="#003399"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=2></TD></TR></TABLE>
+<P><FONT SIZE=+1 FACE=arial><B>Advanced Search</B></FONT>
+<FORM NAME=af METHOD=GET ACTION="results.html"><INPUT TYPE=hidden NAME=pg VALUE=aq>
+<TABLE WIDTH=600 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#FFCC66">
+<TR><TD><FONT SIZE=-1><B>Boolean expression:</B></FONT><BR><TEXTAREA NAME=q ROWS=3 COLS=60 WRAP=virtual></TEXTAREA></TD></TR>
+<TR><TD><FONT SIZE=-1><B>Ranking:</B> <INPUT NAME=r SIZE=30> (words that should push a page to the top)</FONT></TD></TR>
+<TR><TD><FONT SIZE=-1><B>Start date:</B> <INPUT NAME=d0 SIZE=10> <B>End date:</B> <INPUT NAME=d1 SIZE=10> e.g. 21/Mar/99 as 21/03/99
+&nbsp; <B>Language:</B> <SELECT NAME=kl><OPTION VALUE=XX SELECTED>any language
+<OPTION VALUE=zh>Chinese
+<OPTION VALUE=cs>Czech
+<OPTION VALUE=da>Danish
+<OPTION VALUE=nl>Dutch
+<OPTION VALUE=en>English
+<OPTION VALUE=fi>Finnish
+<OPTION VALUE=fr>French
+<OPTION VALUE=de>German
+<OPTION VALUE=el>Greek
+<OPTION VALUE=it>Italian
+<OPTION VALUE=ja>Japanese
+<OPTION VALUE=ko>Korean
+<OPTION VALUE=no>Norwegian
+<OPTION VALUE=xp>Pig Latin
+<OPTION VALUE=pl>Polish
+<OPTION VALUE=pt>Portuguese
+<OPTION VALUE=ru>Russian
+<OPTION VALUE=es>Spanish
+<OPTION VALUE=sv>Swedish
+</SELECT></FONT></TD></TR>
+<TR><TD><INPUT TYPE=submit VALUE="Search"> <INPUT TYPE=reset VALUE="Clear"></TD></TR>
+</TABLE></FORM>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function getArg(name) {
+  var q = location.search.substring(1).split('&');
+  for (var i = 0; i < q.length; i++) {
+    var kv = q[i].split('=');
+    if (kv[0] == name && kv.length > 1) return unescape(kv[1].replace(/\+/g, ' '));
+  }
+  return '';
+}
+function h(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+document.af.q.value = getArg('q');
+// -->
+</SCRIPT>
+<TABLE WIDTH=600 BORDER=0><TR><TD><FONT FACE=arial SIZE=-1>
+<B>How to write a Boolean expression</B>
+<UL>
+<LI><B>AND</B> - both words must appear: <TT>hamster AND wheel</TT>
+<LI><B>OR</B> - either word may appear: <TT>cat OR kitten</TT>
+<LI><B>AND NOT</B> - leave out pages with the second word: <TT>java AND NOT coffee</TT>
+<LI><B>NEAR</B> - both words, close together (Skeeter is generous about "close"): <TT>bean NEAR bag</TT>
+</UL>
+Words in the <B>Ranking</B> box do not change which pages are found, only the order they come back in.
+Dates are compared with the date each page was last modified.</FONT></TD></TR></TABLE>
+<P><CENTER><TABLE WIDTH=600 BORDER=0 CELLSPACING=0 CELLPADDING=0><TR><TD BGCOLOR="#003399"><IMG SRC="images/pixel.gif" WIDTH=1 HEIGHT=2></TD></TR></TABLE>
+<FONT SIZE=-1><A HREF="about.html">About AltaVisor</A> | <A HREF="help.html">Help</A> | <A HREF="addurl.html">Add/Remove URL</A> |
+<A HREF="crawl.html">Crawler Report</A> | <A HREF="popular.html">Top Searches</A> | <A HREF="translate.html">Translate</A><BR>
+<A HREF="about.html#legal">Disclaimer</A> | <A HREF="about.html#privacy">Privacy Policy</A><BR>
+Copyright &copy; 1999 AltaVisor Company. All rights reserved.</FONT></CENTER>
+
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../yowza/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="var r=new Array('yowza','altavisor','askreeves','orinoco','ubid','etoyz','petz','geohoods','hamstershuffle','dashdot','snapster','cnm'); location.href='../'+r[Math.floor(Math.random()*r.length)]+'/index.html'; return false;">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; AltaVisor is site 2 of 12 |
+<A HREF="../askreeves/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER>
+</BODY>
+</HTML>

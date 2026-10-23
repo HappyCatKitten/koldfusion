@@ -1,0 +1,323 @@
+<HTML><HEAD><TITLE>Dashdot: News for Nerds. Stuff that Matters.</TITLE>
+<SCRIPT LANGUAGE="JavaScript"><!--
+
+function getCookie(n) {
+  var c = document.cookie.split("; ");
+  for (var i = 0; i < c.length; i++) {
+    var p = c[i].indexOf("=");
+    if (p > 0 && c[i].substring(0, p) == n) return unescape(c[i].substring(p + 1));
+  }
+  return "";
+}
+function setCookie(n, v, days) {
+  var e = "";
+  if (days) { var d = new Date(); d.setTime(d.getTime() + days * 86400000); e = "; expires=" + d.toGMTString(); }
+  document.cookie = n + "=" + escape(v) + e + "; path=/";
+}
+function delCookie(n) { document.cookie = n + "=; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/"; }
+function qs(n) {
+  var q = location.search.substring(1).split("&");
+  for (var i = 0; i < q.length; i++) {
+    var p = q[i].indexOf("=");
+    if (p > 0 && q[i].substring(0, p) == n) return unescape(q[i].substring(p + 1).replace(/\+/g, " "));
+  }
+  return "";
+}
+function htmlEsc(s) {
+  s = "" + s;
+  s = s.replace(/&/g, "&amp;"); s = s.replace(/</g, "&lt;"); s = s.replace(/>/g, "&gt;"); s = s.replace(/"/g, "&quot;");
+  return s;
+}
+
+function ringRandom(p) {
+  var s = new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","snapster","cnm");
+  var n = Math.floor(Math.random() * s.length);
+  location.href = p + "../" + s[n] + "/" + "index.html";
+  return false;
+}
+
+function ddLogin(f) {
+  var n = f.unickname.value;
+  if (n == "") { alert("Please enter a nickname. Even Anonymous Cowards have to type something."); return false; }
+  if (f.upasswd.value == "") { alert("Please enter your password. (We won't look at it. We don't even keep it.)"); return false; }
+  setCookie("dd_user", n, 30);
+  if (getCookie("dd_points") == "") {
+    setCookie("dd_points", "5", 3);
+    alert("Welcome back, " + n + "!\n\nYou have been randomly selected to moderate.\nYou have 5 moderator points; they expire in 3 days.\nUse them wisely: look for the Moderate menus under each comment.");
+  }
+  location.reload();
+  return false;
+}
+function ddLogout() { delCookie("dd_user"); location.reload(); }
+function loginBox(root) {
+  var u = getCookie("dd_user");
+  if (u != "") {
+    var p = getCookie("dd_points"); if (p == "") p = "0";
+    document.write('<B>Welcome back, ' + htmlEsc(u) + '!</B><BR>Karma: Positive<BR>Moderator points: <B>' + p + '</B><P>');
+    document.write('[ <A HREF="' + root + 'preferences.html">preferences</A> | <A HREF="javascript:ddLogout()">logout</A> ]');
+  } else {
+    document.write('<FORM ACTION="' + root + 'users.html" METHOD="get" onSubmit="return ddLogin(this)">');
+    document.write('<B>Nickname:</B><BR><INPUT TYPE="text" NAME="unickname" SIZE=18><BR><B>Password:</B><BR>');
+    document.write('<INPUT TYPE="password" NAME="upasswd" SIZE=18><BR><INPUT TYPE="submit" VALUE="userlogin"></FORM>');
+    document.write('No account? <A HREF="' + root + 'users.html">Make one</A>. It\'s free, and it lets you pick your comment threshold, keep your nickname, and moderate when the dice say so.');
+  }
+}
+
+//--></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#000000" TEXT="#000000" LINK="#006666" VLINK="#000000">
+<CENTER><A HREF="../orinoco/index.html"><IMG SRC="images/banner_orinoco.gif" WIDTH=468 HEIGHT=60 BORDER=0 ALT="Orinoco.com"></A></CENTER><P>
+<TABLE BGCOLOR="#FFFFFF" CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH="99%" ALIGN=CENTER><TR>
+<TD VALIGN=TOP ALIGN=LEFT><A HREF="index.html"><IMG SRC="images/title.gif" WIDTH=300 HEIGHT=72 BORDER=0 ALT="Welcome to Dashdot"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_y2k.html"><IMG SRC="images/topicy2k.gif" BORDER=0 ALT="Y2K"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_hardware.html"><IMG SRC="images/topichardware.gif" BORDER=0 ALT="Hardware"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_patents.html"><IMG SRC="images/topicpatents.gif" BORDER=0 ALT="Patents"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_linix.html"><IMG SRC="images/topiclinix.gif" BORDER=0 ALT="Linix"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_games.html"><IMG SRC="images/topicgames.gif" BORDER=0 ALT="Games"></A></TD>
+</TR></TABLE>
+<TABLE WIDTH="99%" ALIGN=CENTER CELLPADDING=0 CELLSPACING=0 BORDER=0 BGCOLOR="#FFFFFF"><TR>
+<TD VALIGN=TOP ROWSPAN=5 WIDTH=110 BGCOLOR="#FFFFFF"><NOBR><FONT FACE="arial,helvetica" SIZE=2><B>
+&nbsp;<A HREF="faq.html">faq</A><BR>
+&nbsp;<A HREF="code.html">code</A><BR>
+&nbsp;<A HREF="awards.html">awards</A><BR>
+&nbsp;<A HREF="privacy.html">privacy</A><BR>
+&nbsp;<A HREF="dashnet.html">dashNET</A><BR>
+&nbsp;<A HREF="older.html">older stuff</A><BR>
+&nbsp;<A HREF="grits.html">grits' page</A><BR>
+&nbsp;<A HREF="preferences.html">preferences</A><BR>
+&nbsp;<A HREF="overandover.html">overandover.net</A><BR>
+&nbsp;<A HREF="submit.html">submit story</A><BR>
+&nbsp;<A HREF="advertising.html">advertising</A><BR>
+&nbsp;<A HREF="supporters.html">supporters</A><BR>
+&nbsp;<A HREF="polls.html">past polls</A><BR>
+&nbsp;<A HREF="topics.html">topics</A><BR>
+&nbsp;<A HREF="about.html">about</A><BR>
+&nbsp;<A HREF="jobs.html">jobs</A><BR>
+&nbsp;<A HREF="hof.html">hof</A><BR>
+&nbsp;<A HREF="search.html">search</A>
+</B></FONT></NOBR>
+<P><TABLE BORDER=0 CELLPADDING=1 CELLSPACING=0 ALIGN=CENTER BGCOLOR="#CCCCCC"><TR><TD><FONT FACE="arial,helvetica" SIZE=2 COLOR="#000000"><B>&nbsp;Sections</B></FONT></TD></TR>
+<TR><TD><TABLE BORDER=0 CELLSPACING=1 CELLPADDING=1 BGCOLOR="#FFFFFF" WIDTH="100%"><TR><TD><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2><NOBR>
+10/17<BR>
+<B><A HREF="askdashdot.html">askdashdot</A></B><BR>
+10/14<BR>
+<B><A HREF="books.html">books</A></B><BR>
+10/14<BR>
+<B><A HREF="bsd.html">bsd</A></B><BR>
+10/12<BR>
+<B><A HREF="features.html">features</A></B><BR>
+10/15<BR>
+<B><A HREF="interviews.html">interviews</A></B><BR>
+10/18 (1)<BR>
+<B><A HREF="yro.html">yro</A></B><BR>
+</NOBR></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD><FONT FACE="arial,helvetica" SIZE=2 COLOR="#000000"><B>&nbsp;Overandover.net</B></FONT></TD></TR>
+<TR><TD><TABLE BORDER=0 CELLSPACING=1 CELLPADDING=1 BGCOLOR="#FFFFFF" WIDTH="100%"><TR><TD><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2><NOBR>
+<A HREF="../snapster/index.html">Snapster</A><BR>
+<A HREF="../cnm/index.html">CNM</A><BR>
+<A HREF="../petz/index.html">Petz.com</A><BR>
+<A HREF="../ubid/index.html">uBid</A><BR>
+<A HREF="../geohoods/index.html">GeoHoods</A><BR>
+</NOBR></FONT></TD></TR></TABLE></TD></TR></TABLE><P>
+</TD>
+<TD VALIGN=TOP ALIGN=LEFT><FONT FACE="arial,helvetica" COLOR="#000000">
+<FONT SIZE=2><B>Yesterday's Edition</B></FONT><P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Petz.com IPO Soars Despite Losing Money on Every Sale</B></FONT></TD></TR></TABLE>
+<A HREF="topic_money.html"><IMG SRC="images/topicmoney.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Money"></A>
+<B>Posted by <A HREF="users/cmdrgrits.html">CmdrGrits</A> on Saturday October 16, @01:00PM EDT</B><BR>
+<FONT SIZE=2><B>from the we'll-make-it-up-in-volume dept.</B></FONT><BR>
+<A HREF="users/daytraderdan.html">DayTraderDan</A> writes <I>"Online pet store <A HREF="../petz/index.html">Petz.com</A>, whose sock puppet mascot has become oddly famous, went public today and closed up 85%. According to the S-1, the company sells 40-pound bags of dog food for less than the cost of shipping them. When asked about the business model, a spokesperson said: 'Eyeballs.'"</I> I'm not saying it's a bubble. I'm saying I just saw a sock puppet with a market cap larger than my town.<P><B>( </B><A HREF="article/petzipo.html"><B>Read More...</B></A> | <B><A HREF="article/petzipo.html">35</A> of <A HREF="article/petzipo_tm1.html">45</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Leaked: Portals 2000 Requires 64MB and a 300MHz CPU</B></FONT></TD></TR></TABLE>
+<A HREF="topic_monolith.html"><IMG SRC="images/topicmonolith.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Monolith"></A>
+<B>Posted by <A HREF="users/pixelfish.html">Pixelfish</A> on Saturday October 16, @10:05AM EDT</B><BR>
+<FONT SIZE=2><B>from the buy-a-new-computer dept.</B></FONT><BR>
+<A HREF="users/upgradeuma.html">UpgradeUma</A> writes <I>"Final system requirements for Portals 2000 Professional have leaked: a 300MHz processor, 64MB of RAM, and two gigabytes of free disk space. The previous version ran happily in 16MB. Hardware vendors are said to be delighted."</I> My first hard drive was 20 megabytes and I thought I'd never fill it.<P><B>( </B><A HREF="article/crapware.html"><B>Read More...</B></A> | <B><A HREF="article/crapware.html">18</A> of <A HREF="article/crapware_tm1.html">30</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Solar Microsystems Releases Jolt 2 Platform</B></FONT></TD></TR></TABLE>
+<A HREF="topic_news.html"><IMG SRC="images/topicnews.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="News"></A>
+<B>Posted by <A HREF="users/hemlock.html">Hemlock</A> on Saturday October 16, @07:45AM EDT</B><BR>
+<FONT SIZE=2><B>from the write-once-debug-everywhere dept.</B></FONT><BR>
+<A HREF="users/coffeecoder.html">CoffeeCoder</A> writes <I>"Solar has released the Jolt 2 SDK, with a new graphics toolkit, a faster virtual machine and a 20MB download. The new HotStove compiler promises speeds 'approaching C' on long-running server code, as long as you don't mind waiting for it to warm up, which takes about as long as a pot of coffee."</I> Applets are dead, long live servlets.<P><B>( </B><A HREF="article/jolt_lang.html"><B>Read More...</B></A> | <B><A HREF="article/jolt_lang.html">26</A> of <A HREF="article/jolt_lang_tm1.html">33</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Your Rights Online: UCLUTA: The Shrink-Wrap License Law You Should Be Worried About</B></FONT></TD></TR></TABLE>
+<A HREF="topic_privacy.html"><IMG SRC="images/topicprivacy.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Privacy"></A>
+<B>Posted by <A HREF="users/jamie_k.html">jamie_k</A> on Friday October 15, @09:30PM EDT</B><BR>
+<FONT SIZE=2><B>from the by-reading-this-headline-you-agree dept.</B></FONT><BR>
+<A HREF="users/lawgeek.html">LawGeek</A> writes <I>"A proposed model law called UCLUTA would make shrink-wrap and click-through licenses enforceable in every state that adopts it, let vendors disable software remotely, and allow licenses to forbid publishing benchmarks or reviews. It is being considered in state legislatures right now, mostly without anyone noticing."</I> Write your state representatives. Use paper. They read paper.<P><B>( </B><A HREF="article/ucluta.html"><B>Read More...</B></A> | <B><A HREF="article/ucluta.html">18</A> of <A HREF="article/ucluta_tm1.html">25</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Teen Builds 64-Node Cluster in Parents' Garage</B></FONT></TD></TR></TABLE>
+<A HREF="topic_science.html"><IMG SRC="images/topicscience.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Science"></A>
+<B>Posted by <A HREF="users/rotundo.html">Rotundo</A> on Friday October 15, @06:22PM EDT</B><BR>
+<FONT SIZE=2><B>from the imagine-a-beowulf-cluster-of-these dept.</B></FONT><BR>
+<A HREF="users/nodeninja.html">NodeNinja</A> writes <I>"A 16-year-old in Ohio has built a 64-node cluster out of discarded 486s and Pentium 75s collected from local businesses upgrading for Y2K. It runs Linix and PVM, heats the garage through the winter, and according to the builder's father, 'has made the electric meter spin like a ceiling fan.'"</I> Finally, a story where the joke has already been made for you in the department line.<P><B>( </B><A HREF="article/beowulfgarage.html"><B>Read More...</B></A> | <B><A HREF="article/beowulfgarage.html">12</A> of <A HREF="article/beowulfgarage_tm1.html">16</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Mothzilla Milestone 10 Released</B></FONT></TD></TR></TABLE>
+<A HREF="topic_browsers.html"><IMG SRC="images/topicbrowsers.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Browsers"></A>
+<B>Posted by <A HREF="users/hemlock.html">Hemlock</A> on Friday October 15, @03:45PM EDT</B><BR>
+<FONT SIZE=2><B>from the the-lizard-is-getting-big dept.</B></FONT><BR>
+<A HREF="users/geckoguy.html">GeckoGuy</A> writes <I>"The open source browser project spun out of Netsail has released Milestone 10, with a working mail client, better standards support, and a first cut at the new skinnable interface. It still crashes when you look at it funny, but it renders CSS better than anything else on the market."</I> Download, test, file bugs. That's how this works, people.<P><B>( </B><A HREF="article/godzillam10.html"><B>Read More...</B></A> | <B><A HREF="article/godzillam10.html">10</A> of <A HREF="article/godzillam10_tm1.html">16</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Interview: The Man Who Wrote the Payroll Code in 1974</B></FONT></TD></TR></TABLE>
+<A HREF="topic_y2k.html"><IMG SRC="images/topicy2k.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Y2K"></A>
+<B>Posted by <A HREF="users/rotundo.html">Rotundo</A> on Friday October 15, @12:10PM EDT</B><BR>
+<FONT SIZE=2><B>from the back-then-we-had-to-use-two-digits dept.</B></FONT><BR>
+Last month you sent in questions for Walt Ferraday, the COBOL programmer who wrote the payroll system that is still running at a large Midwestern insurance company, and who came out of retirement this year to fix it. His answers are below. He typed them himself, on a terminal, in all capital letters.<P><B>( </B><A HREF="article/greybeardinterview.html"><B>Read More...</B></A> | <B><A HREF="article/greybeardinterview.html">25</A> of <A HREF="article/greybeardinterview_tm1.html">39</A> </B>comments | <B>1035 bytes in body</B> <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Ostrich Satellite Phone Network to Deorbit 66 Satellites</B></FONT></TD></TR></TABLE>
+<A HREF="topic_space.html"><IMG SRC="images/topicspace.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Space"></A>
+<B>Posted by <A HREF="users/pixelfish.html">Pixelfish</A> on Friday October 15, @09:05AM EDT</B><BR>
+<FONT SIZE=2><B>from the can-you-hear-me-now dept.</B></FONT><BR>
+<A HREF="users/lowearthlarry.html">LowEarthLarry</A> writes <I>"After its bankruptcy, the Ostrich satellite phone network has announced it will steer all 66 of its satellites into the atmosphere to burn up. The handsets were the size of a brick, cost $3,000, and only worked outdoors, which turned out to be a hard sell to business travelers who spend most of their time indoors."</I> Five billion dollars of hardware turned into the world's most expensive meteor shower.<P><B>( </B><A HREF="article/ostrichsat.html"><B>Read More...</B></A> | <B><A HREF="article/ostrichsat.html">24</A> of <A HREF="article/ostrichsat_tm1.html">32</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>FreeDaemon 3.3 Released</B></FONT></TD></TR></TABLE>
+<A HREF="topic_bsd.html"><IMG SRC="images/topicbsd.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="BSD"></A>
+<B>Posted by <A HREF="users/hemlock.html">Hemlock</A> on Thursday October 14, @10:15PM EDT</B><BR>
+<FONT SIZE=2><B>from the the-daemon-is-alive dept.</B></FONT><BR>
+<A HREF="users/pitchfork_pete.html">pitchfork_pete</A> writes <I>"FreeDaemon 3.3-RELEASE is out, with improved SMP support, a new sound driver framework, Linix binary compatibility that actually runs most Linix binaries faster than Linix does, and the usual mountain of bug fixes. ISO images are on the FTP mirrors; the main FTP server is reportedly already maxed out at 2,000 users."</I> Before anyone posts it: no, it is not dying.<P><B>( </B><A HREF="article/bsddaemon.html"><B>Read More...</B></A> | <B><A HREF="article/bsddaemon.html">15</A> of <A HREF="article/bsddaemon_tm1.html">19</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Review: Regular Expressions for Irregular People</B></FONT></TD></TR></TABLE>
+<A HREF="topic_books.html"><IMG SRC="images/topicbooks.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Books"></A>
+<B>Posted by <A HREF="users/rotundo.html">Rotundo</A> on Thursday October 14, @07:00PM EDT</B><BR>
+<FONT SIZE=2><B>from the s/confusion/clarity/g dept.</B></FONT><BR>
+Gladys Okonkwo-Pratt's new book from Trout & Turtle Press promises to teach regular expressions to people who have previously only used them by copying lines out of other people's Perl scripts and praying. Our reviewer is one of those people. Read on to see if it worked.<P><B>( </B><A HREF="article/regexbook.html"><B>Read More...</B></A> | <B><A HREF="article/regexbook.html">21</A> of <A HREF="article/regexbook_tm1.html">24</A> </B>comments | <B>1143 bytes in body</B> <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Pear Computer's iTop Laptop Now in Five Fruit Flavors</B></FONT></TD></TR></TABLE>
+<A HREF="topic_hardware.html"><IMG SRC="images/topichardware.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Hardware"></A>
+<B>Posted by <A HREF="users/pixelfish.html">Pixelfish</A> on Thursday October 14, @04:33PM EDT</B><BR>
+<FONT SIZE=2><B>from the fruit-salad dept.</B></FONT><BR>
+<A HREF="users/clamshellcarl.html">ClamshellCarl</A> writes <I>"Pear has expanded its translucent clamshell laptop line to five colors: Blueberry, Tangerine, Lime, Grape and a new 'Graphite' for people who want to be taken seriously at meetings. It has a handle, wireless networking that works without wires, and weighs about as much as a medium-sized cat."</I> I want one. I don't know why. I just do.<P><B>( </B><A HREF="article/pearitop.html"><B>Read More...</B></A> | <B><A HREF="article/pearitop.html">14</A> of <A HREF="article/pearitop_tm1.html">18</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Researchers Grow Cloned Llama Named 'Tina'</B></FONT></TD></TR></TABLE>
+<A HREF="topic_science.html"><IMG SRC="images/topicscience.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Science"></A>
+<B>Posted by <A HREF="users/hemlock.html">Hemlock</A> on Thursday October 14, @01:20PM EDT</B><BR>
+<FONT SIZE=2><B>from the hello-llama dept.</B></FONT><BR>
+<A HREF="users/biobob.html">BioBob</A> writes <I>"A research lab in a small Scottish-sounding town that is actually in Oregon has announced the birth of Tina, the first cloned llama. Tina is reportedly healthy, curious, and has already spat at two members of the press."</I> Clearly the ethical implications of cloning will be with us for decades. Also, llamas are great.<P><B>( </B><A HREF="article/kevlarthumb.html"><B>Read More...</B></A> | <B><A HREF="article/kevlarthumb.html">23</A> of <A HREF="article/kevlarthumb_tm1.html">33</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Quack III Arena Demo Hits the Net</B></FONT></TD></TR></TABLE>
+<A HREF="topic_games.html"><IMG SRC="images/topicgames.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Games"></A>
+<B>Posted by <A HREF="users/pixelfish.html">Pixelfish</A> on Thursday October 14, @10:00AM EDT</B><BR>
+<FONT SIZE=2><B>from the frag-before-you-buy dept.</B></FONT><BR>
+<A HREF="users/railgunrhonda.html">RailgunRhonda</A> writes <I>"ego Software has released a playable demo of Quack III Arena, with four maps, bots, and a Linix version on day one. Download mirrors are melting worldwide. The demo requires a 3D card; the readme suggests that if you are trying to run it on a software renderer you should 'consider a hobby, perhaps knitting.'"</I> Productivity across the industry has just dropped 40%. Mine certainly has.<P><B>( </B><A HREF="article/quackarena.html"><B>Read More...</B></A> | <B><A HREF="article/quackarena.html">10</A> of <A HREF="article/quackarena_tm1.html">15</A> </B>comments <B>)</B>
+<P>
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>GPS Week Number Rollover Passed Without Incident (Mostly)</B></FONT></TD></TR></TABLE>
+<A HREF="topic_bug.html"><IMG SRC="images/topicbug.gif" BORDER=0 ALIGN=RIGHT HSPACE=20 VSPACE=10 ALT="Bug"></A>
+<B>Posted by <A HREF="users/rotundo.html">Rotundo</A> on Thursday October 14, @08:00AM EDT</B><BR>
+<FONT SIZE=2><B>from the practice-run dept.</B></FONT><BR>
+<A HREF="users/navnerd.html">NavNerd</A> writes <I>"Remember the GPS week rollover in August, when the 10-bit week counter wrapped from 1023 to 0? A survey of readers finds that most receivers handled it fine, a few thought it was 1980, and one hiker reports his handheld insisted he was standing in the middle of the Pacific Ocean for three days."</I> Consider it a dress rehearsal for New Year's. The ocean part was a nice touch.<P><B>( </B><A HREF="article/gpsweek.html"><B>Read More...</B></A> | <B><A HREF="article/gpsweek.html">18</A> of <A HREF="article/gpsweek_tm1.html">26</A> </B>comments <B>)</B>
+<P>
+<P ALIGN=RIGHT><FONT SIZE=2><B><A HREF="index.html">Today's Edition</A> | <A HREF="older.html">Older Articles</A></B></FONT>
+</FONT></TD>
+<TD WIDTH=210 ALIGN=CENTER VALIGN=TOP>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B><A HREF="features.html"><FONT COLOR="#FFFFFF">Features</FONT></A></B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+The Dashdot source code is out under the GPL. Look upon our Perl, ye mighty, and despair. <A HREF="article/slashcode.html">More...</A><P>Our interview with Walt Ferraday, the man who wrote the payroll code in 1974, in all capital letters. <A HREF="article/greybeardinterview.html">More...</A><P>Is XML the answer to everything? Readers weigh in with well-formed opinions. <A HREF="article/xmlhype.html">More...</A><P ALIGN=RIGHT><B><A HREF="features.html">Past Features</A></B>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Dashdot Login</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<SCRIPT LANGUAGE="JavaScript"><!--
+loginBox("");
+//--></SCRIPT>
+<NOSCRIPT><A HREF="users.html">Log in or create an account</A>.</NOSCRIPT>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Dashdot Poll</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<FORM ACTION="pollbooth.html" METHOD="get"><INPUT TYPE="hidden" NAME="qid" VALUE="y2kplans">
+<B>Where will you be when the clock strikes 2000?</B><BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="1">At a party, like a normal person<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="2">In the server room, watching logs<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="3">In a bunker with 400 cans of beans<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="4">Asleep. It's just a number.<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="5">Rebooting something<BR>
+<INPUT TYPE="radio" NAME="aid" VALUE="6">Wherever CmdrGrits is<BR>
+<INPUT TYPE="submit" VALUE="Vote"> [ <A HREF="pollbooth.html?qid=y2kplans"><B>Results</B></A> | <A HREF="polls.html"><B>Polls</B></A> ]<BR>Comments:<B>482</B> | Votes:<B>29377</B></FORM>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Older Stuff</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<P><B><FONT SIZE=4>Monday</FONT> October 18</B>
+<LI><A HREF="article/y2kfridge.html">Y2K Bug Found in Smart Refrigerator Firmware</A> (24)
+<LI><A HREF="article/pentode600.html">Intellon Ships 600MHz Pentode III</A> (18)
+<LI><A HREF="article/orinococlick.html">Orinoco.com Granted Patent on Clicking</A> (22)
+<P><B><FONT SIZE=4>Sunday</FONT> October 17</B>
+<LI><A HREF="article/kernel2322.html">Linix Kernel 2.3.22 Released; 2.4 'Real Soon Now'</A> (48)
+<LI><A HREF="article/sego_daydream.html">Sego Daydream Sells 500,000 Units in Two Weeks</A> (11)
+<LI><A HREF="article/doublebytefinder.html">Ask Dashdot: How Do I Explain My Job to My Grandmother?</A> (22)
+<LI><A HREF="article/transmuta.html">Secretive Startup Transmuta Updates Web Page</A> (15)
+<LI><A HREF="article/snapsterlaunch.html">College Student's MP3 Swapping Program Takes Off</A> (36)
+<LI><A HREF="article/ecommerce_xmas.html">Online Retailers Brace for First 'E-Christmas'</A> (24)
+<P><B><FONT SIZE=4>Saturday</FONT> October 16</B>
+<LI><A HREF="article/gnume_kdx.html">GNUME 1.0.55 and KDX 1.1.2 Desktop Wars Continue</A> (23)
+<LI><A HREF="article/marsprobe.html">Mars Weather Probe Lost Over Feet-vs-Furlongs Mixup</A> (35)
+<LI><A HREF="article/descramble.html">DVD Encryption Cracked by Norwegian Teens</A> (28)
+<P><B><FONT SIZE=4>Wednesday</FONT> October 13</B>
+<LI><A HREF="article/earwig.html">Project Earwig: Are Your E-Mails Being Read?</A> (33)
+<LI><A HREF="article/slashdottedeffect.html">Small Museum Web Server Survives Being Linked From Here</A> (30)
+<P ALIGN=RIGHT><BR><B><A HREF="older.html">Older Articles</A></B><BR><B><A HREF="yesterday.html">Yesterday's Edition</A></B>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B><A HREF="books.html"><FONT COLOR="#FFFFFF">Book Reviews</FONT></A></B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<P>Can a book teach regular expressions to humans? We read <CITE><A HREF="article/regexbook.html">Regular Expressions for Irregular People</A></CITE> to find out.<P>Coming soon: a review of <CITE>Debugging the Year 2000</CITE>, which is either a technical manual or a horror novel.<P>Visit our <A HREF="books.html">Book Reviews Section</A> for more.
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Quick Links</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<P><B>Cool Sites:</B>
+<LI><A HREF="../orinoco/index.html">Orinoco.com</A> (Buy a book. With one click.)
+<LI><A HREF="../snapster/index.html">Snapster</A> (The labels will love this)
+<LI><A HREF="../cnm/index.html">CNM Interactive</A> (Real news. Well, news.)
+<LI><A HREF="../yowza/index.html">Yowza!</A> (Find stuff)
+<LI><A HREF="../altavisor/index.html">AltaVisor</A> (Find more stuff)
+<LI><A HREF="../hamstershuffle/index.html">Hamster Shuffle</A> (Don't ask)
+<P><B>Support Dashdot:</B>
+<LI><A HREF="shirts.html">Dashdot T-shirts</A> (Clothe yourself in Dashdot)
+<LI><A HREF="advertising.html">Advertise here</A> (We have eyeballs)
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B><A HREF="freshbeat.html"><FONT COLOR="#FFFFFF">Freshbeat</FONT></A></B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<P><FONT SIZE=4 COLOR="#006666"><B>October</B></FONT><BR>
+<LI><A HREF="freshbeat.html">grepmail 3.4</A>
+<LI><A HREF="freshbeat.html">xsnow 1.40</A>
+<LI><A HREF="freshbeat.html">gkrellm-ish 0.7.2</A>
+<LI><A HREF="freshbeat.html">fetchpopmail 5.1.1</A>
+<LI><A HREF="freshbeat.html">ToastTerm 0.3</A>
+<LI><A HREF="freshbeat.html">libdashdot 0.0.1</A>
+<LI><A HREF="freshbeat.html">y2kcheck 1.0</A>
+<LI><A HREF="freshbeat.html">mp3blaster-lite 2.0</A>
+<LI><A HREF="freshbeat.html">sockpuppetd 0.9</A>
+<LI><A HREF="freshbeat.html">beanctl 1.2</A>
+<P ALIGN=RIGHT><B><A HREF="freshbeat.html">More Beat...</A></B>
+</FONT></TD></TR></TABLE><P>
+<TABLE CELLPADDING=1 CELLSPACING=0 BORDER=0 WIDTH=200 ALIGN=CENTER>
+<TR BGCOLOR="#006666"><TD VALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B><A HREF="askdashdot.html"><FONT COLOR="#FFFFFF">Ask Dashdot</FONT></A></B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" COLOR="#000000" SIZE=2>
+<LI><A HREF="article/doublebytefinder.html">How Do I Explain My Job to My Grandmother?</A>
+<LI><A HREF="article/y2kgenerator.html">Should I Buy a Generator for Y2K?</A>
+<LI><A HREF="article/firstpost.html">Why Do People Post 'First Post'?</A>
+<P>If you have a question for Ask Dashdot, <A HREF="submit.html">submit it</A>.
+</FONT></TD></TR></TABLE><P>
+</TD>
+</TR></TABLE>
+<TABLE BGCOLOR="#FFFFFF" WIDTH="99%" ALIGN=CENTER BORDER=0 CELLPADDING=4 CELLSPACING=0><TR><TD>
+<TABLE WIDTH="100%" BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD BGCOLOR="#006666"><IMG SRC="images/pix.gif" WIDTH=1 HEIGHT=4 ALT=""></TD></TR></TABLE>
+<CENTER><FORM ACTION="search.html" METHOD="get"><FONT FACE="arial,helvetica" SIZE=2><INPUT TYPE="text" NAME="query" SIZE=20> <INPUT TYPE="submit" VALUE="Search"></FONT></FORM>
+<FONT FACE="arial,helvetica" SIZE=2><I>The year 2000 is just 1999 with better marketing.</I></FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>[ <A HREF="index.html">home</A> | <A HREF="awards.html">awards</A> | <A HREF="supporters.html">supporters</A> | <A HREF="grits.html">grits' homepage</A> | <A HREF="submit.html">contribute story</A> | <A HREF="older.html">older articles</A> | <A HREF="overandover.html">overandover.net</A> | <A HREF="advertising.html">advertising</A> | <A HREF="polls.html">past polls</A> | <A HREF="topics.html">topics</A> | <A HREF="about.html">about</A> | <A HREF="jobs.html">jobs</A> | <A HREF="hof.html">hof</A> ]</FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>Trademarks belong to whoever trademarked them. Comments belong to whoever typed them. Everything else &copy; 1997-99 Overandover.net. Dashdot is served hot by KoldFusion 4.5 from Gibson Mainframe Co.</FONT><BR>
+<A HREF="about.html"><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion" VSPACE=6></A>
+</CENTER></TD></TR></TABLE>
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../hamstershuffle/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="return ringRandom('')">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Dashdot is site 10 of 12 |
+<A HREF="../snapster/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER><P>
+</BODY></HTML>

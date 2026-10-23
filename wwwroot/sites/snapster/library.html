@@ -1,0 +1,174 @@
+<HTML>
+<HEAD>
+<TITLE>Snapster v2.0 BETA 5 - Library</TITLE>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+// ---- Snapster Web Edition common code (JavaScript 1.2) ----
+function sw(n, s) {
+  if (document.images && document.images[n]) document.images[n].src = s;
+}
+function getArg(name) {
+  var q = location.search, i, parts, kv;
+  if (q.length < 2) return "";
+  parts = q.substring(1).split("&");
+  for (i = 0; i < parts.length; i++) {
+    kv = parts[i].split("=");
+    if (kv[0] == name && kv.length > 1) return unescape(kv[1].split("+").join(" "));
+  }
+  return "";
+}
+function getCookie(name) {
+  var c = "; " + document.cookie, p = "; " + name + "=", i = c.indexOf(p), j;
+  if (i == -1) return "";
+  j = c.indexOf(";", i + p.length);
+  if (j == -1) j = c.length;
+  return unescape(c.substring(i + p.length, j));
+}
+function setCookie(name, value, days) {
+  var exp = new Date();
+  exp.setTime(exp.getTime() + days * 86400000);
+  document.cookie = name + "=" + escape(value) + "; expires=" + exp.toGMTString();
+}
+function getSelected(f) {
+  var ids = new Array(), old = getCookie("snapdl"), i, e, n = 0;
+  if (old != "") ids = old.split(".");
+  for (i = 0; i < f.elements.length; i++) {
+    e = f.elements[i];
+    if (e.type == "checkbox" && e.checked && e.value != "") {
+      var dup = false;
+      for (var j = 0; j < ids.length; j++) if (ids[j] == e.value) dup = true;
+      if (!dup) { ids[ids.length] = e.value; n++; }
+    }
+  }
+  if (n == 0) {
+    alert("Select at least one song first.\nSnappy can't read minds. Yet. (Beta 6.)");
+    return false;
+  }
+  while (ids.length > 30) ids = ids.slice(1);
+  setCookie("snapdl", ids.join("."), 7);
+  location.href = "transfer.html";
+  return false;
+}
+function selAll(f, on) {
+  for (var i = 0; i < f.elements.length; i++)
+    if (f.elements[i].type == "checkbox") f.elements[i].checked = on;
+}
+function menu(m) {
+  if (m == "file") alert("File\n\nNew Window... (disabled)\nExit (please don't, we're bonding)");
+  else if (m == "actions") alert("Actions\n\nShare MP3s: ON\nAuto-reconnect: ON\nPretend to have a T3: OFF (thank you)");
+  else alert("Snapster v2.0 BETA 5 (Web Edition)\n\n(c) 1999-2000 Snapster, Inc.\nTurtle by Snappy.");
+}
+function winBtn(b) {
+  if (b == "min") alert("Snapster has been minimized to the system tray.\n(Not really. This is a web page.)");
+  else alert("Snapster is already as big as it gets.\nTry a 17-inch monitor.");
+}
+function commas(n) {
+  var s = "" + n, out = "";
+  while (s.length > 3) { out = "," + s.substring(s.length - 3) + out; s = s.substring(0, s.length - 3); }
+  return s + out;
+}
+function mmss(sec) {
+  var m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+  return m + ":" + (s < 10 ? "0" : "") + s;
+}
+// -->
+</SCRIPT>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function lib(b) {
+  var m = new Array();
+  m["add"] = "Add Folder\n\nPlease choose a folder. Any folder. Except C:\\WINDOWS. Please not C:\\WINDOWS.";
+  m["rescan"] = "Rescanning... found 21 MP3s, 3 WAVs, and a file called 'homework_final_really.doc'.\nOnly MP3s are shared. Your homework is safe.";
+  m["play"] = "Now playing: Snapster legal disclaimer.mp3\n\n(It is 94 seconds of Gary reading the Terms of Use.)";
+  m["burn"] = "Burn to CD\n\nYour 2x CD-R drive estimates 74 minutes and 3 coasters.\nDo not move the mouse. Do not breathe.";
+  m["remove"] = "Are you sure? Removing files makes you a leech.\nNobody likes a leech. (Not removed.)";
+  alert(m[b]);
+}
+// -->
+</SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#008080" TEXT="#CCCCCC" LINK="#99CCCC" VLINK="#99CCCC" ALINK="#FFFFFF">
+<CENTER>
+<P><TABLE BORDER=2 CELLPADDING=0 CELLSPACING=0 BGCOLOR="#C0C0C0" WIDTH=644><TR><TD>
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=640>
+<TR>
+  <TD BGCOLOR="#000080" WIDTH=584><IMG SRC="images/titlebar.gif" WIDTH=584 HEIGHT=18 ALT="Snapster v2.0 BETA 5"></TD>
+  <TD BGCOLOR="#1084D0" ALIGN=RIGHT NOWRAP><A HREF="javascript:winBtn('min')"><IMG SRC="images/win_min.gif" WIDTH=16 HEIGHT=14 BORDER=0 ALT="_"></A><A HREF="javascript:winBtn('max')"><IMG SRC="images/win_max.gif" WIDTH=16 HEIGHT=14 BORDER=0 ALT="[]"></A><IMG SRC="images/clear.gif" WIDTH=2 HEIGHT=14><A HREF="index.html"><IMG SRC="images/win_close.gif" WIDTH=16 HEIGHT=14 BORDER=0 ALT="X"></A><IMG SRC="images/clear.gif" WIDTH=2 HEIGHT=14></TD>
+</TR>
+<TR><TD COLSPAN=2 BGCOLOR="#C0C0C0"><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">&nbsp;
+  <A HREF="javascript:menu('file')"><FONT COLOR="#000000"><U>F</U>ile</FONT></A> &nbsp;
+  <A HREF="javascript:menu('actions')"><FONT COLOR="#000000"><U>A</U>ctions</FONT></A> &nbsp;
+  <A HREF="javascript:menu('help')"><FONT COLOR="#000000"><U>H</U>elp</FONT></A></FONT></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#1A1A1A">
+  <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=640><TR>
+  <TD><A HREF="client.html" onMouseOver="sw('tb_home','images/tab_home_mo.gif')" onMouseOut="sw('tb_home','images/tab_home.gif')"><IMG SRC="images/tab_home.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_home" ALT="Home"></A></TD>
+  <TD><A HREF="chat.html" onMouseOver="sw('tb_chat','images/tab_chat_mo.gif')" onMouseOut="sw('tb_chat','images/tab_chat.gif')"><IMG SRC="images/tab_chat.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_chat" ALT="Chat"></A></TD>
+  <TD><A HREF="library.html"><IMG SRC="images/tab_library_on.gif" WIDTH=70 HEIGHT=50 BORDER=0 ALT="Library"></A></TD>
+  <TD><A HREF="search.html" onMouseOver="sw('tb_search','images/tab_search_mo.gif')" onMouseOut="sw('tb_search','images/tab_search.gif')"><IMG SRC="images/tab_search.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_search" ALT="Search"></A></TD>
+  <TD><A HREF="hotlist.html" onMouseOver="sw('tb_hotlist','images/tab_hotlist_mo.gif')" onMouseOut="sw('tb_hotlist','images/tab_hotlist.gif')"><IMG SRC="images/tab_hotlist.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_hotlist" ALT="Hot List"></A></TD>
+  <TD><A HREF="transfer.html" onMouseOver="sw('tb_transfer','images/tab_transfer_mo.gif')" onMouseOut="sw('tb_transfer','images/tab_transfer.gif')"><IMG SRC="images/tab_transfer.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_transfer" ALT="Transfer"></A></TD>
+  <TD><A HREF="discover.html" onMouseOver="sw('tb_discover','images/tab_discover_mo.gif')" onMouseOut="sw('tb_discover','images/tab_discover.gif')"><IMG SRC="images/tab_discover.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_discover" ALT="Discover"></A></TD>
+  <TD><A HREF="help.html" onMouseOver="sw('tb_help','images/tab_help_mo.gif')" onMouseOut="sw('tb_help','images/tab_help.gif')"><IMG SRC="images/tab_help.gif" WIDTH=70 HEIGHT=50 BORDER=0 NAME="tb_help" ALT="Help"></A></TD>
+  <TD ALIGN=RIGHT WIDTH=80><A HREF="index.html"><IMG SRC="images/snappy_48.gif" WIDTH=48 HEIGHT=48 BORDER=0 ALT="snapster.com" HSPACE=6></A></TD>
+  </TR></TABLE>
+</TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#3A3A3A" HEIGHT=360 VALIGN=TOP>
+<TABLE BORDER=0 CELLPADDING=8 CELLSPACING=0 WIDTH=640><TR><TD VALIGN=TOP>
+<TABLE BORDER=0 CELLPADDING=1 CELLSPACING=0 BGCOLOR="#666666" WIDTH="100%"><TR><TD><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#2A2A2A" WIDTH="100%"><TR><TD BGCOLOR="#555555"><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#FFFFFF"><B>My Shared Library &mdash; 18 songs</B></FONT></TD></TR><TR><TD><TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%"><TR BGCOLOR="#555555"><TD><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>Name</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>Size</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>Bitrate</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>Length</B></FONT></TD></TR><TR><TD COLSPAN=4 NOWRAP><IMG SRC="images/folder_open.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>C:\My Documents\My Music</B></FONT></TD></TR>
+<TR><TD COLSPAN=4 NOWRAP><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/folder_open.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFCC"><B>Totally Legal Stuff</B> (3)</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Snapster legal disclaimer.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>1,504,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>128 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>1:34</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Me humming the dial-up sound.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>248,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>64 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>0:31</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_l.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Grandma - Happy Birthday voicemail.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>564,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>96 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>0:47</FONT></TD></TR>
+<TR><TD COLSPAN=4 NOWRAP><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/folder_open.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFCC"><B>Stuff I Own On Cassette (honest)</B> (4)</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Platform Shoe Posse - Zig-a-Zag.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>3,104,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>128 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>3:14</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Frosted Tips Federation - Bye Bye Pager.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>3,184,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>128 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>3:19</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Skate Park Detention - Mom's Minivan.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>3,440,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>160 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>2:52</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_l.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Checkerboard Tuxedo Revue - Trombone Emergency.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>2,624,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>128 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>2:44</FONT></TD></TR>
+<TR><TD COLSPAN=4 NOWRAP><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/folder_open.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFCC"><B>Recorded Off the Radio (DJ talks over intro)</B> (2)</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Lunchbox Forty - Push the Cart (DJ Rick ruins it).mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>2,892,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>96 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>4:01</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_l.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>MC Dial-Up - My Two-Way Pager (traffic report at end).mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>3,120,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>96 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>4:20</FONT></TD></TR>
+<TR><TD COLSPAN=4 NOWRAP><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/folder_open.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFCC"><B>Wedding DJ Gig Sat</B> (4)</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Los Hermanos Bailamania - Mambo Number 404.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>5,136,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>192 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>3:34</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Los Hermanos Bailamania - El Electric Slide 2000.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>5,784,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>192 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>4:01</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Swing Shift Mortgage Brokers - Jump, Jive an' Refinance.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>3,920,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>160 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>3:16</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_l.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>The Cherry Lounge Hepcats - Two Left Wingtips.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>3,088,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>128 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>3:13</FONT></TD></TR>
+<TR><TD COLSPAN=4 NOWRAP><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/folder_open.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFCC"><B>Study Music (do not tell roommate)</B> (3)</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Bristol Fog Machine - Teardrop in My Latte.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>7,848,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>192 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>5:27</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Porthole Mood - Sad Robot Lounge.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>4,560,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>128 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>4:45</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_i.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_l.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Tiki Bar Cosmonauts - Moon Bossa.mp3</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>2,992,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>128 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>3:07</FONT></TD></TR>
+<TR><TD COLSPAN=4 NOWRAP><IMG SRC="images/tree_l.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/folder_open.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFCC"><B>Incomplete</B> (2)</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_blank.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_t.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>Hacky Sack Philosophy - Twenty-Two Minute Tuning Jam.mp3.incomplete</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>976,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>128 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>1:01</FONT></TD></TR>
+<TR><TD NOWRAP><IMG SRC="images/tree_blank.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/tree_l.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE><IMG SRC="images/mp3.gif" WIDTH=16 HEIGHT=16 ALIGN=ABSMIDDLE> <FONT FACE="Arial, Helvetica" SIZE=1>DJ Dialtone - Handshake (56K Mix).mp3.incomplete</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>240,128</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>160 kbps</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=1>0:12</FONT></TD></TR></TABLE></TD></TR></TABLE></TD></TR></TABLE><P><FORM onSubmit="return false">
+<INPUT TYPE=BUTTON VALUE="Add Folder..." onClick="lib('add')">
+<INPUT TYPE=BUTTON VALUE="Remove" onClick="lib('remove')">
+<INPUT TYPE=BUTTON VALUE="Rescan" onClick="lib('rescan')">
+<INPUT TYPE=BUTTON VALUE="Play" onClick="lib('play')">
+<INPUT TYPE=BUTTON VALUE="Burn to CD" onClick="lib('burn')">
+</FORM>
+</TD></TR></TABLE>
+</TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#C0C0C0">
+  <TABLE BORDER=1 CELLPADDING=1 CELLSPACING=0 WIDTH=640><TR><TD><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">Online (snapfan_99): Sharing 18 songs. Currently 8,412 users (1,207,553 songs) available.</FONT></TD><TD WIDTH=60 ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#000000">11:52 PM</FONT></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+</TD></TR></TABLE>
+<P><FONT FACE="Arial, Helvetica" SIZE=1>This is <B>Snapster Web Edition</B>, a pretend client. Back to <A HREF="index.html"><FONT COLOR="#FFFFFF">snapster.com</FONT></A>.</FONT>
+</CENTER>
+
+<SCRIPT LANGUAGE="JavaScript1.2">
+<!--
+function ringRandom() {
+  var list = new Array("../yowza/index.html", "../altavisor/index.html", "../askreeves/index.html", "../orinoco/index.html", "../ubid/index.html", "../etoyz/index.html", "../petz/index.html", "../geohoods/index.html", "../hamstershuffle/index.html", "../dashdot/index.html", "../snapster/index.html", "../cnm/index.html");
+  location.href = list[Math.floor(Math.random() * list.length)];
+  return false;
+}
+// -->
+</SCRIPT>
+<P><CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../dashdot/index.html"><FONT COLOR="#000080">&lt;&lt; Prev</FONT></A> <FONT COLOR="#000000">|</FONT> <A HREF="../../web1999/index.html" onClick="return ringRandom()"><FONT COLOR="#000080">Random</FONT></A> <FONT COLOR="#000000">|</FONT> <B><A HREF="../../web1999/index.html"><FONT COLOR="#000080">The 1999 Web Ring</FONT></A></B> <FONT COLOR="#000000">&middot; Snapster is site 11 of 12 |</FONT> <A HREF="../cnm/index.html"><FONT COLOR="#000080">Next &gt;&gt;</FONT></A>
+</FONT></TD></TR></TABLE></CENTER>
+
+</BODY>
+</HTML>

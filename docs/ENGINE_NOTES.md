@@ -10,6 +10,11 @@ KoldFusion is a C re-creation of an Allaire ColdFusion 4.5 server. Pages are CFM
 - Install directory ("C:\CFUSION"): `kfroot/` — registry in `kfroot/registry/kf.registry` (REGEDIT4 format), logs in `kfroot/log/`,
   data sources in `kfroot/db/<name>/` (one `.tbl` text file per table), seed scripts in `kfroot/seed/<dsn>.sql` (run once, the
   first time the server starts and the db directory does not exist yet — delete `kfroot/db/<dsn>` to re-seed).
+- Virtual sites: `http://<name>.localhost:PORT/` serves `wwwroot/sites/<name>/` (any other host gets `wwwroot/`). A
+  site without its own `/CFIDE/` or `/images/` file falls back to the main web root's. A request for a missing
+  `/<othersite>/...` path is redirected to `http://<othersite>.localhost:PORT/...`, and any other missing path the main
+  site has (e.g. `/web1999/`) to `http://localhost:PORT/...`, so sites can link to each other with relative paths.
+- Every `kfroot/seed/<dsn>.sql` whose first line is `-- DSN: description` is registered as a data source automatically.
 - Web root: `wwwroot/`. Custom tags: same directory as the caller, or anywhere under `kfroot/customtags/`.
 
 ## Data sources

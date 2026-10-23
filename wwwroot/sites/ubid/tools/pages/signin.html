@@ -1,0 +1,23 @@
+<FONT FACE="Arial, Helvetica" SIZE=5><B>Sign In</B></FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var next = qs("next");
+if (next == "" || next.indexOf(":") != -1 || next.charAt(0) == "/") next = "myubid.html";
+function doSignin() {
+  var f = document.forms["si"];
+  var id = f.userid.value.toLowerCase().replace(/\s/g, "");
+  var err = checkLogin(id, f.pass.value);
+  if (err != "") { alert(err); return false; }
+  signIn(id);
+  location.href = P + next;
+  return false;
+}
+if (userId() != "") document.write("<FONT SIZE=2>You are signed in as <B>" + esc(userId()) + "</B>. <A HREF=\"" + P + "index.html\" onClick=\"return signOut()\">Sign out</A></FONT><BR><BR>");
+</SCRIPT>
+<FORM NAME="si" onSubmit="return doSignin()">
+<TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#EFEFEF">
+<TR><TD><FONT SIZE=2><B>User ID</B></FONT></TD><TD><INPUT TYPE=text NAME="userid" SIZE=20></TD></TR>
+<TR><TD><FONT SIZE=2><B>Password</B></FONT></TD><TD><INPUT TYPE=password NAME="pass" SIZE=20></TD></TR>
+<TR><TD></TD><TD><INPUT TYPE=submit VALUE="Sign in"></TD></TR>
+</TABLE></FORM>
+<FONT SIZE=2>New to uBid? <A HREF="{P}register.html">Register, it's free!</A><BR><BR>
+<B>Demo accounts:</B> <TT>beaniebaron</TT> / <TT>bidbid</TT> (a seller with 128 feedback) and <TT>y2kprepper</TT> / <TT>canned</TT>.</FONT>

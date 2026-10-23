@@ -1,0 +1,44 @@
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%"><TR>
+<TD><FONT FACE="verdana,arial,helvetica" SIZE=+1><B>Checkout: Review and Place Your Order</B></FONT></TD>
+<TD ALIGN=RIGHT><FONT FACE="verdana,arial,helvetica" SIZE=-2>1. ADDRESS &gt; 2. SHIPPING &amp; PAYMENT &gt; <B><FONT COLOR="#CC6600">3. PLACE ORDER</FONT></B></FONT></TD></TR></TABLE><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var a = addrGet(), c = cartGet();
+if (!userGet()) location.href = P + "signin.html?next=checkout.html";
+else if (c.length == 0) location.href = P + "cart.html";
+else if (!a || a.length < 9 || a[7] == "") location.href = P + "checkout2.html";
+function doPlace() {
+  var f = document.forms["place"];
+  var no = placeOrder(c, parseInt(a[6]));
+  // gift wrap is added to the stored order total
+  if (a[9] == "1") {
+    var o = ordersGet();
+    o[0][4] = "" + (parseInt(o[0][4]) + 249 * cartCount());
+    ordersSet(o);
+  }
+  if (f.oneclick.checked) setCookie("orinoco_1click", "on", 365);
+  cartSet(new Array());
+  location.href = P + "thanks.html?order=" + no;
+  return false;
+}
+var F = "<FONT FACE=\"verdana,arial,helvetica\" SIZE=-1>";
+if (a && c.length) {
+  var n = cartCount(), sub = cartTotal(c), ship = shipCost(parseInt(a[6]), n), wrap = (a[9] == "1" ? 249 * n : 0);
+  document.write("<FORM NAME=\"place\" onSubmit=\"return doPlace()\">");
+  document.write("<TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 WIDTH=\"100%\"><TR><TD VALIGN=TOP BGCOLOR=\"#EEEECC\" WIDTH=\"50%\">" + F + "<B>Shipping to:</B> <FONT SIZE=-2>(<A HREF=\"" + P + "checkout.html\">change</A>)</FONT><BR>");
+  document.write(esc(a[0]) + "<BR>" + esc(a[1]) + "<BR>" + esc(a[2]) + ", " + esc(a[3]) + " " + esc(a[4]) + "<BR>" + esc(a[5]) + "</FONT></TD>");
+  document.write("<TD VALIGN=TOP BGCOLOR=\"#EEEECC\">" + F + "<B>Shipping method:</B> <FONT SIZE=-2>(<A HREF=\"" + P + "checkout2.html\">change</A>)</FONT><BR>" + SHIP[parseInt(a[6])][0] + "<BR><BR>");
+  document.write("<B>Payment:</B><BR>" + esc(a[7]) + (a[8] != "" ? " ending in " + esc(a[8]) : "") + "</FONT></TD></TR></TABLE><BR>");
+  document.write("<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=0 WIDTH=\"100%\">");
+  for (var i = 0; i < c.length; i++) {
+    var it = findItem(c[i][0]);
+    document.write("<TR><TD>" + F + c[i][1] + " x <B>" + esc(it[1]) + "</B><BR><FONT SIZE=-2>" + esc(it[2]) + "; " + esc(it[7]) + "</FONT></FONT></TD><TD ALIGN=RIGHT VALIGN=TOP>" + F + money(it[3] * c[i][1]) + "</FONT></TD></TR>");
+  }
+  document.write("<TR><TD ALIGN=RIGHT>" + F + "Items:</FONT></TD><TD ALIGN=RIGHT>" + F + money(sub) + "</FONT></TD></TR>");
+  document.write("<TR><TD ALIGN=RIGHT>" + F + "Shipping &amp; Handling:</FONT></TD><TD ALIGN=RIGHT>" + F + money(ship) + "</FONT></TD></TR>");
+  if (wrap) document.write("<TR><TD ALIGN=RIGHT>" + F + "Gift-wrap:</FONT></TD><TD ALIGN=RIGHT>" + F + money(wrap) + "</FONT></TD></TR>");
+  document.write("<TR><TD ALIGN=RIGHT>" + F + "Sales tax:</FONT></TD><TD ALIGN=RIGHT>" + F + "$0.00</FONT></TD></TR>");
+  document.write("<TR><TD ALIGN=RIGHT>" + F + "<B>Order Total:</B></FONT></TD><TD ALIGN=RIGHT>" + F + "<B><FONT COLOR=\"#990000\">" + money(sub + ship + wrap) + "</FONT></B></FONT></TD></TR></TABLE><BR>");
+  document.write(F + "<INPUT TYPE=checkbox NAME=\"oneclick\" CHECKED> Remember this address and payment method, and turn on <B>1-Click</B> ordering for next time.</FONT><BR><BR>");
+  document.write("<CENTER><INPUT TYPE=image SRC=\"" + P + "images/btn_placeorder.gif\" WIDTH=136 HEIGHT=20 BORDER=0 ALT=\"Place Your Order\"></CENTER></FORM>");
+}
+</SCRIPT>

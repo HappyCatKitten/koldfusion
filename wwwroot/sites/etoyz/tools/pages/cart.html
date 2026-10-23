@@ -1,0 +1,44 @@
+<FONT FACE="Arial, Helvetica" SIZE=5 COLOR="#E21B1B"><B>Your Shopping Cart</B></FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+function updateCart() {
+  var f = document.forms["cart"], c = cartGet();
+  for (var i = 0; i < c.length; i++) {
+    var q = parseInt(f.elements["q" + i].value);
+    if (isNaN(q) || q < 0) q = 0;
+    c[i][1] = Math.min(q, 20);
+  }
+  cartSet(c);
+  location.href = P + "cart.html";
+  return false;
+}
+function removeItem(i) { var c = cartGet(); c[i][1] = 0; cartSet(c); location.href = P + "cart.html"; return false; }
+function startCheckout() {
+  if (cartCount() == 0) { alert("Your cart is empty!"); return false; }
+  location.href = userGet() ? P + "checkout.html?step=ship" : P + "signin.html?next=" + escape("checkout.html?step=ship");
+  return false;
+}
+var F = "<FONT FACE=\"Arial, Helvetica\" SIZE=2>";
+var added = findToy(qs("added"));
+if (added) document.write("<TABLE BORDER=0 CELLPADDING=6 WIDTH=\"100%\" BGCOLOR=\"#FFFFED\"><TR><TD><IMG SRC=\"" + toyImg(added) + "\" WIDTH=70 HEIGHT=70 ALIGN=LEFT HSPACE=6>" + F + "<FONT SIZE=3 COLOR=\"#1BA84A\"><B>Hooray!</B></FONT> <B>" + esc(added[1]) + "</B> is in your cart.<BR><A HREF=\"" + toyURL(added) + "\">Back to the toy</A> | <A HREF=\"" + P + "index.html\">Keep shopping</A></FONT></TD></TR></TABLE><BR>");
+var c = cartGet();
+if (c.length == 0) {
+  document.write(F + "Your cart is empty. Sprocket is sad. <A HREF=\"" + P + "top10.html\">Cheer him up with something from the Top 10!</A></FONT>");
+} else {
+  var h = "<FORM NAME=\"cart\" onSubmit=\"return updateCart()\"><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 WIDTH=\"100%\">";
+  h += "<TR BGCOLOR=\"#FFD21B\"><TD>" + F + "<B>Toy</B></FONT></TD><TD></TD><TD ALIGN=CENTER>" + F + "<B>Qty</B></FONT></TD><TD ALIGN=RIGHT>" + F + "<B>Price</B></FONT></TD></TR>";
+  for (var i = 0; i < c.length; i++) {
+    var t = findToy(c[i][0]);
+    h += "<TR BGCOLOR=\"" + (i % 2 ? "#FFFFED" : "#FFFFFF") + "\"><TD WIDTH=74><IMG SRC=\"" + toyImg(t) + "\" WIDTH=70 HEIGHT=70></TD><TD>" + F + "<A HREF=\"" + toyURL(t) + "\"><B>" + esc(t[1]) + "</B></A><BR>" + esc(t[10]) + "<BR><A HREF=\"#\" onClick=\"return removeItem(" + i + ")\">remove</A></FONT></TD>";
+    h += "<TD ALIGN=CENTER><INPUT TYPE=text NAME=\"q" + i + "\" SIZE=2 VALUE=\"" + c[i][1] + "\"></TD><TD ALIGN=RIGHT>" + F + money(t[6] * c[i][1]) + "</FONT></TD></TR>";
+  }
+  var sub = cartTotal(c);
+  h += "<TR><TD COLSPAN=3 ALIGN=RIGHT>" + F + "<B>Subtotal:</B></FONT></TD><TD ALIGN=RIGHT>" + F + "<FONT COLOR=\"#E21B1B\"><B>" + money(sub) + "</B></FONT></FONT></TD></TR></TABLE>";
+  h += F + (sub >= 5000 ? "<FONT COLOR=\"#1BA84A\"><B>You qualify for FREE standard shipping!</B></FONT>" : "Add " + money(5000 - sub) + " more for <B>FREE standard shipping</B>.") + "</FONT><BR><BR>";
+  h += "<INPUT TYPE=submit VALUE=\"Update quantities\"> &nbsp; <A HREF=\"" + P + "checkout.html\" onClick=\"return startCheckout()\"><IMG SRC=\"" + P + "images/btn_checkout.gif\" WIDTH=119 HEIGHT=26 BORDER=0 ALIGN=ABSMIDDLE ALT=\"Check Out Now\"></A></FORM>";
+  document.write(h);
+  document.write("<BR>" + F);
+  writeCountdown();
+  document.write("</FONT>");
+}
+</SCRIPT>
+<NOSCRIPT>The shopping cart needs JavaScript. Please turn it on, or call 1-800-ETOYZ-99 and Sprocket will take your order.</NOSCRIPT>

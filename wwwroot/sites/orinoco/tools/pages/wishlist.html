@@ -1,0 +1,22 @@
+<IMG SRC="{P}images/giftbox.gif" WIDTH=44 HEIGHT=47 ALIGN=LEFT HSPACE=4><FONT FACE="verdana,arial,helvetica" SIZE=+1><B>Your Wish List</B></FONT><BR>
+<FONT FACE="verdana,arial,helvetica" SIZE=-1>Keep track of the things you'd love to get, then drop some not-very-subtle hints.</FONT><BR CLEAR=ALL><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var F = "<FONT FACE=\"verdana,arial,helvetica\" SIZE=-1>";
+var added = qs("added");
+if (added != "" && findItem(added)) document.write("<TABLE BORDER=0 CELLPADDING=6 BGCOLOR=\"#FFFFE0\" WIDTH=\"100%\"><TR><TD>" + F + "<B>" + esc(findItem(added)[1]) + "</B> is on your Wish List.</FONT></TD></TR></TABLE><BR>");
+var w = wishGet();
+if (w.length == 0) {
+  document.write(F + "Your Wish List is empty. Click <B>Add to Wish List</B> on any product page to start one.</FONT>");
+} else {
+  document.write("<TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 WIDTH=\"100%\">");
+  for (var i = 0; i < w.length; i++) {
+    var it = findItem(w[i]);
+    document.write("<TR BGCOLOR=\"" + (i % 2 ? "#F4F4E8" : "#FFFFFF") + "\"><TD><A HREF=\"" + itemURL(it) + "\"><IMG SRC=\"" + coverURL(it) + "\" BORDER=0></A></TD><TD>" + F);
+    document.write("<A HREF=\"" + itemURL(it) + "\"><B>" + esc(it[1]) + "</B></A><BR>" + esc(it[2]) + "<BR>" + money(it[3]) + "<BR>");
+    document.write("<A HREF=\"" + P + "cart.html\" onClick=\"return cartAdd('" + it[0] + "', 1)\">Add to Shopping Cart</A> | <A HREF=\"#\" onClick=\"return wishRemove('" + it[0] + "')\">Remove</A></FONT></TD></TR>");
+  }
+  document.write("</TABLE><BR>");
+  var u = userGet();
+  document.write(F + "<B>Tell your friends:</B> " + (u ? "Point them to Orinoco.com and ask them to search for <B>" + esc(u[1]) + "</B>." : "<A HREF=\"" + P + "signin.html?next=wishlist.html\">Sign in</A> so people can find your list.") + " (In this parody, your list lives in your own browser, so they'll have to borrow your computer.)</FONT>");
+}
+</SCRIPT>

@@ -1,0 +1,64 @@
+<HTML>
+<HEAD>
+<TITLE>Orinoco.com: Checkout: Shipping Address</TITLE>
+<META NAME="description" CONTENT="Orinoco.com, Earth's Biggest Bookstore: millions of titles, invented daily.">
+<SCRIPT LANGUAGE="JavaScript">var P = "";</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript1.2" SRC="js/books.js"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript1.2" SRC="js/orinoco.js"></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#003399" VLINK="#996633" ALINK="#FF9900">
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR>
+<TD ROWSPAN=2 VALIGN=BOTTOM WIDTH=176><A HREF="index.html"><IMG SRC="images/logo.gif" WIDTH=172 HEIGHT=58 BORDER=0 ALT="Orinoco.com"></A></TD>
+<TD ALIGN=RIGHT VALIGN=TOP><FONT FACE="verdana,arial,helvetica" SIZE=-2><SCRIPT LANGUAGE="JavaScript">writeCartLine();</SCRIPT>&nbsp;</FONT><A HREF="cart.html"><IMG SRC="images/btn_cart.gif" WIDTH=80 HEIGHT=19 BORDER=0 ALT="View Cart"></A><A HREF="account.html"><IMG SRC="images/btn_account.gif" WIDTH=103 HEIGHT=19 BORDER=0 ALT="Your Account"></A><A HREF="help.html"><IMG SRC="images/btn_help.gif" WIDTH=53 HEIGHT=19 BORDER=0 ALT="Help"></A></TD>
+</TR>
+<TR><TD VALIGN=BOTTOM NOWRAP><A HREF="index.html"><IMG SRC="images/tabs/welcome_on.gif" WIDTH=75 HEIGHT=22 BORDER=0 ALT="WELCOME"></A><A HREF="books.html"><IMG SRC="images/tabs/books_off.gif" WIDTH=60 HEIGHT=20 BORDER=0 ALT="BOOKS"></A><A HREF="music.html"><IMG SRC="images/tabs/music_off.gif" WIDTH=57 HEIGHT=20 BORDER=0 ALT="MUSIC"></A><A HREF="video.html"><IMG SRC="images/tabs/video_off.gif" WIDTH=56 HEIGHT=20 BORDER=0 ALT="VIDEO"></A><A HREF="toys.html"><IMG SRC="images/tabs/toys_off.gif" WIDTH=101 HEIGHT=20 BORDER=0 ALT="TOYS &amp; GAMES"></A><A HREF="auctions.html"><IMG SRC="images/tabs/auctions_off.gif" WIDTH=76 HEIGHT=20 BORDER=0 ALT="AUCTIONS"></A><A HREF="ecards.html"><IMG SRC="images/tabs/ecards_off.gif" WIDTH=68 HEIGHT=20 BORDER=0 ALT="e-CARDS"></A></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#336699" HEIGHT=20 ALIGN=CENTER><FONT FACE="verdana,arial,helvetica" SIZE=-2 COLOR="#FFFFFF"><A HREF="hot100.html"><FONT COLOR="#FFFFFF"><B>HOT 100</B></FONT></A> &nbsp;|&nbsp; <A HREF="books.html"><FONT COLOR="#FFFFFF"><B>BOOKS</B></FONT></A> &nbsp;|&nbsp; <A HREF="music.html"><FONT COLOR="#FFFFFF"><B>MUSIC</B></FONT></A> &nbsp;|&nbsp; <A HREF="video.html"><FONT COLOR="#FFFFFF"><B>VIDEO</B></FONT></A> &nbsp;|&nbsp; <A HREF="ecards.html"><FONT COLOR="#FFFFFF"><B>e-CARDS</B></FONT></A> &nbsp;|&nbsp; <A HREF="wishlist.html"><FONT COLOR="#FFFFFF"><B>WISH LISTS</B></FONT></A> &nbsp;|&nbsp; <A HREF="account.html"><FONT COLOR="#FFFFFF"><B>YOUR ACCOUNT</B></FONT></A></FONT></TD></TR>
+</TABLE>
+<TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD><BR><FONT FACE="verdana,arial,helvetica" SIZE=-1><TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%"><TR>
+<TD><FONT FACE="verdana,arial,helvetica" SIZE=+1><B>Checkout: Where should we ship?</B></FONT></TD>
+<TD ALIGN=RIGHT><FONT FACE="verdana,arial,helvetica" SIZE=-2><B><FONT COLOR="#CC6600">1. ADDRESS</FONT></B> &gt; 2. SHIPPING &amp; PAYMENT &gt; 3. PLACE ORDER</FONT></TD></TR></TABLE><BR>
+<SCRIPT LANGUAGE="JavaScript">
+if (!userGet()) location.href = P + "signin.html?next=checkout.html";
+else if (cartCount() == 0) location.href = P + "cart.html";
+function clean(s) { return s.replace(/[|;~^]/g, " "); }
+function saveAddr() {
+  var f = document.forms["addr"];
+  var v = new Array("fullname", "street", "city", "state", "zip");
+  for (var i = 0; i < v.length; i++) {
+    if (f.elements[v[i]].value.replace(/\s/g, "") == "") { alert("Please fill in every line of the address (" + v[i].replace("fullname", "name") + " is missing)."); f.elements[v[i]].focus(); return false; }
+  }
+  var a = addrGet();
+  if (!a) a = new Array("", "", "", "", "", "", "0", "", "", "");
+  a[0] = clean(f.fullname.value); a[1] = clean(f.street.value); a[2] = clean(f.city.value);
+  a[3] = clean(f.state.value); a[4] = clean(f.zip.value); a[5] = f.country.options[f.country.selectedIndex].text;
+  addrSet(a);
+  location.href = P + "checkout2.html";
+  return false;
+}
+var a = addrGet(), u = userGet();
+function v(i, dflt) { return esc(a && a[i] ? a[i] : dflt); }
+var F = "<FONT FACE=\"verdana,arial,helvetica\" SIZE=-1>";
+document.write("<FORM NAME=\"addr\" onSubmit=\"return saveAddr()\"><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR=\"#EEEECC\">");
+document.write("<TR><TD>" + F + "Full name:</FONT></TD><TD><INPUT TYPE=text NAME=\"fullname\" SIZE=32 VALUE=\"" + v(0, u ? u[0] : "") + "\"></TD></TR>");
+document.write("<TR><TD>" + F + "Address:</FONT></TD><TD><INPUT TYPE=text NAME=\"street\" SIZE=40 VALUE=\"" + v(1, "") + "\"></TD></TR>");
+document.write("<TR><TD>" + F + "City:</FONT></TD><TD><INPUT TYPE=text NAME=\"city\" SIZE=24 VALUE=\"" + v(2, "") + "\"></TD></TR>");
+document.write("<TR><TD>" + F + "State/Province:</FONT></TD><TD><INPUT TYPE=text NAME=\"state\" SIZE=10 VALUE=\"" + v(3, "") + "\"> " + F + "ZIP/Postal code:</FONT> <INPUT TYPE=text NAME=\"zip\" SIZE=10 VALUE=\"" + v(4, "") + "\"></TD></TR>");
+var countries = new Array("United States", "Canada", "United Kingdom", "Venezuela", "Australia", "Germany", "Japan", "Antarctica (research stations only)");
+var co = "";
+for (var i = 0; i < countries.length; i++) co += "<OPTION" + (a && a[5] == countries[i] ? " SELECTED" : "") + ">" + countries[i];
+document.write("<TR><TD>" + F + "Country:</FONT></TD><TD><SELECT NAME=\"country\">" + co + "</SELECT></TD></TR>");
+document.write("<TR><TD></TD><TD><INPUT TYPE=image SRC=\"" + P + "images/btn_continue.gif\" WIDTH=78 HEIGHT=19 BORDER=0 ALT=\"Continue\"></TD></TR>");
+document.write("</TABLE></FORM>");
+</SCRIPT>
+<FONT FACE="verdana,arial,helvetica" SIZE=-2><IMG SRC="images/lock.gif" WIDTH=20 HEIGHT=24 ALIGN=LEFT>You are shopping on our secure server.
+Your address goes only into a cookie in your own browser, which is the most private place we could think of.</FONT><BR CLEAR=ALL>
+</FONT></TD></TR></TABLE><TABLE WIDTH=760 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD ALIGN=CENTER>
+<BR><HR NOSHADE SIZE=1 COLOR="#CCCC99">
+<FONT FACE="verdana,arial,helvetica" SIZE=-2><A HREF="index.html">Orinoco.com Home</A> | <A HREF="books.html">Books</A> | <A HREF="music.html">Music</A> | <A HREF="video.html">Video</A> | <A HREF="toys.html">Toys &amp; Games</A> | <A HREF="auctions.html">Auctions</A> | <A HREF="ecards.html">e-Cards</A> | <A HREF="hot100.html">Hot 100</A> | <A HREF="account.html">Your Account</A> | <A HREF="cart.html">Shopping Cart</A> | <A HREF="help.html">Help</A><BR><BR><A HREF="help.html#privacy">Our Privacy Pledge</A> | <A HREF="help.html#safe">Safe Shopping Pledge</A> | <A HREF="help.html#about">About Orinoco.com</A><BR><BR>Copyright &copy; 1996-1999, Orinoco.com, Inc. All rights reserved. Served by a KoldFusion 4.5 cluster from Gibson Mainframe Co.<BR><I>A 1999 Web parody. No rivers, retailers or authors were harmed; every book here is invented.</I></FONT>
+<BR><BR><CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER NOWRAP><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../askreeves/index.html">&lt;&lt; Prev</A> | <A HREF="../../web1999/index.html" onClick="return ringRandom()">Random</A> | <B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> | <A HREF="../ubid/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE></CENTER>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

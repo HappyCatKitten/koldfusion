@@ -1,0 +1,354 @@
+<HTML>
+<HEAD>
+<TITLE>Petz.com : Checkout</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<STYLE TYPE="text/css">
+<!--
+.editorialtitle { font-family: Verdana, Arial, Helvetica; font-size: 11px; font-weight: bold; color: #000000 }
+.editorialsubhead { font-family: Verdana, Arial, Helvetica; font-size: 10px; font-style: italic; color: #666633 }
+.ticker { background-color: #000000; color: #33FF33; font-family: Courier New, Courier; font-size: 12px; font-weight: bold; border: 0px }
+-->
+</STYLE>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+// ---- category tab rollovers (document.images swaps)
+var tabNames = new Array("home", "dogs", "cats", "fish", "birds", "ferrets", "reptiles", "smallpets");
+var tabOn = new Array();
+var tabOff = new Array();
+if (document.images) {
+  for (var i = 0; i < tabNames.length; i++) {
+    tabOn[tabNames[i]] = new Image();
+    tabOn[tabNames[i]]["src"] = "images/tab_" + tabNames[i] + "_on" + ".gif";
+    tabOff[tabNames[i]] = new Image();
+    tabOff[tabNames[i]]["src"] = "images/tab_" + tabNames[i] + ".gif";
+  }
+}
+function imgOn(n) {
+  if (document.images) document.images["t" + n]["src"] = tabOn[n]["src"];
+}
+function imgOff(n) {
+  if (document.images && n != curTab) document.images["t" + n]["src"] = tabOff[n]["src"];
+}
+// ---- search box
+function isBlank(s) {
+  if (s == null) return true;
+  for (var i = 0; i < s.length; i++) {
+    if (s.charAt(i) != " ") return false;
+  }
+  return true;
+}
+function checkSearch(f) {
+  if (isBlank(f.q.value)) {
+    alert("Please type something to search for.\nTry 'litter', 'hamster' or 'loss'.");
+    f.q.focus();
+    return false;
+  }
+  return true;
+}
+// ---- newsletter
+function checkNews(f) {
+  var e = f.email.value;
+  if (e.indexOf("@") < 1 || e.indexOf(".") < 0) {
+    alert("Please enter an e-mail address like argyle@petz.com");
+    return false;
+  }
+  alert("Thanks! You are now subscribed to The Petz Weekly Wag.\n(Nothing was actually sent anywhere. Our mail server is a beagle.)");
+  return false;
+}
+// ---- 1999 Web Ring random hop
+var ringSites = new Array("yowza", "altavisor", "askreeves", "orinoco", "ubid", "etoyz", "petz",
+  "geohoods", "hamstershuffle", "dashdot", "snapster", "cnm");
+function ringRandom() {
+  var n = Math.floor(Math.random() * ringSites.length);
+  var u = "../" + ringSites[n] + "/" + "index.html";
+  window.location = u;
+  return false;
+}
+//-->
+</SCRIPT>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+// ---- PETZ stock ticker: it only goes up (price kept in eighths, remembered in a cookie)
+var tkOpen = 679;   // opened today at 84 7/8
+function tkGet() {
+  var c = document.cookie;
+  var i = c.indexOf("petzpx=");
+  if (i < 0) return 698;
+  var j = c.indexOf(";", i);
+  if (j < 0) j = c.length;
+  var v = parseInt(c.substring(i + 7, j), 10);
+  if (isNaN(v) || v < 698) return 698;
+  return v;
+}
+function tkFmt(e) {
+  var w = Math.floor(e / 8);
+  var r = e % 8;
+  var f = new Array("", "1/8", "1/4", "3/8", "1/2", "5/8", "3/4", "7/8");
+  if (r == 0) return "" + w;
+  return w + " " + f[r];
+}
+function tkShow(e) {
+  if (document.forms["ticker"]) {
+    document.forms["ticker"].px.value = tkFmt(e);
+    document.forms["ticker"].chg.value = "+" + tkFmt(e - tkOpen);
+  }
+}
+function tkTick() {
+  var e = tkGet() + 1 + Math.floor(Math.random() * 3);
+  document.cookie = "petzpx=" + e;
+  tkShow(e);
+  setTimeout("tkTick()", 2500);
+}
+function tkStart() {
+  tkShow(tkGet());
+  setTimeout("tkTick()", 2500);
+}
+//-->
+</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var curTab = "home";
+//-->
+</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function Prod(id, name, cat, price, list, ship, loss, text) {
+  this.id = id; this.name = name; this.cat = cat; this.price = price; this.list = list;
+  this.ship = ship; this.loss = loss; this.text = text;
+}
+var PZ = new Object();
+var PZids = new Array();
+PZ["d01"] = new Prod("d01", "Hearty Chunks Dog Food, 40 lb Bag", "dogs", 18.99, 29.99, 14.95, 28.56, "Kibbleworks Forty pounds of crunchy, beefy nuggets in a bag roughly the size of a sixth-grader. Our delivery driver asked us to mention that he has a bad back. We pay for his chiropractor too.");
+PZ["d02"] = new Prod("d02", "Indestructible Chew Bone (Medium)", "dogs", 4.99, 12.99, 4.95, 3.96, "Chewbilee Made from the same rubber compound as the tires on our delivery vans. Guaranteed to outlast your dog's interest, your couch, and possibly our company.");
+PZ["d03"] = new Prod("d03", "Y2K-Compliant Squeaky Ball", "dogs", 1.99, 6.99, 4.95, 2.01, "Bounce Bros. Independently certified to keep squeaking after midnight on December 31, 1999. Our millennium team tested it on a golden retriever named Bug. Bug is fine. The ball is fine. Our servers are fine. Probably.");
+PZ["d04"] = new Prod("d04", "Tug-O-Matic 3000 Rope Toy", "dogs", 3.49, 9.99, 4.95, 2.56, "Knotworks Three feet of braided cotton rope with a knot at each end and a dog at one of them. Engineered for tug-of-war. Your dog will win. Plan accordingly.");
+PZ["d05"] = new Prod("d05", "Retractable Leash, 26 ft", "dogs", 11.99, 24.99, 6.95, 3.66, "Fetchmaster Twenty-six feet of freedom on a spring-loaded reel with a one-thumb brake. Long enough for your dog to visit the neighbors without technically leaving the yard.");
+PZ["d06"] = new Prod("d06", "Memory-Foam Orthopedic Dog Bed (Large)", "dogs", 39.99, 89.00, 34.95, 58.86, "Snoozehound Four inches of the same foam they put in astronaut mattresses (we are told). Ships in a box large enough to live in, which several of our warehouse employees do.");
+PZ["d07"] = new Prod("d07", "Snuggle-Knit Dog Sweater, Dot-Com Teal", "dogs", 7.95, 22.00, 4.95, 4.00, "Pawsh Hand-knit acrylic sweater in this season's hottest color, the exact teal of every startup logo in San Francisco. Sizes XS (chihuahua) through XXL (small pony).");
+PZ["c01"] = new Prod("c01", "Scoopable Cat Litter, 40 lb Bag", "cats", 5.49, 12.99, 14.95, 27.61, "ClumpKing Forty pounds of premium clumping clay. It costs us $6.80 to buy and $41.25 to ship, and we sell it to you for $5.49. Our CFO calls this item 'the anchor.' He does not mean it in a nice way.");
+PZ["c02"] = new Prod("c02", "Ocean Medley Cat Food, 24 Cans", "cats", 9.99, 18.99, 9.95, 10.06, "Purrfecta Tuna, whitefish and something our supplier describes only as 'sea product.' Your cat will sniff it, walk away, and come back for it at 3 a.m.");
+PZ["c03"] = new Prod("c03", "Day-Trader Catnip Mouse", "cats", 0.99, 4.99, 3.95, 1.96, "Whiskerworks A felt mouse stuffed with organic catnip and wearing a tiny red power tie. Buys low, sells high, naps through the opening bell.");
+PZ["c04"] = new Prod("c04", "Kitty Skyscraper 6-ft Cat Tree", "cats", 69.00, 149.00, 49.95, 103.05, "Feline Towers Six feet, four platforms, two condos and a penthouse with a view of your refrigerator. The tallest structure in your home that is not actually a skyscraper or our burn rate.");
+PZ["c05"] = new Prod("c05", "Sisal Scratching Post", "cats", 12.99, 29.99, 9.95, 8.36, "Sir Scratchalot Thirty inches of tightly wound sisal rope on a weighted base. Studies show cats prefer it to your leather sofa nearly 4 percent of the time.");
+PZ["c06"] = new Prod("c06", "Laser Pointer 2000 with Millennium Mode", "cats", 4.99, 14.99, 3.95, 3.41, "Dot Chaser A pocket laser that projects a red dot your cat will chase until one of you collapses. Millennium Mode makes the dot blink '2000.' Your cat cannot read. Ours either.");
+PZ["c07"] = new Prod("c07", "Hooded Litter Box, Executive Edition", "cats", 17.99, 39.99, 12.95, 15.56, "Privy Paws A hooded litter box with a swinging door, a carbon filter and a little brass nameplate. Because your cat deserves a corner office.");
+PZ["f01"] = new Prod("f01", "AquaVista 55-Gallon Aquarium Kit", "fish", 149.00, 299.00, 89.95, 157.05, "AquaVista Glass tank, hood, light, filter, heater, gravel and a little plastic diver. Weighs 78 pounds empty. We did briefly consider shipping it full. Legal said no.");
+PZ["f02"] = new Prod("f02", "Classic Goldfish Bowl, 1 Gallon", "fish", 5.99, 14.99, 7.95, 5.66, "Glub The timeless round bowl. Packed in so many foam peanuts that you will be finding them until 2003.");
+PZ["f03"] = new Prod("f03", "Tropical Flake Food, 2 oz", "fish", 1.99, 5.49, 3.95, 1.56, "FinFeast Colorful flakes with spirulina and krill. One pinch twice a day. Not the whole can. We know you were thinking about it.");
+PZ["f04"] = new Prod("f04", "Bubbling Treasure Chest Ornament", "fish", 3.99, 9.99, 4.95, 1.96, "Deep Thoughts Connects to your air pump. Every few seconds the lid pops open and releases a stream of bubbles, just like our venture capital.");
+PZ["f05"] = new Prod("f05", "Bubble-Tron Air Pump", "fish", 8.99, 19.99, 5.95, 4.06, "Bubble-Tron Whisper-quiet diaphragm pump for tanks up to 60 gallons. Quieter than a 56k modem handshake. Louder than a goldfish.");
+PZ["f06"] = new Prod("f06", "Fish Net, 4-inch", "fish", 0.99, 3.99, 3.95, 1.36, "Scoop-n-Swoosh Fine green mesh on a ten-inch handle. For catching fish, not for catching our losses. We have a much bigger net for that.");
+PZ["f07"] = new Prod("f07", "Moatsworth Aquarium Castle", "fish", 4.99, 12.99, 5.95, 3.06, "Deep Thoughts A resin castle with three towers and an arched doorway big enough for a tetra. No drawbridge. The fish have asked.");
+PZ["b01"] = new Prod("b01", "Victorian Bird Cage", "birds", 59.99, 129.00, 39.95, 50.06, "Tweetopolis Brass-finish dome cage with two feeders, two perches and a slide-out tray. Ships fully assembled in a box shaped exactly like a bird cage, which confuses the post office.");
+PZ["b02"] = new Prod("b02", "Wild Bird Seed Mix, 25 lb", "birds", 8.99, 21.99, 14.95, 17.46, "SeedSational Millet, sunflower and safflower for every beak in the neighborhood. Twenty-five pounds, which is roughly a million meals for a finch.");
+PZ["b03"] = new Prod("b03", "Bird Mirror with Bell", "birds", 2.49, 6.99, 3.95, 1.36, "Mirror-Mirror Your budgie will spend hours chatting with the handsome stranger in this mirror. Like a chat room, but with fewer fake names.");
+PZ["b04"] = new Prod("b04", "Talking Bird Training Cassette", "birds", 4.99, 12.99, 3.95, 2.06, "Polly's Phrasebook Ninety minutes of patient repetition. Teaches your parrot to say 'Hello,' 'Pretty bird,' 'Buy on the dip' and 'Your call is important to us.'");
+PZ["b05"] = new Prod("b05", "Cuttlebone Calcium Treat, 2-Pack", "birds", 0.99, 3.99, 3.95, 1.66, "Beakwell Natural calcium for strong beaks. Clips right onto the cage. Shipping costs four times as much as the cuttlebone. We are aware.");
+PZ["b06"] = new Prod("b06", "Swing Time Perch Swing", "birds", 2.99, 7.99, 3.95, 2.06, "Tweetopolis A wooden perch on a brass swing with three colored beads. Your cockatiel will swing on it, sing on it, and then throw seed hulls at you from it.");
+PZ["b07"] = new Prod("b07", "Backyard Bird Bath", "birds", 4.49, 11.99, 9.95, 7.66, "Featherlite Lightweight resin bird bath on a fluted pedestal. Looks like stone. Weighs less than stone. Costs more to ship than stone.");
+PZ["fe01"] = new Prod("fe01", "Slinky Sleeper Ferret Hammock", "ferrets", 7.99, 19.99, 4.95, 4.06, "Weaselworks A fleece hammock that clips to any cage. Ferrets sleep up to 18 hours a day, so this is technically their office.");
+PZ["fe02"] = new Prod("fe02", "Crinkle Tunnel, 6 ft", "ferrets", 5.99, 14.99, 4.95, 2.96, "Tunnel Vision Six feet of collapsible, crinkly nylon tunnel. Your ferret will dive in, dook happily, and emerge with one of your socks. We do not know where the socks come from either.");
+PZ["fe03"] = new Prod("fe03", "Weasel Wonderland 3-Story Ferret Condo", "ferrets", 89.00, 199.00, 59.95, 101.05, "Weaselworks Three levels, two ramps, a litter corner and a front door wide enough for a ferret and a stolen sock. Our biggest seller among people who own ferrets and also our biggest loss among everyone.");
+PZ["fe04"] = new Prod("fe04", "Ferret Kibble, 10 lb", "ferrets", 11.99, 24.99, 9.95, 8.76, "Dook Dook High-protein, high-fat kibble for an animal that runs at full speed until it falls asleep mid-hop.");
+PZ["fe05"] = new Prod("fe05", "Ferret-Proof Sock Safe", "ferrets", 6.99, 16.99, 5.95, 3.56, "Weaselworks A locking steel box for your socks. Ferrets hoard socks. This keeps your socks safe. It is also where we keep our mascot overnight.");
+PZ["fe06"] = new Prod("fe06", "Low-Musk Ferret Shampoo, 8 oz", "ferrets", 3.49, 8.99, 3.95, 2.06, "Bandit's Bath Gentle tearless formula that leaves your ferret smelling like a meadow for nearly twenty minutes.");
+PZ["rp01"] = new Prod("rp01", "Basking Heat Lamp, 150 Watt", "reptiles", 14.99, 34.99, 7.95, 7.86, "SunBeam A ceramic socket, a reflector dome and a 150-watt bulb that turns any corner of the tank into Arizona. Your electric company sends its regards.");
+PZ["rp02"] = new Prod("rp02", "Desert Oasis 20-Gallon Terrarium", "reptiles", 39.99, 89.99, 44.95, 50.06, "Scaletown Glass terrarium with a locking screen lid, sand, a fake cactus and a rock with a hollow under it for hiding. Not unlike our CFO's office.");
+PZ["rp03"] = new Prod("rp03", "Live Crickets, 500 Count", "reptiles", 6.99, 15.99, 24.95, 21.66, "Chirpco Five hundred live crickets shipped overnight in a ventilated box. Some assembly required. Some escape. Our Indianapolis warehouse chirps at night now.");
+PZ["rp04"] = new Prod("rp04", "Iguana Lounge Climbing Branch", "reptiles", 4.99, 12.99, 6.95, 4.06, "Scaletown A sanded, sealed grapevine branch for climbing, basking and looking unimpressed.");
+PZ["rp05"] = new Prod("rp05", "Hot Rock Deluxe Heated Stone", "reptiles", 9.99, 24.99, 6.95, 5.46, "SunBeam A resin rock with a built-in heating element. Looks like a rock. Feels like a warm rock. Is a rock. Our most honest product.");
+PZ["rp06"] = new Prod("rp06", "Humidity Mister", "reptiles", 7.99, 19.99, 5.95, 4.56, "Shed Happens A pump-action mister for keeping your gecko's skin supple and your windows foggy.");
+PZ["sp01"] = new Prod("sp01", "Spin Cycle 8-inch Hamster Wheel", "smallpets", 5.99, 14.99, 4.95, 3.16, "Rodentronics Silent-spinner wheel with a solid running surface. Your hamster will run all night and get nowhere, which our investors tell us is a perfectly valid business model.");
+PZ["sp02"] = new Prod("sp02", "Timothy Hay, 10 lb Bale", "smallpets", 6.99, 16.99, 14.95, 19.46, "Haystack Farms Sun-cured second-cut timothy hay for rabbits, guinea pigs and chinchillas. Ten pounds of hay in a box the size of a dishwasher.");
+PZ["sp03"] = new Prod("sp03", "Drip-Free Water Bottle, 16 oz", "smallpets", 1.99, 5.99, 3.95, 1.56, "Rodentronics A clear bottle with a stainless sipper tube and a ball valve. Drip-free, unlike our cash flow.");
+PZ["sp04"] = new Prod("sp04", "Hamster Hacienda Habitat", "smallpets", 15.99, 39.99, 12.95, 17.06, "Rodentronics Plastic habitat with a sleeping loft, a wheel, a spiral slide and a tube that leads to a little rooftop observation deck. Nicer than most dot-com office space.");
+PZ["sp05"] = new Prod("sp05", "Bunny Bungalow Wooden Hutch", "smallpets", 34.99, 79.99, 39.95, 45.46, "Haystack Farms A two-story cedar hutch with a ramp, a wire run and a shingled roof. Several of our programmers have asked whether it comes in a human size.");
+PZ["sp06"] = new Prod("sp06", "Chew Sticks, 12 Pack", "smallpets", 1.49, 4.99, 3.95, 1.06, "Gnaw-Some Natural apple-wood sticks for keeping little teeth trim. Far cheaper than your phone cord.");
+PZ["sp07"] = new Prod("sp07", "Guinea Pig Party Hats, Set of 3", "smallpets", 2.99, 7.99, 3.95, 1.76, "Wheek! Three tiny cardboard party hats with elastic chin straps. For birthdays, New Year's Eve 1999, and our next round of financing.");
+PZ["m01"] = new Prod("m01", "Argyle the Sock Dog Plush Puppet", "mascot", 9.99, 19.99, 4.95, 4.66, "Petz.com The official 18-inch Argyle, with button eyes, a stitched felt mouth and a genuine twist-tie bow tie. Fits any human hand. It costs us fourteen dollars to make and we sell it for $9.99. Argyle says this is fine. Argyle is a sock.");
+PZ["m02"] = new Prod("m02", "Argyle 'Pets Can't Drive' Coffee Mug", "mascot", 4.99, 12.99, 5.95, 4.06, "Petz.com Eleven-ounce ceramic mug with Argyle on one side and our slogan on the other. Holds enough coffee for one board meeting.");
+PZ["m03"] = new Prod("m03", "Argyle Commemorative T-Shirt", "mascot", 5.00, 18.00, 4.95, 3.05, "Petz.com 100 percent cotton, heavyweight, one size fits most. Front: Argyle. Back: 'I WAS THERE (AT THE LAUNCH PARTY)'.");
+for (var k in PZ) PZids[PZids.length] = k;
+
+// ---- shopping cart kept in document.cookie as  petzcart=id.qty-id.qty
+function money(n) {
+  var c = Math.round(n * 100);
+  var d = Math.floor(c / 100);
+  c = c % 100;
+  var s = "" + d;
+  if (d >= 1000) s = Math.floor(d / 1000) + "," + ("" + (1000 + d % 1000)).substring(1);
+  return "$" + s + "." + (c < 10 ? "0" : "") + c;
+}
+function cartRead() {
+  var c = document.cookie;
+  var i = c.indexOf("petzcart=");
+  var items = new Array();
+  if (i < 0) return items;
+  var j = c.indexOf(";", i);
+  if (j < 0) j = c.length;
+  var v = c.substring(i + 9, j);
+  if (v == "") return items;
+  var parts = v.split("-");
+  for (var n = 0; n < parts.length; n++) {
+    var pq = parts[n].split(".");
+    var q = parseInt(pq[1], 10);
+    if (pq.length == 2 && !isNaN(q) && q > 0) {
+      items[items.length] = new Array(pq[0], q);
+    }
+  }
+  return items;
+}
+function cartWrite(items) {
+  var s = "";
+  for (var n = 0; n < items.length; n++) {
+    if (items[n][1] > 0) {
+      if (s != "") s = s + "-";
+      s = s + items[n][0] + "." + items[n][1];
+    }
+  }
+  if (s == "") document.cookie = "petzcart=; expires=Thu, 01-Jan-1970 00:00:01 GMT";
+  else document.cookie = "petzcart=" + s;
+}
+function cartAdd(id, q) {
+  var items = cartRead();
+  for (var n = 0; n < items.length; n++) {
+    if (items[n][0] == id) {
+      items[n][1] = items[n][1] + q;
+      cartWrite(items);
+      return;
+    }
+  }
+  items[items.length] = new Array(id, q);
+  cartWrite(items);
+}
+function cartCount() {
+  var items = cartRead();
+  var t = 0;
+  for (var n = 0; n < items.length; n++) t = t + items[n][1];
+  return t;
+}
+function cartTotals() {
+  var items = cartRead();
+  var t = new Object();
+  t.sub = 0; t.ship = 0; t.save = 0; t.loss = 0; t.count = 0;
+  for (var n = 0; n < items.length; n++) {
+    var p = PZ[items[n][0]];
+    var q = items[n][1];
+    if (!p) continue;
+    t.sub = t.sub + p.price * q;
+    t.ship = t.ship + p.ship * q;
+    t.save = t.save + (p.list - p.price) * q;
+    t.loss = t.loss + p.loss * q;
+    t.count = t.count + q;
+  }
+  return t;
+}
+
+function drawSummary() {
+  var t = cartTotals();
+  var F = '<FONT FACE="Verdana, Arial, Helvetica" SIZE=2>';
+  if (t.count == 0) {
+    document.write(F + '<B>Your cart is empty.</B> You can fill out this form anyway; it is very good practice ' +
+      'for when we have something to sell you. <A HREF="index.html">Go shopping</A>.</FONT><BR><BR>');
+    return;
+  }
+  document.write('<TABLE BORDER=0 CELLPADDING=6 CELLSPACING=0 BGCOLOR="#FFFFCC" WIDTH=586><TR><TD>' + F +
+    '<B>Order summary:</B> ' + t.count + ' item(s), ' + money(t.sub) + ' plus ' + money(t.ship) +
+    ' shipping = <B>' + money(t.sub + t.ship) + '</B>. <A HREF="cart.html">Change order</A></FONT></TD></TR></TABLE><BR>');
+}
+function checkOrder(f) {
+  var need = new Array("fname", "First name", "lname", "Last name", "addr1", "Street address",
+    "city", "City", "state", "State", "zip", "ZIP code");
+  for (var i = 0; i < need.length; i = i + 2) {
+    if (isBlank(f.elements[need[i]].value)) {
+      alert("Please fill in: " + need[i + 1] + ".\nOur delivery van can't find you without it.\n(Pets can't drive, and neither can our van, without directions.)");
+      f.elements[need[i]].focus();
+      return false;
+    }
+  }
+  var paid = false;
+  for (var j = 0; j < f.pay.length; j++) {
+    if (f.pay[j].checked) paid = true;
+  }
+  if (!paid) {
+    alert("Please choose a payment method.\nWe accept almost anything except money, apparently.");
+    return false;
+  }
+  if (!confirm("Place this order?\nPetz.com will lose money on it. Click OK to make that happen.")) return false;
+  document.cookie = "petzname=" + escape(f.fname.value);
+  location.href = "thankyou.html";
+  return false;
+}
+//-->
+</SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" BACKGROUND="images/spine.gif" MARGINHEIGHT=0 MARGINWIDTH=0 LEFTMARGIN=0 TOPMARGIN=0 TEXT="#000000" LINK="#000000" ALINK="#FF0033" VLINK="#000000" onLoad="tkStart();">
+<TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=770>
+<TR><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=232 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=446 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=86 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=6 HEIGHT=1 BORDER=0></TD></TR>
+<TR><TD BGCOLOR="#99CC33" VALIGN=TOP><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=4 BORDER=0><BR><IMG SRC="images/dot_clear.gif" WIDTH=2 HEIGHT=1 BORDER=0><A HREF="index.html"><IMG SRC="images/logo.gif" WIDTH=230 HEIGHT=66 BORDER=0 ALT="Petz.com - Because pets can't drive!"></A></TD>
+<TD BGCOLOR="#99CC33" ALIGN=CENTER VALIGN=MIDDLE><FORM NAME="ticker" onSubmit="return false"><TABLE BORDER=0 CELLPADDING=2 CELLSPACING=0 BGCOLOR="#000000"><TR><TD><FONT FACE="Arial, Helvetica" SIZE=1 COLOR="#FFFFFF">&nbsp;<B>PETZ</B> (NASDAQ: PETZ)</FONT></TD><TD><INPUT TYPE=TEXT NAME="px" VALUE="87 1/4" SIZE=8 CLASS="ticker"></TD><TD><IMG SRC="images/up_arrow.gif" WIDTH=11 HEIGHT=11 BORDER=0 ALT=""></TD><TD><INPUT TYPE=TEXT NAME="chg" VALUE="+2 3/8" SIZE=9 CLASS="ticker"></TD></TR><TR><TD COLSPAN=4 ALIGN=CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#99CC33"><A HREF="investor.html"><FONT COLOR="#FFFFFF">Investor info</FONT></A> &middot; delayed 20 min, not that it matters</FONT></TD></TR></TABLE></FORM></TD>
+<TD BGCOLOR="#99CC33" VALIGN=TOP><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=4 BORDER=0><BR><A HREF="cart.html"><IMG SRC="images/btn_cart.gif" WIDTH=86 HEIGHT=20 BORDER=0 ALT="Shopping Cart"></A><BR><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=4 BORDER=0><BR><A HREF="myaccount.html"><IMG SRC="images/btn_account.gif" WIDTH=86 HEIGHT=20 BORDER=0 ALT="My Account"></A><BR><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=4 BORDER=0><BR><A HREF="help.html"><IMG SRC="images/btn_help.gif" WIDTH=86 HEIGHT=20 BORDER=0 ALT="Help"></A></TD><TD BGCOLOR="#99CC33"><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=72 BORDER=0></TD></TR>
+<TR><TD BGCOLOR="#99CC33" COLSPAN=4 VALIGN=BOTTOM><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0><TR><TD VALIGN=BOTTOM><A HREF="dogs.html" onMouseOver="imgOn('dogs')" onMouseOut="imgOff('dogs')"><IMG NAME="tdogs" SRC="images/tab_dogs.gif" WIDTH=55 HEIGHT=60 BORDER=0 ALT="Dogs"></A><A HREF="cats.html" onMouseOver="imgOn('cats')" onMouseOut="imgOff('cats')"><IMG NAME="tcats" SRC="images/tab_cats.gif" WIDTH=52 HEIGHT=60 BORDER=0 ALT="Cats"></A><A HREF="fish.html" onMouseOver="imgOn('fish')" onMouseOut="imgOff('fish')"><IMG NAME="tfish" SRC="images/tab_fish.gif" WIDTH=50 HEIGHT=60 BORDER=0 ALT="Fish"></A><A HREF="birds.html" onMouseOver="imgOn('birds')" onMouseOut="imgOff('birds')"><IMG NAME="tbirds" SRC="images/tab_birds.gif" WIDTH=60 HEIGHT=60 BORDER=0 ALT="Birds"></A><A HREF="ferrets.html" onMouseOver="imgOn('ferrets')" onMouseOut="imgOff('ferrets')"><IMG NAME="tferrets" SRC="images/tab_ferrets.gif" WIDTH=66 HEIGHT=60 BORDER=0 ALT="Ferrets"></A><A HREF="reptiles.html" onMouseOver="imgOn('reptiles')" onMouseOut="imgOff('reptiles')"><IMG NAME="treptiles" SRC="images/tab_reptiles.gif" WIDTH=69 HEIGHT=60 BORDER=0 ALT="Reptiles"></A><A HREF="smallpets.html" onMouseOver="imgOn('smallpets')" onMouseOut="imgOff('smallpets')"><IMG NAME="tsmallpets" SRC="images/tab_smallpets.gif" WIDTH=87 HEIGHT=60 BORDER=0 ALT="Small Pets"></A></TD><TD VALIGN=BOTTOM><A HREF="index.html" onMouseOver="imgOn('home')" onMouseOut="imgOff('home')"><IMG NAME="thome" SRC="images/tab_home_on.gif" WIDTH=59 HEIGHT=20 BORDER=0 ALT="Home"></A></TD></TR></TABLE></TD></TR>
+<TR><TD BGCOLOR="#000000" COLSPAN=4><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=770><TR><TD><IMG SRC="images/title_checkout.gif" WIDTH=150 HEIGHT=28 BORDER=0 ALT=""></TD><TD WIDTH=611><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=1 BORDER=0></TD><TD VALIGN=BOTTOM><IMG SRC="images/corner.gif" WIDTH=9 HEIGHT=11 BORDER=0 ALT=""></TD></TR></TABLE></TD></TR>
+</TABLE><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=770><TR><TD BGCOLOR="#FFFFCC" VALIGN=TOP WIDTH=170><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=170>
+<TR><TD ALIGN=RIGHT><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=8 BORDER=0><BR><FORM NAME="search" ACTION="search.html" METHOD="GET" onSubmit="return checkSearch(this)"><TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 BGCOLOR="#CCCC99"><TR><TD BGCOLOR="#FFFFCC"><IMG SRC="images/search_side.gif" WIDTH=16 HEIGHT=36 BORDER=0 ALT=""></TD><TD BGCOLOR="#CCCC99"><IMG SRC="images/find.gif" WIDTH=20 HEIGHT=10 BORDER=0 ALT="find"><IMG SRC="images/dot_clear.gif" WIDTH=2 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#CCCC99"><INPUT TYPE=TEXT NAME="q" SIZE=9 MAXLENGTH=100><IMG SRC="images/dot_clear.gif" WIDTH=2 HEIGHT=1 BORDER=0></TD><TD BGCOLOR="#CCCC99"><INPUT TYPE=IMAGE NAME="go" SRC="images/go.gif" WIDTH=20 HEIGHT=20 BORDER=0><IMG SRC="images/dot_clear.gif" WIDTH=2 HEIGHT=1 BORDER=0></TD></TR></TABLE></FORM></TD></TR>
+<TR><TD><TABLE CELLSPACING=2 CELLPADDING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=12 HEIGHT=1 BORDER=0></TD><TD><IMG SRC="images/todays_features.gif" WIDTH=135 HEIGHT=15 BORDER=0 ALT="Today's Features"></TD></TR></TABLE>
+<TABLE CELLSPACING=2 CELLPADDING=0 BORDER=0>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="feature_1.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Puppy Love, Online</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Is your pug ready for e-dating?</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="feature_2.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Is Your Cat Y2K Ready?</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Stock up on litter before the clocks roll</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="feature_3.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>The 56k Hamster</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>One rodent, one wheel, one tiny ISP</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="superbowl.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Our Super Bowl Ad</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Thirty seconds, two million dollars, one sock</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="mascot.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Meet Argyle</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>The sock that launched a thousand shipments</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="advice.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Ask the Vet</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Dr. Woofington answers your letters</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="advice_5.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Sock Thieves</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Why does my ferret do that?</I></FONT></TD></TR></TABLE></TD></TR>
+<TR><TD VALIGN=TOP ALIGN=LEFT><TABLE CELLPADDING=2 CELLSPACING=0 BORDER=0><TR><TD><IMG SRC="images/dot_clear.gif" WIDTH=8 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP><A HREF="investor.html" CLASS="editorialtitle"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Investor Relations</B></FONT></A><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Our stock only goes up. Ask anyone.</I></FONT></TD></TR></TABLE></TD></TR>
+</TABLE><BR>
+<CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Shop by pet:</B><BR><A HREF="dogs.html">Dogs</A> &middot; <A HREF="cats.html">Cats</A> &middot; <A HREF="fish.html">Fish</A> &middot; <A HREF="birds.html">Birds</A> &middot; <A HREF="ferrets.html">Ferrets</A> &middot; <A HREF="reptiles.html">Reptiles</A> &middot; <A HREF="smallpets.html">Small Pets</A></FONT></CENTER><BR>
+</TD></TR></TABLE></TD><TD WIDTH=14><IMG SRC="images/dot_clear.gif" WIDTH=14 HEIGHT=1 BORDER=0></TD><TD VALIGN=TOP WIDTH=586><IMG SRC="images/dot_clear.gif" WIDTH=586 HEIGHT=10 BORDER=0><BR>
+<FONT FACE="Arial, Helvetica" SIZE=3><B>Checkout</B></FONT>
+<BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#666633"><I>Step 1 of 1. We streamlined. It saves us almost a dollar per order.</I></FONT>
+<BR><BR><SCRIPT LANGUAGE="JavaScript">
+<!--
+drawSummary();
+//-->
+</SCRIPT>
+
+<FORM NAME="order" ACTION="thankyou.html" METHOD="GET" onSubmit="return checkOrder(this)">
+<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=0>
+<TR><TD COLSPAN=2 BGCOLOR="#99CC33"><FONT FACE="Verdana, Arial, Helvetica" SIZE=2><B>Ship to:</B></FONT></TD></TR>
+<TR><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>First name:</B></FONT></TD><TD><INPUT TYPE=TEXT NAME="fname" SIZE=20 MAXLENGTH=40></TD></TR>
+<TR><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Last name:</B></FONT></TD><TD><INPUT TYPE=TEXT NAME="lname" SIZE=24 MAXLENGTH=40></TD></TR>
+<TR><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Street address:</B></FONT></TD><TD><INPUT TYPE=TEXT NAME="addr1" SIZE=34 MAXLENGTH=40></TD></TR>
+<TR><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Apt / suite:</B></FONT></TD><TD><INPUT TYPE=TEXT NAME="addr2" SIZE=12 MAXLENGTH=40></TD></TR>
+<TR><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>City:</B></FONT></TD><TD><INPUT TYPE=TEXT NAME="city" SIZE=22 MAXLENGTH=40></TD></TR>
+<TR><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>State:</B></FONT></TD><TD><INPUT TYPE=TEXT NAME="state" SIZE=3 MAXLENGTH=40></TD></TR>
+<TR><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>ZIP code:</B></FONT></TD><TD><INPUT TYPE=TEXT NAME="zip" SIZE=10 MAXLENGTH=40></TD></TR>
+<TR><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Pet's name:</B></FONT></TD><TD><INPUT TYPE=TEXT NAME="petname" SIZE=20 MAXLENGTH=40></TD></TR>
+<TR><TD ALIGN=RIGHT VALIGN=TOP><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Delivery:</B></FONT></TD><TD><SELECT NAME="speed"><OPTION SELECTED>Standard ground (3-7 days)<OPTION>Second day air (we lose more)<OPTION>Overnight (we lose the most)<OPTION>Carrier pigeon (bird food orders only)</SELECT></TD></TR>
+<TR><TD ALIGN=RIGHT VALIGN=TOP><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Gift message:</B></FONT></TD><TD><TEXTAREA NAME="gift" ROWS=3 COLS=34 WRAP=VIRTUAL></TEXTAREA><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><I>Printed on the packing slip, under the part where we lose money.</I></FONT></TD></TR>
+<TR><TD COLSPAN=2><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=6 BORDER=0></TD></TR>
+<TR><TD COLSPAN=2 BGCOLOR="#99CC33"><FONT FACE="Verdana, Arial, Helvetica" SIZE=2><B>Payment method:</B></FONT></TD></TR>
+<TR><TD></TD><TD>
+<INPUT TYPE=RADIO NAME="pay" VALUE="sock"> <FONT FACE="Verdana, Arial, Helvetica" SIZE=2>Bill my sock drawer</FONT><BR>
+<INPUT TYPE=RADIO NAME="pay" VALUE="options"> <FONT FACE="Verdana, Arial, Helvetica" SIZE=2>Pay in Petz stock options (vesting in 2004)</FONT><BR>
+<INPUT TYPE=RADIO NAME="pay" VALUE="biscuit"> <FONT FACE="Verdana, Arial, Helvetica" SIZE=2>IOU, written on a dog biscuit</FONT><BR>
+<INPUT TYPE=RADIO NAME="pay" VALUE="bones"> <FONT FACE="Verdana, Arial, Helvetica" SIZE=2>Bury cash in the backyard; Argyle will dig it up</FONT><BR>
+<INPUT TYPE=RADIO NAME="pay" VALUE="vc"> <FONT FACE="Verdana, Arial, Helvetica" SIZE=2>Charge it to our venture capitalists (everyone else does)</FONT><BR>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#999999"><I><BR>Petz.com does not accept credit cards at this time. Our bank asked us to stop sending them so much paperwork.</I></FONT></TD></TR>
+<TR><TD COLSPAN=2><IMG SRC="images/dot_clear.gif" WIDTH=1 HEIGHT=6 BORDER=0></TD></TR>
+<TR><TD></TD><TD><INPUT TYPE=IMAGE SRC="images/btn_placeorder.gif" WIDTH=130 HEIGHT=24 BORDER=0 ALT="Place My Order"></TD></TR>
+</TABLE></FORM>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#999999">This is a parody web site from 1999. Nothing you type here is sent anywhere, stored, or read by anyone, including Argyle.</FONT>
+</TD></TR></TABLE>
+
+<TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0 WIDTH=770><TR><TD WIDTH=170 BGCOLOR="#FFFFCC"><IMG SRC="images/dot_clear.gif" WIDTH=170 HEIGHT=1 BORDER=0></TD><TD ALIGN=CENTER>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1><BR><BR><A HREF="help.html">Help</A> | <A HREF="help.html#contact">Contact Us</A> | <A HREF="about.html">About Us</A> | <A HREF="about.html#jobs">Jobs</A> | <A HREF="help.html#terms">Terms of Use</A> | <A HREF="about.html#associates">Associates</A> | <A HREF="help.html#guarantee">Our Guarantee</A><BR><BR>Copyright &copy; 1999 Petz.com, Inc. All rights reserved. Petz.com is not responsible for pets that drive.<BR><BR></FONT>
+<CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../etoyz/index.html">&lt;&lt; Prev</A> | <A HREF="../../web1999/index.html" onClick="return ringRandom()">Random</A> | <B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Petz.com is site 7 of 12 | <A HREF="../geohoods/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE></CENTER>
+<BR><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion"><BR><BR>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

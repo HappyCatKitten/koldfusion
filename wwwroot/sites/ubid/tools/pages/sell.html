@@ -1,0 +1,55 @@
+<FONT FACE="Arial, Helvetica" SIZE=5><B>Sell Your Item</B></FONT><BR>
+<FONT SIZE=2>Fill in the form, click <B>Review</B>, and your item goes up for auction immediately. Insertion fee: just $0.25 (billed to your imaginary account).</FONT><BR><BR>
+<SCRIPT LANGUAGE="JavaScript">
+var STOCK = new Array(new Array("box", "Mystery box"), new Array("beanie", "Bean bag animal"), new Array("furby", "Talking toy"),
+  new Array("computer", "Computer"), new Array("book", "Books"), new Array("coin", "Coins"), new Array("doll", "Doll"),
+  new Array("lamp", "Lamp"), new Array("camera", "Camera"), new Array("card", "Cards"));
+function strip(s) { return s.replace(/[~;\r\n]/g, " "); }
+function listItem() {
+  var f = document.forms["sell"];
+  var who = f.userid.value.toLowerCase().replace(/\s/g, "");
+  var err = checkLogin(who, f.pass.value);
+  if (err != "") { alert(err); return false; }
+  var title = strip(f.title.value).substring(0, 45);
+  if (title.replace(/\s/g, "").length < 5) { alert("Please give your item a title (at least 5 characters). Tip: CAPITAL LETTERS and L@@K always help."); return false; }
+  var start = cents(f.minbid.value);
+  if (start < 1) { alert("Please enter a minimum bid, like 5.00."); return false; }
+  var reserve = f.reserve.value.replace(/\s/g, "") == "" ? 0 : cents(f.reserve.value);
+  if (reserve != 0 && reserve <= start) { alert("The reserve price must be higher than the minimum bid (or leave it blank)."); return false; }
+  var desc = strip(f.desc.value).substring(0, 160);
+  if (desc.length < 10) { alert("Please describe your item in a sentence or two."); return false; }
+  var pic = "box";
+  for (var i = 0; i < f.pic.length; i++) if (f.pic[i].checked) pic = f.pic[i].value;
+  var cat = f.cat.options[f.cat.selectedIndex].value;
+  var dur = f.dur.options[f.dur.selectedIndex].value;
+  var id = "U-" + who + "-" + now();
+  var old = getCookie("ubid_sell"), list = (old == "" ? new Array() : old.split(";")), out = new Array();
+  out[0] = id + "~" + title + "~" + cat + "~" + start + "~" + dur + "~" + now() + "~" + pic + "~" + desc + "~" + reserve;
+  for (var i = 0; i < list.length && out.length < 3; i++) out[out.length] = list[i];
+  setCookie("ubid_sell", out.join(";"), 30);
+  signIn(who);
+  location.href = P + "sold.html?id=" + escape(id);
+  return false;
+}
+var h = "<FORM NAME=\"sell\" onSubmit=\"return listItem()\"><TABLE BORDER=0 CELLPADDING=4 CELLSPACING=0 WIDTH=\"100%\">";
+h += "<TR BGCOLOR=\"#EFEFEF\"><TD><FONT SIZE=2><B>User ID</B></FONT></TD><TD><INPUT TYPE=text NAME=\"userid\" SIZE=20 VALUE=\"" + esc(userId()) + "\"> <FONT SIZE=1>Not registered? <A HREF=\"" + P + "register.html\">Register now</A></FONT></TD></TR>";
+h += "<TR BGCOLOR=\"#EFEFEF\"><TD><FONT SIZE=2><B>Password</B></FONT></TD><TD><INPUT TYPE=password NAME=\"pass\" SIZE=20></TD></TR>";
+h += "<TR><TD><FONT SIZE=2><B>Title</B></FONT></TD><TD><INPUT TYPE=text NAME=\"title\" SIZE=45 MAXLENGTH=45><BR><FONT SIZE=1>45 characters max. No HTML, please.</FONT></TD></TR>";
+var co = "";
+for (var i = 0; i < CATS.length; i++) co += "<OPTION VALUE=\"" + CATS[i][0] + "\">" + CATS[i][1].replace("&amp;", "&");
+h += "<TR><TD><FONT SIZE=2><B>Category</B></FONT></TD><TD><SELECT NAME=\"cat\">" + co + "</SELECT></TD></TR>";
+h += "<TR><TD VALIGN=TOP><FONT SIZE=2><B>Description</B></FONT></TD><TD><TEXTAREA NAME=\"desc\" ROWS=4 COLS=50 WRAP=VIRTUAL></TEXTAREA></TD></TR>";
+h += "<TR><TD VALIGN=TOP><FONT SIZE=2><B>Picture</B></FONT></TD><TD><FONT SIZE=1>No scanner? No problem. Pick the photo that looks most like your item:</FONT><BR><TABLE BORDER=0 CELLPADDING=2><TR>";
+for (var i = 0; i < STOCK.length; i++) {
+  if (i == 5) h += "</TR><TR>";
+  h += "<TD ALIGN=CENTER><IMG SRC=\"" + P + "images/items/stock_" + STOCK[i][0] + "_t.gif\" WIDTH=80 HEIGHT=60><BR><INPUT TYPE=radio NAME=\"pic\" VALUE=\"" + STOCK[i][0] + "\"" + (i == 0 ? " CHECKED" : "") + "><FONT SIZE=1>" + STOCK[i][1] + "</FONT></TD>";
+}
+h += "</TR></TABLE></TD></TR>";
+h += "<TR><TD><FONT SIZE=2><B>Minimum bid</B></FONT></TD><TD><FONT SIZE=2>$<INPUT TYPE=text NAME=\"minbid\" SIZE=8> &nbsp; Reserve price (optional): $<INPUT TYPE=text NAME=\"reserve\" SIZE=8></FONT></TD></TR>";
+h += "<TR><TD><FONT SIZE=2><B>Duration</B></FONT></TD><TD><SELECT NAME=\"dur\"><OPTION VALUE=\"3\">3 days<OPTION VALUE=\"5\">5 days<OPTION VALUE=\"7\" SELECTED>7 days</SELECT></TD></TR>";
+h += "<TR><TD></TD><TD><INPUT TYPE=submit VALUE=\"Review and list my item\"> <INPUT TYPE=reset VALUE=\"Clear form\"></TD></TR></TABLE></FORM>";
+document.write(h);
+</SCRIPT>
+<NOSCRIPT>The selling form requires JavaScript.</NOSCRIPT>
+<FONT SIZE=2><B>Seller tips:</B> a clear title sells. "Furby" beats "toy". "FURBY NIB RARE L@@K!!!" beats everything.
+Demo seller account: <TT>beaniebaron</TT> / <TT>bidbid</TT>.</FONT>

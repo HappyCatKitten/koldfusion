@@ -1,0 +1,217 @@
+<HTML>
+<HEAD>
+<TITLE>CNM - Weather - December 20, 1999</TITLE>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<SCRIPT LANGUAGE="JavaScript"><!--
+var wxCity = new Array("Port Halloway, Maine","New Bramford, Conn.","Gristmill Falls, Ohio","Halcyon Springs, Fla.","Saint Ulric, La.","Lake Wendell, Minn.","Bellwether, Iowa","Cotterville, Kan.","Cedar Notch, Colo.","Dry Spoon, Ariz.","Twin Forks, Mont.","Mossbank, Ore.");
+var wxIcon = new Array("snow","cloud","partly","sun","rain","snow","cloud","partly","snow","sun","storm","rain");
+var wxHi = new Array(22,31,34,78,64,15,27,38,29,66,18,47);
+var wxLo = new Array(5,18,21,61,52,-4,12,19,8,39,2,39);
+var wxFc = new Array("Snow ending, then clearing and bitter cold","Cloudy and breezy, flurries late","Partly sunny, chilly","Sunny and pleasant","Showers and a few thunderstorms","Light snow, blowing and drifting","Mostly cloudy, cold","Partly cloudy, windy","Snow showers in the mountains","Sunny and mild","Windy with snow squalls","Rain, heavy at times");
+var zipToCity = new Array(0,1,3,3,2,5,7,4,8,11);
+function getParam(name) {
+  var q = location.search.substring(1);
+  var parts = q.split("&");
+  var i;
+  for (i = 0; i < parts.length; i++) {
+    var kv = parts[i].split("=");
+    if (kv[0] == name && kv.length > 1) return unescape(kv[1].replace(/\+/g, " "));
+  }
+  return "";
+}
+function zipCheck(f) {
+  var z = f.zip.value;
+  if (z.length != 5 || isNaN(z)) {
+    alert("Please enter a five-digit U.S. Zip code.");
+    return false;
+  }
+  return true;
+}
+function localForecast() {
+  var z = getParam("zip");
+  if (z == "") return;
+  if (z.length != 5 || isNaN(z)) {
+    document.write('<P><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000">Sorry, we could not find a forecast for that Zip code.</FONT>');
+    return;
+  }
+  var c = zipToCity[parseInt(z.charAt(0), 10)];
+  document.write('<TABLE WIDTH=630 BORDER=0 CELLPADDING=6 CELLSPACING=0 BGCOLOR="#FFFFCC"><TR>');
+  document.write('<TD><IMG SRC="images/wx_' + wxIcon[c] + '.gif" WIDTH=40 HEIGHT=40 ALT="' + wxIcon[c] + '"></TD>');
+  document.write('<TD><FONT FACE="Arial, Helvetica" SIZE=2><B>Your local forecast</B> (Zip ' + z + ', nearest CNM reporting city: ' + wxCity[c] + ')<BR>');
+  document.write(wxFc[c] + '. High <B>' + wxHi[c] + '</B>, low <B>' + wxLo[c] + '</B>.</FONT></TD></TR></TABLE><BR>');
+}
+//--></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#003366" VLINK="#663366" ALINK="#CC0000" MARGINWIDTH=0 MARGINHEIGHT=0 LEFTMARGIN=0 TOPMARGIN=0>
+<A NAME="top"></A>
+<TABLE WIDTH=770 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR>
+<TD WIDTH=167 VALIGN=BOTTOM><A HREF="index.html"><IMG SRC="images/logo.gif" WIDTH=167 HEIGHT=40 BORDER=0 ALT="CNM Interactive"></A></TD>
+<TD WIDTH=10><IMG SRC="images/1.gif" WIDTH=10 HEIGHT=1 ALT=""></TD>
+<TD WIDTH=468 ALIGN=CENTER VALIGN=TOP><A HREF="../altavisor/index.html" TARGET="_top"><IMG SRC="images/ad_altavisor.gif" WIDTH=468 HEIGHT=60 BORDER=0 ALT="AltaVisor: find it faster"></A></TD>
+<TD WIDTH=125 ALIGN=RIGHT VALIGN=BOTTOM><FORM ACTION="search.html" METHOD=GET NAME="seek_top">
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>Search</B></FONT><BR>
+<SELECT NAME="sites"><OPTION VALUE="CNM" SELECTED>CNM.com<OPTION VALUE="WEB">The Web</SELECT><BR>
+<INPUT TYPE=TEXT NAME="query" SIZE=8><INPUT TYPE=SUBMIT VALUE="Find">
+</FORM></TD>
+</TR>
+<TR><TD COLSPAN=4><IMG SRC="images/1.gif" WIDTH=1 HEIGHT=4 ALT=""></TD></TR>
+</TABLE>
+<TABLE WIDTH=770 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR BGCOLOR="#666699">
+<TD WIDTH=125 VALIGN=MIDDLE><FORM NAME="cnmsites"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>
+<SELECT NAME="go" onChange="if (this.selectedIndex != 0) window.location = this.options[this.selectedIndex].value;">
+<OPTION VALUE="">CNM Sites<OPTION VALUE="index.html">CNM<OPTION VALUE="BUSINESS/index.html">CNMfn<OPTION VALUE="SPORTS/index.html">CNM/SI<OPTION VALUE="POLITICS/index.html">Politics<OPTION VALUE="customnews.html">myCNM<OPTION VALUE="y2k/index.html">Y2K Special<OPTION VALUE="weather.html">Weather
+</SELECT></FONT></FORM></TD>
+<TD WIDTH=15><IMG SRC="images/1.gif" WIDTH=15 HEIGHT=1 ALT=""></TD>
+<TD WIDTH=630 ALIGN=RIGHT VALIGN=MIDDLE><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><A HREF="video.html"><FONT COLOR="#FFFFFF">Video</FONT></A>&nbsp;|&nbsp;<A HREF="audio.html"><FONT COLOR="#FFFFFF">Audio</FONT></A>&nbsp;|&nbsp;<A HREF="brief.html"><FONT COLOR="#FFFFFF">Headline News Brief</FONT></A>&nbsp;|&nbsp;<A HREF="email.html"><FONT COLOR="#FFFFFF">Free E-mail</FONT></A>&nbsp;|&nbsp;<A HREF="feedback.html"><FONT COLOR="#FFFFFF">Feedback</FONT></A>&nbsp;&nbsp;</FONT></TD>
+</TR>
+<TR>
+<TD WIDTH=125 BGCOLOR="#333366" HEIGHT=18>&nbsp;<IMG SRC="images/newarrow.gif" WIDTH=11 HEIGHT=11 ALIGN=RIGHT HSPACE=3 ALT="*"><A HREF="index.html"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>MAIN PAGE</B></FONT></A></TD>
+<TD WIDTH=15>&nbsp;</TD>
+<TD WIDTH=630><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><A HREF="almanac.html">December 20, 1999</A> -- Updated 3:52 p.m. EST (2052 GMT)</FONT></TD>
+</TR>
+</TABLE>
+<TABLE WIDTH=770 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR>
+<TD WIDTH=125 VALIGN=TOP BGCOLOR="#CCCCFF"><TABLE WIDTH=125 BORDER=0 CELLPADDING=2 CELLSPACING=0>
+<TR><TD BGCOLOR="#CCCCFF"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><B>
+&nbsp;<A HREF="WORLD/index.html">WORLD</A><BR>
+&nbsp;<A HREF="US/index.html">U.S.</A><BR>
+&nbsp;<A HREF="WEATHER/index.html"><FONT COLOR="#CC0000">WEATHER</FONT></A><BR>
+&nbsp;<A HREF="BUSINESS/index.html">BUSINESS</A><BR>
+&nbsp;<A HREF="SPORTS/index.html">SPORTS</A><BR>
+&nbsp;<A HREF="TECH/index.html">SCI-TECH</A><BR>
+&nbsp;<A HREF="SHOWBIZ/index.html">ENTERTAINMENT</A><BR>
+&nbsp;<A HREF="POLITICS/index.html">POLITICS</A><BR>
+&nbsp;<A HREF="LAW/index.html">LAW</A><BR>
+&nbsp;<A HREF="HEALTH/index.html">HEALTH</A><BR>
+&nbsp;<A HREF="TRAVEL/index.html">TRAVEL</A><BR>
+&nbsp;<A HREF="FOOD/index.html">FOOD</A><BR>
+&nbsp;<A HREF="STYLE/index.html">STYLE</A><BR>
+&nbsp;<A HREF="indepth.html">IN-DEPTH</A><BR>
+&nbsp;<A HREF="local.html">LOCAL</A><BR>
+</B><HR SIZE=1 WIDTH="90%" NOSHADE>
+&nbsp;<A HREF="customnews.html">Custom News</A><BR>
+&nbsp;<A HREF="brief.html">Headline News brief</A><BR>
+&nbsp;<A HREF="quiz.html">news quiz</A><BR>
+&nbsp;<A HREF="almanac.html">daily almanac</A><BR><BR>
+</FONT></TD></TR>
+<TR BGCOLOR="#666699"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>&nbsp;MULTIMEDIA:</B></FONT></TD></TR>
+<TR><TD BGCOLOR="#CCCCFF"><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>
+&nbsp;<A HREF="video.html">video</A><BR>
+&nbsp;<A HREF="audio.html">audio</A><BR>
+&nbsp;<A HREF="y2k/index.html">Y2K countdown</A><BR>
+&nbsp;<A HREF="weather.html">weather maps</A><BR><BR>
+</FONT></TD></TR>
+</TABLE>
+<TABLE WIDTH=125 BORDER=0 CELLPADDING=2 CELLSPACING=0 BGCOLOR="#CCCCFF">
+<TR BGCOLOR="#666699"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>&nbsp;E-MAIL:</B></FONT></TD></TR>
+<TR><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Subscribe to one of our <A HREF="customnews.html">news e-mail lists</A>.<BR>Enter your address:</FONT>
+<FORM NAME="emailform" ACTION="customnews.html" METHOD=GET><INPUT TYPE=TEXT NAME="email" SIZE=10>&nbsp;<INPUT TYPE=SUBMIT VALUE="Go"></FORM></TD></TR>
+<TR BGCOLOR="#666699"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>&nbsp;DISCUSSION:</B></FONT></TD></TR>
+<TR><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>
+&nbsp;<A HREF="quickvote.html">QuickVote</A><BR>
+&nbsp;<A HREF="quickvote_archive.html">past votes</A><BR>
+&nbsp;<A HREF="feedback.html">feedback</A><BR><BR>
+</FONT></TD></TR>
+<TR BGCOLOR="#666699"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>&nbsp;CNM WEB SITES:</B></FONT></TD></TR>
+<TR><TD>
+<MAP NAME="cnmwebsites">
+<AREA SHAPE="rect" COORDS="0,0,63,19" HREF="customnews.html" ALT="myCNM">
+<AREA SHAPE="rect" COORDS="64,0,120,19" HREF="SPORTS/index.html" ALT="CNM/SI">
+<AREA SHAPE="rect" COORDS="0,20,63,39" HREF="POLITICS/index.html" ALT="Politics">
+<AREA SHAPE="rect" COORDS="64,20,120,39" HREF="BUSINESS/index.html" ALT="CNMfn">
+</MAP>
+<IMG SRC="images/websites.gif" WIDTH=121 HEIGHT=40 BORDER=0 USEMAP="#cnmwebsites" ALT="CNM Web sites">
+</TD></TR>
+<TR><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>
+&nbsp;<A HREF="y2k/index.html">Y2K Special</A><BR>
+&nbsp;<A HREF="indepth.html">In-Depth</A><BR>
+&nbsp;<A HREF="local.html">Local news</A><BR><BR>
+</FONT></TD></TR>
+</TABLE></TD>
+<TD WIDTH=15><IMG SRC="images/1.gif" WIDTH=15 HEIGHT=1 ALT=""></TD>
+<TD WIDTH=630 VALIGN=TOP><BR>
+<IMG SRC="images/sec_forecast.gif" WIDTH=470 HEIGHT=40 BORDER=0 ALT="Weather forecasts"><BR>
+<SCRIPT LANGUAGE="JavaScript"><!--
+localForecast();
+//--></SCRIPT>
+<TABLE WIDTH=630 BORDER=0 CELLPADDING=0 CELLSPACING=0><TR>
+<TD WIDTH=400 VALIGN=TOP><IMG SRC="images/us_map.gif" WIDTH=400 HEIGHT=250 ALT="U.S. weather map"><BR>
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Blue line: cold front, moving east. Numbers: today's highs. Map not to scale, or to any particular projection.</FONT></TD>
+<TD WIDTH=10>&nbsp;</TD>
+<TD WIDTH=220 VALIGN=TOP>
+<TABLE WIDTH="220" BORDER=0 CELLPADDING=2 CELLSPACING=0><TR><TD WIDTH=5 BGCOLOR="#FF6600">&nbsp;</TD><TD BGCOLOR="#666666" NOWRAP><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#FFFFFF"><B>&nbsp;FIND YOUR FORECAST</B></FONT></TD></TR></TABLE>
+<FORM NAME="wxform" ACTION="weather.html" METHOD=GET onSubmit="return zipCheck(this);">
+<FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Enter a U.S. Zip code for your local forecast:</FONT><BR>
+<INPUT TYPE=TEXT NAME="zip" SIZE=6 MAXLENGTH=5> <INPUT TYPE=SUBMIT VALUE="Go">
+</FORM>
+<TABLE WIDTH="220" BORDER=0 CELLPADDING=2 CELLSPACING=0><TR><TD WIDTH=5 BGCOLOR="#FF6600">&nbsp;</TD><TD BGCOLOR="#666666" NOWRAP><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#FFFFFF"><B>&nbsp;WEATHER NEWS</B></FONT></TD></TR></TABLE>
+<FONT FACE="Arial, Helvetica" SIZE=2><UL><LI><A HREF="1999/WEATHER/12/20/noreaster/index.html">Nor'easter dumps 20 inches on Maine coast</A>
+<LI><A HREF="1999/WEATHER/12/17/millennium.forecast/index.html">Early New Year's Eve forecast: mild for most, frosty in the Northeast</A>
+<LI><A HREF="1999/WEATHER/12/13/la.nada/index.html">Forecasters coin 'La Nada' for winter of nothing much</A>
+<LI><A HREF="1999/WEATHER/12/09/warm.december/index.html">Dry Spoon hits 81 degrees as Southwest basks in record warmth</A>
+<LI><A HREF="1999/WEATHER/12/04/plains.blizzard/index.html">Early blizzard strands holiday shoppers on Plains</A>
+</UL></FONT>
+</TD></TR></TABLE><BR>
+<TABLE WIDTH="630" BORDER=0 CELLPADDING=2 CELLSPACING=0><TR><TD WIDTH=5 BGCOLOR="#FF6600">&nbsp;</TD><TD BGCOLOR="#666666" NOWRAP><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#FFFFFF"><B>&nbsp;U.S. CITIES</B></FONT></TD></TR></TABLE>
+<TABLE WIDTH=630 BORDER=0 CELLPADDING=3 CELLSPACING=0>
+<TR BGCOLOR="#666699"><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>CITY</B></FONT></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>MON</B></FONT></TD>
+<TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>FORECAST</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>HI</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>LO</B></FONT></TD>
+<TD ALIGN=CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>TUE</B></FONT></TD><TD ALIGN=CENTER><FONT FACE="Verdana, Arial, Helvetica" SIZE=1 COLOR="#FFFFFF"><B>WED</B></FONT></TD></TR>
+<TR><TD><A NAME="c0"></A><FONT FACE="Arial, Helvetica" SIZE=2><B>Port Halloway</B>, Maine</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wx_snow.gif" WIDTH=40 HEIGHT=40 ALT="snow"></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Snow ending, then clearing and bitter cold</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>22</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#0000CC"><B>5</B></FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_snow.gif" WIDTH=20 HEIGHT=20 ALT="snow"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>26/4</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_rain.gif" WIDTH=20 HEIGHT=20 ALT="rain"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>20/3</FONT></TD></TR>
+<TR BGCOLOR="#EEEEEE"><TD><A NAME="c1"></A><FONT FACE="Arial, Helvetica" SIZE=2><B>New Bramford</B>, Conn.</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wx_cloud.gif" WIDTH=40 HEIGHT=40 ALT="cloud"></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Cloudy and breezy, flurries late</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>31</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#0000CC"><B>18</B></FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_rain.gif" WIDTH=20 HEIGHT=20 ALT="rain"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>29/20</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_cloud.gif" WIDTH=20 HEIGHT=20 ALT="cloud"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>27/22</FONT></TD></TR>
+<TR><TD><A NAME="c2"></A><FONT FACE="Arial, Helvetica" SIZE=2><B>Gristmill Falls</B>, Ohio</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wx_partly.gif" WIDTH=40 HEIGHT=40 ALT="partly"></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Partly sunny, chilly</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>34</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#0000CC"><B>21</B></FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_partly.gif" WIDTH=20 HEIGHT=20 ALT="partly"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>40/22</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_cloud.gif" WIDTH=20 HEIGHT=20 ALT="cloud"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>40/22</FONT></TD></TR>
+<TR BGCOLOR="#EEEEEE"><TD><A NAME="c3"></A><FONT FACE="Arial, Helvetica" SIZE=2><B>Halcyon Springs</B>, Fla.</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wx_sun.gif" WIDTH=40 HEIGHT=40 ALT="sun"></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Sunny and pleasant</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>78</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#0000CC"><B>61</B></FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_partly.gif" WIDTH=20 HEIGHT=20 ALT="partly"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>76/59</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_partly.gif" WIDTH=20 HEIGHT=20 ALT="partly"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>77/61</FONT></TD></TR>
+<TR><TD><A NAME="c4"></A><FONT FACE="Arial, Helvetica" SIZE=2><B>Saint Ulric</B>, La.</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wx_rain.gif" WIDTH=40 HEIGHT=40 ALT="rain"></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Showers and a few thunderstorms</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>64</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#0000CC"><B>52</B></FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_rain.gif" WIDTH=20 HEIGHT=20 ALT="rain"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>67/54</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_rain.gif" WIDTH=20 HEIGHT=20 ALT="rain"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>61/56</FONT></TD></TR>
+<TR BGCOLOR="#EEEEEE"><TD><A NAME="c5"></A><FONT FACE="Arial, Helvetica" SIZE=2><B>Lake Wendell</B>, Minn.</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wx_snow.gif" WIDTH=40 HEIGHT=40 ALT="snow"></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Light snow, blowing and drifting</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>15</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#0000CC"><B>-4</B></FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_rain.gif" WIDTH=20 HEIGHT=20 ALT="rain"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>15/-3</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_rain.gif" WIDTH=20 HEIGHT=20 ALT="rain"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>13/-7</FONT></TD></TR>
+<TR><TD><A NAME="c6"></A><FONT FACE="Arial, Helvetica" SIZE=2><B>Bellwether</B>, Iowa</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wx_cloud.gif" WIDTH=40 HEIGHT=40 ALT="cloud"></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Mostly cloudy, cold</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>27</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#0000CC"><B>12</B></FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_partly.gif" WIDTH=20 HEIGHT=20 ALT="partly"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>22/8</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_cloud.gif" WIDTH=20 HEIGHT=20 ALT="cloud"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>26/7</FONT></TD></TR>
+<TR BGCOLOR="#EEEEEE"><TD><A NAME="c7"></A><FONT FACE="Arial, Helvetica" SIZE=2><B>Cotterville</B>, Kan.</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wx_partly.gif" WIDTH=40 HEIGHT=40 ALT="partly"></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Partly cloudy, windy</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>38</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#0000CC"><B>19</B></FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_sun.gif" WIDTH=20 HEIGHT=20 ALT="sun"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>38/15</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_sun.gif" WIDTH=20 HEIGHT=20 ALT="sun"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>39/18</FONT></TD></TR>
+<TR><TD><A NAME="c8"></A><FONT FACE="Arial, Helvetica" SIZE=2><B>Cedar Notch</B>, Colo.</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wx_snow.gif" WIDTH=40 HEIGHT=40 ALT="snow"></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Snow showers in the mountains</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>29</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#0000CC"><B>8</B></FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_rain.gif" WIDTH=20 HEIGHT=20 ALT="rain"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>23/6</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_rain.gif" WIDTH=20 HEIGHT=20 ALT="rain"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>26/6</FONT></TD></TR>
+<TR BGCOLOR="#EEEEEE"><TD><A NAME="c9"></A><FONT FACE="Arial, Helvetica" SIZE=2><B>Dry Spoon</B>, Ariz.</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wx_sun.gif" WIDTH=40 HEIGHT=40 ALT="sun"></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Sunny and mild</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>66</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#0000CC"><B>39</B></FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_sun.gif" WIDTH=20 HEIGHT=20 ALT="sun"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>63/43</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_sun.gif" WIDTH=20 HEIGHT=20 ALT="sun"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>64/34</FONT></TD></TR>
+<TR><TD><A NAME="c10"></A><FONT FACE="Arial, Helvetica" SIZE=2><B>Twin Forks</B>, Mont.</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wx_storm.gif" WIDTH=40 HEIGHT=40 ALT="storm"></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Windy with snow squalls</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>18</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#0000CC"><B>2</B></FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_sun.gif" WIDTH=20 HEIGHT=20 ALT="sun"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>13/5</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_storm.gif" WIDTH=20 HEIGHT=20 ALT="storm"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>23/-3</FONT></TD></TR>
+<TR BGCOLOR="#EEEEEE"><TD><A NAME="c11"></A><FONT FACE="Arial, Helvetica" SIZE=2><B>Mossbank</B>, Ore.</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wx_rain.gif" WIDTH=40 HEIGHT=40 ALT="rain"></TD><TD><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>Rain, heavy at times</FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#CC0000"><B>47</B></FONT></TD><TD ALIGN=RIGHT><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#0000CC"><B>39</B></FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_snow.gif" WIDTH=20 HEIGHT=20 ALT="snow"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>46/41</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_rain.gif" WIDTH=20 HEIGHT=20 ALT="rain"><BR><FONT FACE="Verdana, Arial, Helvetica" SIZE=1>45/38</FONT></TD></TR>
+</TABLE><BR>
+<TABLE WIDTH="400" BORDER=0 CELLPADDING=2 CELLSPACING=0><TR><TD WIDTH=5 BGCOLOR="#FF6600">&nbsp;</TD><TD BGCOLOR="#666666" NOWRAP><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="#FFFFFF"><B>&nbsp;AROUND THE WORLD</B></FONT></TD></TR></TABLE>
+<TABLE WIDTH=400 BORDER=0 CELLPADDING=3 CELLSPACING=0>
+<TR><TD><FONT FACE="Arial, Helvetica" SIZE=2><B>Saint Ambrose</B>, Marisol Islands</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_sun.gif" WIDTH=20 HEIGHT=20 ALT="sun"></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=2>86/75</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial, Helvetica" SIZE=2><B>Velkograd</B>, Ostravia</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_snow.gif" WIDTH=20 HEIGHT=20 ALT="snow"></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=2>19/6</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial, Helvetica" SIZE=2><B>Lornswick</B>, Esterhaal</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_rain.gif" WIDTH=20 HEIGHT=20 ALT="rain"></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=2>44/37</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial, Helvetica" SIZE=2><B>Puerto Caldera</B>, Vellmark</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_storm.gif" WIDTH=20 HEIGHT=20 ALT="storm"></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=2>88/74</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial, Helvetica" SIZE=2><B>Bruskholm</B>, Lower Bruskia</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_cloud.gif" WIDTH=20 HEIGHT=20 ALT="cloud"></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=2>33/25</FONT></TD></TR>
+<TR><TD><FONT FACE="Arial, Helvetica" SIZE=2><B>Port Sabrino</B>, Tamberlay</FONT></TD><TD ALIGN=CENTER><IMG SRC="images/wxs_partly.gif" WIDTH=20 HEIGHT=20 ALT="partly"></TD><TD ALIGN=RIGHT><FONT FACE="Verdana, Arial, Helvetica" SIZE=2>71/60</FONT></TD></TR>
+</TABLE>
+<P><FONT FACE="Verdana, Arial, Helvetica" SIZE=1><I>Forecasts by the CNM Weather Unit. Temperatures in degrees Fahrenheit. Forecasts beyond
+48 hours are about as reliable as a 1980s computer clock.</I></FONT>
+
+</TD>
+</TR>
+</TABLE>
+<TABLE WIDTH=770 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+<TR><TD WIDTH=125 BGCOLOR="#CCCCFF" VALIGN=TOP><IMG SRC="images/1.gif" WIDTH=125 HEIGHT=1 ALT=""></TD><TD WIDTH=15>&nbsp;</TD>
+<TD WIDTH=630>
+<HR NOSHADE SIZE=1>
+<CENTER><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="#top">Back to the top</A><BR><BR>
+&copy; 1999 Cable News Mobile. All Rights Reserved.<BR>
+<A HREF="terms.html">The fine print under which we let you read any of this</A>.
+<A HREF="privacy.html">What we do (and mostly don't do) with your cookies</A>.<BR>
+<A HREF="feedback.html">Write to CNM</A> | <A HREF="index.html">CNM.com main page</A> | <A HREF="search.html">Search</A><BR><BR>
+<A HREF="index.html"><IMG SRC="images/logo_small.gif" WIDTH=84 HEIGHT=20 BORDER=0 ALT="CNM" ALIGN=MIDDLE></A>
+&nbsp;<IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion" ALIGN=MIDDLE>
+</FONT></CENTER><BR>
+<SCRIPT LANGUAGE="JavaScript1.2"><!--
+function ringRandom() {
+  var list = new Array("../yowza/index.html","../altavisor/index.html","../askreeves/index.html","../orinoco/index.html","../ubid/index.html","../etoyz/index.html","../petz/index.html","../geohoods/index.html","../hamstershuffle/index.html","../dashdot/index.html","../snapster/index.html","../cnm/index.html");
+  window.location = list[Math.floor(Math.random() * list.length)];
+  return false;
+}
+//--></SCRIPT>
+<CENTER><TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER><FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../snapster/index.html">&lt;&lt; Prev</A> | <A HREF="../../web1999/index.html" onClick="return ringRandom();">Random</A> | <B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; CNM Interactive is site 12 of 12 | <A HREF="../yowza/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE></CENTER>
+<BR>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

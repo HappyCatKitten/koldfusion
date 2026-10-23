@@ -1,0 +1,236 @@
+<HTML><HEAD><TITLE>Dashdot | Post Comment</TITLE>
+<SCRIPT LANGUAGE="JavaScript"><!--
+
+function getCookie(n) {
+  var c = document.cookie.split("; ");
+  for (var i = 0; i < c.length; i++) {
+    var p = c[i].indexOf("=");
+    if (p > 0 && c[i].substring(0, p) == n) return unescape(c[i].substring(p + 1));
+  }
+  return "";
+}
+function setCookie(n, v, days) {
+  var e = "";
+  if (days) { var d = new Date(); d.setTime(d.getTime() + days * 86400000); e = "; expires=" + d.toGMTString(); }
+  document.cookie = n + "=" + escape(v) + e + "; path=/";
+}
+function delCookie(n) { document.cookie = n + "=; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/"; }
+function qs(n) {
+  var q = location.search.substring(1).split("&");
+  for (var i = 0; i < q.length; i++) {
+    var p = q[i].indexOf("=");
+    if (p > 0 && q[i].substring(0, p) == n) return unescape(q[i].substring(p + 1).replace(/\+/g, " "));
+  }
+  return "";
+}
+function htmlEsc(s) {
+  s = "" + s;
+  s = s.replace(/&/g, "&amp;"); s = s.replace(/</g, "&lt;"); s = s.replace(/>/g, "&gt;"); s = s.replace(/"/g, "&quot;");
+  return s;
+}
+
+function ringRandom(p) {
+  var s = new Array("yowza","altavisor","askreeves","orinoco","ubid","etoyz","petz","geohoods","hamstershuffle","snapster","cnm");
+  var n = Math.floor(Math.random() * s.length);
+  location.href = p + "../" + s[n] + "/" + "index.html";
+  return false;
+}
+
+function ddLogin(f) {
+  var n = f.unickname.value;
+  if (n == "") { alert("Please enter a nickname. Even Anonymous Cowards have to type something."); return false; }
+  if (f.upasswd.value == "") { alert("Please enter your password. (We won't look at it. We don't even keep it.)"); return false; }
+  setCookie("dd_user", n, 30);
+  if (getCookie("dd_points") == "") {
+    setCookie("dd_points", "5", 3);
+    alert("Welcome back, " + n + "!\n\nYou have been randomly selected to moderate.\nYou have 5 moderator points; they expire in 3 days.\nUse them wisely: look for the Moderate menus under each comment.");
+  }
+  location.reload();
+  return false;
+}
+function ddLogout() { delCookie("dd_user"); location.reload(); }
+function loginBox(root) {
+  var u = getCookie("dd_user");
+  if (u != "") {
+    var p = getCookie("dd_points"); if (p == "") p = "0";
+    document.write('<B>Welcome back, ' + htmlEsc(u) + '!</B><BR>Karma: Positive<BR>Moderator points: <B>' + p + '</B><P>');
+    document.write('[ <A HREF="' + root + 'preferences.html">preferences</A> | <A HREF="javascript:ddLogout()">logout</A> ]');
+  } else {
+    document.write('<FORM ACTION="' + root + 'users.html" METHOD="get" onSubmit="return ddLogin(this)">');
+    document.write('<B>Nickname:</B><BR><INPUT TYPE="text" NAME="unickname" SIZE=18><BR><B>Password:</B><BR>');
+    document.write('<INPUT TYPE="password" NAME="upasswd" SIZE=18><BR><INPUT TYPE="submit" VALUE="userlogin"></FORM>');
+    document.write('No account? <A HREF="' + root + 'users.html">Make one</A>. It\'s free, and it lets you pick your comment threshold, keep your nickname, and moderate when the dice say so.');
+  }
+}
+
+var TITLES = new Object();
+TITLES["y2kfridge"] = "Y2K Bug Found in Smart Refrigerator Firmware";
+TITLES["pentode600"] = "Intellon Ships 600MHz Pentode III";
+TITLES["orinococlick"] = "Your Rights Online: Orinoco.com Granted Patent on Clicking";
+TITLES["kernel2322"] = "Linix Kernel 2.3.22 Released; 2.4 'Real Soon Now'";
+TITLES["sego_daydream"] = "Sego Daydream Sells 500,000 Units in Two Weeks";
+TITLES["doublebytefinder"] = "Ask Dashdot: How Do I Explain My Job to My Grandmother?";
+TITLES["transmuta"] = "Secretive Startup Transmuta Updates Web Page";
+TITLES["snapsterlaunch"] = "College Student's MP3 Swapping Program Takes Off";
+TITLES["ecommerce_xmas"] = "Online Retailers Brace for First 'E-Christmas'";
+TITLES["gnume_kdx"] = "GNUME 1.0.55 and KDX 1.1.2 Desktop Wars Continue";
+TITLES["marsprobe"] = "Mars Weather Probe Lost Over Feet-vs-Furlongs Mixup";
+TITLES["descramble"] = "Your Rights Online: DVD Encryption Cracked by Norwegian Teens";
+TITLES["petzipo"] = "Petz.com IPO Soars Despite Losing Money on Every Sale";
+TITLES["crapware"] = "Leaked: Portals 2000 Requires 64MB and a 300MHz CPU";
+TITLES["jolt_lang"] = "Solar Microsystems Releases Jolt 2 Platform";
+TITLES["ucluta"] = "Your Rights Online: UCLUTA: The Shrink-Wrap License Law You Should Be Worried About";
+TITLES["beowulfgarage"] = "Teen Builds 64-Node Cluster in Parents' Garage";
+TITLES["godzillam10"] = "Mothzilla Milestone 10 Released";
+TITLES["greybeardinterview"] = "Interview: The Man Who Wrote the Payroll Code in 1974";
+TITLES["ostrichsat"] = "Ostrich Satellite Phone Network to Deorbit 66 Satellites";
+TITLES["bsddaemon"] = "FreeDaemon 3.3 Released";
+TITLES["regexbook"] = "Review: Regular Expressions for Irregular People";
+TITLES["pearitop"] = "Pear Computer's iTop Laptop Now in Five Fruit Flavors";
+TITLES["kevlarthumb"] = "Researchers Grow Cloned Llama Named 'Tina'";
+TITLES["quackarena"] = "Quack III Arena Demo Hits the Net";
+TITLES["gpsweek"] = "GPS Week Number Rollover Passed Without Incident (Mostly)";
+TITLES["earwig"] = "Your Rights Online: Project Earwig: Are Your E-Mails Being Read?";
+TITLES["slashdottedeffect"] = "Small Museum Web Server Survives Being Linked From Here";
+TITLES["beeos"] = "BeeOS 4.5 Free for Personal Use";
+TITLES["frondvii"] = "Frond VII Handheld Gets Wireless Web Clipping";
+TITLES["openfridgesource"] = "Monolith Software: Open Source Is 'Intellectual Pac-Man'";
+TITLES["y2kgenerator"] = "Ask Dashdot: Should I Buy a Generator for Y2K?";
+TITLES["ipv6"] = "IPv6 Test Network Hits 400 Sites";
+TITLES["slashcode"] = "Dashdot Source Code Released Under the GPL";
+TITLES["leonids"] = "Leonid Meteor Storm Could Threaten Satellites";
+TITLES["emacsvi"] = "Poll Results: vi Narrowly Beats Emacs, ed Gets 3%";
+TITLES["cybersquat"] = "Your Rights Online: Congress Passes Anti-Cybersquatting Bill";
+TITLES["xmlhype"] = "Is XML the Answer to Everything?";
+TITLES["andoveripo"] = "Dashdot's Parent Overandover.net Files for IPO";
+TITLES["monolithtrial"] = "Your Rights Online: Monolith Antitrust Trial: Judge's Findings Due Soon";
+TITLES["firstpost"] = "Ask Dashdot: Why Do People Post 'First Post'?";
+
+function cleanBody(t, mode) {
+  var s = htmlEsc(t);
+  if (mode == "html") {
+    s = s.replace(/&lt;(\/?)(b|i|p|br|em|strong|tt|blockquote)&gt;/gi, "<$1$2>");
+  }
+  s = s.replace(/\r\n/g, "\n").replace(/\n\n/g, "<P>").replace(/\n/g, "<BR>");
+  return s;
+}
+function lame(f) {
+  var b = f.postercomment.value, s = f.postersubj.value;
+  if (s == "") return "Please give your comment a subject.";
+  if (b.length < 4) return "Your comment is too short. Even 'first post' has ten characters. (Don't post that either.)";
+  if (/f(i|ri|ir)r?st\s*p(o|s)(s|o)?t/i.test(b + " " + s)) return "Lameness filter encountered. Post aborted!\n\nReason: your comment appears to be a 'first post'. It isn't, and it never is.";
+  var caps = b.replace(/[^A-Z]/g, "").length, lows = b.replace(/[^a-z]/g, "").length;
+  if (caps > 20 && caps > lows * 2) return "Lameness filter encountered. Post aborted!\n\nReason: please don't use so many caps. It's like YELLING.";
+  return "";
+}
+function posterName(f) {
+  var u = getCookie("dd_user");
+  if (u == "" || f.postanon.checked) return "Anonymous Coward";
+  return u;
+}
+function nowStr() {
+  var d = new Date();
+  var days = new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday");
+  var mons = new Array("January","February","March","April","May","June","July","August","September","October","November","December");
+  var h = d.getHours(), ap = (h < 12) ? "AM" : "PM"; h = h % 12; if (h == 0) h = 12;
+  var m = d.getMinutes();
+  return days[d.getDay()] + " " + mons[d.getMonth()] + " " + d.getDate() + ", @" + (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ap;
+}
+function preview(f) {
+  var msg = lame(f);
+  if (msg != "") { alert(msg); return; }
+  var w = window.open("", "ddpreview", "width=520,height=320,scrollbars=yes,resizable=yes");
+  w.document.open();
+  w.document.write('<HTML><HEAD><TITLE>Dashdot | Preview</TITLE></HEAD><BODY BGCOLOR="#FFFFFF" TEXT="#000000">' +
+    '<TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0><TR><TD BGCOLOR="#CCCCCC"><FONT FACE="arial,helvetica" SIZE=3><B>' +
+    htmlEsc(f.postersubj.value) + '</B></FONT> (Score:?)<BR><FONT FACE="arial,helvetica" SIZE=2>by ' + htmlEsc(posterName(f)) +
+    ' on ' + nowStr() + '</FONT></TD></TR><TR><TD><FONT FACE="arial,helvetica" SIZE=2>' +
+    cleanBody(f.postercomment.value, f.posttype.options[f.posttype.selectedIndex].value) +
+    '</FONT></TD></TR></TABLE><P><CENTER><FORM><INPUT TYPE="button" VALUE="Close Preview" onClick="window.close()"></FORM></CENTER></BODY></HTML>');
+  w.document.close();
+}
+function postIt(f) {
+  var msg = lame(f);
+  if (msg != "") { alert(msg); return false; }
+  var sid = f.sid.value, pid = f.pid.value;
+  if (sid == "" || !TITLES[sid]) { alert("Which story were you replying to? Go back to the story and click Reply."); return false; }
+  var rec = pid + "~|~" + posterName(f) + "~|~" + f.postersubj.value + "~|~" +
+            cleanBody(f.postercomment.value, f.posttype.options[f.posttype.selectedIndex].value) + "~|~" + nowStr() + "~|~x";
+  var old = getCookie("dd_posts_" + sid);
+  var all = (old == "") ? rec : old + "~#~" + rec;
+  while (escape(all).length > 3500 && all.indexOf("~#~") > 0) all = all.substring(all.indexOf("~#~") + 3);
+  if (escape(all).length > 3500) { alert("That comment is too long for our state-of-the-art cookie-based database. Please trim it a little."); return false; }
+  setCookie("dd_posts_" + sid, all, 30);
+  location.href = "article/" + sid + ".html?posted=1#mine";
+  return false;
+}
+
+//--></SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#000000" TEXT="#000000" LINK="#006666" VLINK="#000000">
+<CENTER><A HREF="../orinoco/index.html"><IMG SRC="images/banner_orinoco.gif" WIDTH=468 HEIGHT=60 BORDER=0 ALT="Orinoco.com"></A></CENTER><P>
+<TABLE BGCOLOR="#FFFFFF" CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH="99%" ALIGN=CENTER><TR>
+<TD VALIGN=TOP ALIGN=LEFT><A HREF="index.html"><IMG SRC="images/title.gif" WIDTH=300 HEIGHT=72 BORDER=0 ALT="Welcome to Dashdot"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_y2k.html"><IMG SRC="images/topicy2k.gif" BORDER=0 ALT="Y2K"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_hardware.html"><IMG SRC="images/topichardware.gif" BORDER=0 ALT="Hardware"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_patents.html"><IMG SRC="images/topicpatents.gif" BORDER=0 ALT="Patents"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_linix.html"><IMG SRC="images/topiclinix.gif" BORDER=0 ALT="Linix"></A></TD>
+<TD ALIGN=CENTER VALIGN=BOTTOM><A HREF="topic_games.html"><IMG SRC="images/topicgames.gif" BORDER=0 ALT="Games"></A></TD>
+</TR></TABLE>
+<TABLE WIDTH="99%" ALIGN=CENTER CELLPADDING=8 CELLSPACING=0 BORDER=0 BGCOLOR="#FFFFFF"><TR>
+<TD VALIGN=TOP><FONT FACE="arial,helvetica" COLOR="#000000">
+<TABLE WIDTH="99%" CELLPADDING=0 CELLSPACING=0 BORDER=0><TR><TD VALIGN=TOP BGCOLOR="#006666"><IMG SRC="images/slc.gif" WIDTH=13 HEIGHT=16 ALT="" ALIGN=TOP><FONT SIZE=4 COLOR="#FFFFFF" FACE="arial,helvetica"><B>Post Comment</B></FONT></TD></TR></TABLE>
+<P>
+<FONT SIZE=2>
+<SCRIPT LANGUAGE="JavaScript"><!--
+var sid = qs("sid"), pid = qs("pid");
+if (pid == "") pid = "0";
+if (TITLES[sid]) {
+  document.write('<P>Replying to <B><A HREF="article/' + sid + '.html">' + TITLES[sid] + '</A></B>');
+  if (pid != "0") document.write(', comment <A HREF="article/' + sid + '.html#' + pid + '">#' + pid + '</A>');
+  document.write('.');
+} else {
+  document.write('<P><B>No story selected.</B> Go to a story and click <B>Reply</B>. (Or <A HREF="index.html">start at the front page</A>.)');
+}
+var u = getCookie("dd_user");
+//--></SCRIPT>
+<FORM NAME="post" ACTION="reply.html" METHOD="get" onSubmit="return postIt(this)">
+<SCRIPT LANGUAGE="JavaScript"><!--
+document.write('<INPUT TYPE="hidden" NAME="sid" VALUE="' + htmlEsc(sid) + '"><INPUT TYPE="hidden" NAME="pid" VALUE="' + htmlEsc(pid) + '">');
+document.write('<TABLE BORDER=0 CELLPADDING=3><TR><TD ALIGN=RIGHT><FONT SIZE=2><B>Name</B></FONT></TD><TD><FONT SIZE=2>');
+if (u == "") document.write('Anonymous Coward [ <A HREF="users.html">Create an Account!</A> ]<INPUT TYPE="hidden" NAME="postanon" VALUE="1">');
+else document.write('<B>' + htmlEsc(u) + '</B> [ <A HREF="javascript:ddLogout()">Log Out</A> ] <INPUT TYPE="checkbox" NAME="postanon"> Post Anonymously');
+document.write('</FONT></TD></TR>');
+//--></SCRIPT>
+<TR><TD ALIGN=RIGHT><FONT SIZE=2><B>Subject</B></FONT></TD><TD><INPUT TYPE="text" NAME="postersubj" SIZE=50 MAXLENGTH=50></TD></TR>
+<TR><TD ALIGN=RIGHT VALIGN=TOP><FONT SIZE=2><B>Comment</B></FONT></TD><TD><TEXTAREA NAME="postercomment" ROWS=10 COLS=50 WRAP=VIRTUAL></TEXTAREA><BR>
+<FONT SIZE=1>Allowed HTML: &lt;B&gt; &lt;I&gt; &lt;P&gt; &lt;BR&gt; &lt;EM&gt; &lt;STRONG&gt; &lt;TT&gt; &lt;BLOCKQUOTE&gt;<BR>
+(Use "HTML Formatted" for those. "Plain Old Text" escapes everything and keeps your line breaks.)</FONT></TD></TR>
+<TR><TD></TD><TD><SELECT NAME="posttype"><OPTION VALUE="text" SELECTED>Plain Old Text<OPTION VALUE="html">HTML Formatted</SELECT>
+<INPUT TYPE="button" VALUE="Preview" onClick="preview(this.form)"> <INPUT TYPE="submit" VALUE="Submit"></TD></TR>
+</TABLE>
+</FORM>
+<P><FONT SIZE=1><B>House rules:</B> Stay near the topic, or at least within shouting distance of it. If someone already
+made your point, moderate them up instead of making it again. Reply under the comment you're answering so the thread
+makes sense to the next reader. Give your comment a subject a human could understand. Moderators may bury anything
+nasty, off-topic or pointless, but nothing is ever deleted: set your threshold to -1 and you can read every last
+word. And no "first post". Please. We're begging.</FONT>
+</FONT></FONT></TD></TR></TABLE>
+<TABLE BGCOLOR="#FFFFFF" WIDTH="99%" ALIGN=CENTER BORDER=0 CELLPADDING=4 CELLSPACING=0><TR><TD>
+<TABLE WIDTH="100%" BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD BGCOLOR="#006666"><IMG SRC="images/pix.gif" WIDTH=1 HEIGHT=4 ALT=""></TD></TR></TABLE>
+<CENTER><FORM ACTION="search.html" METHOD="get"><FONT FACE="arial,helvetica" SIZE=2><INPUT TYPE="text" NAME="query" SIZE=20> <INPUT TYPE="submit" VALUE="Search"></FONT></FORM>
+<FONT FACE="arial,helvetica" SIZE=2><I>Your karma is excellent. Your social life, less so.</I></FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>[ <A HREF="index.html">home</A> | <A HREF="awards.html">awards</A> | <A HREF="supporters.html">supporters</A> | <A HREF="grits.html">grits' homepage</A> | <A HREF="submit.html">contribute story</A> | <A HREF="older.html">older articles</A> | <A HREF="overandover.html">overandover.net</A> | <A HREF="advertising.html">advertising</A> | <A HREF="polls.html">past polls</A> | <A HREF="topics.html">topics</A> | <A HREF="about.html">about</A> | <A HREF="jobs.html">jobs</A> | <A HREF="hof.html">hof</A> ]</FONT><P>
+<FONT FACE="arial,helvetica" SIZE=1>Trademarks belong to whoever trademarked them. Comments belong to whoever typed them. Everything else &copy; 1997-99 Overandover.net. Dashdot is served hot by KoldFusion 4.5 from Gibson Mainframe Co.</FONT><BR>
+<A HREF="about.html"><IMG SRC="images/powered_by_kf.gif" WIDTH=88 HEIGHT=31 BORDER=0 ALT="Powered by KoldFusion" VSPACE=6></A>
+</CENTER></TD></TR></TABLE>
+<P><CENTER>
+<TABLE BORDER=2 CELLPADDING=3 CELLSPACING=0 BGCOLOR="#C0C0C0"><TR><TD ALIGN=CENTER>
+<FONT FACE="Arial, Helvetica" SIZE=1>
+<A HREF="../hamstershuffle/index.html">&lt;&lt; Prev</A> |
+<A HREF="../../web1999/index.html" onClick="return ringRandom('')">Random</A> |
+<B><A HREF="../../web1999/index.html">The 1999 Web Ring</A></B> &middot; Dashdot is site 10 of 12 |
+<A HREF="../snapster/index.html">Next &gt;&gt;</A>
+</FONT></TD></TR></TABLE>
+</CENTER><P>
+</BODY></HTML>
