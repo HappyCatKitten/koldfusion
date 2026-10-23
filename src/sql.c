@@ -79,6 +79,7 @@ static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 static unsigned long   g_serial;                 /* statement counter (cache pinning) */
 static __thread double g_identity;               /* SELECT @@IDENTITY */
 static __thread int    g_have_identity;
+static __thread int    g_typed;                  /* sql_exec1(typed): keep NULLs and dates */
 
 /* ========================================================= storage types */
 enum { CT_INT = 1, CT_FLOAT, CT_TEXT, CT_DATE, CT_BIT };
@@ -3285,9 +3286,9 @@ static ResultSet *rs_finalize(ResultSet *in) {
             switch (v.t) {
             case VT_NUM:  row[c] = v; break;
             case VT_BOOL: row[c] = v_num(v.u.b); break;
-            case VT_DATE: row[c] = v_str(fmt_date(v.u.n)); break;
+            case VT_DATE: row[c] = g_typed ? v : v_str(fmt_date(v.u.n)); break;
             case VT_STR:  row[c] = v_strdup(v.u.str.s); break;
-            default:      row[c] = v_str(""); break;
+            default:      row[c] = g_typed ? v_null() : v_str(""); break;
             }
         }
         rs->rows[r] = row;
@@ -3358,6 +3359,23 @@ static int for_each_stmt(const char *text, StmtFn fn, void *ctx) {
     while (*p) {
         size_t k = 0;
         int any = 0;
+        /* CREATE PROCEDURE ... AS <body with its own semicolons> (sqlproc.c) */
+        const char *q = p;
+        for (;;) {
+            while (isspace((unsigned char)*q)) q++;
+            if (q[0] == '-' && q[1] == '-') { while (*q && *q != '\n') q++; continue; }
+            if (q[0] == '/' && q[1] == '*') { const char *e = strstr(q + 2, "*/"); q = e ? e + 2 : q + strlen(q); continue; }
+            break;
+        }
+        size_t pl = sqlproc_extent(q);
+        if (pl) {
+            memcpy(buf, q, pl); buf[pl] = 0;
+            p = q + pl;
+            while (isspace((unsigned char)*p)) p++;
+            if (*p == ';') p++;
+            if (!fn(buf, ++stmtno, ctx)) { free(buf); return -1; }
+            continue;
+        }
         while (*p && *p != ';') {
             if (p[0] == '-' && p[1] == '-') { while (*p && *p != '\n') p++; continue; }
             if (p[0] == '/' && p[1] == '*') {
@@ -3405,7 +3423,8 @@ static int batch_stmt(const char *stmt, int stmtno, void *vb) {
     Batch *b = vb;
     Query *q = NULL;
     long n = 0;
-    if (!exec_one(b->dbdir, stmt, b->want ? &q : NULL, &n, b->err, b->errlen)) {
+    int pr = sqlproc_statement(b->dbdir, stmt, b->want ? &q : NULL, &n, b->err, b->errlen);   /* EXEC, CREATE PROCEDURE, ... */
+    if (pr == 0 || (pr < 0 && !exec_one(b->dbdir, stmt, b->want ? &q : NULL, &n, b->err, b->errlen))) {
         if (b->err && b->errlen && (stmtno > 1 || !strcmp(b->suffix, "script"))) {
             size_t l = strlen(b->err);
             snprintf(b->err + l, b->errlen - l, " (%s statement %d)", b->suffix, stmtno);
@@ -3425,6 +3444,8 @@ int sql_exec(const char *dbdir, const char *sql, Query **out, long *affected, ch
     if (affected) *affected = 0;
     if (err && errlen) err[0] = 0;
     if (!sql) return exec_one(dbdir, NULL, out, affected, err, errlen);
+    int tr = sqlproc_batch(dbdir, sql, out, affected, err, errlen);       /* DECLARE @x ...; IF ...; */
+    if (tr >= 0) return tr;
     Batch b; memset(&b, 0, sizeof b);
     b.dbdir = dbdir; b.want = out != NULL; b.err = err; b.errlen = errlen; b.suffix = "batch";
     int n = for_each_stmt(sql, batch_stmt, &b);
@@ -3436,6 +3457,14 @@ int sql_exec(const char *dbdir, const char *sql, Query **out, long *affected, ch
     if (out) *out = b.last;
     if (affected) *affected = b.affected;
     return 1;
+}
+
+int sql_exec1(const char *dbdir, const char *sql, Query **out, long *affected, int typed, char *err, size_t errlen) {
+    int saved = g_typed;
+    g_typed = typed;
+    int ok = exec_one(dbdir, sql, out, affected, err, errlen);
+    g_typed = saved;
+    return ok;
 }
 
 int sql_exec_script(const char *dbdir, const char *script, char *err, size_t errlen) {

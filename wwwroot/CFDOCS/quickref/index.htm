@@ -218,7 +218,7 @@
     MAXLENGTH=&quot;maximum_length&quot;
     SCALE=&quot;decimal_places&quot;
     NULL=&quot;Yes/No&quot;&gt;</PRE>
-<P CLASS="qr"><A HREF="/CFDOCS/langref/cfstoredproc.htm"><B>CFSTOREDPROC</B></A> &nbsp;<FONT SIZE=1>Calls a stored procedure in a database server.</FONT></P>
+<P CLASS="qr"><A HREF="/CFDOCS/langref/cfstoredproc.htm"><B>CFSTOREDPROC</B></A> &nbsp;<FONT SIZE=1>Calls a stored procedure in a data source.</FONT></P>
 <PRE CLASS="qr">&lt;CFSTOREDPROC PROCEDURE=&quot;procedure_name&quot;
     DATASOURCE=&quot;ds_name&quot;
     USERNAME=&quot;username&quot;
@@ -970,12 +970,19 @@
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getdirectoryfrompath.htm"><CODE>GetDirectoryFromPath(path)</CODE></A></TD><TD><FONT SIZE=1>Extracts the directory part of an absolute path.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getfilefrompath.htm"><CODE>GetFileFromPath(path)</CODE></A></TD><TD><FONT SIZE=1>Extracts the file name from an absolute path.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getfunctionlist.htm"><CODE>GetFunctionList()</CODE></A></TD><TD><FONT SIZE=1>Returns a structure whose keys are the names of all built-in CFML functions.</FONT></TD></TR>
+<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/gethttprequestdata.htm"><CODE>GetHttpRequestData()</CODE></A></TD><TD><FONT SIZE=1>Returns the HTTP request headers, body, method and protocol in a structure.</FONT></TD></TR>
+<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getk2servercollections.htm"><CODE>GetK2ServerCollections()</CODE></A></TD><TD><FONT SIZE=1>Returns the collections the Verity K2 Server serves.</FONT></TD></TR>
+<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getk2serverdoccount.htm"><CODE>GetK2ServerDocCount()</CODE></A></TD><TD><FONT SIZE=1>Returns the number of documents indexed in the Verity K2 Server&#x27;s collections.</FONT></TD></TR>
+<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getk2serverdoccountlimit.htm"><CODE>GetK2ServerDocCountLimit()</CODE></A></TD><TD><FONT SIZE=1>Returns the maximum number of documents the Verity K2 Server may index.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getmetricdata.htm"><CODE>GetMetricData(&quot;PERF_MONITOR&quot;)</CODE></A></TD><TD><FONT SIZE=1>Returns server performance counters in a structure.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/getprofilestring.htm"><CODE>GetProfileString(iniPath, section, entry)</CODE></A></TD><TD><FONT SIZE=1>Reads one entry from a Windows-style initialization (.ini) file.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/gettempdirectory.htm"><CODE>GetTempDirectory()</CODE></A></TD><TD><FONT SIZE=1>Returns the path of the server&#x27;s directory for temporary files.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/gettempfile.htm"><CODE>GetTempFile(directory, prefix)</CODE></A></TD><TD><FONT SIZE=1>Creates an empty file with a unique name and returns its path.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/gettemplatepath.htm"><CODE>GetTemplatePath()</CODE></A></TD><TD><FONT SIZE=1>Older name for GetBaseTemplatePath.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/gettickcount.htm"><CODE>GetTickCount()</CODE></A></TD><TD><FONT SIZE=1>Returns a millisecond counter for timing code.</FONT></TD></TR>
+<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/isk2serverabroker.htm"><CODE>IsK2ServerABroker()</CODE></A></TD><TD><FONT SIZE=1>Tells whether the Verity K2 Server is a broker for other K2 Servers.</FONT></TD></TR>
+<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/isk2serverdoccountexceeded.htm"><CODE>IsK2ServerDocCountExceeded()</CODE></A></TD><TD><FONT SIZE=1>Tells whether the Verity K2 Server holds more documents than its limit.</FONT></TD></TR>
+<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/isk2serveronline.htm"><CODE>IsK2ServerOnline()</CODE></A></TD><TD><FONT SIZE=1>Tells whether the Verity K2 Server is running.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/javacast.htm"><CODE>JavaCast(type, variable)</CODE></A></TD><TD><FONT SIZE=1>Marks a value with a Java type for calls to overloaded Java methods.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/setprofilestring.htm"><CODE>SetProfileString(iniPath, section, entry, value)</CODE></A></TD><TD><FONT SIZE=1>Writes one entry to a Windows-style initialization (.ini) file.</FONT></TD></TR>
 </TABLE>

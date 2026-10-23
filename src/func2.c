@@ -864,7 +864,10 @@ static const FuncDef FUNCS[] = {
 };
 
 extern const FuncDef ADMIN_FUNCS[];
+extern const FuncDef FUNCS3[];        /* func3.c */
 BuiltinFn func_lookup(const char *name, int *minargs, int *maxargs) {
+    for (int i = 0; FUNCS3[i].name; i++)
+        if (!kf_stricmp(FUNCS3[i].name, name)) { *minargs = FUNCS3[i].minargs; *maxargs = FUNCS3[i].maxargs; return FUNCS3[i].fn; }
     if (!kf_strnicmp(name, "kfusion_", 8)) {
         for (int i = 0; ADMIN_FUNCS[i].name; i++)
             if (!kf_stricmp(ADMIN_FUNCS[i].name, name)) { *minargs = ADMIN_FUNCS[i].minargs; *maxargs = ADMIN_FUNCS[i].maxargs; return ADMIN_FUNCS[i].fn; }
@@ -891,6 +894,13 @@ Query *func_list_all(void) {
         query_set(q, 0, r, v_strdup(FUNCS[i].name));
         query_set(q, 1, r, v_num(FUNCS[i].minargs));
         query_set(q, 2, r, v_num(FUNCS[i].maxargs));
+    }
+    for (int i = 0; FUNCS3[i].name; i++) {
+        if (!kf_strnicmp(FUNCS3[i].name, "kfusion_", 8)) continue;
+        int r = query_add_row(q);
+        query_set(q, 0, r, v_strdup(FUNCS3[i].name));
+        query_set(q, 1, r, v_num(FUNCS3[i].minargs));
+        query_set(q, 2, r, v_num(FUNCS3[i].maxargs));
     }
     return q;
 }

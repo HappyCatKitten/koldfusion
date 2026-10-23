@@ -1,7 +1,7 @@
 /*
  * sql_test.c - exercises the KoldFusion Flat-File Driver (src/sql.c).
  *
- * build: gcc -std=gnu99 -O1 -g -Wall -I src src/core.c src/sql.c tests/sql_test.c -lpthread -lm -o /tmp/sql_test
+ * build: gcc -std=gnu99 -O1 -g -Wall -I src src/core.c src/sql.c src/sqlproc.c tests/sql_test.c -lpthread -lm -o /tmp/sql_test
  * run:   /tmp/sql_test [scratch-dir] [seed-dir]     (run from the project root)
  */
 #define _GNU_SOURCE
@@ -13,6 +13,8 @@
 #include <sys/stat.h>
 
 void kf_out_of_memory(void) { fprintf(stderr, "kf_out_of_memory called\n"); abort(); }
+char *kf_global_root(void) { return "."; }          /* normally main.c (DOS path mapping in core.c) */
+char *kf_global_webroot(void) { return "."; }
 
 static int passes, fails;
 static const char *DB;                 /* current database directory */

@@ -1073,3 +1073,143 @@ example:
 </CFLOOP>
 </TABLE>
 see: Evaluate, CFTRY, IsDefined
+
+@func GetHttpRequestData
+category: System functions
+new45: yes
+summary: Returns the HTTP request headers, body, method and protocol in a structure.
+desc:
+Returns a structure describing the HTTP request that is running the page, as the web server received it. Use it
+to read headers that have no CGI variable, or the raw body of a request that is not a form post, such as an
+XML or WDDX packet sent by another server with `CFHTTP`.
+syntax:
+GetHttpRequestData()
+returns:
+A structure with four keys:
+
+| Key | Contents |
+| Headers | A structure with one entry per request header, for example `Headers["User-Agent"]`. |
+| Content | The raw request body. A string when the Content-Type is text/... or application/x-www-form-urlencoded (or missing), otherwise a binary object. An empty string when there is no body. |
+| Method | The request method: GET, POST, HEAD, ... |
+| Protocol | The protocol and version from the request line, such as HTTP/1.0. |
+usage:
+Form fields of a POST are still available in the Form scope; `Content` holds the same data in its encoded form.
+Header names are case-insensitive, like all structure keys.
+example:
+<CFSET Request_Data = GetHttpRequestData()>
+<CFOUTPUT>
+<P>This page was requested with <B>#Request_Data.Method#</B> over #Request_Data.Protocol#.
+The request body is #Len(Request_Data.Content)# bytes long.</P>
+</CFOUTPUT>
+<TABLE BORDER=1 CELLPADDING=3>
+<TR BGCOLOR="#CCCCCC"><TH>Header</TH><TH>Value</TH></TR>
+<CFLOOP COLLECTION="#Request_Data.Headers#" ITEM="h">
+<CFOUTPUT><TR><TD>#h#</TD><TD>#HTMLEditFormat(Request_Data.Headers[h])#</TD></TR></CFOUTPUT>
+</CFLOOP>
+</TABLE>
+see: CFHTTP, CFHEADER, StructKeyList, IsBinary, ToString
+
+@func GetK2ServerCollections
+category: System functions
+summary: Returns the collections the Verity K2 Server serves.
+desc:
+Returns a comma-delimited list of the Verity collections registered with the K2 Server. In KoldFusion the
+built-in Verity engine acts as the K2 Server, so this is every collection listed on the Administrator's Verity
+page.
+syntax:
+GetK2ServerCollections()
+returns:
+A comma-delimited list of collection names; an empty string when there are none or the K2 Server is offline.
+example:
+<CFSET Colls = GetK2ServerCollections()>
+<CFOUTPUT>
+<P>The K2 Server serves #ListLen(Colls)# collection(s)<CFIF Len(Colls)>: #Colls#</CFIF>.</P>
+</CFOUTPUT>
+see: GetK2ServerDocCount, IsK2ServerOnline, CFCOLLECTION, CFSEARCH
+
+@func GetK2ServerDocCount
+category: System functions
+summary: Returns the number of documents indexed in the Verity K2 Server's collections.
+desc:
+Returns the total number of documents in all the collections served by the Verity K2 Server. Compare it with
+`GetK2ServerDocCountLimit` to see how close the server is to its licensed limit.
+syntax:
+GetK2ServerDocCount()
+returns:
+An integer; 0 when the K2 Server is offline.
+example:
+<CFSET Used = GetK2ServerDocCount()>
+<CFSET Limit = GetK2ServerDocCountLimit()>
+<CFOUTPUT>
+<P>#NumberFormat(Used)# of #NumberFormat(Limit)# documents indexed
+(#DecimalFormat(Used * 100 / Limit)#% of the limit).</P>
+</CFOUTPUT>
+see: GetK2ServerDocCountLimit, IsK2ServerDocCountExceeded, CFINDEX
+
+@func GetK2ServerDocCountLimit
+category: System functions
+summary: Returns the maximum number of documents the Verity K2 Server may index.
+desc:
+Returns the document limit of the Verity K2 Server license. KoldFusion reads it from the registry; change it
+on the Administrator's Verity page (the default is 250,000).
+syntax:
+GetK2ServerDocCountLimit()
+returns:
+An integer.
+example:
+<CFOUTPUT>
+<P>This server may index up to #NumberFormat(GetK2ServerDocCountLimit())# documents.</P>
+</CFOUTPUT>
+see: GetK2ServerDocCount, IsK2ServerDocCountExceeded
+
+@func IsK2ServerABroker
+category: System functions
+summary: Tells whether the Verity K2 Server is a broker for other K2 Servers.
+desc:
+A K2 Broker passes searches on to other K2 Servers and merges their results instead of searching collections
+of its own. KoldFusion's K2 Server searches its own collections, so the function returns NO.
+syntax:
+IsK2ServerABroker()
+returns:
+YES if the K2 Server is a broker, NO otherwise.
+example:
+<CFOUTPUT>
+<P>K2 Broker: #IsK2ServerABroker()#</P>
+</CFOUTPUT>
+see: IsK2ServerOnline, GetK2ServerCollections
+
+@func IsK2ServerDocCountExceeded
+category: System functions
+summary: Tells whether the Verity K2 Server holds more documents than its limit.
+desc:
+Returns YES when the documents indexed in the K2 Server's collections exceed the limit returned by
+`GetK2ServerDocCountLimit`. Indexing pages can check it before adding more documents.
+syntax:
+IsK2ServerDocCountExceeded()
+returns:
+YES or NO.
+example:
+<CFIF IsK2ServerDocCountExceeded()>
+  <P><B>The Verity K2 Server is over its document limit.</B> Purge or delete a collection.</P>
+<CFELSE>
+  <CFOUTPUT><P>Room for #NumberFormat(GetK2ServerDocCountLimit() - GetK2ServerDocCount())# more documents.</P></CFOUTPUT>
+</CFIF>
+see: GetK2ServerDocCount, GetK2ServerDocCountLimit, CFINDEX
+
+@func IsK2ServerOnline
+category: System functions
+summary: Tells whether the Verity K2 Server is running.
+desc:
+Returns YES when the Verity K2 Server is running and can answer searches. The server can be stopped and started
+on the Administrator's Verity page.
+syntax:
+IsK2ServerOnline()
+returns:
+YES or NO.
+example:
+<CFIF IsK2ServerOnline()>
+  <CFOUTPUT><P>The K2 Server is online with #ListLen(GetK2ServerCollections())# collection(s).</P></CFOUTPUT>
+<CFELSE>
+  <P>The K2 Server is offline; searches will fail.</P>
+</CFIF>
+see: IsK2ServerABroker, GetK2ServerCollections, CFSEARCH

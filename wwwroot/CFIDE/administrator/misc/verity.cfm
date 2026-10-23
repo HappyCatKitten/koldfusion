@@ -14,7 +14,19 @@
 		<cfset msg = r.Message>
 	</cfif>
 </cfif>
+<cfif IsDefined("Form.K2Apply")>
+	<cfif IsNumeric(Form.DocCountLimit) AND Form.DocCountLimit GTE 0 AND IsNumeric(Form.K2Port)>
+		<cfmodule template="../_tags/setreg.cfm" key="Verity\K2Server" entry="DocCountLimit" value="#Int(Form.DocCountLimit)#">
+		<cfmodule template="../_tags/setreg.cfm" key="Verity\K2Server" entry="Port" value="#Int(Form.K2Port)#">
+		<cfmodule template="../_tags/setreg.cfm" key="Verity\K2Server" entry="Online" value="#IIf(IsDefined('Form.K2Online'), 1, 0)#">
+		<cfset msg = "The Verity K2 Server settings have been applied.">
+	<cfelse>
+		<cfset msg = "The document count limit and the port must be numeric.">
+	</cfif>
+</cfif>
 <cfset colls = KFUSION_VERITYLIST()>
+<cfmodule template="../_tags/getreg.cfm" key="Verity\K2Server" variable="K2">
+<cfparam name="K2.Port" default="9901">
 <cfset info = KFUSION_SERVERINFO()>
 <cfset pageTitle = "Verity Collections">
 <cfinclude template="../_header.cfm">
@@ -38,6 +50,22 @@
 	<INPUT TYPE="radio" NAME="CreateMode" VALUE="map"> <B>Map</B> an existing collection.</FONT></TD></TR>
 </TABLE>
 <INPUT TYPE="submit" NAME="Create" VALUE="Create">
+</FORM>
+<P><TABLE WIDTH="100%" BORDER=0 CELLPADDING=2 CELLSPACING=0><TR><TD BGCOLOR="##669966"><FONT FACE="Arial, Helvetica" SIZE=2 COLOR="##FFFFFF"><B>Verity K2 Server</B></FONT></TD></TR></TABLE>
+<FORM ACTION="verity.cfm" METHOD="POST">
+<P>#Request.f#The KoldFusion search engine also answers as a Verity K2 Server, serving every collection listed above.
+Pages can query it with GetK2ServerCollections(), GetK2ServerDocCount() and the other K2 Server functions.</FONT>
+<TABLE BORDER=0 CELLPADDING=3>
+<TR><TD>#Request.f#<B>Status</B></FONT></TD><TD>#Request.f#<cfif IsK2ServerOnline()><FONT COLOR="##006600"><B>Online</B></FONT><cfelse><FONT COLOR="##CC0000"><B>Offline</B></FONT></cfif>
+	&nbsp; (#IIf(IsK2ServerABroker(), DE("broker"), DE("stand-alone server, not a broker"))#)</FONT></TD></TR>
+<TR><TD>#Request.f#<B>Collections served</B></FONT></TD><TD>#Request.f##ListLen(GetK2ServerCollections())#</FONT></TD></TR>
+<TR><TD>#Request.f#<B>Documents indexed</B></FONT></TD><TD>#Request.f##NumberFormat(GetK2ServerDocCount())#
+	<cfif IsK2ServerDocCountExceeded()><FONT COLOR="##CC0000"><B>- the document limit has been exceeded</B></FONT></cfif></FONT></TD></TR>
+<TR><TD>#Request.f#<B>Document count limit</B></FONT></TD><TD><INPUT TYPE="text" NAME="DocCountLimit" VALUE="#GetK2ServerDocCountLimit()#" SIZE=10></TD></TR>
+<TR><TD>#Request.f#<B>K2 Server port</B></FONT></TD><TD><INPUT TYPE="text" NAME="K2Port" VALUE="#K2.Port#" SIZE=6></TD></TR>
+<TR><TD></TD><TD>#Request.f#<INPUT TYPE="checkbox" NAME="K2Online"<cfif IsK2ServerOnline()> CHECKED</cfif>> Run the K2 Server</FONT></TD></TR>
+</TABLE>
+<INPUT TYPE="submit" NAME="K2Apply" VALUE="Apply">
 </FORM>
 </cfoutput>
 <cfinclude template="../_footer.cfm">

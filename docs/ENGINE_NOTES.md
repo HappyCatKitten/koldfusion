@@ -23,12 +23,27 @@ SELECT/INSERT/UPDATE/DELETE, joins, GROUP BY, ORDER BY, TOP/LIMIT, subqueries, L
 CREATE/DROP/ALTER TABLE, COUNTER autoincrement columns, `SELECT @@IDENTITY`, Access `#date#` and ODBC `{d '...'}` literals).
 Seed SQL scripts: statements separated by `;`, `--` comments, start with `DROP TABLE IF EXISTS`.
 
+Stored procedures (src/sqlproc.c): `CREATE PROCEDURE Name @p TYPE [= default] [OUTPUT], ... AS <body>` stores the
+source in `kfroot/db/<dsn>/<Name>.prc`; `ALTER PROCEDURE`, `DROP PROCEDURE [IF EXISTS] a, b`. Bodies are SQL
+Server-flavoured T-SQL: `DECLARE`, `SET @v = expr` (also `+=`), `SELECT @v = col FROM ...` (last row wins), `IF/ELSE`,
+`WHILE` with `BREAK/CONTINUE`, `BEGIN ... END`, `RETURN [n]`, `EXEC [@rc =] proc args` (positional, `@name = value`,
+`DEFAULT`, `@v OUTPUT`), `EXEC ('dynamic sql')`, `RAISERROR ('fmt %s', 16, 1, args)`, `@@ROWCOUNT`, `@@IDENTITY`,
+`@@NESTLEVEL`; `PRINT`, `SET NOCOUNT`, `BEGIN TRAN/COMMIT/ROLLBACK` are ignored. Variables are replaced by SQL
+literals before each statement goes to the engine; every non-assignment SELECT is a result set. Statements end at `;`
+or at the next statement keyword. In a script, a procedure body runs to its matching `END` (if it starts with
+`BEGIN`), to a `GO` line, or to the end of the text. CHAR/VARCHAR without a length is one character (as in SQL Server).
+CFQUERY accepts `EXEC proc ...`, `{call proc(...)}`, `CALL proc(...)` (first result set) and batches with
+`@variables` or starting with DECLARE/IF/WHILE (last result set); `?` markers fail with SQLState 07001.
+Seeded: cfsnippets GetEmployeesByDept, AddEmployee (OUTPUT @NewID, status 0/1/2), CountByDept (2 result sets,
+OUTPUT @Total), GetEmployee (RAISERROR). Existing databases get missing seed procedures at startup.
+
 ## Tags
 cfset cfoutput (query/group/startrow/maxrows) cfif/cfelseif/cfelse cfloop (index/from/to/step, condition, query, list,
 collection) cfbreak cfabort cfexit cfparam cfinclude cfmodule cfassociate cfswitch/cfcase/cfdefaultcase cftry/cfcatch
 cfthrow cfrethrow cfscript cfsetting cfsilent cfprocessingdirective cflocation cfcookie cfheader cfcontent cfhtmlhead
 cfapplication (session/client/application) cflock cferror cfcache (page caching to disk) cfquery (cachedwithin, maxrows) cfqueryparam
-cftransaction cfinsert cfupdate cfstoredproc(error) cfmail/cfmailparam (spooled to kfroot/mail/spool) cffile (upload, read,
+cftransaction cfinsert cfupdate cfstoredproc/cfprocparam/cfprocresult (RETURNCODE -> CFSTOREDPROC.StatusCode,
+CFSTOREDPROC.ExecutionTime, DBVARNAME binds by name) cfmail/cfmailparam (spooled to kfroot/mail/spool) cffile (upload, read,
 readbinary, write, append, copy, move, rename, delete) cfdirectory cfregistry cfhttp/cfhttpparam (http:// only) cfschedule
 cfexecute cfwddx cfpop cfftp (passive-mode client) cfldap(error) cfobject(error) cfservlet(error) cfreport(error) cfindex cfsearch
 cfcollection cfauthenticate cfimpersonate cfform cfinput cfselect cftextinput cfslider cfgrid/cfgridcolumn/cfgridrow/
@@ -47,10 +62,11 @@ CreateObject CreateODBCDate CreateODBCDateTime CreateODBCTime CreateTime CreateT
 DateConvert DateDiff DateFormat DatePart Day DayOfWeek DayOfWeekAsString DayOfYear DaysInMonth DaysInYear DE DecimalFormat
 DecrementValue Decrypt DeleteClientVariable DirectoryExists DollarFormat Duplicate Encrypt Evaluate Exp ExpandPath
 FileExists Find FindNoCase FindOneOf FirstDayOfMonth Fix FormatBaseN GetBaseTagData GetBaseTagList GetBaseTemplatePath
-GetClientVariablesList GetCurrentTemplatePath GetDirectoryFromPath GetFileFromPath GetFunctionList GetHTTPTimeString
+GetClientVariablesList GetCurrentTemplatePath GetDirectoryFromPath GetFileFromPath GetFunctionList GetHttpRequestData
+GetHTTPTimeString GetK2ServerCollections GetK2ServerDocCount GetK2ServerDocCountLimit
 GetLocale GetMetricData GetProfileString GetTempDirectory GetTempFile GetTemplatePath GetTickCount GetTimeZoneInfo
 GetToken Hash Hour HTMLCodeFormat HTMLEditFormat IIf IncrementValue InputBaseN Insert Int IsArray IsAuthenticated
-IsAuthorized IsBinary IsBoolean IsDate IsDebugMode IsDefined IsLeapYear IsNumeric IsNumericDate IsProtected IsQuery
+IsAuthorized IsBinary IsBoolean IsDate IsDebugMode IsDefined IsK2ServerABroker IsK2ServerDocCountExceeded IsK2ServerOnline IsLeapYear IsNumeric IsNumericDate IsProtected IsQuery
 IsSimpleValue IsStruct IsWDDX JavaCast JSStringFormat LCase Left Len ListAppend ListChangeDelims ListContains
 ListContainsNoCase ListDeleteAt ListFind ListFindNoCase ListFirst ListGetAt ListInsertAt ListLast ListLen ListPrepend
 ListQualify ListRest ListSetAt ListSort ListToArray ListValueCount ListValueCountNoCase LJustify Log Log10 LS* LTrim Max Mid
@@ -63,6 +79,10 @@ StructKeyList StructNew StructUpdate Tan TimeFormat ToBase64 ToBinary ToString T
 ValueList Week Wrap WriteOutput XMLFormat Year YesNoFormat.
 `KFUSION_CHECKSYNTAX(code)` (struct OK, Message, Detail, Line, Column) works anywhere; other KFUSION_* functions are
 Administrator-only.
+`GetHttpRequestData()` returns Headers (struct; names re-capitalised as `User-Agent`), Content (raw body: string for
+text/* and form-urlencoded, binary otherwise), Method and Protocol. The K2 Server functions treat the built-in
+Verity engine as the K2 Server: collections = registered collections, doc count = their documents, never a broker;
+registry `Verity\K2Server`: DocCountLimit (default 250000), Online (1), Port (9901), set on the Administrator's Verity page.
 
 ## CFML gotchas (all authentically 4.5)
 - Variable names are case-insensitive: `<cfloop index="t">` overwrites a struct named `T`.

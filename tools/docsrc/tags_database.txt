@@ -37,6 +37,11 @@ Text values in WHERE clauses need single quotes; single quotes inside CFML varia
 automatically. Use `CFQUERYPARAM` to bind typed values safely.
 
 The maximum number of cached queries is set on the Caching page of the Administrator.
+
+A CFQUERY can also call a stored procedure (`EXEC GetEmployeesByDept 'Sales'` or
+`{call GetEmployeesByDept('Sales')}`), which returns the procedure's first result set, or run a small batch with
+variables (`DECLARE @n INT; SELECT @n = MAX(Emp_ID) FROM Employees; SELECT ... WHERE Emp_ID = @n`). Use
+`CFSTOREDPROC` to get output parameters, status codes and every result set.
 example:
 <!--- List the engineers, newest first --->
 <CFQUERY NAME="GetEngineers" DATASOURCE="cfsnippets">
@@ -56,7 +61,7 @@ in #CFQUERY.ExecutionTime# ms. Columns: #GetEngineers.ColumnList#</P>
   <LI>#FirstName# #LastName#, since #DateFormat(StartDate, "mmmm d, yyyy")#
 </CFOUTPUT>
 </UL>
-see: CFQUERYPARAM, CFOUTPUT, CFTRANSACTION, CFINSERT, CFUPDATE, CreateTimeSpan
+see: CFQUERYPARAM, CFOUTPUT, CFTRANSACTION, CFINSERT, CFUPDATE, CFSTOREDPROC, CreateTimeSpan
 
 @tag CFQUERYPARAM
 category: Database manipulation
@@ -329,11 +334,16 @@ see: CFINSERT, CFQUERY, CFQUERYPARAM, CFFORM
 
 @tag CFSTOREDPROC
 category: Database manipulation
-summary: Calls a stored procedure in a database server.
+summary: Calls a stored procedure in a data source.
 desc:
-`CFSTOREDPROC` runs a procedure stored in the database itself. Nested `CFPROCPARAM` tags pass its
-parameters and `CFPROCRESULT` tags name the result sets it returns. In KoldFusion the tag is recognized, but
-the built-in flat-file driver has no stored procedures, so every call ends in a Database exception.
+`CFSTOREDPROC` calls a procedure stored in the database itself. Nested `CFPROCPARAM` tags pass its
+parameters and receive its output parameters; `CFPROCRESULT` tags turn the result sets it returns into
+ordinary query variables. Like an ODBC driver, KoldFusion sends the call as `{? = call Name(?, ?)}` and binds the
+parameters by position, or by name when `CFPROCPARAM` has a DBVARNAME.
+
+The KoldFusion Flat-File Driver keeps each procedure as a text file next to the tables of its data source.
+Create one with a `CREATE PROCEDURE` statement in a `CFQUERY` (see Usage); the cfsnippets data source comes
+with GetEmployeesByDept, AddEmployee, CountByDept and GetEmployee.
 syntax:
 <CFSTOREDPROC PROCEDURE="procedure_name"
     DATASOURCE="ds_name"
@@ -349,55 +359,99 @@ syntax:
   CFPROCPARAM and CFPROCRESULT tags
 </CFSTOREDPROC>
 attrs:
-PROCEDURE | Required | Name of the stored procedure.
-DATASOURCE | Required | Data source to call it in. An unknown data source is reported first.
-USERNAME | Optional | Accepted for compatibility; KoldFusion ignores it.
-PASSWORD | Optional | Accepted for compatibility; KoldFusion ignores it.
-DBSERVER | Optional | Native-driver server name. Accepted for compatibility; KoldFusion ignores it.
-DBNAME | Optional | Native-driver database name. Accepted for compatibility; KoldFusion ignores it.
-BLOCKFACTOR | Optional | Rows fetched at a time (1 to 100). Accepted for compatibility; KoldFusion ignores it.
-PROVIDER | Optional | OLE DB provider. Accepted for compatibility; KoldFusion ignores it.
-PROVIDERDSN | Optional | OLE DB data source. Accepted for compatibility; KoldFusion ignores it.
-DEBUG | Optional | Accepted for compatibility; KoldFusion ignores it.
-RETURNCODE | Optional, default "No" | On a native driver, Yes stores the procedure's status code in
-  `CFSTOREDPROC.StatusCode`. Accepted for compatibility; KoldFusion ignores it.
+PROCEDURE | Required | Name of the stored procedure. An owner prefix such as `dbo.AddEmployee` is accepted.
+DATASOURCE | Required | Data source that holds the procedure.
+USERNAME | Optional | Overrides the login name in the data source definition. The flat-file driver does not check it.
+PASSWORD | Optional | Overrides the password in the data source definition. The flat-file driver does not check it.
+DBSERVER | Optional | Server name for native drivers. Ignored by the flat-file driver.
+DBNAME | Optional | Database name for native drivers. Ignored by the flat-file driver.
+BLOCKFACTOR | Optional, default "1" | Rows fetched from the server at a time, 1 to 100. Other values are rejected.
+PROVIDER | Optional | COM provider for OLE DB data sources.
+PROVIDERDSN | Optional | Data source name for the COM provider (OLE DB only).
+DEBUG | Optional, default "No" | Yes lists the call, every parameter and the number of result sets in the
+  debugging output, even when "Show query information" is off in the Administrator.
+RETURNCODE | Optional, default "No" | Yes puts the procedure's status code, the value of its RETURN statement, in
+  `CFSTOREDPROC.StatusCode`.
 usage:
-The exception has TYPE="Database", `CFCATCH.SQLState` S1000 and a message explaining that the driver does
-not support stored procedures. Pages written for an Oracle or Sybase server can catch it and fall back on
-plain `CFQUERY` statements, as the example does.
+After the call, `CFSTOREDPROC.ExecutionTime` holds the time the procedure took, in milliseconds, and with
+RETURNCODE="Yes" `CFSTOREDPROC.StatusCode` holds its status code (0 when the procedure has no RETURN).
+Errors raised by the procedure arrive as Database exceptions with the usual ODBC SQLState, for example 37000
+for an unknown procedure and 07001 for a missing or extra parameter.
 
-On a server with a native driver, `CFSTOREDPROC.ExecutionTime` holds the call's duration in milliseconds.
+# Writing procedures
+
+The flat-file driver speaks the procedure dialect of SQL Server and Sybase. A procedure declares its
+parameters with an `@`, a type, an optional default and OUTPUT for output parameters:
+
+    CREATE PROCEDURE RaiseSalary
+        @EmpID   INT,
+        @Percent NUMERIC(5,2) = 5,
+        @Salary  MONEY OUTPUT
+    AS
+    BEGIN
+        IF NOT EXISTS (SELECT * FROM Employees WHERE Emp_ID = @EmpID)
+            RETURN 1;
+        UPDATE Employees SET Salary = Salary * (100 + @Percent) / 100 WHERE Emp_ID = @EmpID;
+        SELECT @Salary = Salary FROM Employees WHERE Emp_ID = @EmpID;
+        RETURN 0;
+    END
+
+The body can use any SQL the driver understands, with `@variables` wherever a value may appear, plus:
+
+| Statement | What it does |
+| DECLARE @v type [, ...] | Declares local variables (initially NULL). |
+| SET @v = expression | Assigns a value; the expression may be a subquery: `SET @n = (SELECT COUNT(*) FROM Parks)`. |
+| SELECT @v = column, ... FROM ... | Assigns from a query (the last row wins; no rows leaves the variables alone). |
+| SELECT ... | Any other SELECT returns a result set to the caller. |
+| IF condition statement [ELSE statement] | Conditions may use EXISTS, IN, subqueries and IS NULL. |
+| WHILE condition statement | Loops, with BREAK and CONTINUE. |
+| BEGIN ... END | Groups statements. |
+| RETURN [n] | Ends the procedure with status code n (default 0). |
+| EXEC proc args | Calls another procedure: positional, `@name = value`, DEFAULT and `@v OUTPUT` arguments, `EXEC @rc = proc`. |
+| RAISERROR ('text %s', 16, 1, args) | Fails with your own message; severity 10 or less is ignored. |
+| PRINT, SET NOCOUNT ON, BEGIN TRAN, COMMIT | Accepted and ignored (use `CFTRANSACTION` for transactions). |
+
+`@@ROWCOUNT`, `@@IDENTITY` and `@@NESTLEVEL` work as in SQL Server. Separate statements with semicolons or
+start each one on a statement keyword. Remove a procedure with `DROP PROCEDURE name`; change one with
+`ALTER PROCEDURE`.
+
+In a CFQUERY you can also call a procedure with `EXEC name args`, `{call name(args)}` or `CALL name(args)`; the
+query receives the procedure's first result set. A CFQUERY may also hold a whole batch that uses variables,
+for example `DECLARE @n INT; SET @n = 5; SELECT TOP @n ...`.
+
+> Procedures, like the tables, live in the data source's directory under `kfroot/db/`, one `.prc` file each. The
+> Administrator's table browser (Data Sources > ODBC > View Tables) lists them with their parameters and source.
 example:
-<CFTRY>
-  <CFSTOREDPROC PROCEDURE="sp_GetDeptStaff" DATASOURCE="cfsnippets">
-    <CFPROCPARAM TYPE="In" CFSQLTYPE="CF_SQL_VARCHAR" VALUE="Training" DBVARNAME="@dept">
-    <CFPROCRESULT NAME="Staff">
-  </CFSTOREDPROC>
-  <CFCATCH TYPE="Database">
-    <CFOUTPUT>
-    <P><B>The procedure call failed</B> (SQLState #CFCATCH.SQLState#):<BR>
-    <I>#CFCATCH.Message#</I></P>
-    </CFOUTPUT>
-    <!--- Fall back on a plain query that does the same job --->
-    <CFQUERY NAME="Staff" DATASOURCE="cfsnippets">
-    SELECT FirstName, LastName FROM Employees
-    WHERE Department = 'Training' ORDER BY LastName
-    </CFQUERY>
-  </CFCATCH>
-</CFTRY>
-<P>Training department, from the fallback query:</P>
-<UL>
-<CFOUTPUT QUERY="Staff"><LI>#FirstName# #LastName#
+<!--- Department head counts: two result sets, an output parameter and a status code --->
+<CFSTOREDPROC PROCEDURE="CountByDept" DATASOURCE="cfsnippets" RETURNCODE="Yes">
+  <CFPROCPARAM TYPE="In" CFSQLTYPE="CF_SQL_VARCHAR" DBVARNAME="@Department" NULL="Yes">
+  <CFPROCPARAM TYPE="Out" CFSQLTYPE="CF_SQL_INTEGER" DBVARNAME="@Total" VARIABLE="TotalStaff">
+  <CFPROCRESULT NAME="HeadCount" RESULTSET="1">
+  <CFPROCRESULT NAME="Offices" RESULTSET="2">
+</CFSTOREDPROC>
+
+<CFOUTPUT>
+<P>CountByDept returned status #CFSTOREDPROC.StatusCode# in #CFSTOREDPROC.ExecutionTime# ms:
+#TotalStaff# employees in #HeadCount.RecordCount# departments.</P>
 </CFOUTPUT>
-</UL>
-see: CFPROCPARAM, CFPROCRESULT, CFQUERY, CFTRY
+<TABLE BORDER=1 CELLPADDING=3>
+<TR BGCOLOR="#CCCCCC"><TH>Department</TH><TH>Employees</TH><TH>Payroll</TH></TR>
+<CFOUTPUT QUERY="HeadCount">
+<TR><TD>#Department#</TD><TD ALIGN="right">#Employees#</TD><TD ALIGN="right">#DollarFormat(Payroll)#</TD></TR>
+</CFOUTPUT>
+</TABLE>
+<P>Offices:
+<CFOUTPUT QUERY="Offices">#Dept_Name# (#Location#)<CFIF CurrentRow LT RecordCount>, </CFIF></CFOUTPUT></P>
+see: CFPROCPARAM, CFPROCRESULT, CFQUERY, CFTRANSACTION, CFQUERYPARAM
 
 @tag CFPROCPARAM
 category: Database manipulation
 summary: Passes one parameter to a stored procedure called with CFSTOREDPROC.
 desc:
-Each `CFPROCPARAM` inside a `CFSTOREDPROC` supplies one parameter, in the order the procedure declares
-them. Input parameters carry a value; output parameters name a CFML variable that receives the result.
+Each `CFPROCPARAM` inside a `CFSTOREDPROC` supplies one parameter. Without DBVARNAME the parameters are
+matched to the procedure's parameters in the order the procedure declares them; with DBVARNAME they are matched
+by name. Input parameters carry a value; output parameters name a CFML variable that receives the
+procedure's value when the call returns.
 syntax:
 <CFPROCPARAM TYPE="In/Out/InOut"
     VARIABLE="variable_name"
@@ -409,45 +463,57 @@ syntax:
     NULL="Yes/No">
 attrs:
 TYPE | Optional, default "In" | In passes a value, Out receives one, InOut does both.
-VARIABLE | Required for Out and InOut | CFML variable that receives the output value.
-DBVARNAME | Optional | Name of the parameter in the procedure, such as `@dept`, for drivers that bind by name.
-VALUE | Required for In and InOut | The value to pass.
-CFSQLTYPE | Required | One of the CF_SQL_ types listed under `CFQUERYPARAM`.
-MAXLENGTH | Optional | Maximum length of the value.
-SCALE | Optional | Decimal places of a numeric value.
-NULL | Optional, default "No" | Yes passes SQL NULL.
+VARIABLE | Required for Out and InOut | CFML variable that receives the output value. A NULL comes back as an empty
+  string, a date as "yyyy-mm-dd hh:mm:ss", like the columns of a query.
+DBVARNAME | Optional | Name of the parameter in the procedure, such as `@Department`, to bind by name instead of by
+  position. Positional parameters must come before named ones.
+VALUE | Required for In and InOut | The value to pass. It is checked against CFSQLTYPE before the call.
+CFSQLTYPE | Required | CF_SQL_BIGINT, CF_SQL_BIT, CF_SQL_CHAR, CF_SQL_DATE, CF_SQL_DECIMAL, CF_SQL_DOUBLE, CF_SQL_FLOAT,
+  CF_SQL_IDSTAMP, CF_SQL_INTEGER, CF_SQL_LONGVARCHAR, CF_SQL_MONEY, CF_SQL_MONEY4, CF_SQL_NUMERIC, CF_SQL_REAL,
+  CF_SQL_REFCURSOR, CF_SQL_SMALLINT, CF_SQL_TIME, CF_SQL_TIMESTAMP, CF_SQL_TINYINT or CF_SQL_VARCHAR.
+  CF_SQL_REFCURSOR (Oracle cursors) is refused by the flat-file driver, which returns result sets directly.
+MAXLENGTH | Optional | Maximum length of an input value (longer values throw an exception) and of a returned string.
+SCALE | Optional | Decimal places a returned numeric value is rounded to.
+NULL | Optional, default "No" | Yes passes SQL NULL and ignores VALUE.
 usage:
-Because KoldFusion's flat-file driver cannot run stored procedures, `CFPROCPARAM` is parsed but does
-nothing on its own; the enclosing `CFSTOREDPROC` throws a Database exception before any parameter is used,
-so an Out variable is never set. Give such variables a default with `CFPARAM`, as the example does.
+The procedure converts each value to the type it declares: a VARCHAR(5) parameter keeps five characters, an
+INT drops the fraction, and a value that does not convert ends the call with "Conversion failed when
+converting ...". Leave out a parameter that has a default, or bind it by name and skip it.
+
+A procedure parameter must be declared OUTPUT for a TYPE="Out" or "InOut" `CFPROCPARAM`; otherwise the call
+fails with "The formal parameter ... was not declared as an OUTPUT parameter".
 example:
-<CFPARAM NAME="HeadCount" DEFAULT="(not returned)">
-<CFTRY>
-  <CFSTOREDPROC PROCEDURE="sp_CountStaff" DATASOURCE="cfsnippets">
-    <CFPROCPARAM TYPE="In" CFSQLTYPE="CF_SQL_VARCHAR" DBVARNAME="@dept" VALUE="Engineering">
-    <CFPROCPARAM TYPE="Out" CFSQLTYPE="CF_SQL_INTEGER" DBVARNAME="@total" VARIABLE="HeadCount">
+<!--- AddEmployee returns the new Emp_ID in an output parameter and a status code:
+      0 = added, 1 = no such department, 2 = already on file.
+      The transaction is rolled back, so the sample data stays the same. --->
+<CFTRANSACTION>
+  <CFSTOREDPROC PROCEDURE="AddEmployee" DATASOURCE="cfsnippets" RETURNCODE="Yes">
+    <CFPROCPARAM TYPE="In" CFSQLTYPE="CF_SQL_VARCHAR" DBVARNAME="@FirstName" VALUE="Wendy">
+    <CFPROCPARAM TYPE="In" CFSQLTYPE="CF_SQL_VARCHAR" DBVARNAME="@LastName" VALUE="Okonkwo">
+    <CFPROCPARAM TYPE="In" CFSQLTYPE="CF_SQL_VARCHAR" DBVARNAME="@Department" VALUE="Training">
+    <CFPROCPARAM TYPE="In" CFSQLTYPE="CF_SQL_MONEY" DBVARNAME="@Salary" VALUE="42500">
+    <CFPROCPARAM TYPE="Out" CFSQLTYPE="CF_SQL_INTEGER" DBVARNAME="@NewID" VARIABLE="NewID">
   </CFSTOREDPROC>
-  <CFCATCH TYPE="Database">
-    <CFOUTPUT><P>Caught a #CFCATCH.Type# exception: #CFCATCH.Message#</P></CFOUTPUT>
-  </CFCATCH>
-</CFTRY>
-<CFQUERY NAME="Counted" DATASOURCE="cfsnippets">
-SELECT COUNT(*) AS Total FROM Employees WHERE Department = 'Engineering'
-</CFQUERY>
+  <CFSET Status = CFSTOREDPROC.StatusCode>
+  <CFQUERY NAME="Added" DATASOURCE="cfsnippets">
+  SELECT FirstName, LastName, Department, Salary FROM Employees WHERE Emp_ID = #NewID#
+  </CFQUERY>
+  <CFTRANSACTION ACTION="Rollback"/>
+</CFTRANSACTION>
+
 <CFOUTPUT>
-<TABLE BORDER=1 CELLPADDING=3>
-<TR><TD>Out parameter HeadCount</TD><TD>#HeadCount#</TD></TR>
-<TR><TD>Same answer from CFQUERY</TD><TD>#Counted.Total#</TD></TR>
-</TABLE>
+<P>Status #Status#: employee number #NewID# is
+#Added.FirstName# #Added.LastName# (#Added.Department#, #DollarFormat(Added.Salary)#).</P>
 </CFOUTPUT>
-see: CFSTOREDPROC, CFPROCRESULT, CFQUERYPARAM, CFPARAM
+see: CFSTOREDPROC, CFPROCRESULT, CFQUERYPARAM, CFTRANSACTION
 
 @tag CFPROCRESULT
 category: Database manipulation
 summary: Names a result set returned by a stored procedure called with CFSTOREDPROC.
 desc:
-A stored procedure can return several result sets. Each `CFPROCRESULT` inside a `CFSTOREDPROC` turns one
-of them into an ordinary query variable that you can use with `CFOUTPUT`, `CFLOOP` and the query functions.
+A stored procedure returns one result set for each SELECT it runs. Each `CFPROCRESULT` inside a
+`CFSTOREDPROC` turns one of them into an ordinary query variable that you can use with `CFOUTPUT`, `CFLOOP` and
+the query functions.
 syntax:
 <CFPROCRESULT NAME="query_name"
     RESULTSET="1-n"
@@ -457,35 +523,26 @@ NAME | Required | Name of the query that receives the result set.
 RESULTSET | Optional, default "1" | Which result set to take, counting from 1.
 MAXROWS | Optional | Maximum number of rows to keep.
 usage:
-As with `CFPROCPARAM`, KoldFusion parses the tag but never fills the query, because the enclosing
-`CFSTOREDPROC` always throws a Database exception on the flat-file driver. Test with `IsDefined` or
-`IsQuery` before using the result, or build it another way in your `CFCATCH` block.
+Result sets are numbered in the order the procedure produces them, including those of procedures it calls with
+EXEC. If the procedure returns fewer result sets than RESULTSET asks for, the query variable is not created;
+test for it with `IsDefined` before you use it.
 example:
-<CFTRY>
-  <CFSTOREDPROC PROCEDURE="sp_DeptReport" DATASOURCE="cfsnippets">
-    <CFPROCRESULT NAME="Depts" RESULTSET="1">
-    <CFPROCRESULT NAME="Courses" RESULTSET="2" MAXROWS="5">
-  </CFSTOREDPROC>
-  <CFCATCH TYPE="Database">
-    <P>No stored procedures on this driver. Running the two queries by hand instead.</P>
-    <CFQUERY NAME="Depts" DATASOURCE="cfsnippets">
-    SELECT Dept_Name, Location FROM Departments ORDER BY Dept_Name
-    </CFQUERY>
-    <CFQUERY NAME="Courses" DATASOURCE="cfsnippets" MAXROWS="5">
-    SELECT CorName, CorLevel FROM CourseList ORDER BY CorName
-    </CFQUERY>
-  </CFCATCH>
-</CFTRY>
+<CFSTOREDPROC PROCEDURE="CountByDept" DATASOURCE="cfsnippets">
+  <CFPROCPARAM TYPE="In" CFSQLTYPE="CF_SQL_VARCHAR" VALUE="Engineering">
+  <CFPROCPARAM TYPE="Out" CFSQLTYPE="CF_SQL_INTEGER" VARIABLE="Total">
+  <CFPROCRESULT NAME="Depts" RESULTSET="1">
+  <CFPROCRESULT NAME="Offices" RESULTSET="2" MAXROWS="1">
+  <CFPROCRESULT NAME="Third" RESULTSET="3">
+</CFSTOREDPROC>
 <CFOUTPUT>
-<P>IsQuery(Depts): #IsQuery(Depts)#, IsQuery(Courses): #IsQuery(Courses)#</P>
+<P>Engineering has #Total# employees and a payroll of #DollarFormat(Depts.Payroll)#.
+It is based in #Offices.Location#.</P>
+<P>IsDefined("Third"): #IsDefined("Third")# (CountByDept returns two result sets).</P>
 </CFOUTPUT>
-<TABLE BORDER=1 CELLPADDING=3>
-<TR><TH>Department</TH><TH>Location</TH></TR>
-<CFOUTPUT QUERY="Depts"><TR><TD>#Dept_Name#</TD><TD>#Location#</TD></TR>
-</CFOUTPUT>
-</TABLE>
-<UL>
-<CFOUTPUT QUERY="Courses"><LI>#CorName# (#CorLevel#)
-</CFOUTPUT>
-</UL>
-see: CFSTOREDPROC, CFPROCPARAM, CFQUERY, IsQuery
+
+<!--- The same procedure's first result set, through CFQUERY --->
+<CFQUERY NAME="ViaQuery" DATASOURCE="cfsnippets">
+EXEC CountByDept @Department = 'Sales', @Total = NULL
+</CFQUERY>
+<CFOUTPUT QUERY="ViaQuery"><P>Via CFQUERY: #Department#, #Employees# employees.</P></CFOUTPUT>
+see: CFSTOREDPROC, CFPROCPARAM, CFQUERY, IsDefined

@@ -56,6 +56,7 @@ src/            the server (about 15,000 lines of C)
   interp.c        execution, template cache, Application.cfm, error pages, debug output
   tags*.c         ~80 CFML tags        func*.c   ~230 built-in functions
   sql.c           the "KoldFusion Flat-File Driver": a small SQL engine over text tables
+  sqlproc.c       its stored procedures (CREATE PROCEDURE, T-SQL bodies, EXEC, CFSTOREDPROC)
   http.c          HTTP/1.0 server + CFHTTP client      session.c  session/application/client scopes, CFLOCK
   registry.c      REGEDIT4-format registry           crypto.c   CFMX_COMPAT Encrypt(), MD5 Hash(), uuencode
   mail.c          CFMAIL spool + SMTP delivery        sched.c    CFSCHEDULE scheduler
@@ -108,13 +109,13 @@ Every page from the 4.5 navigation is implemented and saves to the registry:
   contexts, rules, policies, sandboxes, resource view, map), Variables (client storage in registry/cookie/data source,
   session & application timeouts), Locking (none / full checking / automatic read locking / single-threaded sessions),
   Mappings, Java, Version Info (with live server statistics).
-- **datasources**: ODBC, Native Drivers, OLE DB, Verify Data Source (plus a table browser).
+- **datasources**: ODBC, Native Drivers, OLE DB, Verify Data Source (plus a browser for tables and stored procedures).
 - **extensions**: CFX Tags (real `.so` CFX tags written in C), Applets.
 - **logging**: Settings, Mail Logging, Log Files (viewer, download, delete).
 - **automated tasks**: Scheduler Settings, Scheduled Tasks (one-time, daily/weekly/monthly, every N minutes, RUN now,
   publish to file).
 - **miscellaneous**: Mail (verify, spool and undeliverable folder), Debugging (debug output appended to pages, IP
-  restrictions), Verity (create/index/repair/optimize/purge/delete collections), Source Control.
+  restrictions), Verity (create/index/repair/optimize/purge/delete collections, Verity K2 Server settings), Source Control.
 
 ## Period-correct details
 
@@ -132,6 +133,10 @@ Every page from the 4.5 navigation is implemented and saves to the registry:
   those arrived in ColdFusion 5.
 - CFGRID, CFTREE, CFSLIDER and CFTEXTINPUT were Java applets; they render as working HTML equivalents. CFGRID edit mode
   with CFGRIDUPDATE really updates the table.
+- `CFSTOREDPROC` works against the flat-file driver: procedures are written in SQL Server-style T-SQL
+  (`CREATE PROCEDURE ... @param OUTPUT`, `IF`/`WHILE`, `SELECT @v = ...`, `RAISERROR`), called as
+  `{? = call Proc(?, ?)}`, and fail with SQL Server's own wording ("Procedure 'X' expects parameter '@Y', which was
+  not supplied.").
 - Windows-only features (COM, CFREPORT/Crystal Reports, NT impersonation, Visual SourceSafe) fail with the same polite
   errors the UNIX version of ColdFusion gave.
 
@@ -140,7 +145,7 @@ Every page from the 4.5 navigation is implemented and saves to the registry:
 | Command | What it does |
 |---|---|
 | `tests/run_tests.sh` | CFML regression tests (`tests/cfml/*.cfm` vs `*.expected`) |
-| `bash tools/testdocs.sh --all` | Renders every documentation page and all 337 reference snippets |
+| `bash tools/testdocs.sh --all` | Renders every documentation page and all 344 reference snippets |
 | `python3 wwwroot/CFDOCS/exampleapp/selftest.py PORT` | Walks every example-application page and flow against a running server |
 | `make asan` | Builds `bin/kfserver-asan` with AddressSanitizer/UBSan |
 | `python3 tools/mkdocs.py` | Regenerates the CFML Language Reference, Quick Reference and books from `tools/docsrc/` |

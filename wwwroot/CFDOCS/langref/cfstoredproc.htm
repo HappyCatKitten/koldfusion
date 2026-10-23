@@ -21,7 +21,8 @@ function runExample(name) {
 <HR NOSHADE SIZE=1>
 <DIV CLASS="docbody">
 <H1>CFSTOREDPROC</H1>
-<P><B><CODE>CFSTOREDPROC</CODE></B> runs a procedure stored in the database itself. Nested <A HREF="cfprocparam.htm"><CODE>CFPROCPARAM</CODE></A> tags pass its parameters and <A HREF="cfprocresult.htm"><CODE>CFPROCRESULT</CODE></A> tags name the result sets it returns. In KoldFusion the tag is recognized, but the built-in flat-file driver has no stored procedures, so every call ends in a Database exception.</P>
+<P><B><CODE>CFSTOREDPROC</CODE></B> calls a procedure stored in the database itself. Nested <A HREF="cfprocparam.htm"><CODE>CFPROCPARAM</CODE></A> tags pass its parameters and receive its output parameters; <A HREF="cfprocresult.htm"><CODE>CFPROCRESULT</CODE></A> tags turn the result sets it returns into ordinary query variables. Like an ODBC driver, KoldFusion sends the call as <CODE>{? = call Name(?, ?)}</CODE> and binds the parameters by position, or by name when <A HREF="cfprocparam.htm"><CODE>CFPROCPARAM</CODE></A> has a DBVARNAME.</P>
+<P>The KoldFusion Flat-File Driver keeps each procedure as a text file next to the tables of its data source. Create one with a <CODE>CREATE PROCEDURE</CODE> statement in a <A HREF="cfquery.htm"><CODE>CFQUERY</CODE></A> (see Usage); the cfsnippets data source comes with GetEmployeesByDept, AddEmployee, CountByDept and GetEmployee.</P>
 <H4>Category</H4><P><A HREF="index.htm#database_manipulation">Database manipulation</A></P>
 <H4>Syntax</H4>
 <PRE>&lt;CFSTOREDPROC PROCEDURE=&quot;procedure_name&quot;
@@ -40,57 +41,122 @@ function runExample(name) {
 <H4>Attributes</H4>
 <DL>
 <DT><B>PROCEDURE</B></DT>
-<DD><I>Required.</I> Name of the stored procedure.</DD>
+<DD><I>Required.</I> Name of the stored procedure. An owner prefix such as <CODE>dbo.AddEmployee</CODE> is accepted.</DD>
 <DT><B>DATASOURCE</B></DT>
-<DD><I>Required.</I> Data source to call it in. An unknown data source is reported first.</DD>
+<DD><I>Required.</I> Data source that holds the procedure.</DD>
 <DT><B>USERNAME</B></DT>
-<DD><I>Optional.</I> Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> Overrides the login name in the data source definition. The flat-file driver does not check it.</DD>
 <DT><B>PASSWORD</B></DT>
-<DD><I>Optional.</I> Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> Overrides the password in the data source definition. The flat-file driver does not check it.</DD>
 <DT><B>DBSERVER</B></DT>
-<DD><I>Optional.</I> Native-driver server name. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> Server name for native drivers. Ignored by the flat-file driver.</DD>
 <DT><B>DBNAME</B></DT>
-<DD><I>Optional.</I> Native-driver database name. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> Database name for native drivers. Ignored by the flat-file driver.</DD>
 <DT><B>BLOCKFACTOR</B></DT>
-<DD><I>Optional.</I> Rows fetched at a time (1 to 100). Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional, default &quot;1&quot;.</I> Rows fetched from the server at a time, 1 to 100. Other values are rejected.</DD>
 <DT><B>PROVIDER</B></DT>
-<DD><I>Optional.</I> OLE DB provider. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> COM provider for OLE DB data sources.</DD>
 <DT><B>PROVIDERDSN</B></DT>
-<DD><I>Optional.</I> OLE DB data source. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional.</I> Data source name for the COM provider (OLE DB only).</DD>
 <DT><B>DEBUG</B></DT>
-<DD><I>Optional.</I> Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional, default &quot;No&quot;.</I> Yes lists the call, every parameter and the number of result sets in the debugging output, even when &quot;Show query information&quot; is off in the Administrator.</DD>
 <DT><B>RETURNCODE</B></DT>
-<DD><I>Optional, default &quot;No&quot;.</I> On a native driver, Yes stores the procedure&#x27;s status code in <CODE>CFSTOREDPROC.StatusCode</CODE>. Accepted for compatibility; KoldFusion ignores it.</DD>
+<DD><I>Optional, default &quot;No&quot;.</I> Yes puts the procedure&#x27;s status code, the value of its RETURN statement, in <CODE>CFSTOREDPROC.StatusCode</CODE>.</DD>
 </DL>
 <H4>Usage</H4>
-<P>The exception has TYPE=&quot;Database&quot;, <CODE>CFCATCH.SQLState</CODE> S1000 and a message explaining that the driver does not support stored procedures. Pages written for an Oracle or Sybase server can catch it and fall back on plain <A HREF="cfquery.htm"><CODE>CFQUERY</CODE></A> statements, as the example does.</P>
-<P>On a server with a native driver, <CODE>CFSTOREDPROC.ExecutionTime</CODE> holds the call&#x27;s duration in milliseconds.</P>
+<P>After the call, <CODE>CFSTOREDPROC.ExecutionTime</CODE> holds the time the procedure took, in milliseconds, and with RETURNCODE=&quot;Yes&quot; <CODE>CFSTOREDPROC.StatusCode</CODE> holds its status code (0 when the procedure has no RETURN). Errors raised by the procedure arrive as Database exceptions with the usual ODBC SQLState, for example 37000 for an unknown procedure and 07001 for a missing or extra parameter.</P>
+<H2>Writing procedures</H2>
+<P>The flat-file driver speaks the procedure dialect of SQL Server and Sybase. A procedure declares its parameters with an <CODE>@</CODE>, a type, an optional default and OUTPUT for output parameters:</P>
+<PRE>CREATE PROCEDURE RaiseSalary
+    @EmpID   INT,
+    @Percent NUMERIC(5,2) = 5,
+    @Salary  MONEY OUTPUT
+AS
+BEGIN
+    IF NOT EXISTS (SELECT * FROM Employees WHERE Emp_ID = @EmpID)
+        RETURN 1;
+    UPDATE Employees SET Salary = Salary * (100 + @Percent) / 100 WHERE Emp_ID = @EmpID;
+    SELECT @Salary = Salary FROM Employees WHERE Emp_ID = @EmpID;
+    RETURN 0;
+END</PRE>
+<P>The body can use any SQL the driver understands, with <CODE>@variables</CODE> wherever a value may appear, plus:</P>
+<TABLE BORDER=0 CELLPADDING=3 CELLSPACING=1 BGCOLOR="#999999" CLASS="doctable">
+<TR BGCOLOR="#669966" VALIGN=TOP>
+<TH ALIGN=LEFT><FONT COLOR="#FFFFFF">Statement</FONT></TH>
+<TH ALIGN=LEFT><FONT COLOR="#FFFFFF">What it does</FONT></TH>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>DECLARE @v type [, ...]</TD>
+<TD>Declares local variables (initially NULL).</TD>
+</TR>
+<TR BGCOLOR="#FFFBF0" VALIGN=TOP>
+<TD>SET @v = expression</TD>
+<TD>Assigns a value; the expression may be a subquery: <CODE>SET @n = (SELECT COUNT(*) FROM Parks)</CODE>.</TD>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>SELECT @v = column, ... FROM ...</TD>
+<TD>Assigns from a query (the last row wins; no rows leaves the variables alone).</TD>
+</TR>
+<TR BGCOLOR="#FFFBF0" VALIGN=TOP>
+<TD>SELECT ...</TD>
+<TD>Any other SELECT returns a result set to the caller.</TD>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>IF condition statement [ELSE statement]</TD>
+<TD>Conditions may use EXISTS, IN, subqueries and IS NULL.</TD>
+</TR>
+<TR BGCOLOR="#FFFBF0" VALIGN=TOP>
+<TD>WHILE condition statement</TD>
+<TD>Loops, with BREAK and CONTINUE.</TD>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>BEGIN ... END</TD>
+<TD>Groups statements.</TD>
+</TR>
+<TR BGCOLOR="#FFFBF0" VALIGN=TOP>
+<TD>RETURN [n]</TD>
+<TD>Ends the procedure with status code n (default 0).</TD>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>EXEC proc args</TD>
+<TD>Calls another procedure: positional, <CODE>@name = value</CODE>, DEFAULT and <CODE>@v OUTPUT</CODE> arguments, <CODE>EXEC @rc = proc</CODE>.</TD>
+</TR>
+<TR BGCOLOR="#FFFBF0" VALIGN=TOP>
+<TD>RAISERROR (&#x27;text %s&#x27;, 16, 1, args)</TD>
+<TD>Fails with your own message; severity 10 or less is ignored.</TD>
+</TR>
+<TR BGCOLOR="#FFFFFF" VALIGN=TOP>
+<TD>PRINT, SET NOCOUNT ON, BEGIN TRAN, COMMIT</TD>
+<TD>Accepted and ignored (use <A HREF="cftransaction.htm"><CODE>CFTRANSACTION</CODE></A> for transactions).</TD>
+</TR>
+</TABLE>
+<P><CODE>@@ROWCOUNT</CODE>, <CODE>@@IDENTITY</CODE> and <CODE>@@NESTLEVEL</CODE> work as in SQL Server. Separate statements with semicolons or start each one on a statement keyword. Remove a procedure with <CODE>DROP PROCEDURE name</CODE>; change one with <CODE>ALTER PROCEDURE</CODE>.</P>
+<P>In a CFQUERY you can also call a procedure with <CODE>EXEC name args</CODE>, <CODE>{call name(args)}</CODE> or <CODE>CALL name(args)</CODE>; the query receives the procedure&#x27;s first result set. A CFQUERY may also hold a whole batch that uses variables, for example <CODE>DECLARE @n INT; SET @n = 5; SELECT TOP @n ...</CODE>.</P>
+<P CLASS="note"><B>Note</B>&nbsp; Procedures, like the tables, live in the data source&#x27;s directory under <CODE>kfroot/db/</CODE>, one <CODE>.prc</CODE> file each. The Administrator&#x27;s table browser (Data Sources &gt; ODBC &gt; View Tables) lists them with their parameters and source.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfstoredproc"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfstoredproc'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
-<PRE CLASS="example">&lt;CFTRY&gt;
-  &lt;CFSTOREDPROC PROCEDURE=&quot;sp_GetDeptStaff&quot; DATASOURCE=&quot;cfsnippets&quot;&gt;
-    &lt;CFPROCPARAM TYPE=&quot;In&quot; CFSQLTYPE=&quot;CF_SQL_VARCHAR&quot; VALUE=&quot;Training&quot; DBVARNAME=&quot;@dept&quot;&gt;
-    &lt;CFPROCRESULT NAME=&quot;Staff&quot;&gt;
-  &lt;/CFSTOREDPROC&gt;
-  &lt;CFCATCH TYPE=&quot;Database&quot;&gt;
-    &lt;CFOUTPUT&gt;
-    &lt;P&gt;&lt;B&gt;The procedure call failed&lt;/B&gt; (SQLState #CFCATCH.SQLState#):&lt;BR&gt;
-    &lt;I&gt;#CFCATCH.Message#&lt;/I&gt;&lt;/P&gt;
-    &lt;/CFOUTPUT&gt;
-    &lt;!--- Fall back on a plain query that does the same job ---&gt;
-    &lt;CFQUERY NAME=&quot;Staff&quot; DATASOURCE=&quot;cfsnippets&quot;&gt;
-    SELECT FirstName, LastName FROM Employees
-    WHERE Department = &#x27;Training&#x27; ORDER BY LastName
-    &lt;/CFQUERY&gt;
-  &lt;/CFCATCH&gt;
-&lt;/CFTRY&gt;
-&lt;P&gt;Training department, from the fallback query:&lt;/P&gt;
-&lt;UL&gt;
-&lt;CFOUTPUT QUERY=&quot;Staff&quot;&gt;&lt;LI&gt;#FirstName# #LastName#
+<PRE CLASS="example">&lt;!--- Department head counts: two result sets, an output parameter and a status code ---&gt;
+&lt;CFSTOREDPROC PROCEDURE=&quot;CountByDept&quot; DATASOURCE=&quot;cfsnippets&quot; RETURNCODE=&quot;Yes&quot;&gt;
+  &lt;CFPROCPARAM TYPE=&quot;In&quot; CFSQLTYPE=&quot;CF_SQL_VARCHAR&quot; DBVARNAME=&quot;@Department&quot; NULL=&quot;Yes&quot;&gt;
+  &lt;CFPROCPARAM TYPE=&quot;Out&quot; CFSQLTYPE=&quot;CF_SQL_INTEGER&quot; DBVARNAME=&quot;@Total&quot; VARIABLE=&quot;TotalStaff&quot;&gt;
+  &lt;CFPROCRESULT NAME=&quot;HeadCount&quot; RESULTSET=&quot;1&quot;&gt;
+  &lt;CFPROCRESULT NAME=&quot;Offices&quot; RESULTSET=&quot;2&quot;&gt;
+&lt;/CFSTOREDPROC&gt;
+
+&lt;CFOUTPUT&gt;
+&lt;P&gt;CountByDept returned status #CFSTOREDPROC.StatusCode# in #CFSTOREDPROC.ExecutionTime# ms:
+#TotalStaff# employees in #HeadCount.RecordCount# departments.&lt;/P&gt;
 &lt;/CFOUTPUT&gt;
-&lt;/UL&gt;</PRE>
+&lt;TABLE BORDER=1 CELLPADDING=3&gt;
+&lt;TR BGCOLOR=&quot;#CCCCCC&quot;&gt;&lt;TH&gt;Department&lt;/TH&gt;&lt;TH&gt;Employees&lt;/TH&gt;&lt;TH&gt;Payroll&lt;/TH&gt;&lt;/TR&gt;
+&lt;CFOUTPUT QUERY=&quot;HeadCount&quot;&gt;
+&lt;TR&gt;&lt;TD&gt;#Department#&lt;/TD&gt;&lt;TD ALIGN=&quot;right&quot;&gt;#Employees#&lt;/TD&gt;&lt;TD ALIGN=&quot;right&quot;&gt;#DollarFormat(Payroll)#&lt;/TD&gt;&lt;/TR&gt;
+&lt;/CFOUTPUT&gt;
+&lt;/TABLE&gt;
+&lt;P&gt;Offices:
+&lt;CFOUTPUT QUERY=&quot;Offices&quot;&gt;#Dept_Name# (#Location#)&lt;CFIF CurrentRow LT RecordCount&gt;, &lt;/CFIF&gt;&lt;/CFOUTPUT&gt;&lt;/P&gt;</PRE>
 <H4>See also</H4>
-<P><A HREF="cfprocparam.htm">CFPROCPARAM</A>, <A HREF="cfprocresult.htm">CFPROCRESULT</A>, <A HREF="cfquery.htm">CFQUERY</A>, <A HREF="cftry.htm">CFTRY</A></P>
+<P><A HREF="cfprocparam.htm">CFPROCPARAM</A>, <A HREF="cfprocresult.htm">CFPROCRESULT</A>, <A HREF="cfquery.htm">CFQUERY</A>, <A HREF="cftransaction.htm">CFTRANSACTION</A>, <A HREF="cfqueryparam.htm">CFQUERYPARAM</A></P>
 </DIV>
 <HR NOSHADE SIZE=1>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=2><TR><TD><A HREF="cfslider.htm"><IMG SRC="/CFDOCS/images/doc_back.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Previous page"></A></TD><TD><A HREF="index.htm"><IMG SRC="/CFDOCS/images/doc_up.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Up one level"></A></TD><TD><A HREF="cfswitch.htm"><IMG SRC="/CFDOCS/images/doc_next.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Next page"></A></TD><TD><A HREF="/CFDOCS/dochome.cfm"><IMG SRC="/CFDOCS/images/doc_home.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Documentation home"></A></TD><TD><A HREF="/CFDOCS/langref/index.htm"><IMG SRC="/CFDOCS/images/doc_index.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="CFML Language Reference contents"></A></TD></TR></TABLE>

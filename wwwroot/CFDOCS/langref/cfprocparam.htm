@@ -21,7 +21,7 @@ function runExample(name) {
 <HR NOSHADE SIZE=1>
 <DIV CLASS="docbody">
 <H1>CFPROCPARAM</H1>
-<P>Each <B><CODE>CFPROCPARAM</CODE></B> inside a <A HREF="cfstoredproc.htm"><CODE>CFSTOREDPROC</CODE></A> supplies one parameter, in the order the procedure declares them. Input parameters carry a value; output parameters name a CFML variable that receives the result.</P>
+<P>Each <B><CODE>CFPROCPARAM</CODE></B> inside a <A HREF="cfstoredproc.htm"><CODE>CFSTOREDPROC</CODE></A> supplies one parameter. Without DBVARNAME the parameters are matched to the procedure&#x27;s parameters in the order the procedure declares them; with DBVARNAME they are matched by name. Input parameters carry a value; output parameters name a CFML variable that receives the procedure&#x27;s value when the call returns.</P>
 <H4>Category</H4><P><A HREF="index.htm#database_manipulation">Database manipulation</A></P>
 <H4>Syntax</H4>
 <PRE>&lt;CFPROCPARAM TYPE=&quot;In/Out/InOut&quot;
@@ -37,45 +37,49 @@ function runExample(name) {
 <DT><B>TYPE</B></DT>
 <DD><I>Optional, default &quot;In&quot;.</I> In passes a value, Out receives one, InOut does both.</DD>
 <DT><B>VARIABLE</B></DT>
-<DD><I>Required for Out and InOut.</I> CFML variable that receives the output value.</DD>
+<DD><I>Required for Out and InOut.</I> CFML variable that receives the output value. A NULL comes back as an empty string, a date as &quot;yyyy-mm-dd hh:mm:ss&quot;, like the columns of a query.</DD>
 <DT><B>DBVARNAME</B></DT>
-<DD><I>Optional.</I> Name of the parameter in the procedure, such as <CODE>@dept</CODE>, for drivers that bind by name.</DD>
+<DD><I>Optional.</I> Name of the parameter in the procedure, such as <CODE>@Department</CODE>, to bind by name instead of by position. Positional parameters must come before named ones.</DD>
 <DT><B>VALUE</B></DT>
-<DD><I>Required for In and InOut.</I> The value to pass.</DD>
+<DD><I>Required for In and InOut.</I> The value to pass. It is checked against CFSQLTYPE before the call.</DD>
 <DT><B>CFSQLTYPE</B></DT>
-<DD><I>Required.</I> One of the CF_SQL_ types listed under <A HREF="cfqueryparam.htm"><CODE>CFQUERYPARAM</CODE></A>.</DD>
+<DD><I>Required.</I> CF_SQL_BIGINT, CF_SQL_BIT, CF_SQL_CHAR, CF_SQL_DATE, CF_SQL_DECIMAL, CF_SQL_DOUBLE, CF_SQL_FLOAT, CF_SQL_IDSTAMP, CF_SQL_INTEGER, CF_SQL_LONGVARCHAR, CF_SQL_MONEY, CF_SQL_MONEY4, CF_SQL_NUMERIC, CF_SQL_REAL, CF_SQL_REFCURSOR, CF_SQL_SMALLINT, CF_SQL_TIME, CF_SQL_TIMESTAMP, CF_SQL_TINYINT or CF_SQL_VARCHAR. CF_SQL_REFCURSOR (Oracle cursors) is refused by the flat-file driver, which returns result sets directly.</DD>
 <DT><B>MAXLENGTH</B></DT>
-<DD><I>Optional.</I> Maximum length of the value.</DD>
+<DD><I>Optional.</I> Maximum length of an input value (longer values throw an exception) and of a returned string.</DD>
 <DT><B>SCALE</B></DT>
-<DD><I>Optional.</I> Decimal places of a numeric value.</DD>
+<DD><I>Optional.</I> Decimal places a returned numeric value is rounded to.</DD>
 <DT><B>NULL</B></DT>
-<DD><I>Optional, default &quot;No&quot;.</I> Yes passes SQL NULL.</DD>
+<DD><I>Optional, default &quot;No&quot;.</I> Yes passes SQL NULL and ignores VALUE.</DD>
 </DL>
 <H4>Usage</H4>
-<P>Because KoldFusion&#x27;s flat-file driver cannot run stored procedures, <B><CODE>CFPROCPARAM</CODE></B> is parsed but does nothing on its own; the enclosing <A HREF="cfstoredproc.htm"><CODE>CFSTOREDPROC</CODE></A> throws a Database exception before any parameter is used, so an Out variable is never set. Give such variables a default with <A HREF="cfparam.htm"><CODE>CFPARAM</CODE></A>, as the example does.</P>
+<P>The procedure converts each value to the type it declares: a VARCHAR(5) parameter keeps five characters, an INT drops the fraction, and a value that does not convert ends the call with &quot;Conversion failed when converting ...&quot;. Leave out a parameter that has a default, or bind it by name and skip it.</P>
+<P>A procedure parameter must be declared OUTPUT for a TYPE=&quot;Out&quot; or &quot;InOut&quot; <B><CODE>CFPROCPARAM</CODE></B>; otherwise the call fails with &quot;The formal parameter ... was not declared as an OUTPUT parameter&quot;.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfprocparam"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfprocparam'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
-<PRE CLASS="example">&lt;CFPARAM NAME=&quot;HeadCount&quot; DEFAULT=&quot;(not returned)&quot;&gt;
-&lt;CFTRY&gt;
-  &lt;CFSTOREDPROC PROCEDURE=&quot;sp_CountStaff&quot; DATASOURCE=&quot;cfsnippets&quot;&gt;
-    &lt;CFPROCPARAM TYPE=&quot;In&quot; CFSQLTYPE=&quot;CF_SQL_VARCHAR&quot; DBVARNAME=&quot;@dept&quot; VALUE=&quot;Engineering&quot;&gt;
-    &lt;CFPROCPARAM TYPE=&quot;Out&quot; CFSQLTYPE=&quot;CF_SQL_INTEGER&quot; DBVARNAME=&quot;@total&quot; VARIABLE=&quot;HeadCount&quot;&gt;
+<PRE CLASS="example">&lt;!--- AddEmployee returns the new Emp_ID in an output parameter and a status code:
+      0 = added, 1 = no such department, 2 = already on file.
+      The transaction is rolled back, so the sample data stays the same. ---&gt;
+&lt;CFTRANSACTION&gt;
+  &lt;CFSTOREDPROC PROCEDURE=&quot;AddEmployee&quot; DATASOURCE=&quot;cfsnippets&quot; RETURNCODE=&quot;Yes&quot;&gt;
+    &lt;CFPROCPARAM TYPE=&quot;In&quot; CFSQLTYPE=&quot;CF_SQL_VARCHAR&quot; DBVARNAME=&quot;@FirstName&quot; VALUE=&quot;Wendy&quot;&gt;
+    &lt;CFPROCPARAM TYPE=&quot;In&quot; CFSQLTYPE=&quot;CF_SQL_VARCHAR&quot; DBVARNAME=&quot;@LastName&quot; VALUE=&quot;Okonkwo&quot;&gt;
+    &lt;CFPROCPARAM TYPE=&quot;In&quot; CFSQLTYPE=&quot;CF_SQL_VARCHAR&quot; DBVARNAME=&quot;@Department&quot; VALUE=&quot;Training&quot;&gt;
+    &lt;CFPROCPARAM TYPE=&quot;In&quot; CFSQLTYPE=&quot;CF_SQL_MONEY&quot; DBVARNAME=&quot;@Salary&quot; VALUE=&quot;42500&quot;&gt;
+    &lt;CFPROCPARAM TYPE=&quot;Out&quot; CFSQLTYPE=&quot;CF_SQL_INTEGER&quot; DBVARNAME=&quot;@NewID&quot; VARIABLE=&quot;NewID&quot;&gt;
   &lt;/CFSTOREDPROC&gt;
-  &lt;CFCATCH TYPE=&quot;Database&quot;&gt;
-    &lt;CFOUTPUT&gt;&lt;P&gt;Caught a #CFCATCH.Type# exception: #CFCATCH.Message#&lt;/P&gt;&lt;/CFOUTPUT&gt;
-  &lt;/CFCATCH&gt;
-&lt;/CFTRY&gt;
-&lt;CFQUERY NAME=&quot;Counted&quot; DATASOURCE=&quot;cfsnippets&quot;&gt;
-SELECT COUNT(*) AS Total FROM Employees WHERE Department = &#x27;Engineering&#x27;
-&lt;/CFQUERY&gt;
+  &lt;CFSET Status = CFSTOREDPROC.StatusCode&gt;
+  &lt;CFQUERY NAME=&quot;Added&quot; DATASOURCE=&quot;cfsnippets&quot;&gt;
+  SELECT FirstName, LastName, Department, Salary FROM Employees WHERE Emp_ID = #NewID#
+  &lt;/CFQUERY&gt;
+  &lt;CFTRANSACTION ACTION=&quot;Rollback&quot;/&gt;
+&lt;/CFTRANSACTION&gt;
+
 &lt;CFOUTPUT&gt;
-&lt;TABLE BORDER=1 CELLPADDING=3&gt;
-&lt;TR&gt;&lt;TD&gt;Out parameter HeadCount&lt;/TD&gt;&lt;TD&gt;#HeadCount#&lt;/TD&gt;&lt;/TR&gt;
-&lt;TR&gt;&lt;TD&gt;Same answer from CFQUERY&lt;/TD&gt;&lt;TD&gt;#Counted.Total#&lt;/TD&gt;&lt;/TR&gt;
-&lt;/TABLE&gt;
+&lt;P&gt;Status #Status#: employee number #NewID# is
+#Added.FirstName# #Added.LastName# (#Added.Department#, #DollarFormat(Added.Salary)#).&lt;/P&gt;
 &lt;/CFOUTPUT&gt;</PRE>
 <H4>See also</H4>
-<P><A HREF="cfstoredproc.htm">CFSTOREDPROC</A>, <A HREF="cfprocresult.htm">CFPROCRESULT</A>, <A HREF="cfqueryparam.htm">CFQUERYPARAM</A>, <A HREF="cfparam.htm">CFPARAM</A></P>
+<P><A HREF="cfstoredproc.htm">CFSTOREDPROC</A>, <A HREF="cfprocresult.htm">CFPROCRESULT</A>, <A HREF="cfqueryparam.htm">CFQUERYPARAM</A>, <A HREF="cftransaction.htm">CFTRANSACTION</A></P>
 </DIV>
 <HR NOSHADE SIZE=1>
 <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=2><TR><TD><A HREF="cfprocessingdirective.htm"><IMG SRC="/CFDOCS/images/doc_back.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Previous page"></A></TD><TD><A HREF="index.htm"><IMG SRC="/CFDOCS/images/doc_up.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Up one level"></A></TD><TD><A HREF="cfprocresult.htm"><IMG SRC="/CFDOCS/images/doc_next.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Next page"></A></TD><TD><A HREF="/CFDOCS/dochome.cfm"><IMG SRC="/CFDOCS/images/doc_home.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="Documentation home"></A></TD><TD><A HREF="/CFDOCS/langref/index.htm"><IMG SRC="/CFDOCS/images/doc_index.gif" WIDTH=16 HEIGHT=16 BORDER=0 ALT="CFML Language Reference contents"></A></TD></TR></TABLE>
