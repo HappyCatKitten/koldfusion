@@ -40,7 +40,8 @@ function runExample(name) {
     EXISTING=&quot;old_name&quot;
     NEW=&quot;new_name&quot;
     FAILIFEXISTS=&quot;Yes/No&quot;
-    TRANSFERMODE=&quot;Binary&quot;
+    TRANSFERMODE=&quot;ASCII/Binary/Auto&quot;
+    ASCIIEXTENSIONLIST=&quot;extensions&quot;
     PASSIVE=&quot;Yes&quot;
     PROXYSERVER=&quot;proxyserver&quot;
     RETRYCOUNT=&quot;number&quot;
@@ -48,7 +49,7 @@ function runExample(name) {
 <H4>Attributes</H4>
 <DL>
 <DT><B>ACTION</B></DT>
-<DD><I>Required.</I> Open, Close, ChangeDir, CreateDir, RemoveDir, ListDir, GetFile, PutFile, Remove, Rename, GetCurrentDir, ExistsDir, ExistsFile or Exists.</DD>
+<DD><I>Required.</I> Open, Close, ChangeDir, CreateDir, RemoveDir, ListDir, GetFile, PutFile, Remove, Rename, GetCurrentDir, GetCurrentURL, ExistsDir, ExistsFile or Exists.</DD>
 <DT><B>SERVER</B></DT>
 <DD><I>Required for Open.</I> FTP server name or address. Other actions may also give SERVER instead of CONNECTION, in which case a temporary connection is opened and closed around the operation.</DD>
 <DT><B>USERNAME</B></DT>
@@ -80,7 +81,9 @@ function runExample(name) {
 <DT><B>FAILIFEXISTS</B></DT>
 <DD><I>Optional, default &quot;Yes&quot;.</I> For GetFile: fail if LOCALFILE already exists.</DD>
 <DT><B>TRANSFERMODE</B></DT>
-<DD><I>Optional.</I> Accepted for compatibility; KoldFusion always transfers in binary (image) mode.</DD>
+<DD><I>Optional, default &quot;Auto&quot;.</I> ASCII transfers text (CRLF line ends on the wire, LF on this UNIX server), Binary copies the bytes unchanged, and Auto picks ASCII for the extensions in ASCIIEXTENSIONLIST.</DD>
+<DT><B>ASCIIEXTENSIONLIST</B></DT>
+<DD><I>Optional, default &quot;txt;htm;html;cfm;cfml;shtm;shtml;css;asp;asa&quot;.</I> Semicolon-separated extensions that Auto mode transfers as ASCII.</DD>
 <DT><B>PASSIVE</B></DT>
 <DD><I>Optional.</I> Accepted for compatibility; KoldFusion always uses passive mode.</DD>
 <DT><B>PROXYSERVER</B></DT>
@@ -91,7 +94,7 @@ function runExample(name) {
 <DD><I>Optional.</I> Accepted for compatibility; KoldFusion ignores it.</DD>
 </DL>
 <H4>Usage</H4>
-<P>After every call, <CODE>CFFTP.Succeeded</CODE> is YES or NO, <CODE>CFFTP.ErrorCode</CODE> and <CODE>CFFTP.ErrorText</CODE> hold the FTP reply when something failed, and <CODE>CFFTP.ReturnValue</CODE> holds the answer of GetCurrentDir, ExistsDir, ExistsFile and Exists.</P>
+<P>After every call, <CODE>CFFTP.Succeeded</CODE> is YES or NO, <CODE>CFFTP.ErrorCode</CODE> and <CODE>CFFTP.ErrorText</CODE> hold the FTP reply when something failed, and <CODE>CFFTP.ReturnValue</CODE> holds the answer of GetCurrentDir, GetCurrentURL (such as <CODE>ftp://ftp.example.com/pub</CODE>), ExistsDir, ExistsFile and Exists.</P>
 <P>Connections live until the end of the request; any connection you forget to close is closed for you.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="cfftp"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('cfftp'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>

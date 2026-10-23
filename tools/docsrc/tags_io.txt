@@ -351,14 +351,15 @@ syntax:
     EXISTING="old_name"
     NEW="new_name"
     FAILIFEXISTS="Yes/No"
-    TRANSFERMODE="Binary"
+    TRANSFERMODE="ASCII/Binary/Auto"
+    ASCIIEXTENSIONLIST="extensions"
     PASSIVE="Yes"
     PROXYSERVER="proxyserver"
     RETRYCOUNT="number"
     AGENTNAME="name">
 attrs:
 ACTION | Required | Open, Close, ChangeDir, CreateDir, RemoveDir, ListDir, GetFile, PutFile, Remove, Rename,
-  GetCurrentDir, ExistsDir, ExistsFile or Exists.
+  GetCurrentDir, GetCurrentURL, ExistsDir, ExistsFile or Exists.
 SERVER | Required for Open | FTP server name or address. Other actions may also give SERVER instead of
   CONNECTION, in which case a temporary connection is opened and closed around the operation.
 USERNAME | Optional, default "anonymous" | Login name.
@@ -378,15 +379,18 @@ ITEM | Required for Remove, Exists | Remote file to delete or test.
 EXISTING | Required for Rename | Current remote name.
 NEW | Required for Rename | New remote name.
 FAILIFEXISTS | Optional, default "Yes" | For GetFile: fail if LOCALFILE already exists.
-TRANSFERMODE | Optional | Accepted for compatibility; KoldFusion always transfers in binary (image) mode.
+TRANSFERMODE | Optional, default "Auto" | ASCII transfers text (CRLF line ends on the wire, LF on this UNIX server),
+  Binary copies the bytes unchanged, and Auto picks ASCII for the extensions in ASCIIEXTENSIONLIST.
+ASCIIEXTENSIONLIST | Optional, default "txt;htm;html;cfm;cfml;shtm;shtml;css;asp;asa" | Semicolon-separated
+  extensions that Auto mode transfers as ASCII.
 PASSIVE | Optional | Accepted for compatibility; KoldFusion always uses passive mode.
 PROXYSERVER | Optional | Accepted for compatibility; KoldFusion ignores it.
 RETRYCOUNT | Optional | Accepted for compatibility; KoldFusion ignores it.
 AGENTNAME | Optional | Accepted for compatibility; KoldFusion ignores it.
 usage:
 After every call, `CFFTP.Succeeded` is YES or NO, `CFFTP.ErrorCode` and `CFFTP.ErrorText` hold the FTP
-reply when something failed, and `CFFTP.ReturnValue` holds the answer of GetCurrentDir, ExistsDir, ExistsFile
-and Exists.
+reply when something failed, and `CFFTP.ReturnValue` holds the answer of GetCurrentDir, GetCurrentURL (such as
+`ftp://ftp.example.com/pub`), ExistsDir, ExistsFile and Exists.
 
 Connections live until the end of the request; any connection you forget to close is closed for you.
 example:
