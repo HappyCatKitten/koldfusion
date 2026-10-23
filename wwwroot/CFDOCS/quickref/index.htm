@@ -413,7 +413,8 @@
     ATTACHMENTPATH=&quot;path&quot;
     TIMEOUT=&quot;seconds&quot;
     MAXROWS=&quot;number&quot;
-    STARTROW=&quot;number&quot;&gt;</PRE>
+    STARTROW=&quot;number&quot;
+    GENERATEUNIQUEFILENAMES=&quot;Yes/No&quot;&gt;</PRE>
 <H3>File, directory and system</H3>
 <P CLASS="qr"><A HREF="/CFDOCS/langref/cfdirectory.htm"><B>CFDIRECTORY</B></A> &nbsp;<FONT SIZE=1>Lists, creates, renames and deletes directories on the server.</FONT></P>
 <PRE CLASS="qr">&lt;CFDIRECTORY ACTION=&quot;directory_action&quot;
@@ -946,6 +947,8 @@
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structcount.htm"><CODE>StructCount(structure)</CODE></A></TD><TD><FONT SIZE=1>Returns the number of keys in a structure.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structdelete.htm"><CODE>StructDelete(structure, key [, indicatenotexisting ])</CODE></A></TD><TD><FONT SIZE=1>Removes a key from a structure.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structfind.htm"><CODE>StructFind(structure, key)</CODE></A></TD><TD><FONT SIZE=1>Returns the value stored under a key.</FONT></TD></TR>
+<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structfindkey.htm"><CODE>StructFindKey(top, key [, scope])</CODE></A></TD><TD><FONT SIZE=1>Searches nested structures and arrays for keys with a given name.</FONT></TD></TR>
+<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structfindvalue.htm"><CODE>StructFindValue(top, value [, scope])</CODE></A></TD><TD><FONT SIZE=1>Searches nested structures and arrays for keys with a given value.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structget.htm"><CODE>StructGet(pathDesired)</CODE></A></TD><TD><FONT SIZE=1>Returns a structure at a variable path, creating it if needed.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structinsert.htm"><CODE>StructInsert(structure, key, value [, allowoverwrite ])</CODE></A></TD><TD><FONT SIZE=1>Adds a key-value pair to a structure.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structisempty.htm"><CODE>StructIsEmpty(structure)</CODE></A></TD><TD><FONT SIZE=1>Determines whether a structure has no keys.</FONT></TD></TR>
@@ -953,6 +956,7 @@
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structkeyexists.htm"><CODE>StructKeyExists(structure, key)</CODE></A></TD><TD><FONT SIZE=1>Determines whether a structure contains a key.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structkeylist.htm"><CODE>StructKeyList(structure [, delimiter ])</CODE></A></TD><TD><FONT SIZE=1>Returns the keys of a structure as a list.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structnew.htm"><CODE>StructNew()</CODE></A></TD><TD><FONT SIZE=1>Creates a new, empty structure.</FONT></TD></TR>
+<TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structsort.htm"><CODE>StructSort(base [, sortType [, sortOrder [, pathToSubElement]]])</CODE></A></TD><TD><FONT SIZE=1>Returns the top-level keys of a structure sorted by their values.</FONT></TD></TR>
 <TR VALIGN=TOP><TD WIDTH="45%"><A HREF="/CFDOCS/langref/structupdate.htm"><CODE>StructUpdate(structure, key, value)</CODE></A></TD><TD><FONT SIZE=1>Changes the value of an existing key.</FONT></TD></TR>
 </TABLE>
 <H3>System functions</H3>

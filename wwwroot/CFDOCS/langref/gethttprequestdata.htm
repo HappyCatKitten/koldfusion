@@ -21,7 +21,6 @@ function runExample(name) {
 <HR NOSHADE SIZE=1>
 <DIV CLASS="docbody">
 <H1>GetHttpRequestData</H1>
-<P><FONT COLOR="#CC0000" SIZE=1><B>NEW IN KOLDFUSION 4.5</B></FONT></P>
 <P>Returns a structure describing the HTTP request that is running the page, as the web server received it. Use it to read headers that have no CGI variable, or the raw body of a request that is not a form post, such as an XML or WDDX packet sent by another server with <A HREF="cfhttp.htm"><CODE>CFHTTP</CODE></A>.</P>
 <H4>Category</H4><P><A HREF="index.htm#system_functions">System functions</A></P>
 <H4>Syntax</H4>
@@ -52,6 +51,7 @@ function runExample(name) {
 </TABLE>
 <H4>Usage</H4>
 <P>Form fields of a POST are still available in the Form scope; <CODE>Content</CODE> holds the same data in its encoded form. Header names are case-insensitive, like all structure keys.</P>
+<P CLASS="note"><B>Note</B>&nbsp; GetHttpRequestData arrived after the first 4.5 release (it is documented with the next major version); KoldFusion 4.5.1 SP2 includes it.</P>
 <H4>Example</H4>
 <FORM ACTION="/CFDOCS/snippets/tagframe.cfm" METHOD="GET" TARGET="kfexample"><INPUT TYPE="hidden" NAME="tagname" VALUE="gethttprequestdata"><INPUT TYPE="submit" VALUE="Example" onClick="runExample('gethttprequestdata'); return false;"> <FONT SIZE=1>Opens the example in a new window. The example runs on this server, so it only works when you browse from the server itself (127.0.0.1).</FONT></FORM>
 <PRE CLASS="example">&lt;CFSET Request_Data = GetHttpRequestData()&gt;

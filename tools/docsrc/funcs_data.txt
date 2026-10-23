@@ -1199,3 +1199,112 @@ ORDER BY Department, LastName
 </CFOUTPUT>
 </TABLE>
 see: ValueList, PreserveSingleQuotes, ListQualify, CFQUERY
+
+@func StructFindKey
+category: Structure functions
+summary: Searches nested structures and arrays for keys with a given name.
+desc:
+Searches a structure, and every structure and array nested inside it, for keys named `key`. Use it on deep
+structures such as a deserialized WDDX packet, where you do not know at what level a key lives.
+syntax:
+StructFindKey(top, key [, scope])
+params:
+top | The structure to search.
+key | The key name to look for (case-insensitive).
+scope | "one" (the default) stops at the first match; "all" returns every match.
+returns:
+An array of structures, one per match, each with the keys Value (the value of the key), Path (where it was found,
+such as `.STAFF[2].NAME`) and Owner (the structure that holds the key).
+usage:
+The search runs depth first, in the order the keys were added.
+
+> New in KoldFusion 4.5.1 SP2.
+example:
+<CFSET Company = StructNew()>
+<CFSET Company.Name = "Gibson Mainframe Co.">
+<CFSET Company.Staff = ArrayNew(1)>
+<CFSET Company.Staff[1] = StructNew()>
+<CFSET Company.Staff[1].Name = "Carol Reardon">
+<CFSET Company.Staff[2] = StructNew()>
+<CFSET Company.Staff[2].Name = "Jack Lindqvist">
+<CFSET Found = StructFindKey(Company, "Name", "all")>
+<CFOUTPUT>
+<P>#ArrayLen(Found)# keys called Name:</P>
+<UL>
+<CFLOOP FROM="1" TO="#ArrayLen(Found)#" INDEX="i">
+  <LI>#Found[i].Path# = #Found[i].Value#
+</CFLOOP>
+</UL>
+</CFOUTPUT>
+see: StructFindValue, StructFind, StructKeyExists, StructSort
+
+@func StructFindValue
+category: Structure functions
+summary: Searches nested structures and arrays for keys with a given value.
+desc:
+Searches a structure, and every structure and array nested inside it, for keys whose simple value equals
+`value`. The comparison ignores case.
+syntax:
+StructFindValue(top, value [, scope])
+params:
+top | The structure to search.
+value | The value to look for.
+scope | "one" (the default) stops at the first match; "all" returns every match.
+returns:
+An array of structures, one per match, each with the keys Key (the name of the key that holds the value), Path
+(such as `.ORDERS[1].STATUS`) and Owner (the structure that holds the key).
+usage:
+> New in KoldFusion 4.5.1 SP2.
+example:
+<CFSET Orders = StructNew()>
+<CFSET Orders.Morning = StructNew()>
+<CFSET Orders.Morning.Status = "Shipped">
+<CFSET Orders.Morning.Item = "Y2K survival kit">
+<CFSET Orders.Evening = StructNew()>
+<CFSET Orders.Evening.Status = "Backordered">
+<CFSET Orders.Evening.Item = "56K modem">
+<CFSET Late = StructFindValue(Orders, "backordered", "all")>
+<CFOUTPUT>
+<CFLOOP FROM="1" TO="#ArrayLen(Late)#" INDEX="i">
+  <P>#Late[i].Path#: the #Late[i].Owner.Item# is #Late[i].Owner[Late[i].Key]#.</P>
+</CFLOOP>
+</CFOUTPUT>
+see: StructFindKey, StructFind, StructKeyList
+
+@func StructSort
+category: Structure functions
+summary: Returns the top-level keys of a structure sorted by their values.
+desc:
+Returns an array of the structure's top-level keys, ordered by the values they hold, or by a value further down
+when each top-level value is itself a structure.
+syntax:
+StructSort(base [, sortType [, sortOrder [, pathToSubElement]]])
+params:
+base | The structure whose keys are sorted.
+sortType | "text" (the default, case-sensitive), "textnocase" or "numeric".
+sortOrder | "asc" (the default) or "desc".
+pathToSubElement | A dotted path such as "Salary" or "Info.Salary" that leads from each top-level value to the
+  value to sort on.
+returns:
+An array of key names.
+usage:
+Every value sorted on must be a simple value, and a number for "numeric" sorting; otherwise the function throws
+an exception. Keys with equal values keep their original order.
+
+> New in KoldFusion 4.5.1 SP2.
+example:
+<CFQUERY NAME="Staff" DATASOURCE="cfsnippets" MAXROWS="6">
+SELECT Emp_ID, LastName, Salary FROM Employees ORDER BY Emp_ID
+</CFQUERY>
+<CFSET People = StructNew()>
+<CFLOOP QUERY="Staff">
+  <CFSET People[LastName] = StructNew()>
+  <CFSET People[LastName].Salary = Salary>
+</CFLOOP>
+<CFSET ByPay = StructSort(People, "numeric", "desc", "Salary")>
+<OL>
+<CFLOOP FROM="1" TO="#ArrayLen(ByPay)#" INDEX="i">
+  <CFOUTPUT><LI>#ByPay[i]#: #DollarFormat(People[ByPay[i]].Salary)#</CFOUTPUT>
+</CFLOOP>
+</OL>
+see: StructKeyArray, StructFindKey, ArraySort, ListSort

@@ -49,6 +49,7 @@ static const struct { const char *tag, *attrs; } ALLOWED[] = {
     {"cfstoredproc", "procedure,datasource,username,password,dbserver,dbname,blockfactor,provider,providerdsn,debug,returncode,dbtype,connectstring,dbpool"},
     {"cfprocparam", "type,variable,dbvarname,value,cfsqltype,maxlength,scale,null"},
     {"cfprocresult", "name,resultset,maxrows"},
+    {"cfpop", "server,port,username,password,action,name,messagenumber,attachmentpath,timeout,maxrows,startrow,generateuniquefilenames"},
     {NULL, NULL}
 };
 

@@ -1,0 +1,10 @@
+4 .B.NAME=Bob .A.NAME=Ann .C.NAME=cy .LIST[2].NAME=Deep
+1 .B.NAME 30
+0
+1 NAME .LIST[2].NAME NAME
+AGE .B.AGE
+C,B,A|A,B,C|A,B,C|C,B,A
+Y,X,Z|X,Y,Z
+err1
+err2 The value of key B is not a simple value and cannot be sorted.
+err3
