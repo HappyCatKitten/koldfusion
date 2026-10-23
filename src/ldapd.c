@@ -782,6 +782,7 @@ static void dslog(Conn *cn, const char *fmt, ...) {
     va_list ap; va_start(ap, fmt);
     vsnprintf(msg, sizeof msg, fmt, ap);
     va_end(ap);
+    for (unsigned char *p = (unsigned char *)msg; *p; p++) if (*p < 0x20 || *p == 0x7f) *p = '?';
     kf_log("directory.log", "Information", "conn=%d %s", cn ? cn->id : 0, msg);
 }
 
@@ -810,7 +811,7 @@ static int may_write(Conn *cn, const char *ndn, int self_ok) {
     if (!*cn->nbinddn) return 0;
     if (self_ok && !strcmp(cn->nbinddn, ndn)) return 1;
     Conf *c = conf();
-    char *gdn = dn_normalize(kprintf("cn=Directory Administrators,%s", c->base));
+    char *gdn = dn_normalize(kprintf("cn=Directory Administrators,ou=Groups,%s", c->base));
     LEntry *g = gdn ? find_entry(gdn) : NULL;
     free(gdn);
     if (!g) return 0;
@@ -1693,7 +1694,49 @@ static Val status_struct(int ok, const char *msg) {
     return v_struct(s);
 }
 
-/* KFUSION_DIRECTORYSERVER(action): status | start | stop | restart | reload | reseed */
+/* browse views for the Administrator: read the in-memory directory directly */
+static Val admin_children(const char *dn) {
+    const char *cols[] = {"DN", "RDN", "ObjectClass", "Children"};
+    Query *q = query_new(4, cols);
+    char *ndn = dn_normalize(dn);
+    if (!ndn) return v_query(q);
+    dit_sync();
+    pthread_rwlock_rdlock(&dit_lock);
+    for (int i = 0; i < NE; i++) {
+        if (ndn_depth_below(E[i]->ndn, ndn) != 1) continue;
+        int r = query_add_row(q);
+        char *rdn = dn_first_rdn(E[i]->dn);
+        query_set(q, 0, r, v_strdup(E[i]->dn));
+        query_set(q, 1, r, v_strdup(rdn));
+        free(rdn);
+        LAttr *oc = attr_find(E[i], "objectClass");
+        query_set(q, 2, r, v_strdup(oc && oc->nvals ? oc->vals[oc->nvals - 1].v : ""));
+        query_set(q, 3, r, v_num(count_children(E[i]->ndn)));
+    }
+    pthread_rwlock_unlock(&dit_lock);
+    free(ndn);
+    return v_query(q);
+}
+static Val admin_entry(const char *dn) {
+    const char *cols[] = {"Attribute", "Value"};
+    Query *q = query_new(2, cols);
+    char *ndn = dn_normalize(dn);
+    if (!ndn) return v_query(q);
+    dit_sync();
+    pthread_rwlock_rdlock(&dit_lock);
+    LEntry *e = find_entry(ndn);
+    for (int i = 0; e && i < e->nattrs; i++)
+        for (int j = 0; j < e->attrs[i].nvals; j++) {
+            int r = query_add_row(q);
+            query_set(q, 0, r, v_strdup(e->attrs[i].name));
+            query_set(q, 1, r, v_str(kstrndup(e->attrs[i].vals[j].v, e->attrs[i].vals[j].n)));
+        }
+    pthread_rwlock_unlock(&dit_lock);
+    free(ndn);
+    return v_query(q);
+}
+
+/* KFUSION_DIRECTORYSERVER(action [, dn]): status | start | stop | restart | reload | reseed | children | entry */
 F(kfusion_directoryserver) {
     const char *p = c->rs->cur_tpl ? c->rs->cur_tpl->path : "";
     char *dir = kf_path_join(G.webroot, "CFIDE/administrator");
@@ -1705,6 +1748,8 @@ F(kfusion_directoryserver) {
     int ok = 1;
     const char *msg = "";
     if (!conf()) { install_ds_defaults(); conf_reload(); }
+    if (!kf_stricmp(action, "children")) return admin_children(argc > 1 ? fa_str(c, call, argv, 1) : "");
+    if (!kf_stricmp(action, "entry")) return admin_entry(argc > 1 ? fa_str(c, call, argv, 1) : "");
     pthread_mutex_lock(&life_mu);
     if (!kf_stricmp(action, "status")) {
         msg = running ? "The directory server is running." : "The directory server is stopped.";
@@ -1728,13 +1773,13 @@ F(kfusion_directoryserver) {
     } else {
         pthread_mutex_unlock(&life_mu);
         kf_throw_at(c, call, "Application", "Invalid action for KFUSION_DIRECTORYSERVER.",
-                    "Use status, start, stop, restart, reload or reseed.");
+                    "Use status, start, stop, restart, reload, reseed, children or entry.");
     }
     pthread_mutex_unlock(&life_mu);
     return status_struct(ok, msg);
 }
 
 const FuncDef LDAP_ADMIN_FUNCS[] = {
-    {"kfusion_directoryserver", fn_kfusion_directoryserver, 0, 1},
+    {"kfusion_directoryserver", fn_kfusion_directoryserver, 0, 2},
     {NULL, NULL, 0, 0}
 };

@@ -5,7 +5,7 @@
 <cfset sections[3] = "extensions|CFX Tags=extensions/cfx.cfm|Applets=extensions/applets.cfm">
 <cfset sections[4] = "logging|Settings=logging/settings.cfm|Mail Logging=logging/maillog.cfm|Log Files=logging/logfiles.cfm">
 <cfset sections[5] = "automated tasks|Settings=tasks/settings.cfm|Scheduled Tasks=tasks/tasks.cfm">
-<cfset sections[6] = "miscellaneous|Mail=misc/mail.cfm|Debugging=misc/debugging.cfm|Verity=misc/verity.cfm|Source Control=misc/sourcecontrol.cfm">
+<cfset sections[6] = "miscellaneous|Mail=misc/mail.cfm|Debugging=misc/debugging.cfm|Verity=misc/verity.cfm|Source Control=misc/sourcecontrol.cfm|Directory Server=misc/directory.cfm">
 <HTML>
 <HEAD><TITLE>Navigation</TITLE></HEAD>
 <BODY BGCOLOR="#99CC99" BACKGROUND="images/pinstripe.gif" LINK="#0000FF" VLINK="#0000FF" ALINK="#FF0000"

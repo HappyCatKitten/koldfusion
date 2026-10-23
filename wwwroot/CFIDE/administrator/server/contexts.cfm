@@ -21,6 +21,7 @@
 	<cfset k = "#base#\#Form.Context#\Policies\#Trim(Form.PolicyName)#">
 	<cfregistry action="set" branch="#k#" entry="Rules" value="#IIf(IsDefined('Form.PolicyRules'), 'Form.PolicyRules', DE(''))#">
 	<cfregistry action="set" branch="#k#" entry="Users" value="#Form.PolicyUsers#">
+	<cfregistry action="set" branch="#k#" entry="Groups" value="#Form.PolicyGroups#">
 	<cfset msg = "Policy #Trim(Form.PolicyName)# added.">
 </cfif>
 <cfif IsDefined("URL.deleterule")><cfregistry action="delete" branch="#base#\#URL.context#\Rules\#URL.deleterule#"><cfset msg = "Rule removed."></cfif>
@@ -32,7 +33,8 @@
 <cfmodule template="../_tags/status.cfm" message="#msg#">
 <cfoutput>
 <P>#Request.f#A security context groups user directories with the rules (what may be done to which resource) and policies
-(which users get which rules) that applications check with IsAuthorized().</FONT>
+(which users, or which groups of users, get which rules) that applications check with IsAuthorized(). Groups come from LDAP
+user directories (the LDAP groups that list the user) and from the Groups value of registry users.</FONT>
 <cfloop query="ctxs">
 	<cfset cname = ctxs.Entry>
 	<cfregistry action="get" branch="#base#\#cname#" entry="Description" variable="desc">
@@ -58,10 +60,13 @@
 	<cfloop query="pols">
 		<cfregistry action="get" branch="#base#\#cname#\Policies\#pols.Entry#" entry="Rules" variable="pr">
 		<cfregistry action="get" branch="#base#\#cname#\Policies\#pols.Entry#" entry="Users" variable="pu">
-		<TT>#pols.Entry#</TT>: users <I>#pu#</I> get rules <I>#pr#</I> <A HREF="contexts.cfm?context=#URLEncodedFormat(cname)#&deletepolicy=#URLEncodedFormat(pols.Entry)#">x</A><BR>
+		<cfmodule template="../_tags/getreg.cfm" key="Security\Contexts\#cname#\Policies\#pols.Entry#" variable="pol">
+		<cfparam name="pol.Groups" default="">
+		<TT>#pols.Entry#</TT>: users <I>#pu#</I><cfif Len(pol.Groups)> and groups <I>#pol.Groups#</I></cfif> get rules <I>#pr#</I> <A HREF="contexts.cfm?context=#URLEncodedFormat(cname)#&deletepolicy=#URLEncodedFormat(pols.Entry)#">x</A><BR>
 	</cfloop>
 	<FORM ACTION="contexts.cfm" METHOD="POST" STYLE="margin:4px 0 0 0"><INPUT TYPE="hidden" NAME="Context" VALUE="#cname#">
 	Policy <INPUT TYPE="text" NAME="PolicyName" SIZE=8> Users <INPUT TYPE="text" NAME="PolicyUsers" SIZE=12><BR>
+	Groups <INPUT TYPE="text" NAME="PolicyGroups" SIZE=20><BR>
 	Rules <SELECT NAME="PolicyRules" MULTIPLE SIZE=2><cfloop query="rules"><OPTION>#rules.Entry#</cfloop></SELECT>
 	<INPUT TYPE="submit" NAME="AddPolicy" VALUE="Add"></FORM></FONT></TD></TR>
 	</TABLE>

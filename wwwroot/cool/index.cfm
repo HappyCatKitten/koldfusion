@@ -33,6 +33,7 @@ since this server was installed!</P>
 <LI><A HREF="crypto.cfm">Encryption playground (1999-grade!)</A>
 <LI><A HREF="fetch.cfm">CFHTTP: fetch a web page</A>
 <LI><A HREF="widgets.cfm">Applet controls: CFGRID, CFTREE, CFSLIDER</A>
+<LI><A HREF="phonebook.cfm">Employee Phone Directory (CFLDAP + the Gibson Directory Server)</A> <IMG SRC="/images/new.gif" WIDTH=44 HEIGHT=22 ALIGN=ABSMIDDLE>
 <LI><A HREF="#gifs">The Animated GIF Hall of Fame</A>
 </UL>
 

@@ -414,9 +414,16 @@ see: CFHTTP, CFFILE, CFDIRECTORY, CFTRY
 category: Internet protocols
 summary: Queries and updates an LDAP directory server.
 desc:
-In ColdFusion 4.5, `CFLDAP` searches an LDAP directory, such as a company phone book, and returns the
-entries as a query; it can also add, modify and delete entries. KoldFusion recognizes the tag, but the Netscape
-Directory SDK it needs is not part of this server, so every call throws an Application exception.
+`CFLDAP` talks to a Lightweight Directory Access Protocol (LDAP) server, such as a company phone book.
+ACTION="Query" searches the directory and returns the entries as a query object, one column per attribute,
+so you can display them with CFOUTPUT just like database rows. ACTION="Add", "Modify", "ModifyDN" and "Delete"
+change the directory.
+
+KoldFusion speaks LDAP version 3 itself, without a directory SDK, and ships with its own directory server, the
+**Gibson Directory Server**. It runs on the same machine as KoldFusion (port 3890 unless the Administrator says
+otherwise, see Miscellaneous > Directory Server) and holds the employees of the Gibson Mainframe Co. below the base
+DN `o=Gibson Mainframe Co, c=US`. The variables `Server.Directory.Host`, `Server.Directory.Port` and
+`Server.Directory.BaseDN` tell your pages where to find it.
 syntax:
 <CFLDAP SERVER="server_name"
     PORT="port_number"
@@ -431,54 +438,87 @@ syntax:
     ATTRIBUTES="attribute, attribute"
     FILTER="filter"
     SORT="attribute[, attribute]..."
+    SORTCONTROL="nocase, asc|desc"
     DN="distinguished_name"
     STARTROW="row_number"
-    MODIFYTYPE="replace">
+    MODIFYTYPE="replace|add|delete"
+    REBIND="Yes|No"
+    REFERRAL="number_of_hops"
+    SEPARATOR="separator_character"
+    DELIMITER="delimiter_character">
 attrs:
-SERVER | Required | Host name or address of the LDAP server. It appears in the error message.
-PORT | Optional, default "389" | Accepted for compatibility; KoldFusion ignores it.
-USERNAME | Optional | User for an authenticated bind. Accepted for compatibility; KoldFusion ignores it.
-PASSWORD | Optional | Accepted for compatibility; KoldFusion ignores it.
-ACTION | Optional, default "Query" | Query, Add, Modify, ModifyDN or Delete. Accepted for compatibility;
-  KoldFusion ignores it.
-NAME | Required for Query | Name of the result query. Accepted for compatibility; KoldFusion ignores it.
-TIMEOUT | Optional | Accepted for compatibility; KoldFusion ignores it.
-MAXROWS | Optional | Accepted for compatibility; KoldFusion ignores it.
-START | Required for Query | Distinguished name where the search starts. Accepted for compatibility;
-  KoldFusion ignores it.
-SCOPE | Optional, default "OneLevel" | OneLevel, Base or Subtree. Accepted for compatibility; KoldFusion ignores it.
-ATTRIBUTES | Required for Query, Add, Modify | Attributes to return or set. Accepted for compatibility;
-  KoldFusion ignores it.
-FILTER | Optional, default "objectclass=*" | Search filter. Accepted for compatibility; KoldFusion ignores it.
-SORT | Optional | Accepted for compatibility; KoldFusion ignores it.
-DN | Required for Add, Modify, ModifyDN, Delete | Accepted for compatibility; KoldFusion ignores it.
-STARTROW | Optional | Accepted for compatibility; KoldFusion ignores it.
-MODIFYTYPE | Optional | Add, Delete or Replace. Accepted for compatibility; KoldFusion ignores it.
+SERVER | Required | Host name or IP address of the LDAP server. For the built-in directory use
+  `#Server.Directory.Host#`.
+PORT | Optional, default "389" | TCP port of the LDAP server. The built-in directory listens on
+  `#Server.Directory.Port#` (3890 by default).
+USERNAME | Optional | Distinguished name to bind (log in) as, for example "cn=Directory Manager". Without it the
+  tag binds anonymously, which is enough to search most directories but not to change them.
+PASSWORD | Optional | Password of USERNAME.
+ACTION | Optional, default "Query" | Query, Add, Modify, ModifyDN or Delete.
+NAME | Required for Query | Name of the query object that receives the entries.
+TIMEOUT | Optional, default "60" | Seconds to wait for the server.
+MAXROWS | Optional | Maximum number of entries to return.
+START | Required for Query | Distinguished name of the entry where the search starts, such as
+  "ou=People, o=Gibson Mainframe Co, c=US".
+SCOPE | Optional, default "OneLevel" | OneLevel (the entries directly below START), Base (START itself) or
+  Subtree (START and everything below it).
+ATTRIBUTES | Required for Query, Add, Modify, ModifyDN | For Query, a comma-separated list of the attributes
+  to return; each becomes a column (characters that are not allowed in column names become underscores). "*"
+  returns every attribute plus a DN column; "dn" in the list adds the DN column. For Add and Modify, a list of
+  name=value pairs separated by DELIMITER (a semicolon); several values for one attribute are separated by
+  SEPARATOR (a comma). For ModifyDN, the new relative distinguished name, such as "uid=bjensen".
+FILTER | Optional, default "objectclass=*" | LDAP search filter (RFC 2254): (attribute=value), wildcards
+  (sn=S*), presence (mail=*), (cn~=sound-alike), (employeeNumber>=10), (employeeNumber<=10) and the
+  combinations (&...) (|...) (!...). Use \2a, \28, \29 and \5c for a literal *, (, ) and \.
+SORT | Optional | Comma-separated attributes to sort the entries by; each may be followed by ASC or DESC.
+  KoldFusion sorts the results itself, as the 4.5 server did, so it works with any directory.
+SORTCONTROL | Optional, default "asc" | nocase (case-insensitive), asc and desc, combined with commas, as in
+  "nocase, desc".
+DN | Required for Add, Modify, ModifyDN, Delete | Distinguished name of the entry to change.
+STARTROW | Optional, default "1" | First entry to return; use with MAXROWS to page through results.
+MODIFYTYPE | Optional, default "Replace" | For Modify: Replace the attribute's values, Add values to it, or
+  Delete values (give "name=" with no value to delete the whole attribute).
+REBIND | Optional, default "No" | Yes binds to referred servers with USERNAME and PASSWORD; No binds anonymously.
+REFERRAL | Optional, default "0" | Number of referral hops to follow; 0 does not follow referrals.
+SEPARATOR | Optional, default "," | Separates the values of a multi-valued attribute in ATTRIBUTES (Add,
+  Modify). In query results multi-valued attributes are joined with ", " unless SEPARATOR is given.
+DELIMITER | Optional, default ";" | Separates the name=value pairs in ATTRIBUTES (Add, Modify).
 usage:
-The exception has TYPE="Application", the message "Error processing CFLDAP" and a detail that names the
-server. Pages that may also run on a Windows NT ColdFusion server can catch it and fall back on a database
-lookup, as the example does with the Employees table.
+Query results have the usual RecordCount, CurrentRow and ColumnList variables. An attribute with several
+values, such as objectClass, shows them joined with commas: "top, person, inetOrgPerson".
+
+Because SEPARATOR splits values at commas, a value that contains a comma (such as "l=Boston, MA") needs another
+separator: SEPARATOR="|" ATTRIBUTES="objectclass=top|person;l=Boston, MA".
+
+Errors are thrown as Application exceptions you can catch with CFCATCH TYPE="Any". The message carries the LDAP
+result code, for example "An error has occured while trying to execute query :[LDAP: error code 32 - No Such
+Object]", and CFCATCH.ErrorCode holds the number (32). A server that cannot be reached gives "Connection to LDAP
+server failed."
+
+CFLDAP can be disabled for ordinary templates on the Basic Security page of the Administrator.
 example:
-<CFTRY>
-  <CFLDAP ACTION="Query" SERVER="ldap.gibson.example" NAME="People"
-          START="o=Gibson, c=US" SCOPE="Subtree"
-          FILTER="(ou=Engineering)" ATTRIBUTES="cn,mail,telephoneNumber">
-  <CFCATCH TYPE="Application">
-    <CFOUTPUT><P><B>#CFCATCH.Message#:</B> #CFCATCH.Detail#</P></CFOUTPUT>
-    <!--- Use the company database as the phone book instead --->
-    <CFQUERY NAME="People" DATASOURCE="cfsnippets" MAXROWS="5">
-    SELECT LastName AS cn, Email AS mail, Phone AS telephoneNumber
-    FROM Employees WHERE Department = 'Engineering' ORDER BY LastName
-    </CFQUERY>
-  </CFCATCH>
-</CFTRY>
+<!--- Who works in Engineering? Ask the Gibson Directory Server --->
+<CFLDAP ACTION="Query" NAME="People"
+        SERVER="#Server.Directory.Host#" PORT="#Server.Directory.Port#"
+        START="ou=People, #Server.Directory.BaseDN#" SCOPE="OneLevel"
+        FILTER="(&(objectclass=person)(ou=Engineering))"
+        ATTRIBUTES="cn,title,mail,telephoneNumber" SORT="cn" SORTCONTROL="nocase">
+<CFOUTPUT><P>#People.RecordCount# people work in Engineering.</P></CFOUTPUT>
 <TABLE BORDER=1 CELLPADDING=3>
-<TR><TH>cn</TH><TH>mail</TH><TH>telephoneNumber</TH></TR>
+<TR><TH>Name</TH><TH>Title</TH><TH>E-mail</TH><TH>Phone</TH></TR>
 <CFOUTPUT QUERY="People">
-<TR><TD>#cn#</TD><TD>#mail#</TD><TD>#telephoneNumber#</TD></TR>
+<TR><TD>#cn#</TD><TD>#title#</TD><TD>#mail#</TD><TD>#telephoneNumber#</TD></TR>
 </CFOUTPUT>
 </TABLE>
-see: CFQUERY, CFTRY, CFAUTHENTICATE
+<!--- Errors carry the LDAP result code --->
+<CFTRY>
+  <CFLDAP ACTION="Query" NAME="Nobody" SERVER="#Server.Directory.Host#" PORT="#Server.Directory.Port#"
+          START="ou=Nowhere, #Server.Directory.BaseDN#" ATTRIBUTES="cn">
+  <CFCATCH TYPE="Any">
+    <CFOUTPUT><P><B>#CFCATCH.Message#</B> (ErrorCode #CFCATCH.ErrorCode#)</P></CFOUTPUT>
+  </CFCATCH>
+</CFTRY>
+see: CFQUERY, CFOUTPUT, CFTRY, CFAUTHENTICATE
 
 @tag CFFILE
 category: File, directory and system
